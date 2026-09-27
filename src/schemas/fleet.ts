@@ -51,3 +51,13 @@ export const CharacterFleetInfoSchema = z.looseObject({
   squad_id: z.number(),
   wing_id: z.number(),
 });
+
+/** POST fleets/{fleet_id}/wings: the new wing's ID. */
+export const FleetWingCreatedSchema = z.looseObject({
+  wing_id: z.number(),
+});
+
+/** POST fleets/{fleet_id}/wings/{wing_id}/squads: the new squad's ID. */
+export const FleetSquadCreatedSchema = z.looseObject({
+  squad_id: z.number(),
+});

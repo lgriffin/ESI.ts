@@ -1,4 +1,5 @@
 import { ApiClient } from '../ApiClient';
+import { markTokenAccepted } from '../cache/cacheKey';
 import {
   EsiError,
   EsiNetworkError,
@@ -152,6 +153,13 @@ export async function executeSingleFetch(
     clearTimeout(timer);
 
     const parsed = parseHeaders(response.headers);
+
+    // A 2xx or 304 to a bearer token is ESI accepting it: from here the
+    // character it names keys what this client serves without a request.
+    if (requiresAuth && (response.ok || response.status === 304)) {
+      const sent = req.headers['Authorization'];
+      if (sent) markTokenAccepted(client, sent);
+    }
 
     rateLimiter.updateFromResponse(
       parsed.raw,

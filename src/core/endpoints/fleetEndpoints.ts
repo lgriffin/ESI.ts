@@ -5,6 +5,8 @@ import {
   FleetMemberSchema,
   FleetWingSchema,
   CharacterFleetInfoSchema,
+  FleetWingCreatedSchema,
+  FleetSquadCreatedSchema,
 } from '../../schemas/fleet';
 
 export const fleetEndpoints = {
@@ -83,6 +85,7 @@ export const fleetEndpoints = {
   createFleetWing: {
     path: 'fleets/{fleetId}/wings/',
     method: 'POST',
+    responseSchema: FleetWingCreatedSchema,
     requiresAuth: true,
     pathParams: ['fleetId'],
     hasBody: true,
@@ -103,6 +106,7 @@ export const fleetEndpoints = {
   createFleetSquad: {
     path: 'fleets/{fleetId}/wings/{wingId}/squads/',
     method: 'POST',
+    responseSchema: FleetSquadCreatedSchema,
     requiresAuth: true,
     pathParams: ['fleetId', 'wingId'],
   },

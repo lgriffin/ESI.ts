@@ -88,8 +88,13 @@ describe('Zod Schema Fuzz Tests', () => {
 
   describe('parse rejects invalid input types', () => {
     for (const [name, schema] of schemaEntries) {
-      it(`${name} should reject non-object primitives via safeParse`, () => {
-        for (const value of [null, undefined, 42, 'string', true]) {
+      // A bare-number response (a new mail id, a CSPA cost) accepts 42 by design.
+      const invalid =
+        schema instanceof z.ZodNumber
+          ? [null, undefined, 'string', true]
+          : [null, undefined, 42, 'string', true];
+      it(`${name} should reject primitives of the wrong type via safeParse`, () => {
+        for (const value of invalid) {
           const result = schema.safeParse(value);
           expect(result.success).toBe(false);
         }

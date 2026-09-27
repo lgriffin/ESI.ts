@@ -12,6 +12,8 @@ import {
   CharacterTitleSchema,
   CharacterRoleSchema,
   ContactNotificationSchema,
+  CharacterAffiliationSchema,
+  CspaChargeCostSchema,
 } from '../../schemas/character';
 import { StandingSchema } from '../../schemas/common';
 
@@ -103,12 +105,14 @@ export const characterEndpoints = {
   postCharacterAffiliation: {
     path: 'characters/affiliation',
     method: 'POST',
+    responseSchema: z.array(CharacterAffiliationSchema),
     requiresAuth: false,
     hasBody: true,
   },
   calculateCspaChargeCost: {
     path: 'characters/{characterId}/cspa/',
     method: 'POST',
+    responseSchema: CspaChargeCostSchema,
     requiresAuth: true,
     pathParams: ['characterId'],
     hasBody: true,

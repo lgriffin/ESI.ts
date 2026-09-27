@@ -6,6 +6,8 @@ import {
   MailLabelSchema,
   MailLabelsResponseSchema,
   MailingListSchema,
+  MailIdSchema,
+  MailLabelIdSchema,
 } from '../../schemas/mail';
 
 export const mailEndpoints = {
@@ -19,6 +21,7 @@ export const mailEndpoints = {
   sendMail: {
     path: 'characters/{characterId}/mail/',
     method: 'POST',
+    responseSchema: MailIdSchema,
     requiresAuth: true,
     pathParams: ['characterId'],
     hasBody: true,
@@ -68,6 +71,7 @@ export const mailEndpoints = {
   createMailLabel: {
     path: 'characters/{characterId}/mail/labels/',
     method: 'POST',
+    responseSchema: MailLabelIdSchema,
     requiresAuth: true,
     pathParams: ['characterId'],
     hasBody: true,

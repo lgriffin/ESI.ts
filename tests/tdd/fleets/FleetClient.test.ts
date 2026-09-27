@@ -219,7 +219,9 @@ describe('FleetClient', () => {
   });
 
   it('should create a fleet wing', async () => {
-    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
+    fetchMock.mockResponseOnce(JSON.stringify({ wing_id: 7 }), {
+      status: 201,
+    });
 
     const body = { name: 'New Wing' };
 
@@ -227,7 +229,7 @@ describe('FleetClient', () => {
       fleetClient.createFleetWing(1234567890, body),
     );
 
-    expect(result).toBeUndefined();
+    expect(result).toEqual({ wing_id: 7 });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/fleets/1234567890/wings/',
     );
@@ -272,13 +274,15 @@ describe('FleetClient', () => {
   });
 
   it('should create a fleet squad', async () => {
-    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
+    fetchMock.mockResponseOnce(JSON.stringify({ squad_id: 9 }), {
+      status: 201,
+    });
 
     const result = await getBody(() =>
       fleetClient.createFleetSquad(1234567890, 1),
     );
 
-    expect(result).toBeUndefined();
+    expect(result).toEqual({ squad_id: 9 });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/fleets/1234567890/wings/1/squads/',
     );

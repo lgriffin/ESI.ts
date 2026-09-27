@@ -248,6 +248,7 @@
     "spec:generate": "ts-node scripts/spec-generate.ts",
     "spec:generate:check": "ts-node scripts/spec-generate.ts --check",
     "spec:coverage": "ts-node scripts/spec-coverage.ts",
+    "spec:response-schemas": "ts-node scripts/spec-response-schemas.ts",
     "spec:audit": "ts-node scripts/spec-audit.ts",
     "spec:audit:verbose": "ts-node scripts/spec-audit.ts --verbose",
     "bdd:report": "ts-node scripts/bdd-report.ts",

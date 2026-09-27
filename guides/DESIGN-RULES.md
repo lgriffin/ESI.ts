@@ -45,7 +45,7 @@ The only `z.object` calls in `src/` are internal helpers in `src/schemas/common.
 
 ### Types come from schemas (DES-02)
 
-`createClient` infers each method's return type from `responseSchema`. A definition without one compiles, but the method returns `Promise<unknown>`, which is a silent regression for every caller. Every new definition that returns a body ships a schema; only an operation whose success is `204 No Content` may omit it. Some older mutations that do return a body (for example `postCharacterAffiliation`, `createFitting`, `sendMail`) still lack one and should not be copied. The matching exported type is a `z.infer` alias rather than a second hand-written interface. The spec-derived interfaces in `src/types/generated/` are exported separately under the `EsiSpec` namespace for reference; they are not what the clients return.
+`createClient` infers each method's return type from `responseSchema`. A definition without one compiles, but the method returns `Promise<unknown>`, which is a silent regression for every caller. Every definition that returns a body ships a schema; only an operation whose success is `204 No Content`, or a `textResponse` document, may omit it. `npm run spec:response-schemas` enforces this in CI against the vendored spec. The matching exported type is a `z.infer` alias rather than a second hand-written interface. The spec-derived interfaces in `src/types/generated/` are exported separately under the `EsiSpec` namespace for reference; they are not what the clients return.
 
 ### Immutability (DES-06)
 

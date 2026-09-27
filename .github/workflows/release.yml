@@ -184,6 +184,8 @@ jobs:
     name: 📚 Deploy Documentation
     runs-on: ubuntu-latest
     needs: validate-release
+    # One deploy per release: the tag-push run would race the release run.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && github.event.action == 'published')
     permissions:
       contents: write
 
@@ -394,6 +396,26 @@ jobs:
             checksums.txt \
             README.md \
             LICENSE
+
+  # Start the post-publish canary once npm has the version and the release
+  # assets are uploaded (or failed to upload: the canary reports that too).
+  # The canary has no release trigger of its own, because on release:
+  # published it would race this pipeline.
+  dispatch-canary:
+    name: 🐤 Dispatch post-publish canary
+    runs-on: ubuntu-latest
+    needs: [publish-npm, sign-and-publish-assets]
+    if: always() && needs.publish-npm.result == 'success'
+    permissions:
+      actions: write # workflow_dispatch post-publish-canary.yml
+
+    steps:
+      - name: 🐤 Dispatch the canary on this tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: gh workflow run post-publish-canary.yml --repo "$REPO" --ref "$TAG"
 
   # Job 5: Notify Success
   notify-success:
