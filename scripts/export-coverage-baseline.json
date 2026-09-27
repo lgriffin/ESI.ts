@@ -184,7 +184,6 @@
       "StructureMarketOrder",
       "SystemJump",
       "SystemKill",
-      "TokenProvider",
       "TypeInfo",
       "UnwrapArray",
       "ValidationDirection",
@@ -193,7 +192,6 @@
       "War",
       "WarId",
       "WithSafeMode",
-      "createDefaultLogger",
       "toPinoLogger"
     ],
     "./errors": ["ValidationDirection"],
