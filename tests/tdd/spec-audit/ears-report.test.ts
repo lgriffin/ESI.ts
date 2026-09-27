@@ -5,7 +5,7 @@
  * builds a ledger by hand so one verdict, pattern or feedback line changes at
  * a time.
  */
-import type { ScenarioCase } from '../../../scripts/bdd-report-core';
+import type { ScenarioCase } from '../../../scripts/quality/bdd-report-core';
 import {
   OutlineSummary,
   buildReport,
@@ -15,7 +15,7 @@ import {
   reportFails,
   toConsole,
   toMarkdown,
-} from '../../../scripts/ears-core';
+} from '../../../scripts/quality/ears-core';
 
 const FILE = 'tests/bdd/features/core/0001-alpha.feature';
 const OTHER = 'tests/bdd/features/core/0002-beta.feature';

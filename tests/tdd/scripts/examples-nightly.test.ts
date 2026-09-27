@@ -1,6 +1,6 @@
 /**
- * Self-tests for the nightly example run (scripts/examples-core.ts,
- * scripts/examples-strict.cjs).
+ * Self-tests for the nightly example run (scripts/docs/examples-core.ts,
+ * scripts/docs/examples-strict.cjs).
  *
  * The nightly workflow can only verify what it runs, so the cases over the
  * real repository matter most: every example declares a tier, every example
@@ -24,7 +24,7 @@ import {
   tierOf,
   uncoveredPublicEndpoints,
   verdictOf,
-} from '../../../scripts/examples-core';
+} from '../../../scripts/docs/examples-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const EXAMPLES = path.join(ROOT, 'examples');
@@ -117,7 +117,7 @@ describe('the examples in examples/', () => {
   });
 
   const exceptions = require(
-    path.join(ROOT, 'scripts/examples-coverage-exceptions.json'),
+    path.join(ROOT, 'scripts/docs/examples-coverage-exceptions.json'),
   ) as Record<string, string>;
   const uncovered = () => {
     const nightly = exampleFiles
@@ -303,8 +303,8 @@ describe('verdicts and reporting', () => {
   });
 });
 
-describe('scripts/examples-strict.cjs', () => {
-  const strict = path.join(ROOT, 'scripts/examples-strict.cjs');
+describe('scripts/docs/examples-strict.cjs', () => {
+  const strict = path.join(ROOT, 'scripts/docs/examples-strict.cjs');
   const run = (code: string) =>
     spawnSync(process.execPath, ['-r', strict, '-e', code], {
       encoding: 'utf8',

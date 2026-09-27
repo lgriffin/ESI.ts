@@ -1,5 +1,5 @@
 /**
- * Self-tests for the local tier runner (scripts/verify-local-core.ts,
+ * Self-tests for the local tier runner (scripts/quality/verify-local-core.ts,
  * npm run check:local).
  *
  * The runner's only real promise is that its list is the whole list. A list
@@ -29,7 +29,7 @@ import {
   uncoveredCiTools,
   uncoveredCiScripts,
   unknownScripts,
-} from '../../../scripts/verify-local-core';
+} from '../../../scripts/quality/verify-local-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
 

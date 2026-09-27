@@ -1,5 +1,5 @@
 // Time and randomness in src/ go through the clock module. The ratchet over
-// existing sites is npm run lint:determinism (scripts/determinism-lint.ts);
+// existing sites is npm run lint:determinism (scripts/quality/determinism-lint.ts);
 // this config lists every site with its location:
 //   npx eslint --config config/eslint/determinism.config.mjs --no-inline-config src
 import tseslint from 'typescript-eslint';

@@ -1,5 +1,5 @@
 /**
- * Self-tests for the npm script target check (scripts/package-scripts-core.ts).
+ * Self-tests for the npm script target check (scripts/quality/package-scripts-core.ts).
  *
  * `sde:seed` ran `ts-node scripts/seed-sde-test-db.ts` and
  * `example:sde-cross-ref` ran `ts-node examples/sde-cross-reference.ts`. Neither
@@ -23,7 +23,7 @@ import {
   scriptsNamedIn,
   targetsIn,
   undefinedScripts,
-} from '../../../scripts/package-scripts-core';
+} from '../../../scripts/quality/package-scripts-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
 
@@ -100,8 +100,8 @@ describe('scriptsNamedIn', () => {
 
 describe('targetsIn', () => {
   it('finds a ts-node script', () => {
-    expect(targetsIn('a', 'ts-node scripts/spec-audit.ts')).toEqual([
-      { script: 'a', path: 'scripts/spec-audit.ts' },
+    expect(targetsIn('a', 'ts-node scripts/spec/spec-audit.ts')).toEqual([
+      { script: 'a', path: 'scripts/spec/spec-audit.ts' },
     ]);
   });
 
@@ -110,8 +110,10 @@ describe('targetsIn', () => {
       targetsIn('a', 'ts-node examples/status.ts').map((t) => t.path),
     ).toEqual(['examples/status.ts']);
     expect(
-      targetsIn('a', 'bash scripts/run-schemathesis.sh').map((t) => t.path),
-    ).toEqual(['scripts/run-schemathesis.sh']);
+      targetsIn('a', 'bash scripts/spec/run-schemathesis.sh').map(
+        (t) => t.path,
+      ),
+    ).toEqual(['scripts/spec/run-schemathesis.sh']);
   });
 
   it('finds a runner config, spelled either way', () => {

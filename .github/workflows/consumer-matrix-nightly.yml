@@ -1,6 +1,6 @@
 name: Nightly Consumer Matrix
 
-# The consumer contract (scripts/consumer-contract.ts) on the part of the
+# The consumer contract (scripts/quality/consumer-contract.ts) on the part of the
 # matrix pull requests do not run: TypeScript's nightly `next` build and its
 # `latest` release, on the current Node release and the active LTS, plus the
 # oldest supported TypeScript on current Node. A failure here is a

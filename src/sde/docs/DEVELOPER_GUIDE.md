@@ -232,13 +232,13 @@ Detection: any object with an `en` key is treated as a locale map.
 
 ```bash
 # Download and extract SDE data
-npx ts-node scripts/sde-ingest.ts --output sde-data
+npx ts-node scripts/sde/sde-ingest.ts --output sde-data
 
 # Check latest build without downloading
-npx ts-node scripts/sde-ingest.ts --check
+npx ts-node scripts/sde/sde-ingest.ts --check
 
 # Force re-download
-npx ts-node scripts/sde-ingest.ts --force --output sde-data
+npx ts-node scripts/sde/sde-ingest.ts --force --output sde-data
 ```
 
 The script downloads from `https://developers.eveonline.com/static-data/eve-online-static-data-latest-yaml.zip`.
@@ -337,7 +337,7 @@ After downloading SDE data, run the integration test suite:
 
 ```bash
 # Download data
-npx ts-node scripts/sde-ingest.ts --output sde-data
+npx ts-node scripts/sde/sde-ingest.ts --output sde-data
 
 # Run integration tests (63 tests, ~60s)
 npx jest --config config/jest/integration.config.cjs -- tests/integration/sde/

@@ -53,7 +53,7 @@ Findings, re-checked on 2026-09-26 after Phase 1 re-vendored the spec at
 `.github/workflows/spec-refresh.yml`:
 
 1. **Resolved: the vendored spec now matches the date the client sends.** It
-   was pinned to 2025-12-16 (208 operations); `scripts/snapshot-openapi.ts`
+   was pinned to 2025-12-16 (208 operations); `scripts/spec/snapshot-openapi.ts`
    now defaults to `COMPATIBILITY_DATE`. `npm run spec:coverage` checks the
    generated operations against it in CI.
 2. **Every spec operation has a definition.** `GET /sovereignty/map` and
@@ -69,7 +69,7 @@ Findings, re-checked on 2026-09-26 after Phase 1 re-vendored the spec at
 
 ## Mutation baseline
 
-Per-directory floors enforced by the nightly ratchet (`scripts/mutation-ratchet.ts`).
+Per-directory floors enforced by the nightly ratchet (`scripts/mutation/mutation-ratchet.ts`).
 Stryker's global `break` is `null`; the gate is per directory. A dash means the
 file sets no floor for that directory.
 

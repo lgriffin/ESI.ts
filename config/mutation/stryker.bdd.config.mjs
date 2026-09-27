@@ -12,7 +12,7 @@ const projectRoot = path.resolve(__dirname, '../..');
  * run asks the narrower question the specification has to answer: would any
  * scenario notice? Only tests/bdd step definitions execute, so a mutant that
  * survives here is a behaviour no Rule protects. Scores are ratcheted per
- * source directory by scripts/mutation-ratchet.ts against
+ * source directory by scripts/mutation/mutation-ratchet.ts against
  * config/mutation/bdd-thresholds.json.
  *
  * Sharding. Mutating all of src/ against the BDD suite in one job does not

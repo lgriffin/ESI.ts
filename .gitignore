@@ -82,7 +82,7 @@ temp/
 # Test reports and coverage
 reports/
 
-# Benchmark harness bundles (scripts/bench-ab.ts)
+# Benchmark harness bundles (scripts/bench/bench-ab.ts)
 .bench-out/
 report/
 

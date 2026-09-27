@@ -20,7 +20,7 @@ Where the documentation lives, how the API reference is built and published, how
 | Agent instructions                  | `CLAUDE.md`, `AGENTS.md`                 | How an agent works in the repository; the SemVer section is mirrored and checked                |
 | Changelog                           | `CHANGELOG.md`                           | Written by release-please from conventional commits                                             |
 
-`docs-site/` holds VitePress sources (`guide/`, `reference/`, `examples/`) that duplicate parts of the README and are not built or deployed by any workflow. The site build (`scripts/sync-docs.ts` copying `guides/` into `docs-site/guide/`, a VitePress build in `release.yml`, TypeDoc under `/api/`) is ROADMAP Phase 7 and [#264](https://github.com/lgriffin/ESI.ts/issues/264) (`DOC-03`). Until then, edit the guide, not the `docs-site/` copy.
+`docs-site/` holds VitePress sources (`guide/`, `reference/`, `examples/`) that duplicate parts of the README and are not built or deployed by any workflow. The site build (`scripts/docs/sync-docs.ts` copying `guides/` into `docs-site/guide/`, a VitePress build in `release.yml`, TypeDoc under `/api/`) is ROADMAP Phase 7 and [#264](https://github.com/lgriffin/ESI.ts/issues/264) (`DOC-03`). Until then, edit the guide, not the `docs-site/` copy.
 
 ## API reference (TypeDoc)
 
@@ -93,7 +93,7 @@ Use `no-check` for blocks that are not consumer code: method signature listings,
 
 ### Known-broken examples
 
-When an example exposes a real mismatch that cannot be fixed in the docs alone, mark it `no-check` with a reason that names the bead tracking it, for example `<!-- doc-example: no-check esi-abc.1 getFoo was removed; decide the replacement -->`, and list its key in [`scripts/doc-examples-baseline.json`](../scripts/doc-examples-baseline.json). The key is the file, the nearest heading, and the block's position under that heading: `README.md#Quick Start [1]`.
+When an example exposes a real mismatch that cannot be fixed in the docs alone, mark it `no-check` with a reason that names the bead tracking it, for example `<!-- doc-example: no-check esi-abc.1 getFoo was removed; decide the replacement -->`, and list its key in [`scripts/docs/doc-examples-baseline.json`](../scripts/docs/doc-examples-baseline.json). The key is the file, the nearest heading, and the block's position under that heading: `README.md#Quick Start [1]`.
 
 The baseline only shrinks. The run fails when a `no-check` names a bead but is not listed, when a listed block no longer exists or no longer names a bead (remove the entry once the example is fixed), and when an entry is not on `origin/master` already. Without `origin/master` to compare with, the run fails closed; CI fetches it first.
 
@@ -105,8 +105,8 @@ The baseline only shrinks. The run fails when a `no-check` names a bead but is n
 
 ROADMAP Phase 7 rewrites the documentation against the new client. Nothing in this list exists yet:
 
-- `scripts/sync-docs.ts` copies `guides/` into `docs-site/guide/`; `release.yml` builds VitePress and deploys it with the TypeDoc output under `/api/` (`DOC-03`, [#264](https://github.com/lgriffin/ESI.ts/issues/264)).
-- `scripts/doc-metrics.ts` writes `etc/doc-metrics.json`, and `validate:versions` fails on a stale README or site version banner (`DOC-04`, [#272](https://github.com/lgriffin/ESI.ts/issues/272)).
+- `scripts/docs/sync-docs.ts` copies `guides/` into `docs-site/guide/`; `release.yml` builds VitePress and deploys it with the TypeDoc output under `/api/` (`DOC-03`, [#264](https://github.com/lgriffin/ESI.ts/issues/264)).
+- `scripts/docs/doc-metrics.ts` writes `etc/doc-metrics.json`, and `validate:versions` fails on a stale README or site version banner (`DOC-04`, [#272](https://github.com/lgriffin/ESI.ts/issues/272)).
 - Root `TESTING.md` and `guides/MUTATION-TESTING.md` fold into `guides/TESTING.md` (`DOC-01`, [#273](https://github.com/lgriffin/ESI.ts/issues/273)).
 - The README becomes an orientation page written against `createEsi` and `esi.as(identity)`, every snippet checked by `test:docs-examples`. `guides/MULTI-CHARACTER.md` arrived with ROADMAP Phase 2 PR 11.
 - The Beads blocks in `AGENTS.md` and `CLAUDE.md` become pointers ([#276](https://github.com/lgriffin/ESI.ts/issues/276)).

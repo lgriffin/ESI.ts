@@ -10,8 +10,8 @@ on:
     branches: [master, main, develop]
     paths:
       - '.claude/skills/**'
-      - 'scripts/skill-eval.ts'
-      - 'scripts/skill-eval-judges.ts'
+      - 'scripts/quality/skill-eval.ts'
+      - 'scripts/quality/skill-eval-judges.ts'
       - 'tests/tdd/scripts/skill-eval-judges.test.ts'
       - '.github/workflows/skill-eval.yml'
   workflow_dispatch:
@@ -56,10 +56,10 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           BASE_REF: ${{ github.base_ref }}
-        run: npx ts-node scripts/skill-eval.ts --check-version "origin/${BASE_REF}"
+        run: npx ts-node scripts/quality/skill-eval.ts --check-version "origin/${BASE_REF}"
 
       - name: Judge recorded outputs (offline)
-        run: npx ts-node scripts/skill-eval.ts --json skill-eval-offline.json
+        run: npx ts-node scripts/quality/skill-eval.ts --json skill-eval-offline.json
 
       - name: Upload offline report
         if: always()
@@ -110,7 +110,7 @@ jobs:
       - name: Run live skill eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: npx ts-node scripts/skill-eval.ts --live --json skill-eval-live.json
+        run: npx ts-node scripts/quality/skill-eval.ts --live --json skill-eval-live.json
 
       - name: Upload live report
         if: always()

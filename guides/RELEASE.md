@@ -279,7 +279,7 @@ jq -r '.metadata.component.purl, (.components[] | "\(.name)@\(.version)")' lgrif
 
 What it describes: the runtime dependency tree of the tarball's own `package.json` (`dependencies` and everything they pull in), at the versions in this repository's `package-lock.json` — the ones the release was tested with. A consumer's install resolves the same ranges and can pick newer patches, so the SBOM states what was shipped and tested, not what every install will contain. Dev dependencies are not in it, and neither are the optional peers (`better-sqlite3`, `js-yaml`, `adm-zip`), which a default install does not fetch. The build bundles no third-party package, so the dependency tree is the whole inventory.
 
-`npm run release:sbom -- --tarball <file>` generates it. `scripts/release-sbom-core.ts` fails the release if the document is not CycloneDX, does not name `@lgriffin/esi.ts` at the tagged version with its purl, or leaves out a runtime dependency, and explains why it does not use `npm sbom --omit dev` on the checkout (that drops `zod` and part of pino's tree, because dev tools share them). `tests/tdd/release-sbom/` runs the generator against the repository on every `npm test`.
+`npm run release:sbom -- --tarball <file>` generates it. `scripts/release/release-sbom-core.ts` fails the release if the document is not CycloneDX, does not name `@lgriffin/esi.ts` at the tagged version with its purl, or leaves out a runtime dependency, and explains why it does not use `npm sbom --omit dev` on the checkout (that drops `zod` and part of pino's tree, because dev tools share them). `tests/tdd/release-sbom/` runs the generator against the repository on every `npm test`.
 
 ---
 
@@ -294,7 +294,7 @@ What it describes: the runtime dependency tree of the tarball's own `package.jso
 | README banner                                                       | by hand                            | nothing                     |
 | docs-site version menu                                              | by hand                            | nothing                     |
 
-`scripts/validate-versions.ts` compares `package.json` with `PACKAGE_VERSION` and exits non-zero on a mismatch. It runs in `npm run check:all`, not in CI. The charter's direction is to extend it to the README and site, or to remove those banners.
+`scripts/package/validate-versions.ts` compares `package.json` with `PACKAGE_VERSION` and exits non-zero on a mismatch. It runs in `npm run check:all`, not in CI. The charter's direction is to extend it to the README and site, or to remove those banners.
 
 ---
 
@@ -302,7 +302,7 @@ What it describes: the runtime dependency tree of the tarball's own `package.jso
 
 The supported major versions are listed once, in the root [SECURITY.md](../SECURITY.md). Update that table in the same pull request as a major release.
 
-The package declares `"engines": { "node": ">=18.0.0" }` (REL-05) and supports TypeScript 5.4 or later for consumers (`OLDEST_TYPESCRIPT` in `scripts/consumer-contract-core.ts`; zod 4's declarations need `NoInfer`, added in 5.4). The consumer contract checks both floors on every pull request and release. Pull requests run unit tests on Node 18, 20 and 22. Release jobs and the rest of CI run on Node 20, which is also the version in `.nvmrc`. Node 18 is the floor because the transport uses the global `fetch`.
+The package declares `"engines": { "node": ">=18.0.0" }` (REL-05) and supports TypeScript 5.4 or later for consumers (`OLDEST_TYPESCRIPT` in `scripts/quality/consumer-contract-core.ts`; zod 4's declarations need `NoInfer`, added in 5.4). The consumer contract checks both floors on every pull request and release. Pull requests run unit tests on Node 18, 20 and 22. Release jobs and the rest of CI run on Node 20, which is also the version in `.nvmrc`. Node 18 is the floor because the transport uses the global `fetch`.
 
 ---
 

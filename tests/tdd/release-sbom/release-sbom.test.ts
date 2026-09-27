@@ -1,5 +1,5 @@
 /**
- * Self-tests for the release SBOM (scripts/release-sbom-core.ts, SEC-06).
+ * Self-tests for the release SBOM (scripts/release/release-sbom-core.ts, SEC-06).
  *
  * The SBOM is attached to a release and signed, so a wrong one is worse than
  * none: it tells a consumer's scanner the package contains something it does
@@ -25,8 +25,8 @@ import {
   readTarEntry,
   sbomFileName,
   sbomProblems,
-} from '../../../scripts/release-sbom-core';
-import { generateSbom } from '../../../scripts/release-sbom';
+} from '../../../scripts/release/release-sbom-core';
+import { generateSbom } from '../../../scripts/release/release-sbom';
 
 const ROOT = path.resolve(__dirname, '../../..');
 
