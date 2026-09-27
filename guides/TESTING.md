@@ -445,6 +445,31 @@ The feature files are an EARS specification, and three gates decide whether a Ru
 - **Executed:** `mkdir -p reports/bdd`, `npm run bdd -- --json --outputFile=reports/bdd/jest-results.json` then `npm run bdd:report` joins the run to the feature files. It fails when any scenario did not execute (`feature-not-run`, `scenario-not-executed`), and writes `reports/bdd/junit.xml` with each test case named `Feature › Rule › Scenario`. CI uploads it as the `bdd-junit` artifact and puts the Rules not verified in the job summary.
 - **Able to fail:** `npm run mutation:bdd:ratchet` floors the BDD-only mutation score per source directory in `mutation-bdd-thresholds.json`. Every scored directory has a floor, seeded on 19 September 2026 from the first complete BDD matrix (see `guides/MUTATION-TESTING.md`, "Where the scores stand"), and a directory without one fails the ratchet.
 
+#### The standalone EARS check
+
+`npm run ears` runs the first two gates on their own, outside `npm test`, and answers per requirement rather than per scenario. It runs the spec audit, runs the BDD scenarios with Jest's JSON output, joins the run to the feature files, and gives every `Rule:` one verdict:
+
+- **PASS** (verified): every scenario under the Rule ran and passed.
+- **FAIL** (failing): at least one scenario under it ran and failed.
+- **NOT RUN** (unverified): nothing failed, but a scenario under it did not execute, so the Rule is documentation, not protection.
+
+It exits 1 when the audit fails or any requirement is not PASS, and writes `reports/ears/`:
+
+- `ears-report.md`: the totals, the requirements not verified and why, advisory feedback on the specification (the EARS pattern mix, how many requirements rest on a single scenario, and which features state no `If …, then … shall` unwanted-behaviour requirement), then every requirement by feature;
+- `ears-report.json`: the same data for tooling;
+- `junit.xml`: the scenario-level JUnit report `bdd:report` writes.
+
+Each requirement has an id, `<feature file stem>#R<n>` (for example `0023-market#R4`), counting Rules from 1 in file order, so a verdict can be quoted and found.
+
+```bash
+npm run ears                          # everything
+npm run ears -- --only=market         # features whose path contains "market"
+npm run ears -- --results=<jest json> # report an existing run without re-running it
+npm run ears -- --skip-audit          # verdicts only
+```
+
+`.github/workflows/ears.yml` runs the same command on pull requests that touch the specification or `src/`, and on demand from the Actions tab; the report is the `ears-report` artifact and the job summary.
+
 #### BDD Test Categories
 
 - **Core** (`bdd/features/core/`): Domain-specific scenarios for all 37 domain clients plus cross-cutting concerns (ETag caching, response headers)

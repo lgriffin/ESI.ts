@@ -31,6 +31,7 @@ npm run bdd            # All BDD scenario tests
 npm run bdd:<domain>   # Single BDD suite (e.g., bdd:market, bdd:character)
 npm run bdd:steps      # BDD dry run: every step matches one definition, none unused
 npm run spec:audit     # EARS/Gherkin specification audit (feature files)
+npm run ears           # Standalone EARS check: audit + scenarios, one verdict per requirement (reports/ears/; --only=<domain>)
 npm run test:integration  # Integration tests
 npm run contract       # Contract tests against live ESI spec
 npm run fuzz           # Property-based fuzz tests (fast-check)
