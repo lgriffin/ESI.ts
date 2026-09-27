@@ -190,8 +190,7 @@
       "WalletTransaction",
       "War",
       "WarId",
-      "WithSafeMode",
-      "toPinoLogger"
+      "WithSafeMode"
     ],
     "./errors": ["ValidationDirection"],
     "./schemas": [

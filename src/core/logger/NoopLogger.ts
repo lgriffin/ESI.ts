@@ -9,6 +9,7 @@ const noopLogger: ILogger = {
   info: noop,
   debug: noop,
   trace: noop,
+  isLevelEnabled: () => false,
 };
 
 /**

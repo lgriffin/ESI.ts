@@ -4,11 +4,15 @@
  * every request URL, the way an application passing a credential in the query
  * would.
  */
-import type { ILogger, LogContext } from '../../../src/core/logger/ILogger';
+import type {
+  ILogger,
+  LogContext,
+  LoggerLevel,
+} from '../../../src/core/logger/ILogger';
 import type { RequestInterceptor } from '../../../src/core/middleware/Middleware';
 
 export interface LoggedLine {
-  level: keyof ILogger;
+  level: LoggerLevel;
   message: string;
   context: LogContext | undefined;
 }
@@ -20,7 +24,7 @@ export interface RecordingLogger extends ILogger {
 export function recordingLogger(): RecordingLogger {
   const lines: LoggedLine[] = [];
   const at =
-    (level: keyof ILogger) =>
+    (level: LoggerLevel) =>
     (message: string, context?: LogContext): void => {
       lines.push({ level, message, context });
     };

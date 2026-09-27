@@ -1,9 +1,7 @@
 import type { ApiClient } from '../ApiClient';
-import type { LogContext } from './ILogger';
+import type { LogContext, LoggerLevel as Level } from './ILogger';
 import { redactLogContext, redactLogText } from './redactLog';
 import { resolveLogger } from './resolveLogger';
-
-type Level = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 
 type Emit = (
   client: ApiClient | null | undefined,
@@ -20,10 +18,9 @@ type Emit = (
 const emit =
   (level: Level): Emit =>
   (client, message, context) => {
-    resolveLogger(client)[level](
-      redactLogText(message),
-      redactLogContext(context),
-    );
+    const logger = resolveLogger(client);
+    if (logger.isLevelEnabled?.(level) === false) return;
+    logger[level](redactLogText(message), redactLogContext(context));
   };
 
 export const logFatal: Emit = emit('fatal');

@@ -12,6 +12,15 @@ const SENSITIVE_PARAMS = [
   'bearer',
 ];
 
+/**
+ * Matches text that may carry a query parameter `sanitizeUrl` redacts: one of
+ * the names above, or a percent-encoded name it could decode to. A cheap
+ * prefilter, so a line without one skips URL parsing entirely.
+ */
+export const SENSITIVE_QUERY_PATTERN: RegExp = new RegExp(
+  `[?&](?:(?:${SENSITIVE_PARAMS.join('|')})(?![A-Za-z0-9_])|[^?&=\\s]*%)`,
+);
+
 export function sanitizeUrl(url?: string): string | undefined {
   if (!url) return url;
   try {

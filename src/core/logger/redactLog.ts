@@ -1,4 +1,4 @@
-import { sanitizeUrl } from '../util/error';
+import { SENSITIVE_QUERY_PATTERN, sanitizeUrl } from '../util/error';
 import type { LogContext } from './ILogger';
 
 /** Base for resolving a relative path such as `/characters/1/?token=x`. */
@@ -76,7 +76,7 @@ function redactWord(word: string): string {
 
 /** Redact every URL embedded in a piece of log text. */
 export function redactLogText(text: string): string {
-  if (!text.includes('?')) return text;
+  if (!text.includes('?') || !SENSITIVE_QUERY_PATTERN.test(text)) return text;
   return text.split(/(\s+)/).map(redactWord).join('');
 }
 
@@ -90,14 +90,31 @@ export function redactLogContext(
   context: LogContext | undefined,
 ): LogContext | undefined {
   if (!context) return undefined;
-  const entries = Object.entries(context);
-  if (entries.length === 0) return undefined;
-  let changed = false;
-  const redacted = entries.map(([key, value]): [string, unknown] => {
-    if (typeof value !== 'string') return [key, value];
-    const safe = redactLogText(value);
-    if (safe !== value) changed = true;
-    return [key, safe];
-  });
-  return changed ? Object.fromEntries(redacted) : context;
+  const keys = Object.keys(context);
+  if (keys.length === 0) return undefined;
+  for (const key of keys) {
+    if (mayCarrySecret(context[key])) return redactValues(context, keys);
+  }
+  return context;
+}
+
+/** The prefilter `redactLogText` applies, inlined for the hot path. */
+function mayCarrySecret(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    value.includes('?') &&
+    SENSITIVE_QUERY_PATTERN.test(value)
+  );
+}
+
+function redactValues(
+  context: LogContext,
+  keys: readonly string[],
+): LogContext {
+  const redacted: LogContext = {};
+  for (const key of keys) {
+    const value = context[key];
+    redacted[key] = mayCarrySecret(value) ? redactLogText(value) : value;
+  }
+  return redacted;
 }
