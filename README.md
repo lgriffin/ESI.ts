@@ -110,7 +110,7 @@ A request no route answers is rejected with an `EsiConfigurationError` naming th
 
 ## The engineering stance
 
-The project is run to a written [engineering charter](guides/CHARTER.md). It has 61 numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: 39 are **Enforced**, 6 Practised, 11 Partial and 5 Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
+The project is run to a written [engineering charter](guides/CHARTER.md). It has 61 numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: 40 are **Enforced**, 6 Practised, 11 Partial and 4 Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
 
 1. **The OpenAPI spec is upstream.** Types, cache TTLs, rate-limit groups, scopes and 233 typed operations are generated from it, and CI fails when they go stale.
 2. **Hand-write where judgement matters.** Method names, argument shapes and validation strictness are product decisions. Drift reports keep them honest against the spec.
