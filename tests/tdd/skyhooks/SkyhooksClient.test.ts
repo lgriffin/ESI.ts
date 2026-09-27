@@ -5,6 +5,7 @@ import { getConfig } from '../../../src/config/configManager';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
 import { describeClientErrors } from '../helpers/clientErrorTests';
+import type { RaidableSkyhooksResponse } from '../../../src';
 
 fetchMock.enableMocks();
 
@@ -94,29 +95,25 @@ describe('SkyhooksClient', () => {
   });
 
   it('should get raidable skyhooks', async () => {
-    const mockResponse = [
-      {
-        structure_id: 200000001,
-        system_id: 30000142,
-        corporation_id: 98000002,
-        alliance_id: 99000006,
-        raidable_at: '2026-05-20T12:00:00Z',
-        is_raidable: true,
-      },
-    ];
+    const mockResponse: RaidableSkyhooksResponse = {
+      skyhooks: [
+        {
+          planet_id: 40229601,
+          solar_system_id: 30003618,
+          theft_vulnerability: {
+            start: '2026-09-17T12:14:02Z',
+            end: '2026-09-17T14:14:02Z',
+          },
+        },
+      ],
+    };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() =>
       unauthSkyhooksClient.getRaidableSkyhooks(),
     );
-    expect(Array.isArray(result)).toBe(true);
-    result.forEach((skyhook: any) => {
-      expect(skyhook).toHaveProperty('structure_id');
-      expect(typeof skyhook.structure_id).toBe('number');
-      expect(skyhook).toHaveProperty('is_raidable');
-      expect(typeof skyhook.is_raidable).toBe('boolean');
-    });
+    expect(result).toEqual(mockResponse);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/skyhooks/raidable',
     );

@@ -237,10 +237,10 @@ This avoids building indexes for FK relationships that are never queried. Many o
 
 Two transform functions exist:
 
-| Function | Output types | Use case |
-|----------|-------------|----------|
-| `transformRecord` | `Record<string, SqliteValue>` | Legacy SQLite path (booleans to 0/1, objects to JSON strings) |
-| `transformRecordNative` | `Record<string, unknown>` | YAML-native path (preserves JS types as-is) |
+| Function                | Output types                  | Use case                                                      |
+| ----------------------- | ----------------------------- | ------------------------------------------------------------- |
+| `transformRecord`       | `Record<string, SqliteValue>` | Legacy SQLite path (booleans to 0/1, objects to JSON strings) |
+| `transformRecordNative` | `Record<string, unknown>`     | YAML-native path (preserves JS types as-is)                   |
 
 `transformRecordNative` is used by `SdeDataProvider`. Both share field normalization (`groupID` to `groupId`) and locale extraction (`{en: "Jita"}` to `"Jita"`).
 
@@ -261,11 +261,11 @@ All 102 YAML files are registered in one array:
 
 ```typescript
 interface SdeFileSpec {
-  yamlFile: string;      // "mapRegions.yaml"
-  tableName: string;     // "eve_regions"
-  idAttribute: string;   // "regionId"
+  yamlFile: string; // "mapRegions.yaml"
+  tableName: string; // "eve_regions"
+  idAttribute: string; // "regionId"
   idType: 'number' | 'string';
-  injectId: boolean;     // true = YAML key becomes the PK field
+  injectId: boolean; // true = YAML key becomes the PK field
 }
 ```
 
@@ -331,12 +331,12 @@ graph TB
 
 ### Test Infrastructure
 
-| Component | Purpose |
-|-----------|---------|
-| `SdeTestDataFactory` | Creates realistic test fixtures matching real CCP data structures. One factory method per entity type. `createHierarchicalTestData()` builds a connected graph of entities. |
-| `MemorySdeProvider` | Accepts typed arrays via `MemorySdeData`, implements `IStaticDataProvider`. Used in all unit and BDD tests. No file I/O. |
-| `IStaticDataProvider` contract tests | Verify null returns for missing IDs, empty arrays for missing FK values, and correct typing on all 97 methods. |
-| Integration tests | Load real CCP SDE data via `SdeDataProvider.fromDirectory()`. Skipped automatically when `sde-data/` directory is absent (CI-safe). |
+| Component                            | Purpose                                                                                                                                                                     |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SdeTestDataFactory`                 | Creates realistic test fixtures matching real CCP data structures. One factory method per entity type. `createHierarchicalTestData()` builds a connected graph of entities. |
+| `MemorySdeProvider`                  | Accepts typed arrays via `MemorySdeData`, implements `IStaticDataProvider`. Used in all unit and BDD tests. No file I/O.                                                    |
+| `IStaticDataProvider` contract tests | Verify null returns for missing IDs, empty arrays for missing FK values, and correct typing on all 97 methods.                                                              |
+| Integration tests                    | Load real CCP SDE data via `SdeDataProvider.fromDirectory()`. Skipped automatically when `sde-data/` directory is absent (CI-safe).                                         |
 
 ### Running Tests
 

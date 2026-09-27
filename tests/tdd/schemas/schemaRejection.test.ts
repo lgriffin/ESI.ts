@@ -180,6 +180,7 @@ import {
   SovereigntyHubSchema,
   OrbitalSkyhookSchema,
   RaidableSkyhookSchema,
+  RaidableSkyhooksResponseSchema,
 
   // sovereignty
   SovereigntyCampaignSchema,
@@ -2171,17 +2172,36 @@ const schemaCases: SchemaTestCase[] = [
     name: 'RaidableSkyhookSchema',
     schema: RaidableSkyhookSchema,
     validData: {
-      structure_id: 1,
-      system_id: 30000142,
-      corporation_id: 200,
-      is_raidable: false,
+      planet_id: 40229601,
+      solar_system_id: 30003618,
+      theft_vulnerability: {
+        start: '2026-09-17T12:14:02Z',
+        end: '2026-09-17T14:14:02Z',
+      },
     },
     invalidData: {
-      structure_id: 'bad',
-      system_id: 30000142,
-      corporation_id: 200,
-      is_raidable: false,
+      planet_id: 40229601,
+      solar_system_id: 30003618,
+      theft_vulnerability: { start: '2026-09-17T12:14:02Z' },
     },
+  },
+  {
+    // ESI wraps the list: { skyhooks: [...] }. Without the key it is rejected.
+    name: 'RaidableSkyhooksResponseSchema',
+    schema: RaidableSkyhooksResponseSchema,
+    validData: {
+      skyhooks: [
+        {
+          planet_id: 40229601,
+          solar_system_id: 30003618,
+          theft_vulnerability: {
+            start: '2026-09-17T12:14:02Z',
+            end: '2026-09-17T14:14:02Z',
+          },
+        },
+      ],
+    },
+    invalidData: {},
   },
 
   // ── sovereignty ───────────────────────────────────────────────────────────

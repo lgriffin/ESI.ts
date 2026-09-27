@@ -7883,14 +7883,29 @@ const RaceSchema: z.ZodObject<{
 // @public (undocumented)
 export type RaidableSkyhook = z.infer<typeof RaidableSkyhookSchema>;
 
-// @public (undocumented)
+// @public
 const RaidableSkyhookSchema: z.ZodObject<{
-    structure_id: z.ZodNumber;
-    system_id: z.ZodNumber;
-    corporation_id: z.ZodNumber;
-    alliance_id: z.ZodOptional<z.ZodNumber>;
-    raidable_at: z.ZodOptional<z.ZodString>;
-    is_raidable: z.ZodBoolean;
+    planet_id: z.ZodNumber;
+    solar_system_id: z.ZodNumber;
+    theft_vulnerability: z.ZodObject<{
+        start: z.ZodString;
+        end: z.ZodString;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type RaidableSkyhooksResponse = z.infer<typeof RaidableSkyhooksResponseSchema>;
+
+// @public
+const RaidableSkyhooksResponseSchema: z.ZodObject<{
+    skyhooks: z.ZodArray<z.ZodObject<{
+        planet_id: z.ZodNumber;
+        solar_system_id: z.ZodNumber;
+        theft_vulnerability: z.ZodObject<{
+            start: z.ZodString;
+            end: z.ZodString;
+        }, z.core.$loose>;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -8328,6 +8343,7 @@ declare namespace schemas {
         SovereigntyHubSchema,
         OrbitalSkyhookSchema,
         RaidableSkyhookSchema,
+        RaidableSkyhooksResponseSchema,
         SkyhookDetailReagentSchema,
         SkyhookDetailReinforcementTimerSchema,
         SkyhookDetailTheftVulnerabilitySchema,
@@ -8551,7 +8567,7 @@ const SkyhookDetailTheftVulnerabilitySchema: z.ZodObject<{
 export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
     constructor(client: ApiClient);
     getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhook[]>;
-    getRaidableSkyhooks(): Promise<RaidableSkyhook[]>;
+    getRaidableSkyhooks(): Promise<RaidableSkyhooksResponse>;
     getSkyhookDetail(corporationId: number, skyhookId: number): Promise<SkyhookDetail>;
     getSovereigntyHubDetail(corporationId: number, sovereigntyHubId: number): Promise<SovereigntyHubDetail>;
     getSovereigntyHubs(corporationId: number): Promise<SovereigntyHub[]>;
