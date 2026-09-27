@@ -165,6 +165,7 @@ All workflows live in `.github/workflows/`. Every action is pinned to a full com
 | `package-checks.yml`          | Pull request to `master`, `main`                                 | No                            | Status, step summary                                        |
 | `codeql.yml`                  | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC      | No                            | Code scanning alerts                                        |
 | `skill-eval.yml`              | PR touching `.claude/skills/**` or the skill eval runner; manual | No                            | Status, artifacts                                           |
+| `ears.yml`                    | PR touching `src/`, `tests/bdd/` or the EARS scripts; manual     | No                            | Status, step summary, `ears-report` artifact                |
 | `nightly-schemathesis.yml`    | Daily 01:00 UTC; manual                                          | No                            | Artifact                                                    |
 | `nightly-mutation.yml`        | Daily 02:00 UTC; manual                                          | No                            | Artifact                                                    |
 | `nightly-no-retry.yml`        | Daily 03:00 UTC; manual                                          | No                            | Artifact                                                    |
@@ -239,6 +240,10 @@ The `zizmor` job in `ci.yml` runs `zizmor` (pinned version, via `uvx`) over `.gi
 ### `skill-eval.yml` — Skill Eval
 
 Gates changes to agent skills (`R14`). `deterministic` unit-tests the judges, fails if a skill's `SKILL.md` changed without a `skill.version` bump in its `eval/eval.yaml`, and runs `scripts/skill-eval.ts` offline against each case's recorded outputs: one `shall` per Rule, scenarios under Rules, no `spyOn(client…)`, transport-seam mocking, step bindings, and the spec audit. `live` then runs the native `claude plugin eval` suite through the same script, which enforces the manifest's per-case score, LLM-grader `min_mean`, deterministic pass rate and `max_cost_usd` budget. `live` fails rather than skips when the `ANTHROPIC_API_KEY` secret is absent — including on fork PRs, where a maintainer re-runs it via `workflow_dispatch`. Not a required check yet.
+
+### `ears.yml` — EARS Requirements
+
+Runs `npm run ears` on its own: the spec audit, then every BDD scenario, rolled up to one verdict per `Rule:` (PASS, FAIL or NOT RUN). The job summary lists the requirements not verified and the advisory feedback on the specification; the `ears-report` artifact holds the full per-requirement report. It repeats what `bdd` and `spec-audit` in `ci.yml` already gate, so it is not part of `ci-success`; its purpose is a per-requirement answer that can be run and read independently. See [TESTING.md](TESTING.md#the-standalone-ears-check).
 
 ### `nightly-schemathesis.yml` — Nightly Schemathesis API Fuzz
 
@@ -688,6 +693,7 @@ The same "explicit, reasoned exception" pattern appears in six more places:
 | `bdd`                                                          | BDD step definitions only                                                                                                                                                                                                             |
 | `bdd:<suite>`                                                  | One BDD suite, for example `bdd:market`, `bdd:resilience`, `bdd:sde`. See `npm run help -- bdd`                                                                                                                                       |
 | `spec:audit` / `spec:audit:verbose`                            | EARS and Gherkin structure audit over the feature files                                                                                                                                                                               |
+| `ears`                                                         | Standalone EARS check: `spec:audit`, then the BDD scenarios, one PASS/FAIL/NOT RUN verdict per `Rule:`; writes `reports/ears/` ([TESTING.md](TESTING.md#the-standalone-ears-check))                                                   |
 | `test:integration`                                             | Integration tests, mocked                                                                                                                                                                                                             |
 | `test:integration:live`                                        | `tests/integration/live-esi.test.ts` against live ESI (`jest.integration.live.config.cjs`). Fails in global setup unless `ESI_LIVE_TESTS=true`                                                                                        |
 | `test:integration:gated`                                       | Authenticated integration tests (`ESI_GATED_TESTS`, reads `.env`)                                                                                                                                                                     |

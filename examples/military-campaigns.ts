@@ -50,16 +50,16 @@ async function main() {
     // --- Public: List All Campaigns ---
     console.log('All Military Campaigns');
     console.log('-'.repeat(50));
-    const campaigns = await client.militaryCampaigns.getMilitaryCampaigns();
+    const { campaigns } = await client.militaryCampaigns.getMilitaryCampaigns();
 
     console.log(`  Campaigns found: ${campaigns.length}`);
 
     for (const campaign of campaigns.slice(0, 5)) {
-      console.log(`    ${campaign.campaign_id} (${campaign.state})`);
-      console.log(`      Progress: ${(campaign.progress * 100).toFixed(1)}%`);
-      console.log(`      Started: ${campaign.start_time}`);
-      if (campaign.finish_time) {
-        console.log(`      Finished: ${campaign.finish_time}`);
+      console.log(`    ${campaign.id} (${campaign.state})`);
+      console.log(`      Progress: ${campaign.progress}`);
+      if (campaign.started) console.log(`      Started: ${campaign.started}`);
+      if (campaign.finished) {
+        console.log(`      Finished: ${campaign.finished}`);
       }
     }
     if (campaigns.length > 5) {
@@ -67,34 +67,35 @@ async function main() {
     }
 
     // --- Public: Get Campaign Details ---
-    if (campaigns.length > 0) {
-      const firstCampaign = campaigns[0]!;
-      console.log(`\n  Campaign Detail: ${firstCampaign.campaign_id}`);
+    const firstCampaign = campaigns[0];
+    if (firstCampaign) {
+      console.log(`\n  Campaign Detail: ${firstCampaign.id}`);
       const campaignDetail = await client.militaryCampaigns.getMilitaryCampaign(
-        firstCampaign.campaign_id,
+        firstCampaign.id,
       );
       console.log(`    State: ${campaignDetail.state}`);
-      console.log(
-        `    Progress: ${(campaignDetail.progress * 100).toFixed(1)}%`,
-      );
+      console.log(`    Progress: ${campaignDetail.progress}`);
 
-      // --- Public: Get Objectives ---
-      console.log(`\n  Objectives for campaign: ${firstCampaign.campaign_id}`);
-      const objectives =
+      // --- Public: Get Objectives (first page of up to 50) ---
+      console.log(`\n  Objectives for campaign: ${firstCampaign.id}`);
+      const { objectives, cursor } =
         await client.militaryCampaigns.getMilitaryCampaignObjectives(
-          firstCampaign.campaign_id,
+          firstCampaign.id,
+          undefined,
+          undefined,
+          50,
         );
 
-      console.log(`    Objectives found: ${objectives.length}`);
+      console.log(`    Objectives on this page: ${objectives.length}`);
       for (const obj of objectives.slice(0, 5)) {
-        console.log(`    ${obj.objective_id} (${obj.state})`);
-        console.log(`      Progress: ${(obj.progress * 100).toFixed(1)}%`);
+        console.log(`    ${obj.id} (${obj.state})`);
+        console.log(`      Progress: ${obj.progress}`);
         console.log(
           `      Participants: ${obj.participants.total} total, ${obj.participants.committed} committed, ${obj.participants.contributors} contributors`,
         );
       }
-      if (objectives.length > 5) {
-        console.log(`    ... and ${objectives.length - 5} more`);
+      if (cursor?.after) {
+        console.log(`    More objectives follow (cursor ${cursor.after})`);
       }
 
       // --- Public: Get One Objective ---
@@ -102,12 +103,11 @@ async function main() {
       if (firstObjective) {
         const objective =
           await client.militaryCampaigns.getMilitaryCampaignObjective(
-            firstCampaign.campaign_id,
-            firstObjective.objective_id,
+            firstCampaign.id,
+            firstObjective.id,
           );
         console.log(
-          `\n  Objective ${objective.objective_id}: ${objective.state}, ` +
-            `${(objective.progress * 100).toFixed(1)}% complete`,
+          `\n  Objective ${objective.id}: ${objective.state}, progress ${objective.progress}`,
         );
       }
     }
@@ -126,30 +126,31 @@ async function main() {
     );
 
     if (charObjectives) {
-      console.log(`  Participated objectives: ${charObjectives.length}`);
-      for (const obj of charObjectives.slice(0, 5)) {
-        console.log(`    Objective: ${obj.objective_id}`);
+      const participated = charObjectives.objectives;
+      console.log(`  Participated objectives: ${participated.length}`);
+      for (const obj of participated.slice(0, 5)) {
+        console.log(`    Objective: ${obj.id}`);
         console.log(`      Campaign: ${obj.campaign_id}`);
-        console.log(`      Committed: ${obj.committed}`);
-        console.log(`      Contribution: ${obj.contribution}`);
+        console.log(`      Committed: ${obj.is_committed}`);
+        console.log(`      Contributed: ${obj.contributed}`);
       }
-      if (charObjectives.length > 5) {
-        console.log(`    ... and ${charObjectives.length - 5} more`);
+      if (participated.length > 5) {
+        console.log(`    ... and ${participated.length - 5} more`);
       }
 
       // Get detail on first objective
-      if (charObjectives.length > 0) {
-        const firstObj = charObjectives[0]!;
-        console.log(`\n  Detail for objective: ${firstObj.objective_id}`);
+      const firstObj = participated[0];
+      if (firstObj) {
+        console.log(`\n  Detail for objective: ${firstObj.id}`);
         const detail = await tryOrSkip('Objective detail', () =>
           client.militaryCampaigns.getCharacterMilitaryCampaignObjective(
             CHARACTER_ID,
-            firstObj.objective_id,
+            firstObj.id,
           ),
         );
         if (detail) {
-          console.log(`    Committed: ${detail.committed}`);
-          console.log(`    Contribution: ${detail.contribution}`);
+          console.log(`    Committed: ${detail.is_committed}`);
+          console.log(`    Contributed: ${detail.contributed}`);
         }
       }
     }
