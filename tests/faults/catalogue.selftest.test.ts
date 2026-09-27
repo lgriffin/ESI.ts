@@ -47,7 +47,7 @@ describe('Fault catalogue self-test', () => {
         p.replace('fault "Weak_Fault" on status.getStatus: ', ''),
       );
       expect(reasons).toEqual([
-        'names no error class (one of EsiError, TimeoutError, EsiValidationError, CodedError)',
+        'names no error class (one of EsiError, TimeoutError, EsiValidationError, EsiFaultError)',
         'error message /.*/ is not anchored with ^',
         'error message /.*/ matches the empty string',
         'does not assert the request count (retry count)',
