@@ -1,8 +1,8 @@
 export interface RetryConfig {
-  maxRetries?: number;
-  baseDelayMs?: number;
-  maxDelayMs?: number;
-  retryMutations?: boolean;
+  maxRetries?: number | undefined;
+  baseDelayMs?: number | undefined;
+  maxDelayMs?: number | undefined;
+  retryMutations?: boolean | undefined;
 }
 
 export function retryDelay(

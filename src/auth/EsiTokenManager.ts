@@ -87,13 +87,13 @@ export interface RefreshResult {
   characterId: number;
   status: RefreshStatus;
   /** New expiry in epoch milliseconds, when refreshed. */
-  expiresAt?: number | undefined;
+  expiresAt?: number;
   /** The error, when failed or revoked. */
-  error?: Error | undefined;
+  error?: Error;
   /** True when the failure was an SSO 429 or 5xx and can be retried later. */
-  retryable?: boolean | undefined;
+  retryable?: boolean;
   /** Why the token was skipped. */
-  reason?: 'not-stale' | 'aborted' | undefined;
+  reason?: 'not-stale' | 'aborted';
 }
 
 /** Lightweight view of a stored character, without the secrets. */

@@ -25,8 +25,8 @@ export interface DecodedAccessToken {
   characterName: string;
   scopes: string[];
   /** Epoch milliseconds, or undefined when the token carries no `exp`. */
-  expiresAt?: number | undefined;
-  ownerHash?: string | undefined;
+  expiresAt?: number;
+  ownerHash?: string;
   claims: EveJwtClaims;
 }
 
@@ -93,8 +93,8 @@ export function decodeAccessToken(token: string): DecodedAccessToken {
     characterId,
     characterName: typeof claims.name === 'string' ? claims.name : '',
     scopes: parseScopes(claims.scp),
-    expiresAt: typeof claims.exp === 'number' ? claims.exp * 1000 : undefined,
-    ownerHash: typeof claims.owner === 'string' ? claims.owner : undefined,
+    ...(typeof claims.exp === 'number' && { expiresAt: claims.exp * 1000 }),
+    ...(typeof claims.owner === 'string' && { ownerHash: claims.owner }),
     claims,
   };
 }

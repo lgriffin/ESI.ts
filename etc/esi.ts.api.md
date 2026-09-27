@@ -415,9 +415,9 @@ export function batchFetch<K, T>(keys: K[], fetcher: (key: K) => Promise<T>, opt
 // @public (undocumented)
 export interface BatchOptions {
     // (undocumented)
-    concurrency?: number;
+    concurrency?: number | undefined;
     // (undocumented)
-    onProgress?: (completed: number, total: number) => void;
+    onProgress?: ((completed: number, total: number) => void) | undefined;
 }
 
 // @public (undocumented)
@@ -2115,16 +2115,16 @@ export class CircuitBreaker implements ICircuitBreaker {
 
 // @public (undocumented)
 export interface CircuitBreakerConfig {
-    cleanupIntervalMs?: number;
+    cleanupIntervalMs?: number | undefined;
     // (undocumented)
-    failureThreshold?: number;
+    failureThreshold?: number | undefined;
     // (undocumented)
-    halfOpenMaxAttempts?: number;
-    keyStrategy?: 'resolved' | 'template';
+    halfOpenMaxAttempts?: number | undefined;
+    keyStrategy?: 'resolved' | 'template' | undefined;
     // (undocumented)
-    resetTimeoutMs?: number;
+    resetTimeoutMs?: number | undefined;
     // (undocumented)
-    staleThresholdMs?: number;
+    staleThresholdMs?: number | undefined;
 }
 
 // @public (undocumented)
@@ -4345,9 +4345,9 @@ export interface DecodedAccessToken {
     characterName: string;
     // (undocumented)
     claims: EveJwtClaims;
-    expiresAt?: number | undefined;
+    expiresAt?: number;
     // (undocumented)
-    ownerHash?: string | undefined;
+    ownerHash?: string;
     // (undocumented)
     scopes: string[];
 }
@@ -5521,11 +5521,11 @@ export class EsiValidationError extends EsiError {
 // @public (undocumented)
 export interface ETagCacheConfig {
     // (undocumented)
-    cleanupInterval?: number;
+    cleanupInterval?: number | undefined;
     // (undocumented)
-    defaultTtl?: number;
+    defaultTtl?: number | undefined;
     // (undocumented)
-    maxEntries?: number;
+    maxEntries?: number | undefined;
 }
 
 // @public (undocumented)
@@ -5906,7 +5906,7 @@ export class FileTokenStorage implements ITokenStorage {
 
 // @public (undocumented)
 export interface FileTokenStorageOptions {
-    mode?: number;
+    mode?: number | undefined;
 }
 
 // @public (undocumented)
@@ -8445,10 +8445,10 @@ export interface RefreshOptions {
 export interface RefreshResult {
     // (undocumented)
     characterId: number;
-    error?: Error | undefined;
-    expiresAt?: number | undefined;
-    reason?: 'not-stale' | 'aborted' | undefined;
-    retryable?: boolean | undefined;
+    error?: Error;
+    expiresAt?: number;
+    reason?: 'not-stale' | 'aborted';
+    retryable?: boolean;
     // (undocumented)
     status: RefreshStatus;
 }
@@ -8531,13 +8531,13 @@ export type ResponseInterceptor = (context: ResponseContext) => ResponseContext 
 // @public (undocumented)
 export interface RetryConfig {
     // (undocumented)
-    baseDelayMs?: number;
+    baseDelayMs?: number | undefined;
     // (undocumented)
-    maxDelayMs?: number;
+    maxDelayMs?: number | undefined;
     // (undocumented)
-    maxRetries?: number;
+    maxRetries?: number | undefined;
     // (undocumented)
-    retryMutations?: boolean;
+    retryMutations?: boolean | undefined;
 }
 
 // @public (undocumented)
@@ -8580,16 +8580,16 @@ export class RouteClient extends BaseEsiClient<typeof routeEndpoints> {
 // @public (undocumented)
 export interface RouteOptions {
     // (undocumented)
-    avoid_systems?: number[];
+    avoid_systems?: number[] | undefined;
     // (undocumented)
     connections?: {
         from: number;
         to: number;
-    }[];
+    }[] | undefined;
     // (undocumented)
-    preference?: 'Shorter' | 'Safer' | 'LessSecure';
+    preference?: 'Shorter' | 'Safer' | 'LessSecure' | undefined;
     // (undocumented)
-    security_penalty?: number;
+    security_penalty?: number | undefined;
 }
 
 // @public (undocumented)

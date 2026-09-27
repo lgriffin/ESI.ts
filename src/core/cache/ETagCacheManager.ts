@@ -5,15 +5,15 @@ import { ICache, CacheEntry } from './ICache';
 export type { CacheEntry } from './ICache';
 
 export interface ETagCacheConfig {
-  maxEntries?: number;
-  defaultTtl?: number;
-  cleanupInterval?: number;
+  maxEntries?: number | undefined;
+  defaultTtl?: number | undefined;
+  cleanupInterval?: number | undefined;
 }
 
 export class ETagCacheManager implements ICache {
   private cache: Map<string, CacheEntry> = new Map();
-  private config: Required<ETagCacheConfig>;
-  private cleanupTimer?: NodeJS.Timeout;
+  private config: { [K in keyof ETagCacheConfig]-?: number };
+  private cleanupTimer?: NodeJS.Timeout | undefined;
   private hits: number = 0;
   private misses: number = 0;
   private client: ApiClient | null = null;
@@ -190,7 +190,11 @@ export class ETagCacheManager implements ICache {
    * Update cache configuration
    */
   updateConfig(newConfig: Partial<ETagCacheConfig>): void {
-    this.config = { ...this.config, ...newConfig };
+    this.config = {
+      maxEntries: newConfig.maxEntries ?? this.config.maxEntries,
+      defaultTtl: newConfig.defaultTtl ?? this.config.defaultTtl,
+      cleanupInterval: newConfig.cleanupInterval ?? this.config.cleanupInterval,
+    };
     this.log('info', 'ETag cache configuration updated', {
       maxEntries: this.config.maxEntries,
     });
