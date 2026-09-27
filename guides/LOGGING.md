@@ -42,7 +42,7 @@ All from the root entry point `@lgriffin/esi.ts`.
 | `getLogger()`                  | function  | Returns the global fallback logger (the pino default until `setLogger` is called)             |
 | `logFatal` … `logTrace`        | functions | `(message, context?)` helpers that write to the **global** logger. Six of them, one per level |
 | `EsiClientConfig.logger`       | option    | Per-client logger                                                                             |
-| `EsiClientConfig.logLevel`     | option    | Per-client pino logger at this level, used only when `logger` is not given                    |
+| `EsiClientConfig.logLevel`     | option    | Per-client pino logger at a `LogLevel` or `'silent'`, used only when `logger` is not given    |
 | `ApiClient.setLogger(l)`       | method    | Sets or clears (`null`) the per-client logger on an `ApiClient` you hold directly             |
 | `EsiTokenManagerConfig.logger` | option    | Logger for token refresh activity; see [Token manager](#token-manager)                        |
 
@@ -58,10 +58,20 @@ Every log call inside the pipeline names the `ApiClient` it belongs to. The logg
 
 `EsiClient`, `CustomEsiClient` (via `EsiClientBuilder`) and every `EsiApiFactory.create*` method all route through `configureApiClient`, so the two config options behave the same on all three construction surfaces.
 
-Resolution happens per call, so `setLogger()` affects clients that were constructed before it, provided they have no per-client logger. Two exceptions:
+Resolution happens per call, so `setLogger()` affects clients that were constructed before it, provided they have no per-client logger.
 
-- A few call sites have no client handle and pass none: the rate limiter (every `[ESI Rate Limit]` event) and the batch helpers. Those events skip step 1 and go to the global or default logger. See [Known gaps](#known-gaps).
-- The ETag cache logs its "initialized" line from its constructor, before it is attached to a client, so that one line also goes to the global or default logger.
+### Call sites
+
+Every call site in the library logs through the per-client helpers in `src/core/logger/clientLog.ts`, which name the client and resolve the logger in the order above:
+
+- The request pipeline, retry strategy, pagination handlers, circuit breaker, deduplicator, `createClient` and the domain clients.
+- The rate limiter. `configureApiClient` and `ApiClientBuilder` attach the limiter they build to its client (`RateLimiter.setClient`), so every `[ESI Rate Limit]` event reaches that client's logger. A limiter you build yourself and pass to `ApiClientBuilder.setRateLimiter` is not attached, since one limiter may serve several clients; call `setClient` on it to choose.
+- The ETag cache, from its first line: `configureApiClient` passes the client to the constructor, so the "initialized" line reaches the client's logger too. The client's own logger is set before any middleware is built.
+- `EsiClient.batch` and `EsiClient.batchPost`, and the construction and shutdown lines of `EsiClient` and `CustomEsiClient`.
+
+Two kinds of caller have no client to name and use the global logger by design: the standalone `batchFetch` and `batchPost` exports, and `EsiTokenManager` (see [Token manager](#token-manager)).
+
+The mechanism is a lint rule, not a convention. `npm run lint` forbids any import of the global `loggerUtil` module inside `src/core/requestPipeline/` and `src/clients/`, by any relative path (`eslint.logger-imports.rules.cjs`, a `no-restricted-imports` block). `npm run lint:layers` carries the same block and runs with `--no-inline-config`, so an `eslint-disable` comment cannot get round it. `tests/tdd/layers/logger-imports-lint.test.ts` proves the rule fires and that both configs load it.
 
 ```ts runnable
 import { EsiClient, createDefaultLogger, setLogger } from '@lgriffin/esi.ts';
@@ -73,7 +83,7 @@ const trading = new EsiClient({
 });
 
 // Global fallback: every client without a per-client logger, plus the
-// rate limiter and batch helpers, write here.
+// standalone batch helpers and the token manager, write here.
 setLogger(createDefaultLogger('info'));
 ```
 
@@ -83,7 +93,7 @@ setLogger(createDefaultLogger('info'));
 
 | Source                        | Precedence | Notes                                                                  |
 | ----------------------------- | ---------- | ---------------------------------------------------------------------- |
-| `level` argument / `logLevel` | highest    | Typed as `LogLevel`                                                    |
+| `level` argument / `logLevel` | highest    | `logLevel` takes a `LogLevel` or `'silent'`                            |
 | `ESI_LOG_LEVEL` env variable  | next       | Read when the logger is built. Any pino level name, including `silent` |
 | `'warn'`                      | default    | Library events that need attention, nothing else                       |
 
@@ -170,7 +180,7 @@ export function consoleLogger(min: LogLevel = 'warn'): ILogger {
 
 ### Token manager
 
-`EsiTokenManager` is not an `ApiClient` and does not take part in per-call resolution. It takes `EsiTokenManagerConfig.logger` and otherwise captures `getLogger()` **once, at construction**. Call `setLogger()` before creating the manager, or pass the logger explicitly. Its events carry the character ID in the message and no context object.
+`EsiTokenManager` is not an `ApiClient` and does not take part in per-client resolution. It uses `EsiTokenManagerConfig.logger` when one is given, and otherwise reads `getLogger()` at each log call, so a `setLogger()` made after the manager was built still reaches it. Its events carry the character ID in the message and no context object.
 
 ## What the library logs
 
@@ -192,16 +202,14 @@ Messages are for people; context keys are for queries. Filter on the context, no
 | Pagination      | warn  | Empty page, pagination stopped early                                                  | `page`                                 |
 | Pagination      | warn  | Cursor pagination stopped after consecutive failures                                  | `consecutiveFailures`                  |
 | Circuit breaker | warn  | Circuit opened, or re-opened after a failed probe                                     | `key`, `failures`                      |
-| Rate limiter ¹  | warn  | Group blocked after 420/429; still blocked, request aborted                           | `group`, `waitMs` (blocked only)       |
-| Rate limiter ¹  | warn  | Token bucket empty, waiting                                                           | `group`                                |
-| Rate limiter ¹  | warn  | Legacy error limit low or exhausted, waiting                                          | `errorLimitRemain` / `errorLimitReset` |
+| Rate limiter    | warn  | Group blocked after 420/429; still blocked, request aborted                           | `group`, `waitMs` (blocked only)       |
+| Rate limiter    | warn  | Token bucket empty, waiting                                                           | `group`                                |
+| Rate limiter    | warn  | Legacy error limit low or exhausted, waiting                                          | `errorLimitRemain` / `errorLimitReset` |
 | Fetch           | error | Response body is not valid JSON                                                       | `url`                                  |
 | Retry           | error | Token refresh failed                                                                  | `endpoint`                             |
 | Pagination      | error | Offset or cursor page fetch failed                                                    | `page`                                 |
 | Status handling | error | Unexpected non-HTTP error                                                             | none                                   |
 | `MetaClient`    | error | Fetching the OpenAPI YAML failed                                                      | `url`                                  |
-
-¹ Written to the global or default logger, never the per-client logger.
 
 ### `info`
 
@@ -214,7 +222,7 @@ Messages are for people; context keys are for queries. Filter on the context, no
 | Retry           | 401 received, refreshing; refreshed, retrying           | `endpoint`                                                                 |
 | Pagination      | Page count discovered; each page fetched; completion    | `endpoint`, `totalPages`, `page`, `items`, `totalItems`, `pages`, `method` |
 | Circuit breaker | Half-open probe allowed; closed after probe; cleanup    | `key`, `cleaned`                                                           |
-| ETag cache      | Initialised ¹; cleared; configuration updated           | `maxEntries`                                                               |
+| ETag cache      | Initialised; cleared; configuration updated             | `maxEntries`                                                               |
 | Batch helpers ¹ | Batch fetch or batch POST started                       | `total`, `concurrency`, `chunks`, `chunkSize`                              |
 
 ### `debug`
@@ -228,6 +236,8 @@ Messages are for people; context keys are for queries. Filter on the context, no
 | Deduplicator    | Identical in-flight GET coalesced                     | none (key in the message) |
 | Batch helpers ¹ | Batch complete                                        | `succeeded`, `failed`     |
 | Token manager   | Refreshed, stale refresh discarded, JWT not decoded   | none                      |
+
+¹ To the client's logger through `EsiClient.batch` and `batchPost`; to the global or default logger through the standalone `batchFetch` and `batchPost` exports.
 
 Nothing in the library logs at `fatal` or `trace` today. The levels exist so an `ILogger` is a complete adapter for pino.
 
@@ -286,7 +296,11 @@ See [TESTING.md](TESTING.md) for the transport-seam mocking these tests should u
 
 The bearer token travels only in the `Authorization` header, and no log call includes request headers, so an access token never reaches a log line. The same holds for refresh tokens in `EsiTokenManager`.
 
-URLs are a different matter. Errors pass their URL through `sanitizeUrl`, which redacts sensitive query parameters. Log messages and the `url` context field carry the request URL **as built**, after request interceptors have run, without that redaction. ESI itself takes no credentials in the query string, so this is safe for the library's own requests. If a request interceptor adds a secret to the query string, that secret will appear in `info` and `warn` output. Keep credentials in headers. The full defence chain is in [SECURITY.md](SECURITY.md).
+URLs are redacted at the logger boundary. Before a line reaches any logger, per-client or global, every URL in its message and in each top-level string context value (`url`, `endpoint`, and the rest) passes through `sanitizeUrl`, the function errors use: the value of a sensitive query parameter (`token`, `access_token`, `refresh_token`, `code`, `client_secret` and the others SECURITY.md lists) becomes `[REDACTED]`, and the rest of the URL is logged as sent. Relative paths are redacted the same way and stay relative. A line with nothing to redact reaches the logger unchanged. The exported `logFatal` … `logTrace` helpers redact too.
+
+What is not redacted: nested objects inside the context, and parameter names outside the list (matching is exact and case-sensitive). Keep credentials in headers. The full defence chain is in [SECURITY.md](SECURITY.md).
+
+`tests/tdd/core/redactLog.test.ts` and `clientLog.test.ts` cover the boundary, and `tests/bdd/features/core/0057-logging.feature` drives a request whose URL carries a token through the real pipeline and reads the redacted form at the logger.
 
 ## Known gaps
 
@@ -294,8 +308,4 @@ Stated against the charter, measured against the code at the time of writing.
 
 **ARCH-06 · Gap: logger construction at import.** `src/core/logger/DefaultLogger.ts` builds the default pino instance when the module loads, and the deprecated default export of `src/core/logger/logger.ts` builds a second one when that module loads (nothing in `src/` imports it). Consequences: pino is initialised by any import of the root entry point, an invalid `ESI_LOG_LEVEL` throws on import rather than on first use, and `package.json` cannot yet declare `"sideEffects": false`. The fix is a lazily built default. Tracked as `esi-piw` ([#268](https://github.com/lgriffin/ESI.ts/issues/268)).
 
-**ARCH-09 · Partial: per-client logging.** The request pipeline under `src/core/requestPipeline/`, the retry strategy, pagination handlers, circuit breaker, ETag cache, deduplicator and `createClient` all log through the per-client path; none of them imports the global `loggerUtil`. What remains:
-
-- The rate limiter and the batch helpers pass no client, so their events land on the global or default logger. Per-client routing needs the rate limiter to hold a client handle, as the circuit breaker and cache already do.
-- `EsiClient`, `EsiClientBuilder` and `EsiTokenManager` read `getLogger()` directly as their fallback. The effective result matches the resolver, but it is a second code path.
-- The grep gate on global-logger imports inside `requestPipeline/` is not yet in CI. Tracked as `esi-772` ([#265](https://github.com/lgriffin/ESI.ts/issues/265)).
+**ARCH-09 · Enforced: per-client logging.** Closed by [#296](https://github.com/lgriffin/ESI.ts/issues/296) and [#265](https://github.com/lgriffin/ESI.ts/issues/265): every call site uses the per-client logger (see [Call sites](#call-sites)), and `npm run lint` holds `src/core/requestPipeline/` and `src/clients/` off the global `loggerUtil`.
