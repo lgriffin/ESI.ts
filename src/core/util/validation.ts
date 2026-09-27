@@ -3,14 +3,17 @@ import { EsiConfigurationError } from './error';
 const UNSAFE_PATH_CHARS = /[/\\?#@!$&'()*+,;=<>{}|^`]/;
 
 export function validatePathParam(paramName: string, value: unknown): string {
-  if (value === null || value === undefined || value === '') {
+  const str =
+    value === null || value === undefined ? '' : `${value as string | number}`;
+
+  // Checked on the string form: an empty array stringifies to '' too, and
+  // would otherwise leave an empty path segment.
+  if (str === '') {
     throw new EsiConfigurationError(
       'VALIDATION_ERROR',
       `Path parameter '${paramName}' must not be empty`,
     );
   }
-
-  const str = `${value as string | number}`;
 
   if (UNSAFE_PATH_CHARS.test(str)) {
     throw new EsiConfigurationError(
