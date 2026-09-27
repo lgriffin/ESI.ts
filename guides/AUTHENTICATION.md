@@ -86,7 +86,9 @@ import {
   FileTokenStorage,
   generateState,
 } from '@lgriffin/esi.ts';
+import { createEsi } from '@lgriffin/esi.ts/client';
 
+const esi = createEsi({ userAgent: 'my-app/1.0 (ops@my-app.example)' });
 const tokens = new EsiTokenManager({
   clientId: process.env.ESI_SSO_CLIENT_ID!,
   clientSecret: process.env.ESI_SSO_CLIENT_SECRET, // omit for a public (PKCE) client
@@ -114,9 +116,11 @@ async function onSsoCallback(requestUrl: string, savedState: string) {
   const stored = await tokens.addCharacter(code);
   console.log(`Added ${stored.characterName} (${stored.characterId})`);
 
-  // 3. A client bound to that character, refreshed through the manager
-  const characterClient = await tokens.createClient(stored.characterId);
-  await characterClient.wallet.getCharacterWallet(stored.characterId);
+  // 3. A view of the shared runtime as that character, refreshed through the manager
+  await esi
+    .as(tokens.identity(stored.characterId))
+    .character(stored.characterId)
+    .wallet.get();
 
   // Or a fresh access token, or a TokenProvider for a client you build yourself
   const accessToken = await tokens.getToken(stored.characterId);
@@ -194,6 +198,6 @@ Implement the interface over Redis, Postgres or a keychain for anything else. `s
 `tokens.createClient(id)` builds a complete `EsiClient` for each character. Each of those clients has its own rate limiter and cache, so ESI's per-IP error budget is tracked once per character. 11.0.0 fixes that without removing this API:
 
 - **Phase 2 PR 10b (done)** keys the cache and the deduplicator by the character the token names instead of the token, so ETags survive a refresh.
-- **Phase 2 PR 11 (done)** adds `@lgriffin/esi.ts/client`: `esi.as(identity)` is an immutable per-character view over one shared runtime, built from `tokens.identity(characterId)`, a raw token (`identityFromToken`) or a `TokenProvider` (`identityFromProvider`). [MULTI-CHARACTER.md](MULTI-CHARACTER.md) is the guide. `createClient` gains a `@deprecated` pointer to it in Phase 7.
+- **Phase 2 PR 11 (done)** adds `@lgriffin/esi.ts/client`: `esi.as(identity)` is an immutable per-character view over one shared runtime, built from `tokens.identity(characterId)`, a raw token (`identityFromToken`) or a `TokenProvider` (`identityFromProvider`). [MULTI-CHARACTER.md](MULTI-CHARACTER.md) is the guide. **Deprecated in 11.0.0:** `tokens.createClient(id)` still works, and is `@deprecated` in favour of `esi.as(tokens.identity(id))`. Removal is 12.0.0 at the earliest.
 
 The design is in [ROADMAP.md](ROADMAP.md), Phase 2.

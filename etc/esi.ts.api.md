@@ -4557,27 +4557,26 @@ interface DogmaEffectsEffectIdGet {
     tracking_speed_attribute_id?: number;
 }
 
-// @public (undocumented)
+// @public
 export class EsiApiFactory {
-    // (undocumented)
+    // @deprecated
     static createAllianceClient(config?: EsiClientConfig): AllianceClient;
-    // (undocumented)
+    // @deprecated
     static createAssetsClient(config?: EsiClientConfig): AssetsClient;
-    // (undocumented)
+    // @deprecated
     static createCharacterClient(config?: EsiClientConfig): CharacterClient;
-    // (undocumented)
     static createClient(clientType: ApiClientType, config?: EsiClientConfig): ClientInstance;
-    // (undocumented)
+    // @deprecated
     static createCorporationClient(config?: EsiClientConfig): CorporationsClient;
-    // (undocumented)
+    // @deprecated
     static createFleetClient(config?: EsiClientConfig): FleetClient;
-    // (undocumented)
+    // @deprecated
     static createMailClient(config?: EsiClientConfig): MailClient;
-    // (undocumented)
+    // @deprecated
     static createMarketClient(config?: EsiClientConfig): MarketClient;
-    // (undocumented)
+    // @deprecated
     static createUniverseClient(config?: EsiClientConfig): UniverseClient;
-    // (undocumented)
+    // @deprecated
     static createWalletClient(config?: EsiClientConfig): WalletClient;
 }
 
@@ -5522,6 +5521,7 @@ declare namespace EsiSpec {
 export class EsiTokenManager {
     constructor(config: EsiTokenManagerConfig);
     addCharacter(code: string, options?: AddCharacterOptions): Promise<StoredToken>;
+    // @deprecated
     createClient(characterId: number, config?: ManagedClientConfig): Promise<EsiClient>;
     getAuthorizationUrl(options: AuthorizationUrlOptions): string;
     getSsoClient(): EveSsoClient;

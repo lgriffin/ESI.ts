@@ -379,6 +379,23 @@ export class EsiTokenManager {
   /**
    * An {@link EsiClient} whose access token and refresh provider are bound to
    * the character. The token is validated (and refreshed if stale) first.
+   *
+   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Each client
+   * this returns has its own rate limiter, error budget and cache. Build one
+   * runtime with `createEsi({ userAgent })` from `@lgriffin/esi.ts/client` and
+   * call `esi.as(this.identity(characterId))` for a per-character view over
+   * it; `esi.shutdown()` replaces each client's `shutdown()`. See
+   * guides/MULTI-CHARACTER.md, "Moving from `EsiTokenManager.createClient`".
+   *
+   * @example
+   * ```ts
+   * // Before
+   * const client = await tokens.createClient(id, { userAgent });
+   * await client.wallet.getCharacterWallet(id);
+   * // After
+   * const esi = createEsi({ userAgent }); // once per application
+   * await esi.as(tokens.identity(id)).character(id).wallet.get();
+   * ```
    */
   async createClient(
     characterId: number,
