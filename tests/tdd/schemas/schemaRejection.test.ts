@@ -805,6 +805,23 @@ const schemaCases: SchemaTestCase[] = [
 
   // ── corporation ───────────────────────────────────────────────────────────
   {
+    // Either date carries a tax rate: tax_rate before 2026-08-18, tax_rates
+    // from it. A body with neither is malformed.
+    name: 'CorporationInfoSchema (no tax rate)',
+    schema: CorporationInfoSchema,
+    validData: {
+      name: 'Test Corp',
+      ticker: 'TC',
+      member_count: 50,
+      tax_rates: { isk: 0.1, loyalty_point: 0 },
+    },
+    invalidData: {
+      name: 'Test Corp',
+      ticker: 'TC',
+      member_count: 50,
+    },
+  },
+  {
     // The body ESI sends from compatibility date 2026-08-18: tax_rates
     // replaces tax_rate, and ceo_id and creator_id may be absent.
     name: 'CorporationInfoSchema (2026-08-18)',
