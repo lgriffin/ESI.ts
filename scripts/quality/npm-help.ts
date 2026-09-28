@@ -28,6 +28,8 @@ const DESCS: Record<string, string> = {
   'docs:site':
     'Build the documentation site (TypeDoc + guides + examples) into docs-site/.vitepress/dist/',
   'docs:sync': 'Generate the site pages from README.md, guides/ and examples/',
+  'docs:metrics':
+    'Recount clients, routes, requirements and the rest into the docs (--check to verify)',
   clean: 'Remove dist/, coverage/ and the generated docs (clean:docs)',
 
   'mock:esi': 'Start a Prism mock ESI server on port 4010',

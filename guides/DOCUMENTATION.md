@@ -1,6 +1,6 @@
 # ESI.ts Documentation Guide
 
-**Implements:** `DOC-02` · `DOC-03` · `DOC-05` · `DOC-06` — see [CHARTER.md](CHARTER.md) Part 7. `DOC-01` and `DOC-04` are Gap today and land with the 11.0 docs rewrite (ROADMAP Phase 7).
+**Implements:** `DOC-02` · `DOC-03` · `DOC-04` · `DOC-05` · `DOC-06` — see [CHARTER.md](CHARTER.md) Part 7. `DOC-01` is Gap today and lands with the 11.0 docs rewrite (ROADMAP Phase 7).
 
 Where the documentation lives, how the site and the API reference are built and published, how examples in the guides are kept compiling, and what a pull request that adds a public export owes the documentation. The code is the fact: where a page and the code disagree, fix the page.
 
@@ -71,7 +71,7 @@ Where it is built:
 | `docs-site.yml`                  | Publishes it under `/api/` with the site                                                          |
 | `release.yml` `create-assets`    | Attaches `docs.tar.gz` to the GitHub release, listed in `checksums.txt` with the tarball and SBOM |
 
-What TypeDoc shows is what the TSDoc says. The public classes it documents are the construction surfaces (`EsiClient`, `EsiClientBuilder`, `CustomEsiClient`, `EsiApiFactory`), the 39 domain clients, the auth classes (`EveSsoClient`, `EsiTokenManager`, the token stores), the middleware and its interfaces (`ICache`, `IRateLimiter`, `ICircuitBreaker`, `IRetryStrategy`, `IDeduplicator`, `ILogger`), the error classes, and the response types: 36 domain type files in `src/types/` plus `common.ts`, `branded.ts` and `api-responses.ts`. Because `entryPoints` is all of `src/`, TypeDoc also renders modules the package does not export, including `src/core/ports/`, `src/adapters/` and `src/generated/operations.generated.ts`. The `exports` map in `package.json` and `etc/esi.ts.api.md` decide what is public, not the reference.
+What TypeDoc shows is what the TSDoc says. The public classes it documents are the construction surfaces (`EsiClient`, `EsiClientBuilder`, `CustomEsiClient`, `EsiApiFactory`), the <!-- metric:clients -->39<!-- /metric --> domain clients, the auth classes (`EveSsoClient`, `EsiTokenManager`, the token stores), the middleware and its interfaces (`ICache`, `IRateLimiter`, `ICircuitBreaker`, `IRetryStrategy`, `IDeduplicator`, `ILogger`), the error classes, and the response types: <!-- metric:typeModules -->36<!-- /metric --> domain type files in `src/types/` plus `common.ts`, `branded.ts` and `api-responses.ts`. Because `entryPoints` is all of `src/`, TypeDoc also renders modules the package does not export, including `src/core/ports/`, `src/adapters/` and `src/generated/operations.generated.ts`. The `exports` map in `package.json` and `etc/esi.ts.api.md` decide what is public, not the reference.
 
 ## Guide conventions
 
@@ -81,7 +81,7 @@ Every guide follows the same shape, so a reader can move between them without re
 - **Reachable from the README** within one link.
 - **Plain declarative sentences.** Say what the code does and name the file, script or CI job that proves it. A claim with no mechanism behind it is a requirement with status Gap, and belongs in the CHARTER as one.
 - **State the gap.** Where the code falls short of the charter, say so in the guide and cite the requirement or issue. Do not soften it.
-- **Counts carry a source.** Until `DOC-04` generates them into `etc/doc-metrics.json`, a count typed into a guide names what it counts (for example "39 `*Endpoints.ts` files in `src/core/endpoints/`") so the next editor can re-measure it.
+- **Counts are generated.** A count of something in the source (clients, routes, operations, requirements, scenarios, examples, test files) is written between markers, `<!-- metric:clients -->39<!-- /metric -->`, never typed as a bare number. `npm run docs:metrics` computes every metric into `etc/doc-metrics.json` and rewrites the marked numbers; `validate:versions` fails when one is stale. The metric names are `METRIC_NAMES` in `scripts/docs/doc-metrics-core.ts`, and a marker must not start a line, because Markdown reads a line that opens with a comment as HTML. A count only a test run can measure stays prose with the date it was measured (`DOC-04`).
 - **No duplication.** When a topic has a canonical guide, link to it and summarise in one sentence (`DOC-01`).
 
 ## When a public export is added
@@ -132,9 +132,8 @@ The baseline only shrinks. The run fails when a `no-check` names a bead but is n
 
 ## What changes in 11.0
 
-ROADMAP Phase 7 rewrites the documentation against the new client. The site build (`DOC-03`) has landed; nothing else in this list exists yet:
+ROADMAP Phase 7 rewrites the documentation against the new client. The site build (`DOC-03`) and the generated counts (`DOC-04`) have landed; nothing else in this list exists yet:
 
-- `scripts/docs/doc-metrics.ts` writes `etc/doc-metrics.json`, and `validate:versions` fails on a stale README or site version banner (`DOC-04`, [#272](https://github.com/lgriffin/ESI.ts/issues/272)).
 - Root `TESTING.md` and `guides/MUTATION-TESTING.md` fold into `guides/TESTING.md` (`DOC-01`, [#273](https://github.com/lgriffin/ESI.ts/issues/273)).
 - The README becomes an orientation page written against `createEsi` and `esi.as(identity)`, every snippet checked by `test:docs-examples`. `guides/MULTI-CHARACTER.md` arrived with ROADMAP Phase 2 PR 11.
 - The Beads blocks in `AGENTS.md` and `CLAUDE.md` become pointers ([#276](https://github.com/lgriffin/ESI.ts/issues/276)).
