@@ -259,6 +259,7 @@
     "validate": "npm run lint && npm run format:check && npm run build && npm run coverage && npm run knip",
     "release:canary": "ts-node scripts/release/release-canary.ts",
     "release:sbom": "ts-node scripts/release/release-sbom.ts",
+    "release:dedupe-changelog": "ts-node scripts/release/changelog-dedupe.ts",
     "validate:versions": "ts-node --transpile-only scripts/package/validate-versions.ts",
     "spec:generate": "ts-node scripts/spec/spec-generate.ts",
     "spec:generate:check": "ts-node scripts/spec/spec-generate.ts --check",

@@ -20,8 +20,8 @@
   "scenarios": 537,
   "plainScenarios": 532,
   "scenarioOutlines": 5,
-  "testFiles": 303,
-  "unitSuites": 201,
+  "testFiles": 304,
+  "unitSuites": 202,
   "compositionSuites": 7,
   "bddSuites": 58,
   "typeTestFiles": 9,
@@ -34,6 +34,6 @@
   "charterRequirements": 61,
   "charterEnforced": 41,
   "charterPractised": 6,
-  "charterPartial": 10,
-  "charterGap": 4
+  "charterPartial": 11,
+  "charterGap": 3
 }

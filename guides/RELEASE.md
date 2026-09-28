@@ -115,6 +115,7 @@ Two practical consequences:
 - A release turns the unreleased block into `## [X.Y.Z] - YYYY-MM-DD`.
 - `validate-release` fails if `CHANGELOG.md` has no heading starting `## [X.Y.Z]` for the version in `package.json`. Both the hand-written heading and release-please's linked heading satisfy that check.
 - Entries describe the consumer-visible change and name the public symbol, in the voice of the existing entries.
+- A change merged with a merge commit is listed once. GitHub's merge commit repeats the pull request's title in its body, and release-please reads that as a second commit, so such a change used to appear twice ([#377](https://github.com/lgriffin/ESI.ts/issues/377)). After release-please updates the release pull request, `release-please.yml` runs `npm run release:dedupe-changelog`. It drops a merge commit's line from the branch's `CHANGELOG.md` and from the pull request body (which becomes the GitHub release) only when a commit on the merged branch has exactly the same subject and that commit's own line, with its `closes` links, is in the same notes. A pull request title that summarises differently named commits keeps its line, and so does a merge whose branch commits release-please left out, so nothing that shipped disappears. Runs of the workflow take turns (`concurrency: release-please`), so two cannot rewrite the release pull request at once.
 
 ### Bumped but not published (REL-04)
 
@@ -122,7 +123,7 @@ If a version number is written to `package.json` and the changelog but the packa
 
 The reverse also applies. If versions were published without a changelog entry, backfill the entry once from the tag's commit range (`git log vA..vB --oneline`) so a reader can see every number that exists on npm.
 
-The current changelog does not yet meet this rule; see [Known state](#known-state).
+The changelog meets this rule from 7.4.0 through 9.9.0; see [Known state](#known-state) for the numbers outside that range.
 
 ---
 
@@ -316,4 +317,4 @@ Recorded 2026-09-16. Each item contradicts a requirement above and belongs in a 
 - **release-please needed repository permission to open its pull request.** It computed the version but failed with "GitHub Actions is not permitted to create or approve pull requests" until that repository setting was enabled (2026-09-16). Releases 9.8.0 and 9.9.0 were hand-written `chore: release X.Y.Z` commits.
 - **Releases created with the workflow's `GITHUB_TOKEN` do not trigger other workflows.** 10.1.0 and 10.1.1 were tagged and released on GitHub but never published to npm, because nothing dispatched `release.yml`. `release-please.yml` now uses the [release app token](#the-release-app-token) when it is configured, and dispatches `release.yml` and the canary itself when it is not.
 - **v9.7.0 has no signed assets.** Its `sign-and-publish-assets` job failed because cosign 3 requires `--bundle` for `sign-blob`; the job now writes a Sigstore bundle per asset. npm and GitHub Packages publishing succeeded for that release.
-- **The changelog does not match the registry (REL-04).** npm has 8.0.0, 9.4.0 and 9.6.0 with no changelog entry; the changelog jumps from 7.4.0 to 9.0.0 and from 9.1.0 to 9.7.0. 9.8.0 and 9.9.0 have dated entries but no tag and no npm publish.
+- **The changelog does not yet mark every unpublished number (REL-04).** Every number written to `package.json` from 7.4.0 through 9.9.0 now has an entry: 8.0.0, 9.4.0 and 9.6.0 were backfilled from their tag ranges, and 9.1.1 to 9.2.0, 9.5.0 to 9.5.2, 9.6.1, 9.6.2, 9.8.0, 9.8.1 and 9.9.0 are headed `(not published)` with the release their changes shipped in ([#275](https://github.com/lgriffin/ESI.ts/issues/275)). Outside that range, 7.0.0 to 7.3.0 and earlier numbers missing from npm, and 10.1.0, 10.1.1, 10.2.2 and 10.2.3 (tagged, not on npm, checked 2026-09-27), still have ordinary headings.
