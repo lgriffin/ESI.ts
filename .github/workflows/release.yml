@@ -411,7 +411,7 @@ jobs:
       attestations: write # record the build provenance attestation on the repository
 
     steps:
-      - name: 📥 Checkout code # for README.md / LICENSE
+      - name: 📥 Checkout code # for README.md / LICENSE / NOTICE
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
@@ -486,7 +486,8 @@ jobs:
             "${TARBALL%.tgz}.intoto.jsonl" \
             checksums.txt \
             README.md \
-            LICENSE
+            LICENSE \
+            NOTICE
 
   # Start the post-publish canary once npm has the version and the release
   # assets are uploaded (or failed to upload: the canary reports that too).
