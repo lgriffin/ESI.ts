@@ -406,7 +406,7 @@
     }
   },
   "dependencies": {
-    "pino": "^10.3.1",
+    "pino": "^9.6.0",
     "zod": "^4.0.0"
   },
   "overrides": {
