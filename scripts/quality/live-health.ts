@@ -30,9 +30,13 @@ import { appendFileSync } from 'fs';
 
 import { EsiClient } from '../../src/EsiClient';
 import { EveSsoClient } from '../../src/auth/EveSsoClient';
-import { SsoError, TokenRevokedError } from '../../src/auth/errors';
+import { AuthError, SsoError, TokenRevokedError } from '../../src/auth/errors';
 import { decodeAccessToken } from '../../src/auth/jwt';
-import { EsiError } from '../../src/core/util/error';
+import {
+  EsiError,
+  EsiFaultError,
+  EsiValidationError,
+} from '../../src/core/util/error';
 
 export const REQUIRED_SCOPE = 'esi-location.read_online.v1';
 
@@ -48,8 +52,20 @@ type Outcome = {
   lines: string[];
 };
 
-/** Classify an error from SSO or ESI: an outage is not a failure of ours. */
-export function classify(error: unknown): {
+/**
+ * Classify an error from SSO or ESI: an outage is not a failure of ours.
+ *
+ * Validation, parse and configuration errors carry status 0 like a network
+ * error does, so they are recognised by class first: a body that fails the
+ * schema is a failure the repository owns, never an outage. A raw error out
+ * of the SSO step (a rejected fetch, which EveSsoClient does not wrap) is
+ * transport, so SSO counts as unavailable; the same out of the ESI step is
+ * the client's own defect, because the pipeline wraps its transport errors.
+ */
+export function classify(
+  error: unknown,
+  phase: 'sso' | 'esi',
+): {
   code: typeof EXIT.failed | typeof EXIT.unavailable;
   reason: string;
 } {
@@ -65,6 +81,12 @@ export function classify(error: unknown): {
       ? { code: EXIT.unavailable, reason: `SSO answered ${error.statusCode}` }
       : { code: EXIT.failed, reason: error.message };
   }
+  if (error instanceof AuthError) {
+    return { code: EXIT.failed, reason: error.message };
+  }
+  if (error instanceof EsiValidationError || error instanceof EsiFaultError) {
+    return { code: EXIT.failed, reason: error.message };
+  }
   if (error instanceof EsiError) {
     return error.statusCode === 0 || error.statusCode >= 500
       ? {
@@ -76,10 +98,10 @@ export function classify(error: unknown): {
         }
       : { code: EXIT.failed, reason: error.message };
   }
-  return {
-    code: EXIT.failed,
-    reason: error instanceof Error ? error.message : String(error),
-  };
+  const reason = error instanceof Error ? error.message : String(error);
+  return phase === 'sso'
+    ? { code: EXIT.unavailable, reason: `SSO did not answer: ${reason}` }
+    : { code: EXIT.failed, reason };
 }
 
 export async function run(env: NodeJS.ProcessEnv): Promise<Outcome> {
@@ -115,8 +137,12 @@ export async function run(env: NodeJS.ProcessEnv): Promise<Outcome> {
       `SSO: refreshed a token for character ${characterId} (${decoded.scopes.length} scopes, expires in ${token.expiresIn}s)`,
     );
     if (token.refreshToken !== refreshToken) {
+      // EVE SSO returns the same refresh token for a refresh grant today, so
+      // this is a tripwire. Writing the replacement back needs a token with
+      // secrets: write, which GITHUB_TOKEN never has; the message names the
+      // manual step and the value stays out of every log.
       lines.push(
-        'SSO rotated the refresh token: update the ESI_HEALTH_REFRESH_TOKEN secret before it expires, or the next run fails at this step',
+        'SSO rotated the refresh token: the run used the old one; re-issue a token for this character and update the ESI_HEALTH_REFRESH_TOKEN secret',
       );
     }
     if (!decoded.scopes.includes(REQUIRED_SCOPE)) {
@@ -126,7 +152,7 @@ export async function run(env: NodeJS.ProcessEnv): Promise<Outcome> {
       return { code: EXIT.failed, lines };
     }
   } catch (error) {
-    const { code, reason } = classify(error);
+    const { code, reason } = classify(error, 'sso');
     lines.push(
       `SSO refresh ${code === EXIT.failed ? 'failed' : 'unavailable'}: ${reason}`,
     );
@@ -149,7 +175,7 @@ export async function run(env: NodeJS.ProcessEnv): Promise<Outcome> {
     );
     return { code: EXIT.healthy, lines };
   } catch (error) {
-    const { code, reason } = classify(error);
+    const { code, reason } = classify(error, 'esi');
     lines.push(
       `ESI ${code === EXIT.failed ? 'failed' : 'unavailable'}: ${reason}`,
     );
