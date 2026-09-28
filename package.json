@@ -291,6 +291,7 @@
     "clean": "rm -rf dist coverage && npm run clean:docs",
     "clean:docs": "rm -rf docs-site/public/api docs-site/guide docs-site/examples docs-site/.vitepress/dist docs-site/.vitepress/sidebar.generated.json",
     "prepare": "husky && npm run build",
+    "health:live": "ts-node scripts/quality/live-health.ts",
     "health-check": "ts-node -e \"import('./src/EsiClient').then(({EsiClient}) => { const c = new EsiClient(); return c.status.getStatus().then(console.log).finally(() => c.shutdown()); })\"",
     "mutation": "stryker run config/mutation/stryker.config.mjs",
     "mutation:report": "stryker run config/mutation/stryker.config.mjs --reporters html,clear-text",
