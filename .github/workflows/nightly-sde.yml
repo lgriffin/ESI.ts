@@ -78,8 +78,27 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: curl -fL --retry 3 --retry-delay 10 -o sde-latest.zip "$SDE_DOWNLOAD_URL"
 
-      - name: Save the export to the cache
+      # The build feed and the "latest" archive are two requests; if CCP
+      # publishes between them the archive belongs to another build. Only an
+      # archive whose own _sde.yaml names the resolved build is cached under
+      # that key. A mismatch still runs (the report names the archive's own
+      # build) but nothing is cached, so the next night resolves afresh.
+      - name: Check the archive names the resolved build
+        id: verify
         if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          BUILD: ${{ steps.build.outputs.build }}
+        run: |
+          ZIP_BUILD=$(npx ts-node --transpile-only -e "const { SdeExtractor } = require('./src/sde/ingestion/SdeExtractor'); console.log(new SdeExtractor().readMetadata('sde-latest.zip').buildNumber)")
+          if [ "$ZIP_BUILD" = "$BUILD" ]; then
+            echo "verified=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "verified=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=SDE build mismatch::The build feed said $BUILD but the archive is build $ZIP_BUILD; running against the archive and not caching it."
+          fi
+
+      - name: Save the export to the cache
+        if: steps.cache.outputs.cache-hit != 'true' && steps.verify.outputs.verified == 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: sde-latest.zip

@@ -239,10 +239,16 @@ export function fieldDrift(
     for (const key of transformedKeys(id, raw, spec)) seen.add(key);
   }
   const newKeys = [...seen].filter((key) => !declaredSet.has(key)).sort();
+  // A file whose registry entry does not inject the map key carries the ID
+  // inside each record today; if CCP stopped writing it there the providers
+  // would still key the table by the map key, so its absence is not gone.
   const goneKeys =
     observed.records.length === 0
       ? []
-      : required.filter((key) => !seen.has(key)).sort();
+      : required
+          .filter((key) => spec.injectId || key !== spec.idAttribute)
+          .filter((key) => !seen.has(key))
+          .sort();
   return {
     yamlFile: spec.yamlFile,
     tableName: spec.tableName,

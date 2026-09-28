@@ -4,6 +4,11 @@ import * as fs from 'node:fs';
 /**
  * npm run sde:ingest [-- --output <dir>] [-- --check] [-- --force] [-- --from-zip <archive>] [-- --keep-zip]
  *
+ * A non-empty output directory is left alone unless --force is given, and
+ * --force empties it before extracting, so the directory holds exactly the
+ * archive's files and a file CCP removed does not survive from an older
+ * export.
+ *
  * Downloads CCP's current export and extracts it to --output (sde-data/ by
  * default). --from-zip extracts an archive already on disk instead, which is
  * how nightly-sde.yml reuses the ZIP it caches per build; --keep-zip leaves
@@ -70,6 +75,10 @@ async function main(): Promise<void> {
     if (!fs.existsSync(zipPath)) {
       throw new Error(`No archive at ${zipPath}`);
     }
+    if (!prepareOutputDir(outDir, opts)) {
+      log(`SDE data already exists at ${outDir}. Use --force to replace it.`);
+      return;
+    }
     extract(zipPath, outDir, opts);
     return;
   }
@@ -88,11 +97,7 @@ async function main(): Promise<void> {
 
   const zipPath = outDir + '.zip';
 
-  if (
-    !opts.force &&
-    fs.existsSync(outDir) &&
-    fs.readdirSync(outDir).length > 0
-  ) {
+  if (!prepareOutputDir(outDir, opts)) {
     log(`SDE data already exists at ${outDir}. Use --force to re-download.`);
     return;
   }
@@ -118,6 +123,19 @@ async function main(): Promise<void> {
     fs.unlinkSync(zipPath);
     log('Cleaned up zip file.', true, opts);
   }
+}
+
+/**
+ * True when the output directory is empty or absent, or --force emptied it;
+ * false when it holds files that must be kept.
+ */
+function prepareOutputDir(outDir: string, opts: CliOptions): boolean {
+  const populated = fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0;
+  if (!populated) return true;
+  if (!opts.force) return false;
+  fs.rmSync(outDir, { recursive: true, force: true });
+  log(`Removed the previous export at ${outDir}`, true, opts);
+  return true;
 }
 
 function extract(zipPath: string, outDir: string, opts: CliOptions): void {

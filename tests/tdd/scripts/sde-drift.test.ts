@@ -9,10 +9,11 @@
  * keeps pointing at the URLs the module downloads from.
  */
 import { execFileSync } from 'child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'fs';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import { z } from 'zod';
 
 import {
   SDE_DOWNLOAD_URL,
@@ -156,6 +157,23 @@ describe('field drift', () => {
     expect(schemaKeys(schema).required).not.toContain('iconId');
   });
 
+  it('does not report the ID gone for a file whose records carry it instead of the map key', () => {
+    const spec = SDE_FILE_REGISTRY.find(
+      (s) => s.yamlFile === 'characterTitles.yaml',
+    )!;
+    expect(spec.injectId).toBe(false);
+    const drift = fieldDrift(
+      {
+        yamlFile: spec.yamlFile,
+        records: [['title-1', { name: { en: 'Title' } }]],
+      },
+      spec,
+      z.looseObject({ characterTitleId: z.string(), name: z.string() }),
+    );
+    expect(drift.goneKeys).toEqual([]);
+    expect(drift.newKeys).toEqual([]);
+  });
+
   it('reports nothing gone for a file with no records', () => {
     const drift = fieldDrift(
       { yamlFile: 'groups.yaml', records: [] },
@@ -249,6 +267,19 @@ describe('scripts/sde/sde-drift.ts', () => {
     expect(report.build).toBe('20260901');
     expect(report.unknownFiles).toEqual(['mapRegionsExtended.yaml']);
     expect(report.fields.map((f) => f.newKeys)).toEqual([['sortOrder']]);
+  });
+
+  it('reads an empty registered file as a table with no records', () => {
+    const dir = path.join(out, 'with-empty');
+    cpSync(FIXTURE, dir, { recursive: true });
+    writeFileSync(path.join(dir, 'landmarks.yaml'), '');
+    const reportPath = path.join(dir, 'report.json');
+    const { status } = runScript(['--dir', dir, '--out', reportPath]);
+    expect(status).toBe(EXIT_DRIFT);
+    const report = JSON.parse(readFileSync(reportPath, 'utf-8')) as DriftReport;
+    expect(report.missingFiles).not.toContain('landmarks.yaml');
+    expect(report.observed).toBe(5);
+    expect(report.fields.map((f) => f.yamlFile)).toEqual(['categories.yaml']);
   });
 
   it('exits 2 when there is no export to read', () => {

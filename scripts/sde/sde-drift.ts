@@ -40,8 +40,12 @@ function flag(name: string): string | undefined {
 }
 
 function readRecords(file: string): ObservedFile['records'] {
-  const parsed = yaml.load(readFileSync(file, 'utf-8'));
-  if (parsed == null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+  const content = readFileSync(file, 'utf-8');
+  // An empty file is a table with no records (js-yaml refuses to parse one).
+  if (content.trim() === '') return [];
+  const parsed = yaml.load(content);
+  if (parsed == null) return [];
+  if (typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new Error(`${file} is not a YAML map keyed by ID`);
   }
   return Object.entries(parsed as Record<string, unknown>).map(
