@@ -7,10 +7,12 @@
  * (CHARTER DOC-01). Dependency-free so the VitePress config can import it.
  */
 export function githubSlug(text: string): string {
-  return text
-    .trim()
-    .toLowerCase()
-    .replace(/<[^>]*>/g, '')
-    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
-    .replace(/\s/g, '-');
+  // Strip tags until none remain, so a nested `<<b>script>` cannot leave one behind.
+  let stripped = text.trim().toLowerCase();
+  let previous: string;
+  do {
+    previous = stripped;
+    stripped = stripped.replace(/<[^>]*>/g, '');
+  } while (stripped !== previous);
+  return stripped.replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s/g, '-');
 }
