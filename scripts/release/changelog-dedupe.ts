@@ -16,9 +16,10 @@ import { spawnSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 
 import {
+  MergeInfo,
   dedupeNewestRelease,
   dropRepeatedEntries,
-  repeatedMerges,
+  mergeTwins,
 } from './changelog-dedupe-core';
 
 function git(...args: string[]): string {
@@ -56,23 +57,28 @@ function main(): void {
     '--merges',
     tag ? `${tag}..HEAD` : 'HEAD',
   ).split('\n');
-  const branchSubjects = new Map<string, string[]>();
+  const info = new Map<string, MergeInfo>();
   for (const sha of merges.filter(Boolean)) {
-    const subjects = git('log', '--format=%s', `${sha}^1..${sha}^2`);
-    branchSubjects.set(sha, subjects.split('\n').filter(Boolean));
+    const lines = (text: string) => text.split('\n').filter(Boolean);
+    info.set(sha, {
+      body: lines(git('log', '-1', '--format=%b', sha)),
+      branch: lines(git('log', '--format=%H %s', `${sha}^1..${sha}^2`)).map(
+        (line) => ({ sha: line.slice(0, 40), subject: line.slice(41) }),
+      ),
+    });
   }
-  const repeats = repeatedMerges(branchSubjects);
+  const twins = mergeTwins(info);
   console.log(
-    `${repeats.size} of ${branchSubjects.size} merge commits since ${tag ?? 'the start'} repeat a listed commit`,
+    `${twins.size} of ${info.size} merge commits since ${tag ?? 'the start'} repeat a commit on their branch`,
   );
 
   if (changelog) {
     const before = readFileSync(changelog, 'utf-8');
-    writeFileSync(changelog, dedupeNewestRelease(before, repeats));
+    writeFileSync(changelog, dedupeNewestRelease(before, twins));
   }
   if (body) {
     const before = readFileSync(body, 'utf-8');
-    writeFileSync(body, dropRepeatedEntries(before, repeats));
+    writeFileSync(body, dropRepeatedEntries(before, twins));
   }
 }
 

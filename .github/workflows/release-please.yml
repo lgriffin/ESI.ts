@@ -15,6 +15,13 @@ on:
 permissions:
   contents: read
 
+# Runs that rewrite the release PR take turns, so one cannot push onto a
+# branch another has just moved or write back an older PR body. Queued, not
+# cancelled: every push to master must reach the release PR.
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
 jobs:
   release-please:
     name: Release Please
@@ -137,6 +144,7 @@ jobs:
           git fetch --no-tags origin "$branch"
           git checkout -B "$branch" FETCH_HEAD
           gh pr view "$number" --repo "$REPO" --json body --jq .body > "$RUNNER_TEMP/body.md"
+          cp "$RUNNER_TEMP/body.md" "$RUNNER_TEMP/body.before.md"
           npm run release:dedupe-changelog -- --changelog CHANGELOG.md --body "$RUNNER_TEMP/body.md"
           if ! git diff --quiet -- CHANGELOG.md; then
             git -c user.name='github-actions[bot]' \
@@ -144,7 +152,10 @@ jobs:
               commit -m 'ci(release): drop changelog lines a merge commit repeats' -- CHANGELOG.md
             git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "HEAD:refs/heads/$branch"
           fi
-          gh pr edit "$number" --repo "$REPO" --body-file "$RUNNER_TEMP/body.md"
+          # Only after the push succeeded, and only when something changed.
+          if ! cmp -s "$RUNNER_TEMP/body.md" "$RUNNER_TEMP/body.before.md"; then
+            gh pr edit "$number" --repo "$REPO" --body-file "$RUNNER_TEMP/body.md"
+          fi
 
   # Fallback for when no release app token was used: the tag and release came
   # from GITHUB_TOKEN, so nothing else started. workflow_dispatch is exempt

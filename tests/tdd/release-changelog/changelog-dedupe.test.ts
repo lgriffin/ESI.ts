@@ -3,20 +3,25 @@
  *
  * A merge commit's body repeats its pull request's title, so release-please
  * lists the change twice. The clean-up drops the merge's line, but only when
- * the branch it merged has a commit of its own in the notes, so a change is
- * never removed outright.
+ * a commit on the merged branch has the same subject and its own line is in
+ * the notes, so a change is never removed outright.
  */
 import {
   commitOf,
   dedupeNewestRelease,
   dropRepeatedEntries,
   isListedSubject,
-  repeatedMerges,
+  mergeTwins,
 } from '../../../scripts/release/changelog-dedupe-core';
 
 const sha = (c: string) => c.repeat(40);
 const bullet = (text: string, c: string, extra = '') =>
   `* ${text} ([${c.repeat(7)}](https://github.com/lgriffin/ESI.ts/commit/${sha(c)}))${extra}`;
+const merge = (body: string[], branch: Array<[string, string]>) => ({
+  body,
+  branch: branch.map(([c, subject]) => ({ sha: sha(c), subject })),
+});
+const twinOf = (m: string, a: string) => new Map([[sha(m), [[sha(a)]]]]);
 
 describe('isListedSubject', () => {
   it.each([
@@ -44,16 +49,60 @@ describe('isListedSubject', () => {
   });
 });
 
-describe('repeatedMerges', () => {
-  it('keeps a merge whose branch has nothing release-please lists', () => {
-    const repeats = repeatedMerges(
+describe('mergeTwins', () => {
+  it('pairs a merge with the branch commit that has its title word for word', () => {
+    const twins = mergeTwins(
       new Map([
-        [sha('a'), ['feat: the change', 'ci: tidy']],
-        [sha('b'), ['ci: only ci', 'WIP']],
-        [sha('c'), []],
+        [
+          sha('c'),
+          merge(
+            ['feat: the change'],
+            [
+              ['a', 'feat: the change'],
+              ['b', 'ci: tidy'],
+            ],
+          ),
+        ],
       ]),
     );
-    expect([...repeats]).toEqual([sha('a')]);
+    expect(twins.get(sha('c'))).toEqual([[sha('a')]]);
+  });
+
+  it('has no entry for a title that summarises differently named commits', () => {
+    const twins = mergeTwins(
+      new Map([
+        [
+          sha('c'),
+          merge(
+            ['feat(logger): redact URLs and route every line'],
+            [
+              ['a', 'fix(logger): redact query pairs'],
+              ['b', 'docs(logging): say so'],
+            ],
+          ),
+        ],
+      ]),
+    );
+    expect(twins.size).toBe(0);
+  });
+
+  it('has no entry when the body lists nothing', () => {
+    const twins = mergeTwins(
+      new Map([
+        [sha('c'), merge(['# Conflicts:', '#\tCLAUDE.md'], [['a', 'feat: x']])],
+        [sha('d'), merge(['ci: only ci'], [['b', 'ci: only ci']])],
+      ]),
+    );
+    expect(twins.size).toBe(0);
+  });
+
+  it('has no entry when only one of several listed lines is repeated', () => {
+    const twins = mergeTwins(
+      new Map([
+        [sha('c'), merge(['feat: one', 'fix: two'], [['a', 'feat: one']])],
+      ]),
+    );
+    expect(twins.size).toBe(0);
   });
 });
 
@@ -68,58 +117,59 @@ describe('dropRepeatedEntries', () => {
   const notes = [
     '### Added',
     '',
-    bullet('**client:** add getters', 'a'),
+    bullet('**client:** add getters', 'c'),
     bullet(
       '**client:** add getters',
-      'b',
+      'a',
       ', closes [#267](https://github.com/lgriffin/ESI.ts/issues/267)',
     ),
     '',
     '',
     '### Changed',
     '',
-    bullet('**layout:** move configs', 'c'),
+    bullet('**layout:** move configs', 'd'),
     '',
     '',
     '### Testing',
     '',
-    bullet('add a check', 'd'),
+    bullet('**layout:** move configs', 'b'),
     '',
   ].join('\n');
 
   it('drops the merge line and keeps the commit that closes the issue', () => {
-    const out = dropRepeatedEntries(notes, new Set([sha('a')]));
-    expect(out).not.toContain(sha('a'));
-    expect(out).toContain(sha('b'));
+    const out = dropRepeatedEntries(notes, twinOf('c', 'a'));
+    expect(out).not.toContain(sha('c'));
+    expect(out).toContain(sha('a'));
     expect(out).toContain('closes [#267]');
   });
 
+  it('keeps the merge line when its twin has no line in the notes', () => {
+    // release-please does not always list a merged branch's commits; then
+    // the merge's line is the only entry for the change.
+    expect(dropRepeatedEntries(notes, twinOf('c', 'e'))).toBe(notes);
+  });
+
   it('drops a heading left with no lines under it', () => {
-    const out = dropRepeatedEntries(notes, new Set([sha('c')]));
+    const out = dropRepeatedEntries(notes, twinOf('d', 'b'));
     expect(out).not.toContain('### Changed');
     expect(out).toContain('### Added');
     expect(out).toContain('### Testing');
   });
 
-  it('drops a trailing heading left empty', () => {
-    const out = dropRepeatedEntries(notes, new Set([sha('d')]));
-    expect(out).not.toContain('### Testing');
-  });
-
   it('keeps a heading whose list uses dashes, as the older releases do', () => {
     const older =
       '### Added\n\n- Something shipped by hand\n\n### Fixed\n\n- A fix\n';
-    expect(dropRepeatedEntries(older, new Set([sha('a')]))).toBe(older);
+    expect(dropRepeatedEntries(older, twinOf('c', 'a'))).toBe(older);
   });
 
   it('leaves the notes alone when nothing repeats', () => {
-    expect(dropRepeatedEntries(notes, new Set())).toBe(notes);
+    expect(dropRepeatedEntries(notes, new Map())).toBe(notes);
   });
 
   it('never drops a breaking-change note, which links no commit', () => {
     const breaking =
       '### ⚠ BREAKING CHANGES\n\n* Node 18 is no longer supported.\n';
-    expect(dropRepeatedEntries(breaking, new Set([sha('a')]))).toBe(breaking);
+    expect(dropRepeatedEntries(breaking, twinOf('c', 'a'))).toBe(breaking);
   });
 });
 
@@ -132,25 +182,26 @@ describe('dedupeNewestRelease', () => {
       '',
       '### Added',
       '',
+      bullet('the change', 'c'),
       bullet('the change', 'a'),
-      bullet('the change', 'b'),
       '',
       '## [10.2.0](x) (2026-09-19)',
       '',
       '### Added',
       '',
+      bullet('old change', 'c'),
       bullet('old change', 'a'),
       '',
     ].join('\n');
-    const out = dedupeNewestRelease(changelog, new Set([sha('a')]));
+    const out = dedupeNewestRelease(changelog, twinOf('c', 'a'));
     const [newest, older] = out.split('## [10.2.0]');
-    expect(newest).not.toContain(sha('a'));
-    expect(newest).toContain(sha('b'));
-    expect(older).toContain(sha('a'));
+    expect(newest).not.toContain(sha('c'));
+    expect(newest).toContain(sha('a'));
+    expect(older).toContain(sha('c'));
   });
 
   it('returns a changelog with no release unchanged', () => {
-    expect(dedupeNewestRelease('# Changelog\n', new Set([sha('a')]))).toBe(
+    expect(dedupeNewestRelease('# Changelog\n', twinOf('c', 'a'))).toBe(
       '# Changelog\n',
     );
   });
