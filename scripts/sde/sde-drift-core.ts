@@ -24,7 +24,7 @@ import {
   type SdeFileSpec,
 } from '../../src/sde/ingestion/constants';
 import { transformRecordNative } from '../../src/sde/ingestion/transforms';
-import * as schemas from '../../src/sde/schemas';
+import * as schemas from '../../src/sde/domain/schemas';
 
 export const REPORT_FILE = 'reports/sde-drift.json';
 export const EXIT_DRIFT = 1;

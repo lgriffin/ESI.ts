@@ -33,7 +33,7 @@ import * as ts from 'typescript';
 import { outlineFeature } from '../../tests/bdd/support/outline';
 import { compileExpression } from '../../tests/bdd/support/steps';
 
-export const PROVIDER_FILE = 'src/sde/IStaticDataProvider.ts';
+export const PROVIDER_FILE = 'src/sde/ports/IStaticDataProvider.ts';
 export const PROVIDER_INTERFACE = 'IStaticDataProvider';
 export const FEATURES_DIR = 'tests/bdd/features/sde';
 export const STEPS_DIR = 'tests/bdd/steps';

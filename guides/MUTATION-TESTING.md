@@ -216,7 +216,7 @@ The unit run mutates `src/core/**/*.ts` and `src/sde/**/*.ts` with these exclusi
 
 - `src/core/endpoints/**`: endpoint definitions are data declarations, not logic
 - Interface-only files (`ILogger.ts`, `ICache.ts`, `IRateLimiter.ts`, `IRetryStrategy.ts`, `ICircuitBreaker.ts`, `IDeduplicator.ts`) and the `requestPipeline` barrel and dependency wiring
-- `src/sde/SdeTestDataFactory.ts`: a test fixture shipped for consumers' tests; mutating it would score the fixture, not the module
+- `src/sde/testing/**`: `SdeTestDataFactory`, a test fixture shipped for consumers' tests; mutating it would score the fixture, not the module
 
 Files NOT in scope (and why):
 

@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { Clock } from '../core/ports/Clock';
-import type { IStaticDataProvider } from './IStaticDataProvider';
+import type { Clock } from '../../../core/ports/Clock';
+import type { IStaticDataProvider } from '../../ports/IStaticDataProvider';
 import type {
   EveType,
   EveGroup,
@@ -53,21 +53,21 @@ import type {
   Mission,
   Dungeon,
   EpicArc,
-} from './types';
-import type { SdeVersionInfo } from './version';
-import { sortedById } from './order';
+} from '../../domain/types';
+import type { SdeVersionInfo } from '../../version';
+import { sortedById } from '../order';
 import {
   SDE_FILE_REGISTRY,
   SDE_METADATA_FILENAME,
-} from './ingestion/constants';
-import type { SdeFileSpec } from './ingestion/constants';
-import { SdeExtractor } from './ingestion/SdeExtractor';
-import type { SdeMetadata } from './ingestion/SdeExtractor';
-import { parseSdeMetadata } from './ingestion/metadata';
-import { transformRecordNative } from './ingestion/transforms';
-import { SdeError } from './errors';
-import { loadJsYaml } from './optionalPeers';
-import { systemClock } from './clock';
+} from '../../ingestion/constants';
+import type { SdeFileSpec } from '../../ingestion/constants';
+import { SdeExtractor } from '../../ingestion/SdeExtractor';
+import type { SdeMetadata } from '../../ingestion/SdeExtractor';
+import { parseSdeMetadata } from '../../ingestion/metadata';
+import { transformRecordNative } from '../../ingestion/transforms';
+import { SdeError } from '../../errors';
+import { loadJsYaml } from '../../optionalPeers';
+import { systemClock } from '../../clock';
 
 /** Options for {@link SdeDataProvider.fromDirectory} and {@link SdeDataProvider.fromZip}. */
 export interface SdeDataProviderOptions {

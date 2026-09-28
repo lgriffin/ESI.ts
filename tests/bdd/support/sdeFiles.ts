@@ -14,7 +14,7 @@ import * as path from 'node:path';
 import type { Clock } from '../../../src/core/ports/Clock';
 import * as sdeEntry from '../../../src/sde/index';
 import * as memoryEntry from '../../../src/sde/memory';
-import { SdeDataProvider } from '../../../src/sde/SdeDataProvider';
+import { SdeDataProvider } from '../../../src/sde/providers/yaml/SdeDataProvider';
 import { SdeError } from '../../../src/sde/errors';
 import { SdeDatabaseBuilder } from '../../../src/sde/ingestion/SdeDatabaseBuilder';
 import { SdeDownloader } from '../../../src/sde/ingestion/SdeDownloader';

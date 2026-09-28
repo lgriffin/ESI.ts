@@ -1,4 +1,4 @@
-import type { DogmaAttribute } from '../../../../src/sde/types';
+import type { DogmaAttribute } from '../../../../src/sde/domain/types';
 import { Then } from '../../support/steps';
 
 Then('the attribute name should be {string}', function (name: string) {

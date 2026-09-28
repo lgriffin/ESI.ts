@@ -85,7 +85,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `src/errors.ts` — the `./errors` sub-path entry
 - `src/schemas/` — hand-written Zod v4 schemas: 36 domain modules plus `common.ts` and `esiEnum.ts`
 - `src/types/` — Hand-written response types + `generated/esi-spec.generated.ts`
-- `src/sde/` — Static Data Export side module (`./sde`, `./sde/memory`); shares no code with the pipeline, enforced both ways by `lint:layers`
+- `src/sde/` — Static Data Export side module (`./sde`, `./sde/memory`): `ports/`, `domain/<domain>/{types,schemas}.ts`, `providers/{yaml,memory}/`, `ingestion/`, `testing/`, with errors, version, clock and the optional peers at the root; shares no code with the pipeline, and the folders point inward, both enforced by `lint:layers`
 - `src/testing/` — `TestDataFactory` and helpers, the `./testing` sub-path
 - `tests/tdd/` — Unit tests
 - `tests/tdd/helpers/` — Shared test utilities (e.g., `clientErrorTests.ts`)

@@ -7,7 +7,7 @@
  */
 import type { Esi, ScopeTree } from '../../../src/client';
 import { EsiClient } from '../../../src/EsiClient';
-import type { IStaticDataProvider } from '../../../src/sde/IStaticDataProvider';
+import type { IStaticDataProvider } from '../../../src/sde/ports/IStaticDataProvider';
 import type { MockTransport } from '../../../src/testing';
 import { createSeamClient } from './transport';
 

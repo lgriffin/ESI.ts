@@ -1,4 +1,4 @@
-import { type MarketGroup } from '../../../../src/sde/types';
+import { type MarketGroup } from '../../../../src/sde/domain/types';
 import { Then } from '../../support/steps';
 
 Then('each market group should have null parent group ID', function () {

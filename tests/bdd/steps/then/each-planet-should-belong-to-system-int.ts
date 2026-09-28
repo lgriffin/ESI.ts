@@ -1,4 +1,4 @@
-import { type Planet } from '../../../../src/sde/types';
+import { type Planet } from '../../../../src/sde/domain/types';
 import { Then } from '../../support/steps';
 
 Then('each planet should belong to system {int}', function (systemId: number) {

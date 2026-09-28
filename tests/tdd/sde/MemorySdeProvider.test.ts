@@ -1,5 +1,5 @@
-import { MemorySdeProvider } from '../../../src/sde/MemorySdeProvider';
-import { SdeTestDataFactory } from '../../../src/sde/SdeTestDataFactory';
+import { MemorySdeProvider } from '../../../src/sde/providers/memory/MemorySdeProvider';
+import { SdeTestDataFactory } from '../../../src/sde/testing/SdeTestDataFactory';
 import { runProviderContractTests } from './IStaticDataProvider.contract.test';
 
 describe('MemorySdeProvider', () => {

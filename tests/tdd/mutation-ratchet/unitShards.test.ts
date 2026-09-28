@@ -63,9 +63,9 @@ describe('the unit shards partition the directories the unit run mutates', () =>
   });
 
   it('gives the SDE its own shard, ingestion included', () => {
-    expect(shardsClaiming('src/sde/SdeDataProvider.ts', shards)).toEqual([
-      'sde',
-    ]);
+    expect(
+      shardsClaiming('src/sde/providers/yaml/SdeDataProvider.ts', shards),
+    ).toEqual(['sde']);
     expect(
       shardsClaiming('src/sde/ingestion/SdeDatabaseBuilder.ts', shards),
     ).toEqual(['sde']);

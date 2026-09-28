@@ -8,28 +8,43 @@ The guides, this one included, live in `guides/sde/` next to [guides/SDE.md](../
 
 ```
 src/sde/
+├── index.ts                   # ./sde entry point
+├── memory.ts                  # ./sde/memory entry point
+├── errors.ts                  # Error hierarchy
+├── version.ts                 # SdeVersionInfo type
+├── clock.ts                   # The module's clock
+├── optionalPeers.ts           # Lazy js-yaml / adm-zip loading
+├── ports/
+│   └── IStaticDataProvider.ts # Provider interface (99 methods)
+├── domain/                    # One folder per SDE domain
+│   ├── types.ts               # Barrel: every entity interface
+│   ├── schemas.ts             # Barrel: every Zod schema
+│   ├── universe/              # types.ts + schemas.ts
+│   ├── types/                 # (and the same for dogma, industry, market,
+│   │   ...                    #  characters, corporations, skins, content, ui)
+│   └── version/schemas.ts     # SdeVersionSchema
+├── providers/
+│   ├── order.ts               # ID ordering shared by both providers
+│   ├── yaml/SdeDataProvider.ts       # YAML-backed provider (production)
+│   └── memory/MemorySdeProvider.ts   # In-memory provider (tests, own data)
 ├── ingestion/                 # YAML download + parsing pipeline
 │   ├── constants.ts           # SDE_FILE_REGISTRY (102 YAML file specs)
 │   ├── SdeDownloader.ts       # HTTP download from CCP
 │   ├── SdeExtractor.ts        # ZIP parsing + YAML extraction
+│   ├── metadata.ts            # _sde.yaml parsing
 │   ├── SdeDatabaseBuilder.ts  # (legacy, unused)
 │   └── transforms.ts          # Field normalization + locale extraction
-├── IStaticDataProvider.ts     # Provider interface (~97 methods)
-├── SdeDataProvider.ts         # YAML-backed provider (production)
-├── MemorySdeProvider.ts       # In-memory provider (testing)
-├── SdeTestDataFactory.ts      # Test data factories
-├── types.ts                   # 109 entity interfaces
-├── schemas.ts                 # 110 Zod schemas
-├── errors.ts                  # Error hierarchy
-├── version.ts                 # SdeVersionInfo type
-└── index.ts                   # Barrel exports
+└── testing/
+    └── SdeTestDataFactory.ts  # Test data factories
 ```
+
+The guides for the module are in `guides/sde/` and the front door is [guides/SDE.md](../SDE.md), whose "Layers inside the module" section lists which folder may import which; `npm run lint:layers` fails on a crossing.
 
 ## Adding a New Entity Type
 
 When CCP adds a new YAML file to the SDE, follow these steps:
 
-### 1. Define the interface in `types.ts`
+### 1. Define the interface in `domain/<domain>/types.ts`
 
 ```ts
 /** eve_new_things [row_count rows] */
@@ -43,7 +58,7 @@ export interface NewThing {
 
 Use normalized field names (see Field Normalization below). Add a JSDoc comment with the table name and approximate row count for reference.
 
-### 2. Add the Zod schema in `schemas.ts`
+### 2. Add the Zod schema in `domain/<domain>/schemas.ts`
 
 <!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
@@ -80,7 +95,7 @@ Add an entry to `SDE_FILE_REGISTRY`:
 - `injectId` — `true` if the YAML key IS the entity ID (most entities); `false` if the ID is already in the record body (e.g., dogma attributes)
 - `idType` — `'number'` or `'string'` for string-keyed entities
 
-### 4. Add methods to `IStaticDataProvider.ts`
+### 4. Add methods to `ports/IStaticDataProvider.ts`
 
 <!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
@@ -91,7 +106,7 @@ getAllNewThings(): NewThing[];
 getNewThingsByCategory(categoryId: number): NewThing[];  // if FK query needed
 ```
 
-### 5. Implement in `SdeDataProvider.ts`
+### 5. Implement in `providers/yaml/SdeDataProvider.ts`
 
 <!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
@@ -111,7 +126,7 @@ getNewThingsByCategory(categoryId: number): NewThing[] {
 
 The generic helpers handle all the Map lookups and lazy FK indexing.
 
-### 6. Implement in `MemorySdeProvider.ts`
+### 6. Implement in `providers/memory/MemorySdeProvider.ts`
 
 Add the field to `MemorySdeData`:
 
@@ -142,7 +157,7 @@ getNewThing(newThingId: number): NewThing | null {
 }
 ```
 
-### 7. Add factory methods in `SdeTestDataFactory.ts`
+### 7. Add factory methods in `testing/SdeTestDataFactory.ts`
 
 <!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 

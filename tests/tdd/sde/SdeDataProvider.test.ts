@@ -3,7 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as yaml from 'js-yaml';
 import AdmZip from 'adm-zip';
-import { SdeDataProvider } from '../../../src/sde/SdeDataProvider';
+import { SdeDataProvider } from '../../../src/sde/providers/yaml/SdeDataProvider';
 import type { SdeDataProviderOptions } from '../../../src/sde';
 import { SdeError } from '../../../src/sde/errors';
 

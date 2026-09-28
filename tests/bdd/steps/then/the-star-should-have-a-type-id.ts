@@ -1,4 +1,4 @@
-import type { Star } from '../../../../src/sde/types';
+import type { Star } from '../../../../src/sde/domain/types';
 import { Then } from '../../support/steps';
 
 Then('the star should have a type ID', function () {
