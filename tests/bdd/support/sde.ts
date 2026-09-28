@@ -9,6 +9,7 @@
  */
 import type { IStaticDataProvider } from '../../../src/sde/IStaticDataProvider';
 import { MemorySdeProvider } from '../../../src/sde/MemorySdeProvider';
+import type { MemorySdeData } from '../../../src/sde/MemorySdeProvider';
 import { SdeTestDataFactory } from '../../../src/sde/SdeTestDataFactory';
 import {
   SdeDatabaseError,
@@ -22,13 +23,36 @@ import {
 } from '../../../src/sde/errors';
 import { EveTypeSchema } from '../../../src/sde/schemas';
 import type {
+  AgentInSpace,
+  AgentType,
+  Certificate,
+  CharacterAttribute,
+  CloneGrade,
   Constellation,
+  CorporationActivity,
   DogmaAttributeCategory,
   DogmaUnit,
+  Dungeon,
+  EpicArc,
   EveCategory,
   EveGroup,
   EveType,
+  IndustryActivity,
+  Landmark,
+  Mission,
+  NotificationType,
+  NpcCharacter,
+  NpcCorporationDivision,
+  School,
+  SecondarySun,
+  Skin,
+  SkinLicense,
   SolarSystem,
+  StationOperation,
+  StationService,
+  TypeBonus,
+  TypeDogma,
+  TypeMaterial,
 } from '../../../src/sde/types';
 import type { World } from './world';
 
@@ -39,6 +63,7 @@ export const UNKNOWN_TYPE_ID = 999999;
 export const THE_FORGE = 10000002;
 export const KIMOTORO = 'Kimotoro';
 export const JITA = { solarSystemId: 30000142, name: 'Jita' };
+export const PERIMETER = { solarSystemId: 30000144, name: 'Perimeter' };
 
 /** The version record the factory stamps on its hierarchical data set. */
 export const HIERARCHICAL_VERSION = {
@@ -100,6 +125,11 @@ export const HI_SLOT_EFFECT = { effectId: 12, name: 'hiSlotModifier' };
  * two units and a second effect.
  */
 export function openExtendedProvider(world: World): IStaticDataProvider {
+  world.sde = new MemorySdeProvider(extendedData());
+  return world.sde;
+}
+
+function extendedData(): MemorySdeData {
   const data = SdeTestDataFactory.createHierarchicalTestData();
   const solarSystems = [
     ...(data.solarSystems ?? []),
@@ -109,7 +139,7 @@ export function openExtendedProvider(world: World): IStaticDataProvider {
       planetIDs: [],
     }),
   ];
-  world.sde = new MemorySdeProvider({
+  return {
     ...data,
     categories: [
       ...(data.categories ?? []),
@@ -134,8 +164,7 @@ export function openExtendedProvider(world: World): IStaticDataProvider {
     ],
     dogmaAttributeCategories: DOGMA_ATTRIBUTE_CATEGORIES,
     dogmaUnits: DOGMA_UNITS,
-  });
-  return world.sde;
+  };
 }
 
 /** Open a provider over no data at all, so only its defaults answer. */
@@ -288,3 +317,381 @@ export const EXPECTED_GUARD_VERDICTS = {
     plain: false,
   },
 };
+
+// ---------------------------------------------------------------------------
+// The reference data set (features 0013 to 0019)
+// ---------------------------------------------------------------------------
+
+/** A second faction with no NPC corporations loaded, and its race. */
+export const GALLENTE_FEDERATION = {
+  factionId: 500004,
+  name: 'Gallente Federation',
+};
+export const GALLENTE_RACE = { raceId: 8, name: 'Gallente' };
+/** The factory's bloodline and ancestry, by the IDs the scenarios use. */
+export const DETEIS = { bloodlineId: 1, name: 'Deteis', raceId: 1 };
+export const TUBE_CHILD = { ancestryId: 1, name: 'Tube Child', bloodlineId: 1 };
+
+/** The factory's NPC corporation, plus a second one in the same faction. */
+export const CALDARI_NAVY = { corporationId: 1000035, name: 'Caldari Navy' };
+export const CALDARI_PROVISIONS = {
+  corporationId: 1000009,
+  name: 'Caldari Provisions',
+};
+/** A second station, in Perimeter, owned by Caldari Provisions. */
+export const PERIMETER_STATION = { stationId: 60003469 };
+
+export const NPC_CHARACTERS: NpcCharacter[] = [
+  npcCharacter(3004451, 'Aakiro Tenaka', CALDARI_NAVY.corporationId, true),
+  npcCharacter(3004452, 'Toshi Aakari', CALDARI_NAVY.corporationId, false),
+  npcCharacter(3004453, 'Pierre Duval', CALDARI_PROVISIONS.corporationId, true),
+];
+
+function npcCharacter(
+  characterId: number,
+  name: string,
+  corporationId: number,
+  ceo: boolean,
+): NpcCharacter {
+  return {
+    characterId,
+    bloodlineId: DETEIS.bloodlineId,
+    ceo,
+    corporationId,
+    gender: 1,
+    locationId: JITA.solarSystemId,
+    name,
+    raceId: DETEIS.raceId,
+    startDate: '2003-05-06T00:00:00Z',
+    uniqueName: true,
+    skills: null,
+    ancestryId: TUBE_CHILD.ancestryId,
+    careerId: null,
+    schoolId: null,
+    specialityId: null,
+  };
+}
+
+export const CHARACTER_ATTRIBUTES: CharacterAttribute[] = [
+  {
+    attributeId: 1,
+    description: 'Ability to analyse and reason.',
+    iconId: 1379,
+    name: 'Intelligence',
+    notes: '',
+    shortDescription: 'Analysis',
+  },
+  {
+    attributeId: 2,
+    description: 'Ability to influence others.',
+    iconId: 1378,
+    name: 'Charisma',
+    notes: '',
+    shortDescription: 'Influence',
+  },
+];
+
+export const CLONE_GRADES: CloneGrade[] = [
+  { cloneGradeId: 1, name: 'Alpha Clone', skills: null },
+  { cloneGradeId: 2, name: 'Omega Clone', skills: null },
+];
+
+export const SCHOOLS: School[] = [
+  school(1, 'School of Applied Knowledge', 1000044),
+  school(2, 'Science and Trade Institute', 1000045),
+];
+
+function school(schoolId: number, name: string, corporationId: number): School {
+  return {
+    schoolId,
+    careerAgents: null,
+    careerId: 1,
+    characterDescription: '',
+    corporationId,
+    description: '',
+    iconId: 1439,
+    name,
+    raceId: DETEIS.raceId,
+    startingStations: null,
+    title: name,
+    isStarterSpaceSchool: null,
+  };
+}
+
+export const CORPORATION_ACTIVITIES: CorporationActivity[] = [
+  { corporationActivityId: 1, name: 'Warfare' },
+  { corporationActivityId: 2, name: 'Security' },
+];
+
+export const NPC_CORPORATION_DIVISIONS: NpcCorporationDivision[] = [
+  {
+    npcCorporationDivisionId: 1,
+    displayName: 'Accounting',
+    internalName: 'accounting',
+    leaderTypeName: 'CFO',
+    name: 'Accounting',
+    description: null,
+  },
+  {
+    npcCorporationDivisionId: 2,
+    displayName: 'Administration',
+    internalName: 'administration',
+    leaderTypeName: 'COO',
+    name: 'Administration',
+    description: null,
+  },
+];
+
+export const AGENT_TYPES: AgentType[] = [
+  { agentTypeId: 2, name: 'BasicAgent' },
+  { agentTypeId: 3, name: 'TutorialAgent' },
+];
+
+/** One agent in space, in Jita; Maurasi has none. */
+export const AGENT_IN_SPACE: AgentInSpace = {
+  characterId: 3018681,
+  dungeonId: 1,
+  solarSystemId: JITA.solarSystemId,
+  spawnPointId: 1,
+  typeId: 3721,
+};
+
+export const TECH_II_META_GROUP = { metaGroupId: 2, name: 'Tech II' };
+
+export const SKINS: Skin[] = [
+  skin(1, 'Tristan Sanctuary'),
+  skin(2, 'Tristan Blueprint'),
+];
+
+function skin(skinId: number, internalName: string): Skin {
+  return {
+    skinId,
+    allowCCPDevs: false,
+    internalName,
+    skinMaterialId: 1,
+    types: null,
+    visibleSerenity: true,
+    visibleTranquility: true,
+    isStructureSkin: null,
+  };
+}
+
+/** Two licences for skin 1; skin 2 has none. */
+export const SKIN_LICENSES: SkinLicense[] = [
+  { licenseTypeId: 34599, skinId: 1, duration: -1 },
+  { licenseTypeId: 34600, skinId: 1, duration: 30 },
+];
+
+export const NOTIFICATION_TYPE: NotificationType = {
+  notificationTypeId: 1,
+  displayName: 'Old Notification',
+  internalName: 'notificationTypeOldNotification',
+};
+
+export const LANDMARKS: Landmark[] = [
+  landmark(1, 'EVE Gate'),
+  landmark(2, 'Jita 4-4'),
+];
+
+function landmark(landmarkId: number, name: string): Landmark {
+  return {
+    landmarkId,
+    description: '',
+    name,
+    position: { x: 0, y: 0, z: 0 },
+    iconId: null,
+    locationId: JITA.solarSystemId,
+  };
+}
+
+/** One secondary sun, in Jita; Maurasi has none. */
+export const SECONDARY_SUN: SecondarySun = {
+  secondarySunId: 1,
+  effectBeaconTypeId: 46760,
+  position: { x: 0, y: 0, z: 0 },
+  solarSystemId: JITA.solarSystemId,
+  typeId: 46764,
+};
+
+export const STATION_OPERATIONS: StationOperation[] = [
+  stationOperation(1, 'Manufacturing'),
+  stationOperation(2, 'Refinery'),
+];
+
+function stationOperation(
+  stationOperationId: number,
+  operationName: string,
+): StationOperation {
+  return {
+    stationOperationId,
+    activityId: 1,
+    border: 0,
+    corridor: 0,
+    description: '',
+    fringe: 0,
+    hub: 0,
+    manufacturingFactor: 1,
+    operationName,
+    ratio: 1,
+    researchFactor: 1,
+    services: null,
+    stationTypes: null,
+  };
+}
+
+export const STATION_SERVICES: StationService[] = [
+  { stationServiceId: 1, serviceName: 'Bounty Missions', description: null },
+  {
+    stationServiceId: 2,
+    serviceName: 'Assassination Missions',
+    description: null,
+  },
+];
+
+export const INDUSTRY_ACTIVITIES: IndustryActivity[] = [
+  { industryActivityId: 1, description: '', name: 'Manufacturing' },
+  { industryActivityId: 3, description: '', name: 'Time Efficiency Research' },
+];
+
+export const BIOFUELS_SCHEMATIC = { planetSchematicId: 66, name: 'Biofuels' };
+
+export const CERTIFICATES: Certificate[] = [
+  certificate(50, 'Core Fitting'),
+  certificate(51, 'Core Navigation'),
+];
+
+function certificate(certificateId: number, name: string): Certificate {
+  return {
+    certificateId,
+    description: '',
+    groupId: 1,
+    name,
+    recommendedFor: null,
+    skillTypes: null,
+  };
+}
+
+/** The three type extension tables, each keyed by a type ID. */
+export const TRITANIUM_DOGMA: TypeDogma = {
+  typeId: TRITANIUM.typeId,
+  dogmaAttributes: [{ attributeId: 9, value: 1 }],
+  dogmaEffects: [],
+};
+export const TRITANIUM_MATERIAL: TypeMaterial = {
+  typeId: TRITANIUM.typeId,
+  materials: [{ materialTypeId: 35, quantity: 1 }],
+};
+export const IBIS = 601;
+export const IBIS_BONUS: TypeBonus = {
+  typeId: IBIS,
+  roleBonuses: [{ bonusText: 'Immune to weapon disruption' }],
+  types: null,
+};
+
+export const MISSION: Mission = {
+  missionId: 1,
+  hasStandingRewards: true,
+  killMission: null,
+  messages: null,
+  name: 'Cash Flow for Capsuleers',
+  expirationTime: null,
+  factionId: null,
+};
+export const DUNGEON: Dungeon = {
+  dungeonId: 1,
+  allowedShipsList: null,
+  archetypeId: 1,
+  description: '',
+  factionId: GALLENTE_FEDERATION.factionId,
+  name: 'Cash Flow Dungeon',
+};
+export const EPIC_ARCS: EpicArc[] = [
+  epicArc(1, 'The Blood-Stained Stars', 500001),
+  epicArc(2, 'Penumbra', 500001),
+];
+
+function epicArc(epicArcId: number, name: string, factionId: number): EpicArc {
+  return {
+    epicArcId,
+    arcRestartInterval: 90,
+    factionId,
+    iconId: 1439,
+    missions: null,
+    name,
+  };
+}
+
+/**
+ * The extended data set plus one or two records of every remaining family:
+ * a second faction and race, NPC organisations and their people, the
+ * presentation, station and industry reference tables, the type extension
+ * tables and the mission content.
+ */
+export function openReferenceProvider(world: World): IStaticDataProvider {
+  const data = extendedData();
+  world.sde = new MemorySdeProvider({
+    ...data,
+    factions: [
+      ...(data.factions ?? []),
+      SdeTestDataFactory.createFaction({
+        ...GALLENTE_FEDERATION,
+        memberRaces: [GALLENTE_RACE.raceId],
+        corporationId: 1000125,
+        solarSystemId: 30002187,
+      }),
+    ],
+    races: [
+      ...(data.races ?? []),
+      SdeTestDataFactory.createRace(GALLENTE_RACE),
+    ],
+    npcCorporations: [
+      ...(data.npcCorporations ?? []),
+      SdeTestDataFactory.createNpcCorporation({
+        ...CALDARI_PROVISIONS,
+        ceoId: 3004453,
+        stationId: PERIMETER_STATION.stationId,
+        tickerName: 'CP',
+      }),
+    ],
+    npcStations: [
+      ...(data.npcStations ?? []),
+      SdeTestDataFactory.createNpcStation({
+        ...PERIMETER_STATION,
+        solarSystemId: PERIMETER.solarSystemId,
+        ownerId: CALDARI_PROVISIONS.corporationId,
+      }),
+    ],
+    metaGroups: [
+      ...(data.metaGroups ?? []),
+      SdeTestDataFactory.createMetaGroup(TECH_II_META_GROUP),
+    ],
+    planetSchematics: [
+      ...(data.planetSchematics ?? []),
+      SdeTestDataFactory.createPlanetSchematic(BIOFUELS_SCHEMATIC),
+    ],
+    npcCharacters: NPC_CHARACTERS,
+    characterAttributes: CHARACTER_ATTRIBUTES,
+    cloneGrades: CLONE_GRADES,
+    schools: SCHOOLS,
+    corporationActivities: CORPORATION_ACTIVITIES,
+    npcCorporationDivisions: NPC_CORPORATION_DIVISIONS,
+    agentTypes: AGENT_TYPES,
+    agentsInSpace: [AGENT_IN_SPACE],
+    skins: SKINS,
+    skinLicenses: SKIN_LICENSES,
+    notificationTypes: [NOTIFICATION_TYPE],
+    landmarks: LANDMARKS,
+    secondarySuns: [SECONDARY_SUN],
+    stationOperations: STATION_OPERATIONS,
+    stationServices: STATION_SERVICES,
+    industryActivities: INDUSTRY_ACTIVITIES,
+    certificates: CERTIFICATES,
+    typeDogma: [TRITANIUM_DOGMA],
+    typeMaterials: [TRITANIUM_MATERIAL],
+    typeBonuses: [IBIS_BONUS],
+    missions: [MISSION],
+    dungeons: [DUNGEON],
+    epicArcs: EPIC_ARCS,
+  });
+  return world.sde;
+}
