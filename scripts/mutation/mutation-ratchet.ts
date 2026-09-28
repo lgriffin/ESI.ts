@@ -23,7 +23,7 @@
  * earlier run's report left undetected had survived, so a mutant counts as
  * detected only when every run detected it. Use it with --update when seeding
  * floors from more than one nightly: see "Re-seeding" in
- * guides/MUTATION-TESTING.md for why the lower of two scores is not enough.
+ * guides/TESTING.md (Mutation testing) for why the lower of two scores is not enough.
  */
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';

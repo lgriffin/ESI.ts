@@ -470,7 +470,7 @@ jobs:
           A ratchet job fails when a directory (or, for type mutation, an entry
           point) scores below its floor, or when a shard is missing from the merge;
           its step summary names which. A shard job that failed twice is not a
-          reclaimed runner. See guides/MUTATION-TESTING.md.
+          reclaimed runner. See "Mutation testing" in guides/TESTING.md.
 
           This issue closes itself on the next run in which every job succeeds.
 

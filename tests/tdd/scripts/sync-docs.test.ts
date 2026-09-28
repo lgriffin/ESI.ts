@@ -128,6 +128,117 @@ describe('the site over the real repository', () => {
   });
 });
 
+/**
+ * CHARTER DOC-01: one canonical file per topic, every other mention a link.
+ * A guide that is folded into another must be gone, and every link to a
+ * guide, with or without a heading anchor, must land on a file and a heading
+ * that exist, so a fold cannot leave a link to the retired copy behind.
+ */
+const FENCE_LINE = /^\s*(`{3,}|~{3,})/;
+const LINK = /\[(?:[^[\]]|\[[^\]]*\])*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+
+/** Lines outside fenced code, with inline code spans blanked. */
+function proseLines(markdown: string): string[] {
+  let fence: string | null = null;
+  const lines: string[] = [];
+  for (const line of markdown.split('\n')) {
+    const open = FENCE_LINE.exec(line);
+    if (open) {
+      if (fence === null) fence = open[1]![0]!;
+      else if (open[1]![0] === fence) fence = null;
+      continue;
+    }
+    if (fence === null) lines.push(line.replace(/(`+)[\s\S]*?\1/g, ''));
+  }
+  return lines;
+}
+
+/** Anchors a heading can be reached by: GitHub's slug and VitePress's. */
+function headingAnchors(markdown: string): Set<string> {
+  const anchors = new Set<string>();
+  const seen = new Map<string, number>();
+  let fence: string | null = null;
+  for (const line of markdown.split('\n')) {
+    const open = FENCE_LINE.exec(line);
+    if (open) {
+      if (fence === null) fence = open[1]![0]!;
+      else if (open[1]![0] === fence) fence = null;
+      continue;
+    }
+    for (const m of line.matchAll(/<a\s+(?:id|name)="([^"]+)"/g))
+      anchors.add(m[1]!);
+    const heading = fence === null ? /^#{1,6}\s+(.*?)\s*#*$/.exec(line) : null;
+    if (!heading) continue;
+    const text = heading[1]!.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
+    const github = text
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s_-]/gu, '')
+      .replace(/\s/g, '-');
+    const count = seen.get(github) ?? 0;
+    seen.set(github, count + 1);
+    anchors.add(count === 0 ? github : `${github}-${count}`);
+    anchors.add(
+      text
+        .normalize('NFKD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/[\s~`!@#$%^&*()\-_+=[\]{}|\;:"'“”‘’<>,.?/]+/g, '-')
+        .replace(/-{2,}/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .toLowerCase(),
+    );
+  }
+  return anchors;
+}
+
+describe('one canonical file per topic (CHARTER DOC-01)', () => {
+  const published = new Set(guideSources);
+
+  it('keeps retired copies of a folded guide deleted', () => {
+    const retired = ['TESTING.md', 'guides/MUTATION-TESTING.md'].filter(
+      (file) => existsSync(path.join(ROOT, file)),
+    );
+    expect(retired).toEqual([]);
+  });
+
+  it('states the canonical test tier table in guides/TESTING.md only', () => {
+    const restated = guideSources.filter((source) =>
+      proseLines(read(source)).some((line) =>
+        /^\|\s*Tier\s*\|.*\|\s*Signal that it can fail\s*\|/.test(line),
+      ),
+    );
+    expect(restated).toEqual(['guides/TESTING.md']);
+  });
+
+  it.each(guideSources.map((source) => [source] as const))(
+    '%s links only to guides and headings that exist',
+    (source) => {
+      const broken: string[] = [];
+      for (const line of proseLines(read(source))) {
+        for (const [, href] of line.matchAll(LINK)) {
+          if (/^[a-z][a-z0-9+.-]*:/i.test(href!) || href!.startsWith('/'))
+            continue;
+          const [target, anchor] = href!.split('#', 2) as [string, string?];
+          const file = target
+            ? path.posix.normalize(
+                path.posix.join(path.posix.dirname(source), target),
+              )
+            : source;
+          const isGuide =
+            file === 'README.md' ||
+            (file.startsWith('guides/') && file.endsWith('.md'));
+          if (!isGuide) continue;
+          const exists =
+            published.has(file) && existsSync(path.join(ROOT, file));
+          if (!exists || (anchor && !headingAnchors(read(file)).has(anchor))) {
+            broken.push(href!);
+          }
+        }
+      }
+      expect(broken).toEqual([]);
+    },
+  );
+});
+
 describe('planGuides and slugFor', () => {
   it('slugs README.md as the index and a guide by its lower-cased name', () => {
     expect(slugFor('README.md')).toBe('index');

@@ -132,8 +132,7 @@ The baseline only shrinks. The run fails when a `no-check` names a bead but is n
 
 ## What changes in 11.0
 
-ROADMAP Phase 7 rewrites the documentation against the new client. The site build (`DOC-03`) and the generated counts (`DOC-04`) have landed; nothing else in this list exists yet:
+ROADMAP Phase 7 rewrites the documentation against the new client. The site build (`DOC-03`), the generated counts (`DOC-04`) and the single testing guide (`DOC-01`: root `TESTING.md` and the former `guides/MUTATION-TESTING.md` folded into `guides/TESTING.md`, [#273](https://github.com/lgriffin/ESI.ts/issues/273)) have landed; nothing else in this list exists yet:
 
-- Root `TESTING.md` and `guides/MUTATION-TESTING.md` fold into `guides/TESTING.md` (`DOC-01`, [#273](https://github.com/lgriffin/ESI.ts/issues/273)).
 - The README becomes an orientation page written against `createEsi` and `esi.as(identity)`, every snippet checked by `test:docs-examples`. `guides/MULTI-CHARACTER.md` arrived with ROADMAP Phase 2 PR 11.
 - The Beads blocks in `AGENTS.md` and `CLAUDE.md` become pointers ([#276](https://github.com/lgriffin/ESI.ts/issues/276)).
