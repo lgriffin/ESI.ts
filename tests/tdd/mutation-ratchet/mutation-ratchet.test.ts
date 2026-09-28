@@ -25,7 +25,9 @@ describe('BDD mutation ratchet', () => {
     ['src/schemas/market.ts', 'src/schemas'],
     ['src/EsiClient.ts', 'src'],
     // The SDE's subdirectories are scored on their own, like the core's.
-    ['src/sde/SdeDataProvider.ts', 'src/sde'],
+    ['src/sde/errors.ts', 'src/sde'],
+    ['src/sde/providers/yaml/SdeDataProvider.ts', 'src/sde/providers'],
+    ['src/sde/domain/universe/schemas.ts', 'src/sde/domain'],
     ['src/sde/ingestion/SdeDatabaseBuilder.ts', 'src/sde/ingestion'],
     ['src/auth/EveSsoClient.ts', 'src/auth'],
     [

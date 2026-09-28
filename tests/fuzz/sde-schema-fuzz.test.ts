@@ -1,6 +1,6 @@
 /**
  * SDE schemas: generated records round-trip through every schema in
- * `src/sde/schemas.ts`, and a record missing a required key is rejected.
+ * `src/sde/domain/schemas.ts`, and a record missing a required key is rejected.
  *
  * For each entity schema an arbitrary is derived from the zod definition
  * itself (`schemaArbitrary`), so a new field or a new schema is covered the
@@ -21,7 +21,7 @@
 import * as fc from 'fast-check';
 import { z } from 'zod';
 
-import * as schemas from '../../src/sde/schemas';
+import * as schemas from '../../src/sde/domain/schemas';
 import { readRunSettings } from './support/property';
 import { requiredKeys, schemaArbitrary } from './support/sde';
 

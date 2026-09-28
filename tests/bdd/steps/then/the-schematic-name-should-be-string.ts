@@ -1,4 +1,4 @@
-import type { PlanetSchematic } from '../../../../src/sde/types';
+import type { PlanetSchematic } from '../../../../src/sde/domain/types';
 import { Then } from '../../support/steps';
 
 Then('the schematic name should be {string}', function (name: string) {

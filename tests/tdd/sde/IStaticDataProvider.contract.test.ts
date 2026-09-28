@@ -1,4 +1,4 @@
-import type { IStaticDataProvider } from '../../../src/sde/IStaticDataProvider';
+import type { IStaticDataProvider } from '../../../src/sde/ports/IStaticDataProvider';
 
 describe('IStaticDataProvider contract test suite', () => {
   it('should export the contract test runner', () => {

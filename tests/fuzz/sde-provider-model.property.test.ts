@@ -33,9 +33,9 @@ import * as fc from 'fast-check';
 import * as fs from 'node:fs';
 
 import type { Clock } from '../../src/core/ports/Clock';
-import type { IStaticDataProvider } from '../../src/sde/IStaticDataProvider';
-import { MemorySdeProvider } from '../../src/sde/MemorySdeProvider';
-import { SdeDataProvider } from '../../src/sde/SdeDataProvider';
+import type { IStaticDataProvider } from '../../src/sde/ports/IStaticDataProvider';
+import { MemorySdeProvider } from '../../src/sde/providers/memory/MemorySdeProvider';
+import { SdeDataProvider } from '../../src/sde/providers/yaml/SdeDataProvider';
 import { describeProperty } from './support/property';
 import {
   ask,

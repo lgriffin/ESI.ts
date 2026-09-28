@@ -29,8 +29,8 @@ import * as path from 'node:path';
 import { dump } from 'js-yaml';
 import type { z } from 'zod';
 
-import type { IStaticDataProvider } from '../../../src/sde/IStaticDataProvider';
-import type { MemorySdeData } from '../../../src/sde/MemorySdeProvider';
+import type { IStaticDataProvider } from '../../../src/sde/ports/IStaticDataProvider';
+import type { MemorySdeData } from '../../../src/sde/providers/memory/MemorySdeProvider';
 import { SDE_FILE_REGISTRY } from '../../../src/sde/ingestion/constants';
 
 // ── Field names ─────────────────────────────────────────────────────────
@@ -1030,7 +1030,7 @@ function jsonValueArb(depth: number): fc.Arbitrary<unknown> {
 
 /**
  * An arbitrary of values `schema` accepts unchanged, derived from the zod
- * definition. Covers the constructs `src/sde/schemas.ts` uses; any other
+ * definition. Covers the constructs `src/sde/domain/schemas.ts` uses; any other
  * construct throws so a new one gets a generator rather than a silent gap.
  */
 export function schemaArbitrary(schema: z.ZodType): fc.Arbitrary<unknown> {

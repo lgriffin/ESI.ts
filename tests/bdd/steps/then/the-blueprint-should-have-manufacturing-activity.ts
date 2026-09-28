@@ -1,4 +1,4 @@
-import type { Blueprint } from '../../../../src/sde/types';
+import type { Blueprint } from '../../../../src/sde/domain/types';
 import { Then } from '../../support/steps';
 
 Then('the blueprint should have manufacturing activity', function () {
