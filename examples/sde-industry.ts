@@ -17,8 +17,10 @@ function main() {
   );
 
   try {
-    // Rifter Blueprint
-    const RIFTER_BP_ID = 587;
+    // Rifter Blueprint (587 is the Rifter itself; blueprints are keyed by
+    // their own type ID, and the first nightly against the real export
+    // found no blueprint 587)
+    const RIFTER_BP_ID = 787;
     const bp = sde.getBlueprint(RIFTER_BP_ID);
 
     if (!bp) {

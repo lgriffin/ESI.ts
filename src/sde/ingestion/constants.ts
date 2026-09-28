@@ -167,14 +167,14 @@ export const SDE_FILE_REGISTRY: readonly SdeFileSpec[] = [
     tableName: 'eve_dogma_attributes',
     idAttribute: 'attributeId',
     idType: 'number',
-    injectId: false,
+    injectId: true,
   },
   {
     yamlFile: 'dogmaEffects.yaml',
     tableName: 'eve_dogma_effects',
     idAttribute: 'effectId',
     idType: 'number',
-    injectId: false,
+    injectId: true,
   },
   {
     yamlFile: 'dogmaAttributeCategories.yaml',
