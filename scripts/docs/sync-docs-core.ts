@@ -69,7 +69,6 @@ export const GUIDE_SECTIONS: ReadonlyArray<{
       'guides/ARCHITECTURE.md',
       'guides/DESIGN-RULES.md',
       'guides/TESTING.md',
-      'guides/MUTATION-TESTING.md',
       'guides/QUALITY-GATES.md',
       'guides/LEAN-DECISIONS.md',
       'guides/AUDIT.md',

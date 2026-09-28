@@ -32,8 +32,8 @@
   "contractSuites": 2,
   "integrationSuites": 6,
   "charterRequirements": 62,
-  "charterEnforced": 45,
+  "charterEnforced": 46,
   "charterPractised": 6,
   "charterPartial": 9,
-  "charterGap": 2
+  "charterGap": 1
 }

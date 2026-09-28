@@ -1,6 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { defineConfig, type DefaultTheme } from 'vitepress';
 
+// GitHub's heading anchors, so a guide's `USAGE.md#8-examples` link keeps
+// working on the site. Shared with the guide link check in
+// tests/tdd/scripts/sync-docs.test.ts (CHARTER DOC-01).
+import { githubSlug } from '../../scripts/docs/heading-slug';
+
 /**
  * The site for https://lgriffin.github.io/ESI.ts/ (CHARTER DOC-03).
  *
@@ -23,19 +28,6 @@ const sidebarFile = new URL('./sidebar.generated.json', import.meta.url);
 const sidebar: DefaultTheme.SidebarMulti = existsSync(sidebarFile)
   ? JSON.parse(readFileSync(sidebarFile, 'utf8'))
   : {};
-
-/**
- * GitHub's heading anchors, so a guide's `USAGE.md#8-examples` link keeps
- * working on the site: lower case, punctuation dropped, spaces to hyphens.
- */
-function githubSlug(text: string): string {
-  return text
-    .trim()
-    .toLowerCase()
-    .replace(/<[^>]*>/g, '')
-    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
-    .replace(/\s/g, '-');
-}
 
 export default defineConfig({
   title: 'ESI.ts',
