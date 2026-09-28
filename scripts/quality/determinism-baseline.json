@@ -34,12 +34,6 @@
     },
     "src/core/util/sleep.ts": {
       "set-timeout": 1
-    },
-    "src/sde/SdeDataProvider.ts": {
-      "new-date": 1
-    },
-    "src/sde/ingestion/SdeDatabaseBuilder.ts": {
-      "new-date": 1
     }
   }
 }

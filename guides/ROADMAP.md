@@ -219,6 +219,7 @@ If a gate cannot be made green in one night, ship the partial with a shrink-only
 - **Brief.** Read `guides/MUTATION-TESTING.md`, `config/mutation/bdd-shards.json` and `config/mutation/unit-shards.json` first. Run `npx stryker run config/mutation/stryker.config.mjs --mutate "src/sde/**/*.ts" --concurrency 4` locally; if it exceeds 90 minutes, run per subdirectory. The clock change is behaviour-neutral.
 - **PR.** `chore(mutation): mutate src/sde in its own shards and seed its floors`
 - **Marker.** an `sde` shard in `config/mutation/bdd-shards.json`.
+- **Landed 2026-09-27.** Both shard files carry an `sde` shard (the unit invariant now covers `src/core` and `src/sde`); the unit run mutates `src/sde/**` minus the test-data factory; `src/sde` and `src/sde/ingestion` are scored on their own in both tiers (`directoryOf` treats the SDE like the core) and have provisional floors, unit 85.6 and 71.8, BDD 20.6 and 0, until the nightly re-seeds them; `SdeDataProvider` and `SdeDatabaseBuilder` take a `Clock`, defaulting to `src/sde/clock.ts`, the SDE's own copy of the real clock, because the SDE may import nothing of the core but the ports (so `lint:determinism` allow-lists two clock modules, and the two `new Date()` entries left the baseline).
 
 ### Wave B · Specify it properly
 

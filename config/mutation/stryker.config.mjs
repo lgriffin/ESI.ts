@@ -41,6 +41,9 @@ const COMMON_EXCLUSIONS = [
   '!src/core/IDeduplicator.ts',
   '!src/core/requestPipeline/index.ts',
   '!src/core/requestPipeline/dependencies.ts',
+  // A test fixture shipped for consumers' tests, not behaviour a test of the
+  // SDE protects: mutating it would score the fixture, not the module.
+  '!src/sde/SdeTestDataFactory.ts',
 ];
 
 const { shards } = JSON.parse(
@@ -64,7 +67,9 @@ if (shardName && !shard) {
 
 /** A shard's directories as Stryker globs, most specific exclusion last. */
 function mutateFor(definition) {
-  if (!definition) return ['src/core/**/*.ts', ...COMMON_EXCLUSIONS];
+  if (!definition) {
+    return ['src/core/**/*.ts', 'src/sde/**/*.ts', ...COMMON_EXCLUSIONS];
+  }
   return [
     ...definition.include.map((dir) => `${dir}/**/*.ts`),
     ...(definition.exclude ?? []).map((dir) => `!${dir}/**`),

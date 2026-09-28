@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import * as yaml from 'js-yaml';
 import AdmZip from 'adm-zip';
 import { SdeDataProvider } from '../../../src/sde/SdeDataProvider';
+import type { SdeDataProviderOptions } from '../../../src/sde';
 import { SdeError } from '../../../src/sde/errors';
 
 function createTempDir(): string {
@@ -207,6 +208,24 @@ describe('SdeDataProvider', () => {
       expect(version.version).toBe('2025-09-15.1');
       expect(version.buildDate).toBe('2025-09-15');
       expect(version.importedAt).toBeDefined();
+    });
+
+    it('stamps importedAt from the injected clock', () => {
+      const dir = createTempDir();
+      writeYaml(dir, '_sde.yaml', {
+        buildNumber: '42',
+        releaseDate: '2026-01-01',
+      });
+      const options: SdeDataProviderOptions = {
+        clock: {
+          now: () => Date.UTC(2026, 0, 2, 3, 4, 5, 678),
+          sleep: () => Promise.resolve(),
+        },
+      };
+      const stamped = SdeDataProvider.fromDirectory(dir, options);
+      expect(stamped.getVersion().importedAt).toBe('2026-01-02T03:04:05.678Z');
+      stamped.close();
+      fs.rmSync(dir, { recursive: true, force: true });
     });
 
     it('should handle _sde.yaml without nested sde block', () => {
