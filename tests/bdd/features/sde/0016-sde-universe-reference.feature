@@ -73,6 +73,7 @@ Feature: Universe Reference Tables
       Given a static data provider with the reference data set
       When I look up every station operation
       Then the result should contain exactly 2 records
+      And the result shall be the records with operation names "Manufacturing, Refinery"
 
   Rule: When a station service ID present in the loaded data set is looked up, the SDE provider shall return the service record carrying its service name.
     A station's services are what a pilot can do there; the service name is
@@ -90,6 +91,7 @@ Feature: Universe Reference Tables
       Given a static data provider with the reference data set
       When I look up every station service
       Then the result should contain exactly 2 records
+      And the result shall be the records with service names "Assassination Missions, Bounty Missions"
 
   # ── Absent identifiers ───────────────────────────────────────────────
 

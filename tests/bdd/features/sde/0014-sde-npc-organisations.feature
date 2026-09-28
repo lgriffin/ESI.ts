@@ -99,6 +99,12 @@ Feature: NPC Organisations
       Then the provider shall return NPC characters whose names contain "AAK"
       And the result should contain exactly 2 records
 
+    Scenario: A limit of 1 cuts the two matches to one
+      Given a static data provider with the reference data set
+      When the user searches for NPC characters matching "aak" with a limit of 1
+      Then the provider shall return NPC characters whose names contain "aak"
+      And the result should contain exactly 1 record
+
   # ── Corporation reference tables ─────────────────────────────────────
 
   Rule: When a corporation activity ID present in the loaded data set is looked up, the SDE provider shall return the activity record carrying its name.

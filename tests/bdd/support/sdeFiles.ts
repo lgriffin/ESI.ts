@@ -240,11 +240,22 @@ export function queueLatestBuildFailure(status: number): void {
   queueResponse({ match: 'latest.jsonl', status, body: '' });
 }
 
-/** Serve an archive of `bytes` bytes for the download URL. */
-export function queueArchiveDownload(bytes: number): void {
+/** A non-repeating printable byte sequence of the given length. */
+export function archiveBytes(length: number): string {
+  let body = '';
+  for (let i = 0; i < length; i++) {
+    body += String.fromCharCode(33 + ((i * 7 + (i >> 5)) % 94));
+  }
+  return body;
+}
+
+/** Serve an archive of `bytes` known bytes for the download URL, remembering them. */
+export function queueArchiveDownload(world: World, bytes: number): void {
+  const body = archiveBytes(bytes);
+  world.values.archiveBody = body;
   queueResponse({
     match: 'static-data-latest-yaml.zip',
-    body: 'Z'.repeat(bytes),
+    body,
     headers: {
       'content-type': 'application/zip',
       'content-length': String(bytes),
@@ -281,6 +292,14 @@ export async function downloadArchive(world: World): Promise<void> {
 
 export function fileSize(filePath: string): number {
   return fs.statSync(filePath).size;
+}
+
+/** Whether the file holds exactly the bytes `queueArchiveDownload` served. */
+export function fileMatchesServedArchive(
+  world: World,
+  filePath: string,
+): boolean {
+  return fs.readFileSync(filePath, 'latin1') === world.values.archiveBody;
 }
 
 // ---------------------------------------------------------------------------

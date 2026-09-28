@@ -94,11 +94,13 @@ Feature: Loading the Static Data Export
       Given a path where no SDE directory or archive exists
       When I open the SDE from the directory
       Then the call shall fail with an SDE error naming "SDE directory not found"
+      And the error shall name the attempted path
 
     Scenario: A missing archive is refused
       Given a path where no SDE directory or archive exists
       When I open the SDE from the ZIP archive
       Then the call shall fail with an SDE error naming "SDE ZIP file not found"
+      And the error shall name the attempted path
 
   # ── Closing ──────────────────────────────────────────────────────────
 

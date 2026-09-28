@@ -38,6 +38,7 @@ Feature: SDE Ingestion
       Given the archive download serves 4096 bytes
       When I download the archive to a temporary file
       Then the downloaded file shall hold 4096 bytes
+      And the downloaded file shall hold the bytes that were served
       And the last progress report shall be 4096 of 4096 bytes
 
   Rule: If the archive download answers with an HTTP error status, then the SdeDownloader shall throw an SdeError naming the status.
