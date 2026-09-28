@@ -242,7 +242,7 @@
     "fuzz:api": "bash scripts/spec/run-schemathesis.sh",
     "faults": "jest --config config/jest/faults.config.cjs",
     "faults:nightly": "jest --config config/jest/faults.nightly.config.cjs",
-    "mock:esi": "prism mock https://esi.evetech.net/meta/openapi.json -p 4010",
+    "mock:esi": "docker run --rm -p 4010:4010 stoplight/prism:5 mock -h 0.0.0.0 -p 4010 https://esi.evetech.net/meta/openapi.json",
     "test:types": "tsd --files 'tests/typetests/*.test-d.ts'",
     "test:export-coverage": "ts-node scripts/package/export-coverage.ts",
     "test:type-mutation": "ts-node scripts/mutation/type-mutation.ts",
@@ -354,7 +354,6 @@
     "@redocly/cli": "^2.48.0",
     "@size-limit/esbuild": "^13.0.3",
     "@size-limit/file": "^13.0.3",
-    "@stoplight/prism-cli": "^5.14.2",
     "@stryker-mutator/core": "^10.0.0",
     "@stryker-mutator/jest-runner": "^10.0.0",
     "@stryker-mutator/typescript-checker": "^10.0.0",
@@ -415,7 +414,6 @@
     "brace-expansion": ">=5.0.8",
     "esbuild": "$esbuild",
     "uuid": "~11.1.1",
-    "@faker-js/faker": ">=10.5.0",
     "fast-uri": "^3.1.6",
     "cosmiconfig": {
       "js-yaml": "^4.3.2"
