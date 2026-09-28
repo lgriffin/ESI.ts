@@ -145,6 +145,8 @@ One floor per score directory: `src/core` for files directly in core, `src/core/
 
 ### Where the scores stand
 
+The SDE directories (Track S Run 2, 2026-09-27) were seeded from a local run rather than a nightly: `src/sde` 87.6% and `src/sde/ingestion` 73.8% on the unit suite (1,317 mutants), `src/sde` 22.6% and `src/sde/ingestion` 0% BDD-only, floored two points below at 85.6 / 71.8 and 20.6 / 0 in the two floor files. The nightly matrix re-seeds them on its next complete run; until then those four floors are provisional and the table below, which lists the nightly-measured core, does not carry them.
+
 The first two complete runs of the sharded unit matrix: 18 September 2026 (run 35352679266) and 19 September 2026 (run 35428381994). Five shards, 38 to 82 minutes each, merged into one report of 37 mutated files. The 18 September run was the first time `src/core` had been scored since 16 September: the unsharded job stopped finishing inside its 240-minute timeout as the suite grew.
 
 | Directory                  | 18 Sept | 19 Sept | Detected / valid (19 Sept) | Floor | Floor before |

@@ -2,7 +2,7 @@
  * npm run test:docs-examples [-- --skip-build] [-- --keep]
  *
  * Type-checks every `ts`/`typescript` block in the consumer-facing Markdown
- * (README.md, guides/, src/sde/README.md, src/sde/docs/) against the packed
+ * (README.md, guides/, guides/sde/, src/sde/README.md) against the packed
  * package, the way a reader who copies it sees it, and runs the blocks marked
  * `runnable` against a stubbed fetch.
  *

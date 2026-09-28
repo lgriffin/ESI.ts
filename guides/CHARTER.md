@@ -30,6 +30,8 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 - **2026-09-28, provider method coverage (Track S Run 4).** `npm run spec:coverage:sde:ci` counts every `IStaticDataProvider` method as covered when a `Rule:` names it or a bound step reaches it, and gates the uncovered list against a shrink-only baseline; TEST-10 moves from Gap to Partial, and stays there until Phase 5 item 8 does the same for the domain clients.
 
+- **2026-09-28, the SDE doc set with the guides (Track S Run 11).** `src/sde/docs/*` and the module README moved to `guides/sde/` (REFERENCE, USAGE, ARCHITECTURE, DEVELOPER_GUIDE, API_CONTRACTS) with `guides/SDE.md` as the index and `src/sde/README.md` a pointer, so `docs:sync` publishes the set under its own sidebar section and `test:docs-examples` checks it as guides. The SDE lines of TEST-05 to TEST-08 and GATE-05 name their SDE mechanism; the "considered and cut" static-data port is recorded under ARCH-10; the gate matrix in QUALITY-GATES.md gained an SDE column.
+
 - **2026-09-28, the real export every night (Track S Run 9).** `nightly-sde.yml` downloads CCP's current Static Data Export (cached per build), loads it, runs the real-data integration suite with `SDE_REQUIRE_DATA=1`, runs `npm run sde:drift` (the export's file list against `SDE_FILE_REGISTRY`, each file's keys against the table's Zod schema) and the four `@nightly sde` examples, and keeps one fixed-title issue open while the run fails or the export drifts. GATE-07 (new) is Enforced.
 
 - **2026-09-27, the pull-request mutation gate.** The maintainer took `mutation-pr` out of `ci-success` and into its own workflow, `mutation-pr.yml`, so a pull request no longer waits up to 37 minutes for it: it still runs and reports on every pull request, the nightly still holds every floor, and ROADMAP.md's release gate carries the row that puts it back before 11.0.0 ships. GATE-01 needs 23 jobs; TEST-07 stays Enforced on the nightly.
@@ -244,7 +246,7 @@ All pipeline logging **shall** go through the per-client logger with structured 
 
 `src/sde` **shall** import only Node built-ins, its own files, its peer packages (`zod`, `js-yaml`, `adm-zip`, `better-sqlite3`) and `src/core/ports`, be imported by no file under `src/` outside `src/sde`, and keep the `./sde/memory` bundle free of file-system, YAML, ZIP or SQLite code.
 
-- **Why:** The SDE is a side module: an offline lookup layer that enriches ESI responses without a consumer in the pipeline. Holding the boundary in both directions keeps the SDE free to change without a release of the client, and keeps the client free of the SDE's optional peers. A bridge between the two was considered on 2026-09-27 and cut; if one is ever wanted it is a separate package above both, so nothing here is added for it.
+- **Why:** The SDE is a side module: an offline lookup layer that enriches ESI responses without a consumer in the pipeline. Holding the boundary in both directions keeps the SDE free to change without a release of the client, and keeps the client free of the SDE's optional peers. A bridge between the two was considered on 2026-09-27 and cut, and so was a static-data port under `src/core/ports` for the client to resolve names through; if either is ever wanted it is a separate package above both, so nothing here is added for it.
 - **Verified by:** `npm run lint:layers` (the `sde` and `sideModule` messages of `layers/inward-imports`, covered in both directions by `tests/tdd/layers/layers-lint.test.ts`) and `tests/tdd/sde/memory-entry-bundle.test.ts`, which bundles `src/sde/memory.ts` and the built `dist/sde/memory.{mjs,js}` and fails on `node:fs`, `js-yaml`, `adm-zip` or `better-sqlite3`.
 
 ---
@@ -383,14 +385,14 @@ Unit coverage **shall** stay at or above 90% statements, 80% branches, 75% funct
 Every endpoint definition **shall** be validated against the live ESI OpenAPI document for path, method, cache TTL and scopes, with a committed snapshot as fallback.
 
 - **Why:** This is the only test that can tell the project CCP moved something.
-- **Verified by:** `tests/contract/`; `npm run contract:diff` (oasdiff, breaking changes only).
+- **Verified by:** `tests/contract/`; `npm run contract:diff` (oasdiff, breaking changes only). SDE: `npm run sde:drift` in `nightly-sde.yml` compares CCP's current export with `SDE_FILE_REGISTRY` and the Zod schemas every night (GATE-07).
 
 #### TEST-06 · Ubiquitous · Enforced
 
 The consumer-facing type surface **shall** be asserted by tsd tests covering endpoint argument inference, branded IDs, error guards and the result envelope.
 
 - **Why:** Half the value of the library is at the type level. A refactor can break inference without failing a runtime test.
-- **Verified by:** `npm run test:types`.
+- **Verified by:** `npm run test:types`. SDE: `tests/typetests/sde.test-d.ts` and `sde-memory.test-d.ts` pin every provider method, entity and error of `./sde` and `./sde/memory`, with type-mutation floors of 32 and 25 in `config/mutation/type-thresholds.json`.
 
 #### TEST-07 · Ubiquitous · Enforced
 
@@ -398,14 +400,14 @@ Mutation testing **shall** hold each directory at or above its floor in `config/
 
 - **Why:** Nightly-only mutation means a weak test lands before anyone sees the score. Per-directory floors replace the single score of 65, which let a strong directory hide a weak one. Incremental Stryker on changed files keeps the PR cost bounded.
 - **11.0.0 floors (decided 2026-09-27).** The ratchets only rise, and the release gate names where they must stand: every directory in `config/mutation/unit-thresholds.json` at 60 or above, every directory in `config/mutation/bdd-thresholds.json` at 20 or above, and every SDE directory at 90 or with each survivor carrying an equivalence reason (Track S Run M). `src/schemas` is measured by the unit tier and `schema:drift` only: scenarios send valid ESI-shaped bodies through the transport seam, so a mutant that relaxes a field is invisible to them by design, and its BDD entry stays at 0 rather than pretending otherwise.
-- **Verified by:** `mutation-pr` job ("Mutation (changed files)") in `mutation-pr.yml`, advisory on every pull request since 2026-09-27 and back inside `ci-success` at the release gate; nightly ratchets in `nightly-mutation.yml`. A pull request that changes or deletes a test re-mutates, with `--force`, every reused file that test covered in the nightly report (a test-only pull request, over the directories its tests reach), so a weakened or deleted test lowers a score from the pull request and a strengthened one raises it; a test the report never saw can only raise a score and waits for the next nightly ([#380](https://github.com/lgriffin/ESI.ts/issues/380), `planPrRun` in `scripts/mutation/mutation-ratchet-core.ts`). Open: flip-flopping mutants ([#382](https://github.com/lgriffin/ESI.ts/issues/382)).
+- **Verified by:** `mutation-pr` job ("Mutation (changed files)") in `mutation-pr.yml`, advisory on every pull request since 2026-09-27 and back inside `ci-success` at the release gate; nightly ratchets in `nightly-mutation.yml`. A pull request that changes or deletes a test re-mutates, with `--force`, every reused file that test covered in the nightly report (a test-only pull request, over the directories its tests reach), so a weakened or deleted test lowers a score from the pull request and a strengthened one raises it; a test the report never saw can only raise a score and waits for the next nightly ([#380](https://github.com/lgriffin/ESI.ts/issues/380), `planPrRun` in `scripts/mutation/mutation-ratchet-core.ts`). Open: flip-flopping mutants ([#382](https://github.com/lgriffin/ESI.ts/issues/382)). SDE: `src/sde` and `src/sde/ingestion` are their own directories in both floor files and `src/sde` its own shard in `config/mutation/unit-shards.json` and `bdd-shards.json` (Track S Run 2).
 
 #### TEST-08 · Optional · Enforced
 
 Where a test needs live ESI or a real token, the test **shall** be gated behind `ESI_LIVE_TESTS` or `ESI_GATED_TESTS` and soft-skip when ESI returns 503.
 
 - **Why:** Tranquility downtime must not fail a PR that changed nothing about networking.
-- **Verified by:** `config/jest/integration.live.config.cjs` and `config/jest/contract.live.config.cjs` refuse to run without `ESI_LIVE_TESTS`; `tests/integration/gated-auth.test.ts` reads `ESI_GATED_TESTS`; the 503 soft-skip sits in the CI jobs that run those tiers.
+- **Verified by:** `config/jest/integration.live.config.cjs` and `config/jest/contract.live.config.cjs` refuse to run without `ESI_LIVE_TESTS`; `tests/integration/gated-auth.test.ts` reads `ESI_GATED_TESTS`; the 503 soft-skip sits in the CI jobs that run those tiers. SDE: `tests/integration/sde/sde-real-data.test.ts` skips without an export on disk and fails instead when `SDE_REQUIRE_DATA=1`, which `nightly-sde.yml` sets.
 
 #### TEST-09 · Ubiquitous · Enforced
 
@@ -418,7 +420,7 @@ Test source under `tests/` **shall** be linted with the same ESLint configuratio
 
 Every public method of a domain client and of `IStaticDataProvider` **shall** be named by at least one `Rule:` block or bound step, with the list of methods without one only ever shrinking.
 
-- **Why:** The audit proves every Rule has a scenario, but nothing proves every behaviour has a Rule. Two hundred and thirty-five wired endpoints and ninety-nine provider methods can each lose their specification without a check noticing. A shrink-only baseline turns "specified" into a number that cannot go down.
+- **Why:** The audit proves every Rule has a scenario, but nothing proves every behaviour has a Rule. Two hundred and thirty-five wired endpoints and 101 provider methods can each lose their specification without a check noticing. The provider half is closed (Track S Runs 4 to 6: 101 of 101 methods covered, an empty baseline); the row stays Partial until the domain clients have the same gate. A shrink-only baseline turns "specified" into a number that cannot go down.
 - **Verified by:** The provider: `npm run spec:coverage:sde:ci` (`scripts/sde/sde-spec-coverage.ts`, checks in `sde-spec-coverage-core.ts`, tested under `tests/tdd/scripts/`) parses `IStaticDataProvider.ts` for its methods and counts one as covered when a `Rule:` in `tests/bdd/features/sde/` names it or the step function a scenario binds calls it on the provider, directly or through any `tests/bdd` function, with the TypeScript type checker deciding what the receiver is; the uncovered list, grouped by entity family, is `scripts/sde/sde-spec-coverage-baseline.json`, which may only shrink against `origin/master`'s copy (23 of 101 covered at the first commit). In `check:all` and `ci.yml`'s `spec-audit` job; `verify-local` runs `spec:coverage:sde`, which checks the committed baseline without a base ref. To add: ROADMAP Phase 5 item 8 extends the same check to `src/clients/**` with `scripts/spec/client-spec-coverage-baseline.json`, which moves this row to Enforced.
 
 #### TEST-11 · Optional · Partial
@@ -597,16 +599,16 @@ The repository has excellent individual documents and, until this charter, no do
 
 ### Surfaces at the time of the survey
 
-| Surface                               | What it is                                          | Published?                  | Problem                                                                           |
-| ------------------------------------- | --------------------------------------------------- | --------------------------- | --------------------------------------------------------------------------------- |
-| `README.md` (1037 lines)              | The de facto manual                                 | npm + GitHub                | Banner says v9.5.2; restates six guides; 39-row client table hand-maintained      |
-| `guides/`                             | Maintainer guides, best depth                       | GitHub only                 | Orphaned: nothing links to four of them; two say "37 clients"                     |
-| `docs/` (5 files)                     | Examples catalogue, OKF, drift, two strategy papers | GitHub only                 | Was the TypeDoc output dir; nothing links to any of them                          |
-| `docs-site/` (VitePress, 21 pages)    | A hand-written fork of the README                   | **Never built or deployed** | Version dropdown says 9.6.1; two commits ever; duplicates everything              |
-| TypeDoc on gh-pages                   | API reference from JSDoc                            | gh-pages on release         | The only published site, and the least readable one                               |
-| `src/sde/README.md` + `src/sde/docs/` | Complete SDE doc set                                | GitHub only                 | Lives inside `src/`, invisible to the site, re-written independently in docs-site |
-| `tests/bdd/README.md` + `GUIDE.md`    | EARS specification rules                            | GitHub only                 | Newest and best docs in the repo; not referenced from the testing guide           |
-| Root `TESTING.md`                     | Older copy of `guides/TESTING.md`                   | GitHub only                 | Different tier numbering from the guide; unlinked                                 |
+| Surface                            | What it is                                          | Published?                  | Problem                                                                              |
+| ---------------------------------- | --------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------ |
+| `README.md` (1037 lines)           | The de facto manual                                 | npm + GitHub                | Banner says v9.5.2; restates six guides; 39-row client table hand-maintained         |
+| `guides/`                          | Maintainer guides, best depth                       | GitHub only                 | Orphaned: nothing links to four of them; two say "37 clients"                        |
+| `docs/` (5 files)                  | Examples catalogue, OKF, drift, two strategy papers | GitHub only                 | Was the TypeDoc output dir; nothing links to any of them                             |
+| `docs-site/` (VitePress, 21 pages) | A hand-written fork of the README                   | **Never built or deployed** | Version dropdown says 9.6.1; two commits ever; duplicates everything                 |
+| TypeDoc on gh-pages                | API reference from JSDoc                            | gh-pages on release         | The only published site, and the least readable one                                  |
+| `guides/SDE.md` + `guides/sde/`    | Complete SDE doc set                                | Site (`docs:sync`)          | Resolved 2026-09-28 (Track S Run 11): moved out of `src/`, published with the guides |
+| `tests/bdd/README.md` + `GUIDE.md` | EARS specification rules                            | GitHub only                 | Newest and best docs in the repo; not referenced from the testing guide              |
+| Root `TESTING.md`                  | Older copy of `guides/TESTING.md`                   | GitHub only                 | Different tier numbering from the guide; unlinked                                    |
 
 ### Target shape
 
@@ -627,7 +629,7 @@ guides/                         canonical, and the only source the site builds f
 ├── LOGGING.md                  NEW: ILogger, per-client loggers, pino adapter, levels
 ├── PAGINATION.md               NEW: offset, cursor, stream*, fetchAll*, batch, concurrency defaults
 ├── RUNTIME-VALIDATION.md       keep
-├── SDE.md                      index; src/sde/docs/* move to guides/sde/
+├── SDE.md                      index; guides/sde/* hold the module reference, usage, architecture, developer guide and contracts
 ├── OKF.md                      moved from docs/okf-guide.md
 ├── RELEASE.md                  NEW: release-please, changelog, provenance, support window
 ├── SEMVER.md                   NEW: what the public contract is, major/minor/patch decisions, commit markers, merge buttons
@@ -655,7 +657,7 @@ etc/doc-metrics.json            generated counts (npm run docs:metrics): clients
 | LOGGING.md                                              | new    | Done                                                                                             | Write from the per-client logging refactor                                                                       | 2, 3          | `esi-5zs` · [#282](https://github.com/lgriffin/ESI.ts/issues/282) |
 | PAGINATION.md                                           | new    | Done                                                                                             | README streaming and cursor sections; docs-site pagination.md; 9.7.0 changelog for `fetchAll*`                   | 2             | `esi-358` · [#283](https://github.com/lgriffin/ESI.ts/issues/283) |
 | RUNTIME-VALIDATION.md                                   | keep   | Kept; no `Implements:` line yet                                                                  | Delete README and docs-site copies, link instead                                                                 | 3             | —                                                                 |
-| SDE.md + guides/sde/                                    | move   | Open: `src/sde/docs/` still in place                                                             | src/sde/README.md, src/sde/docs/\*, docs-site guide/sde.md                                                       | 2             | —                                                                 |
+| SDE.md + guides/sde/                                    | move   | Done 2026-09-28 (Track S Run 11)                                                                 | src/sde/README.md, src/sde/docs/\*, docs-site guide/sde.md                                                       | 2             | —                                                                 |
 | OKF.md                                                  | move   | Done                                                                                             | docs/okf-guide.md; link from README and DESIGN-RULES                                                             | 3             | —                                                                 |
 | RELEASE.md                                              | new    | Done                                                                                             | release-please config, CHANGELOG conventions, release.yml jobs, SECURITY.md support table                        | 8             | `esi-38g` · [#284](https://github.com/lgriffin/ESI.ts/issues/284) |
 | DOCUMENTATION.md                                        | merge  | Site build documented 2026-09-27; metrics generation open                                        | Rewrite around the target tree; document the site build and metrics                                              | 7             | —                                                                 |

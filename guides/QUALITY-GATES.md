@@ -12,56 +12,57 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 
 ● blocks; ◐ runs but does not block; · does not run.
 
-| Check                                      | Commit |           Push           |        PR        |    Nightly    |      Release       |
-| ------------------------------------------ | :----: | :----------------------: | :--------------: | :-----------: | :----------------: |
-| lint-staged: ESLint fix + Prettier         |   ●    |            ·             |        ·         |       ·       |         ·          |
-| commitlint (conventional commits)          |   ●    |            ·             |        ·         |       ·       |         ·          |
-| ESLint, Prettier check, build, typecheck   |   ·    |            ●             |        ●         |       ·       |       ● (1)        |
-| Examples type-check (`typecheck:examples`) |   ·    |            ●             |        ●         | ◐ files issue |         ·          |
-| Unit tests (includes BDD and composition)  |   ·    |            ●             |    ● 18/20/22    |       ·       |         ●          |
-| Coverage thresholds + PR comment           |   ·    |            ·             |        ●         |       ·       |         ·          |
-| BDD suite                                  |   ·    |          ● (2)           |        ●         |       ·       |         ●          |
-| EARS spec audit, Rule/schema consistency   |   ·    |            ·             |        ●         |       ·       |         ●          |
-| EARS verdict per Rule (`ears.yml`)         |   ·    |            ·             |      ◐ (9)       |       ·       |         ·          |
-| Determinism lint (time in `src/`)          |   ·    |            ·             |        ●         |       ·       |         ·          |
-| Layer lint (`lint:layers`)                 |   ·    |            ●             |        ●         |       ·       |         ·          |
-| Test lints: transport seam, suite health   |   ·    |            ●             |        ●         |       ·       |         ·          |
-| Generated types fresh, schema drift        |   ·    |            ·             |     ● (3)(7)     | ◐ files issue |         ●          |
-| Generated operations fresh                 |   ·    |            ·             |        ●         |       ·       |         ●          |
-| Endpoint definitions (`validate:esi`)      |   ·    |            ·             |     ● (3)(7)     |       ·       |         ●          |
-| ESI spec lint (`validate:spec`)            |   ·    |            ·             |      ● (7)       |       ·       |         ·          |
-| Version check (`validate:versions`)        |   ·    |            ·             |        ●         |       ·       |         ●          |
-| Auth/scope alignment                       |   ·    |            ·             |        ●         |       ·       |         ●          |
-| Export coverage (every export in a test)   |   ·    |            ·             |        ●         |       ·       |         ·          |
-| Live contract tests                        |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |       ● (3)        |
-| Recorded payload replay                    |   ·    |            ·             |        ●         | ◐ opens a PR  |         ●          |
-| Fuzz, integration (mocked), type tests     |   ·    |            ·             |        ●         |       ·       |         ●          |
-| Properties at 10,000 runs                  |   ·    |            ·             |        ·         | ◐ files issue |         ·          |
-| Fault catalogue (transport faults)         |   ·    |            ·             |        ●         | ◐ files issue |         ●          |
-| API surface diff (api-extractor)           |   ·    |            ·             |        ●         |       ·       |         ·          |
-| Breaking API change declared (SemVer gate) |   ·    |            ·             |        ●         |       ·       |         ·          |
-| Lockfile consistency                       |   ·    |            ·             |        ●         |       ·       |         ·          |
-| publint, attw, size budgets (packed)       |   ·    |            ·             |        ●         |       ·       |         ·          |
-| Consumer contract (packed tarball)         |   ·    |            ·             |  ● 18/20/22/24   |       ◐       |         ●          |
-| Documentation examples (packed tarball)    |   ·    |            ·             |        ●         |       ·       |         ·          |
-| Dependency audit (diff-aware / allowlist)  |   ·    |            ·             | ● new advisories | ◐ files issue |    ● ≥ high (6)    |
-| knip dead-code                             |   ·    |            ·             |        ◐         | ◐ weekly (4)  |         ●          |
-| CodeQL                                     |   ·    | ◐ protected branches (5) |      ◐ (5)       |   ◐ weekly    |         ·          |
-| zizmor (workflow security)                 |   ·    |            ·             |        ●         |       ·       |         ·          |
-| Benchmarks, head against base (8)          |   ·    |            ·             |        ●         | ◐ files issue |         ·          |
-| Heap soak, 100 000 requests                |   ·    |            ·             |        ·         | ◐ files issue |         ·          |
-| TypeDoc generation                         |   ·    |            ·             |        ●         |       ·       |         ●          |
-| Unit + BDD, fails if any test was retried  |   ·    |            ·             |        ·         |       ◐       |         ·          |
-| Interleavings, four calls, seeded          |   ·    |            ·             |        ·         |       ◐       |         ·          |
-| Examples against live ESI                  |   ·    |            ·             |      ◐ (10)      | ◐ files issue |         ·          |
-| Stryker mutation, unit suite               |   ·    |            ·             | ◐ changed files  | ◐ files issue |         ·          |
-| Stryker mutation, BDD-only                 |   ·    |            ·             |        ·         | ◐ files issue |         ·          |
-| Type mutation (tsd ratchet)                |   ·    |            ·             |        ·         | ◐ files issue |         ·          |
-| Schemathesis API fuzz                      |   ·    |            ·             |        ·         | ◐ files issue |         ·          |
-| Payload fuzz, every endpoint (seeded)      |   ·    |            ·             |        ·         | ◐ files issue |         ·          |
-| Missing-endpoint spec drift                |   ·    |            ·             |        ·         | ◐ files issue |         ·          |
-| OpenSSF Scorecard                          |   ·    |            ·             |        ·         |   ◐ weekly    |         ·          |
-| Post-publish canary (registry install)     |   ·    |            ·             |        ·         |       ·       | ◐ files issue (11) |
+| Check                                      | Commit |           Push           |        PR        |    Nightly    |      Release       | SDE (12) |
+| ------------------------------------------ | :----: | :----------------------: | :--------------: | :-----------: | :----------------: | :------: |
+| lint-staged: ESLint fix + Prettier         |   ●    |            ·             |        ·         |       ·       |         ·          |    ●     |
+| commitlint (conventional commits)          |   ●    |            ·             |        ·         |       ·       |         ·          |    ●     |
+| ESLint, Prettier check, build, typecheck   |   ·    |            ●             |        ●         |       ·       |       ● (1)        |    ●     |
+| Examples type-check (`typecheck:examples`) |   ·    |            ●             |        ●         | ◐ files issue |         ·          |    ●     |
+| Unit tests (includes BDD and composition)  |   ·    |            ●             |    ● 18/20/22    |       ·       |         ●          |    ●     |
+| Coverage thresholds + PR comment           |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
+| BDD suite                                  |   ·    |          ● (2)           |        ●         |       ·       |         ●          |    ●     |
+| EARS spec audit, Rule/schema consistency   |   ·    |            ·             |        ●         |       ·       |         ●          |    ●     |
+| EARS verdict per Rule (`ears.yml`)         |   ·    |            ·             |      ◐ (9)       |       ·       |         ·          |    ◐     |
+| Determinism lint (time in `src/`)          |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
+| Layer lint (`lint:layers`)                 |   ·    |            ●             |        ●         |       ·       |         ·          |    ●     |
+| Test lints: transport seam, suite health   |   ·    |            ●             |        ●         |       ·       |         ·          |    ●     |
+| Generated types fresh, schema drift        |   ·    |            ·             |     ● (3)(7)     | ◐ files issue |         ●          |    ·     |
+| Generated operations fresh                 |   ·    |            ·             |        ●         |       ·       |         ●          |    ·     |
+| Endpoint definitions (`validate:esi`)      |   ·    |            ·             |     ● (3)(7)     |       ·       |         ●          |    ·     |
+| ESI spec lint (`validate:spec`)            |   ·    |            ·             |      ● (7)       |       ·       |         ·          |    ·     |
+| Version check (`validate:versions`)        |   ·    |            ·             |        ●         |       ·       |         ●          |    ●     |
+| Auth/scope alignment                       |   ·    |            ·             |        ●         |       ·       |         ●          |    ·     |
+| Export coverage (every export in a test)   |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
+| Live contract tests                        |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |       ● (3)        |    ·     |
+| Recorded payload replay                    |   ·    |            ·             |        ●         | ◐ opens a PR  |         ●          |    ·     |
+| Fuzz, integration (mocked), type tests     |   ·    |            ·             |        ●         |       ·       |         ●          |    ●     |
+| Properties at 10,000 runs                  |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ●     |
+| Fault catalogue (transport faults)         |   ·    |            ·             |        ●         | ◐ files issue |         ●          |    ·     |
+| API surface diff (api-extractor)           |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
+| Breaking API change declared (SemVer gate) |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
+| Lockfile consistency                       |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
+| publint, attw, size budgets (packed)       |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
+| Consumer contract (packed tarball)         |   ·    |            ·             |  ● 18/20/22/24   |       ◐       |         ●          |    ●     |
+| Documentation examples (packed tarball)    |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
+| Dependency audit (diff-aware / allowlist)  |   ·    |            ·             | ● new advisories | ◐ files issue |    ● ≥ high (6)    |    ●     |
+| knip dead-code                             |   ·    |            ·             |        ◐         | ◐ weekly (4)  |         ●          |    ●     |
+| CodeQL                                     |   ·    | ◐ protected branches (5) |      ◐ (5)       |   ◐ weekly    |         ·          |    ◐     |
+| zizmor (workflow security)                 |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
+| Benchmarks, head against base (8)          |   ·    |            ·             |        ●         | ◐ files issue |         ·          |    ●     |
+| Heap soak, 100 000 requests                |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ◐     |
+| TypeDoc generation                         |   ·    |            ·             |        ●         |       ·       |         ●          |    ●     |
+| Unit + BDD, fails if any test was retried  |   ·    |            ·             |        ·         |       ◐       |         ·          |    ◐     |
+| Interleavings, four calls, seeded          |   ·    |            ·             |        ·         |       ◐       |         ·          |    ·     |
+| Examples against live ESI                  |   ·    |            ·             |      ◐ (10)      | ◐ files issue |         ·          |    ◐     |
+| Stryker mutation, unit suite               |   ·    |            ·             | ◐ changed files  | ◐ files issue |         ·          |    ◐     |
+| Stryker mutation, BDD-only                 |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ◐     |
+| Type mutation (tsd ratchet)                |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ◐     |
+| Schemathesis API fuzz                      |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ·     |
+| Payload fuzz, every endpoint (seeded)      |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ·     |
+| Missing-endpoint spec drift                |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ·     |
+| OpenSSF Scorecard                          |   ·    |            ·             |        ·         |   ◐ weekly    |         ·          |    ·     |
+| Post-publish canary (registry install)     |   ·    |            ·             |        ·         |       ·       | ◐ files issue (11) |    ·     |
+| Real SDE export (`nightly-sde.yml`)        |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ●     |
 
 1. The release job runs lint, format check and build. It has no separate `typecheck` step; `npm run build` runs `tsc --emitDeclarationOnly`, which type-checks `src/`.
 2. `npm test` uses `config/jest/unit.config.cjs`, whose `testMatch` includes `tests/tdd/**/*.test.ts` (composition among them), `tests/bdd/step-definitions/**/*.steps.ts` and `tests/bdd/specs/**/*.spec.ts`. Every push therefore runs the BDD scenarios as part of the unit suite; `npm run bdd` runs the same two BDD globs alone.
@@ -74,6 +75,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 9. Advisory: `ears.yml` runs on pull requests that touch `src/`, `tests/bdd/` or the EARS scripts, outside `ci-success`. `bdd-tests` and `spec-audit` gate the same ground.
 10. `nightly-examples.yml` also runs on pull requests that touch `examples/` or its tooling, outside `ci-success`; the job result is the signal and no issue is opened.
 11. Runs after a GitHub release is published, so it cannot stop that release; a failure opens a `release-verification` issue.
+12. Whether the check covers `src/sde` and its tests (Track S): ● it does, ◐ it runs there without blocking (the SDE soak, the SDE examples and the SDE mutation shards run in nightlies), · it has no SDE side (the check is about the ESI spec, endpoints or the live API).
 
 ### What actually blocks a merge
 
@@ -161,7 +163,7 @@ Two scripts used to point at files that were never committed — `sde:seed` at `
 
 ### GATE-07 · The real SDE export is loaded every night
 
-`nightly-sde.yml` (05:15 UTC, Track S Run 9) resolves CCP's current build number from the build feed, restores the export ZIP from `actions/cache` keyed on that build (downloading only on a miss), extracts it with `npm run sde:ingest -- --from-zip`, and then runs three things against it: `tests/integration/sde` with `SDE_REQUIRE_DATA=1`, so a missing export fails instead of skipping (the suite also queries one table per entity family of the SDE README's API reference); `npm run sde:drift`, which compares the export's file list with `SDE_FILE_REGISTRY` and every registered file's record keys, after the providers' transform, with the table's Zod schema, writes `reports/sde-drift.json` and the step summary, and exits 1 on drift; and `npm run examples:nightly -- --tier sde`, the four SDE examples. A scheduled run that fails, or finds drift, opens or comments on one issue titled "sde: nightly real-data run failed or the export drifted"; the next green night closes it. `tests/tdd/scripts/sde-drift.test.ts` drives the check over a fixture export with one unknown file and one record carrying a key the schema does not declare, checks that every registered file maps to a schema, and fails if the workflow stops downloading from the URLs `src/sde/ingestion/constants.ts` names.
+`nightly-sde.yml` (05:15 UTC, Track S Run 9) resolves CCP's current build number from the build feed, restores the export ZIP from `actions/cache` keyed on that build (downloading only on a miss), extracts it with `npm run sde:ingest -- --from-zip`, and then runs three things against it: `tests/integration/sde` with `SDE_REQUIRE_DATA=1`, so a missing export fails instead of skipping (the suite also queries one table per entity family of the SDE reference's API section); `npm run sde:drift`, which compares the export's file list with `SDE_FILE_REGISTRY` and every registered file's record keys, after the providers' transform, with the table's Zod schema, writes `reports/sde-drift.json` and the step summary, and exits 1 on drift; and `npm run examples:nightly -- --tier sde`, the four SDE examples. A scheduled run that fails, or finds drift, opens or comments on one issue titled "sde: nightly real-data run failed or the export drifted"; the next green night closes it. `tests/tdd/scripts/sde-drift.test.ts` drives the check over a fixture export with one unknown file and one record carrying a key the schema does not declare, checks that every registered file maps to a schema, and fails if the workflow stops downloading from the URLs `src/sde/ingestion/constants.ts` names.
 
 ### Counts in the documentation (DOC-04)
 

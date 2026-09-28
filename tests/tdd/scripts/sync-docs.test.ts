@@ -40,9 +40,17 @@ const read = (repoPath: string) =>
   readFileSync(path.join(ROOT, repoPath), 'utf8');
 const guideSources = [
   'README.md',
-  ...readdirSync(path.join(ROOT, 'guides'))
-    .filter((f) => f.endsWith('.md'))
-    .map((f) => `guides/${f}`),
+  ...readdirSync(path.join(ROOT, 'guides'), { withFileTypes: true }).flatMap(
+    (entry) => {
+      if (entry.isFile() && entry.name.endsWith('.md')) {
+        return [`guides/${entry.name}`];
+      }
+      if (!entry.isDirectory()) return [];
+      return readdirSync(path.join(ROOT, 'guides', entry.name))
+        .filter((f) => f.endsWith('.md'))
+        .map((f) => `guides/${entry.name}/${f}`);
+    },
+  ),
 ];
 const exampleFiles = readdirSync(path.join(ROOT, 'examples'))
   .filter((f) => f.endsWith('.ts'))
@@ -124,6 +132,14 @@ describe('planGuides and slugFor', () => {
   it('slugs README.md as the index and a guide by its lower-cased name', () => {
     expect(slugFor('README.md')).toBe('index');
     expect(slugFor('guides/MULTI-CHARACTER.md')).toBe('multi-character');
+  });
+
+  it('prefixes a guide in a subfolder with the folder, so guides/sde/USAGE.md does not shadow guides/USAGE.md', () => {
+    expect(slugFor('guides/sde/USAGE.md')).toBe('sde-usage');
+    expect(slugFor('guides/sde/API_CONTRACTS.md')).toBe('sde-api_contracts');
+    expect(guideSources).toEqual(
+      expect.arrayContaining(['guides/SDE.md', 'guides/sde/REFERENCE.md']),
+    );
   });
 
   it('keeps section order and puts an unlisted guide in the last section', () => {
