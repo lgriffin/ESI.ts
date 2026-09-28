@@ -49,6 +49,7 @@ const DESCS: Record<string, string> = {
   'token:refresh': 'Refresh the SSO access token',
   'sde:seed': 'Seed the SDE test database',
   'sde:ingest': 'Download CCP static data into local SDE files',
+  'sde:drift': 'Compare an extracted SDE export with the registry and schemas',
   'health-check': 'One-shot live ESI reachability check',
 
   // Curated example highlights — the rest are shown by name in the family.

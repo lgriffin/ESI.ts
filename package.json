@@ -158,6 +158,7 @@
     "example:sde-industry": "ts-node examples/sde-industry.ts",
     "example:sde-market-tree": "ts-node examples/sde-market-tree.ts",
     "sde:ingest": "ts-node scripts/sde/sde-ingest.ts",
+    "sde:drift": "ts-node scripts/sde/sde-drift.ts",
     "example:write-ops": "ts-node examples/write-operations.ts",
     "token:create": "ts-node scripts/auth/create-token.ts",
     "token:refresh": "ts-node scripts/auth/refresh-token.ts",

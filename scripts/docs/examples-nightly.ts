@@ -9,6 +9,11 @@
  *   npm run examples:nightly                     # every nightly example
  *   npm run examples:nightly -- --only status.ts # one example
  *   npm run examples:nightly -- --json out.json  # also write the results
+ *   npm run examples:nightly -- --tier sde       # only the SDE examples
+ *
+ * The `sde` examples run only when an export is on disk (`SDE_DATA_PATH`,
+ * else ./sde-data, holding types.yaml): with `--tier sde` that is required,
+ * otherwise they are left out and only the live tiers run.
  *
  * Writes a markdown summary to $GITHUB_STEP_SUMMARY when set. Exits 1 when an
  * example failed. The --json file is rewritten after every example, so a run
@@ -19,8 +24,9 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {
   ExampleResult,
-  RUN_TIERS,
+  type ExampleTier,
   failureReason,
+  runTiers,
   summarize,
   tail,
   tierOf,
@@ -45,14 +51,23 @@ function argValue(flag: string): string | undefined {
   return i === -1 ? undefined : process.argv[i + 1];
 }
 
-function nightlyExamples(only?: string): string[] {
+/** Whether an SDE export is on disk for the `sde` tier to read. */
+function hasSdeData(): boolean {
+  const dir = path.resolve(ROOT, process.env.SDE_DATA_PATH ?? 'sde-data');
+  return fs.existsSync(path.join(dir, 'types.yaml'));
+}
+
+function nightlyExamples(
+  tiers: readonly ExampleTier[],
+  only?: string,
+): string[] {
   return fs
     .readdirSync(EXAMPLES)
     .filter((file) => file.endsWith('.ts'))
     .filter((file) => !only || file === only)
     .filter((file) => {
       const tier = tierOf(fs.readFileSync(path.join(EXAMPLES, file), 'utf8'));
-      return tier !== null && RUN_TIERS.includes(tier);
+      return tier !== null && tiers.includes(tier);
     })
     .sort();
 }
@@ -108,7 +123,18 @@ async function run(file: string): Promise<ExampleResult> {
 }
 
 async function main(): Promise<void> {
-  const files = nightlyExamples(argValue('--only'));
+  const tierFlag = argValue('--tier');
+  const sdeData = hasSdeData();
+  if (tierFlag === 'sde' && !sdeData) {
+    console.error(
+      'No SDE export on disk (SDE_DATA_PATH or ./sde-data with types.yaml); run npm run sde:ingest first.',
+    );
+    process.exit(1);
+  }
+  const files = nightlyExamples(
+    runTiers(sdeData, tierFlag),
+    argValue('--only'),
+  );
   if (files.length === 0) {
     console.error('No nightly examples matched.');
     process.exit(1);
