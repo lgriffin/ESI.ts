@@ -16,6 +16,7 @@ Topics with their own document are summarised here and linked:
 | Error classes on both sides and where to import the guards               | [ERRORS.md](ERRORS.md)                                          |
 | The rule that keeps the two apart and the tests that hold it             | [CHARTER.md](CHARTER.md#arch-10--ubiquitous--enforced), ARCH-10 |
 | The eleven overnight runs that bring the SDE up to the core's standard   | [ROADMAP.md](ROADMAP.md#track-s--the-sde-programme)             |
+| What protects the module: suites, coverage, mutation scores and floors   | [sde/TESTING.md](sde/TESTING.md)                                |
 
 ---
 
@@ -417,7 +418,7 @@ console.log(sde.getTypesByGroup(18).map((t) => t.name)); // ["Tritanium", "Pyeri
 
 The ESI side is stubbed at the transport seam the same way it is in the library's own tests (`createMockTransport()` from `./testing`, see [TESTING.md](TESTING.md#testing-your-application)). A test of a join therefore has two doubles that know nothing of each other, mirroring production, and no third thing to mock.
 
-The library's own SDE tests run at three tiers: unit tests against `MemorySdeProvider`, BDD scenarios under `tests/bdd/features/sde/`, and integration tests that load a real export from `sde-data/` when it is present. Track S adds the mutation, fuzz, type-test, benchmark and nightly-drift tiers the core already has; the plan and the current state of each are in [ROADMAP.md](ROADMAP.md#track-s--the-sde-programme).
+The library's own SDE tests run at three tiers: unit tests against `MemorySdeProvider`, BDD scenarios under `tests/bdd/features/sde/`, and integration tests that load a real export from `sde-data/` when it is present. Track S added the mutation, fuzz, type-test, benchmark and nightly-drift tiers the core already has; the plan is in [ROADMAP.md](ROADMAP.md#track-s--the-sde-programme) and the measured state of every tier, with its floors, in [sde/TESTING.md](sde/TESTING.md).
 
 ---
 
