@@ -436,7 +436,7 @@ list and may only shrink.
 npx jest --config config/jest/integration.config.cjs -- tests/integration/sde/
 ```
 
-Requires `sde-data/` to be populated. Tests against real CCP data:
+Requires `sde-data/` (or `SDE_DATA_PATH`) to be populated; skips otherwise, or fails with `SDE_REQUIRE_DATA=1`, which is how `nightly-sde.yml` runs it every night against CCP's current export. Tests against real CCP data:
 
 - Well-known entity lookups (Tritanium, Jita, The Forge, Caldari State)
 - Minimum row count validation (40K+ types, 8K+ systems, 200K+ moons)
@@ -447,6 +447,7 @@ Requires `sde-data/` to be populated. Tests against real CCP data:
 - Blueprint activity structure
 - Data quality checks (published types have names, valid security ranges, market group tree integrity)
 - Version metadata
+- One table per entity family, through the generic accessor and the family's own lookup
 
 ## Examples
 
@@ -493,9 +494,13 @@ Options:
   --check        Check latest SDE build version without downloading
   --force        Re-download even if data already exists
   --verbose      Show detailed progress
+  --from-zip <f> Extract an archive already on disk instead of downloading
+  --keep-zip     Leave the downloaded archive next to the output directory
 ```
 
 The script downloads from `https://developers.eveonline.com/static-data/eve-online-static-data-latest-yaml.zip`, extracts all YAML files, and cleans up the ZIP. The output directory is gitignored and must be re-created locally.
+
+`npm run sde:drift` compares an extracted export with what this module knows: the file list against `SDE_FILE_REGISTRY`, and each registered file's record keys against the table's Zod schema. It writes `reports/sde-drift.json` and exits 1 on drift; `nightly-sde.yml` runs it against CCP's current build every night and keeps one issue open while the export and the module disagree.
 
 ## CCP SDE Data Notes
 

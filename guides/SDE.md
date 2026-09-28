@@ -293,7 +293,7 @@ flowchart LR
     style query fill:#e8e8e8,stroke:#aaa
 ```
 
-`SDE_FILE_REGISTRY` is shown in the generated colour although it is hand-written today: it is the one table that says which of CCP's files exist and what their keys are, and Track S Run 9 adds a nightly check of it against the real ZIP.
+`SDE_FILE_REGISTRY` is shown in the generated colour although it is hand-written today: it is the one table that says which of CCP's files exist and what their keys are, and `nightly-sde.yml` checks it against the real export every night (`npm run sde:drift`).
 
 ---
 
@@ -452,7 +452,7 @@ console.log(
 
 Nothing ties the two together, because nothing in CCP's data does: an ESI response from today can name a type that entered the game after your export was built, which is exactly the case the `T | null` returns exist for. Log the SDE build at start-up, refresh the export when CCP publishes a new one, and treat a `null` from the SDE for an ID ESI just returned as "newer than my export", not as an error.
 
-Track S Run 9 adds `nightly-sde.yml`, which downloads the current build every night, loads it, runs the integration tests, and compares the ZIP's file list and each file's keys with `SDE_FILE_REGISTRY` and the Zod schemas, opening one issue on drift. Until it lands, the registry is checked against a real export whenever someone runs the integration tests locally.
+`nightly-sde.yml` (Track S Run 9) downloads the current build every night, loads it, runs the integration tests and the SDE examples, and compares the export's file list and each file's keys with `SDE_FILE_REGISTRY` and the Zod schemas (`npm run sde:drift`), keeping one issue open while they disagree.
 
 ---
 

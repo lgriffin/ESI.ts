@@ -20,6 +20,7 @@ import {
   callersFromClientSource,
   failureReason,
   issueTitle,
+  runTiers,
   summarize,
   tierOf,
   uncoveredPublicEndpoints,
@@ -157,6 +158,19 @@ describe('tierOf', () => {
     ["const note = 'see @nightly public';"],
   ])('returns null for %j', (source) => {
     expect(tierOf(source)).toBeNull();
+  });
+});
+
+describe('runTiers', () => {
+  it('runs the live tiers, and the sde tier only when an export is on disk', () => {
+    expect(runTiers(false)).toEqual(['public', 'mixed']);
+    expect(runTiers(true)).toEqual(['public', 'mixed', 'sde']);
+  });
+
+  it('narrows to one tier on request, and rejects an unknown one', () => {
+    expect(runTiers(true, 'sde')).toEqual(['sde']);
+    expect(runTiers(false, 'public')).toEqual(['public']);
+    expect(() => runTiers(true, 'nope')).toThrow('Unknown tier nope');
   });
 });
 

@@ -8,7 +8,9 @@
  * - `mixed`: public calls first, then optional authenticated ones that it
  *   skips without `ESI_ACCESS_TOKEN`. Runs nightly without a token.
  * - `auth`: needs an access token. Type-checked, not run.
- * - `sde`: needs a local SDE export. Type-checked, not run.
+ * - `sde`: needs a local SDE export. Type-checked on every run; executed
+ *   only where the export is present (`nightly-sde.yml`, or a machine with
+ *   `sde-data/`), never against live ESI.
  *
  * An example passes when it exits 0 within its time limit and writes nothing
  * through `console.error`. The second condition catches an example that
@@ -21,8 +23,25 @@
 export const TIERS = ['public', 'mixed', 'auth', 'sde'] as const;
 export type ExampleTier = (typeof TIERS)[number];
 
-/** The tiers the nightly run executes. */
+/** The tiers the nightly run executes against live ESI. */
 export const RUN_TIERS: readonly ExampleTier[] = ['public', 'mixed'];
+
+/**
+ * The tiers one invocation runs: `--tier <t>` narrows to that tier, otherwise
+ * the live tiers plus `sde` when an export is on disk.
+ */
+export function runTiers(
+  hasSdeData: boolean,
+  only?: string,
+): readonly ExampleTier[] {
+  if (only !== undefined) {
+    if (!(TIERS as readonly string[]).includes(only)) {
+      throw new Error(`Unknown tier ${only}; one of ${TIERS.join(', ')}`);
+    }
+    return [only as ExampleTier];
+  }
+  return hasSdeData ? [...RUN_TIERS, 'sde'] : RUN_TIERS;
+}
 
 /** Exit code scripts/docs/examples-strict.cjs gives a run that logged an error. */
 export const STRICT_EXIT_CODE = 86;

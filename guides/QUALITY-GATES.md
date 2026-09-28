@@ -1,6 +1,6 @@
 # Quality Gates
 
-**Implements:** `GATE-01`, `GATE-02`, `GATE-03`, `GATE-04`, `GATE-05`, `GATE-06` — see [CHARTER.md](CHARTER.md) Part 5 for the requirements and their status.
+**Implements:** `GATE-01`, `GATE-02`, `GATE-03`, `GATE-04`, `GATE-05`, `GATE-06`, `GATE-07` — see [CHARTER.md](CHARTER.md) Part 5 for the requirements and their status.
 
 What runs at commit, push, pull request, nightly and release, what blocks, and what files an issue instead. This guide describes the gates as the workflow files and hooks define them today. Where the charter's matrix and the YAML disagree, the YAML wins and the difference is called out.
 
@@ -133,22 +133,23 @@ Locally, on a feature branch: `npm run api-report:semver -- --base $(git merge-b
 
 ### GATE-05 · Nightlies file issues
 
-| Nightly                         | Finds a problem →                                                                                                                                                                                                     |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `nightly-audit.yml`             | Creates or comments on an issue labelled `security-audit`; auto-closes it when clean                                                                                                                                  |
-| `nightly-spec-drift.yml`        | Creates or comments on an issue labelled `spec-drift`; auto-closes it when clean. If the check itself fails, the same for `spec-drift-check-failed`                                                                   |
-| `nightly-mutation.yml`          | Fails if a directory is below its mutation floor; creates or comments on the issue titled "mutation: nightly run failed" (label `mutation`), listing the jobs that did not succeed; closes it when every job succeeds |
-| `nightly-benchmarks.yml`        | Creates or comments on an issue labelled `performance-nightly`; auto-closes it when the benchmarks and the soak both pass                                                                                             |
-| `nightly-schemathesis.yml`      | Creates or comments on the issue titled "api-fuzz: nightly Schemathesis run failed" (label `api-fuzz`); closes it after the next green night                                                                          |
-| `nightly-no-retry.yml`          | Fails the run and uploads `reports/no-retry/` as an artifact only                                                                                                                                                     |
-| `nightly-interleave.yml`        | Fails the run; the log names the broken invariant and the replay command                                                                                                                                              |
-| `nightly-properties.yml`        | Creates or comments on the issue titled "Nightly property run failed"; closes it after the next green night                                                                                                           |
-| `nightly-faults.yml`            | Creates or comments on the issue titled "Nightly fault tier failing"; closes it after the next green run                                                                                                              |
-| `nightly-recorded-payloads.yml` | Opens or updates a pull request with the shape diff; a failed run keeps a `recorded-payloads-check-failed` issue open                                                                                                 |
-| `nightly-examples.yml`          | One issue per failing example, titled `Nightly example failing: examples/<file>`, and one for a type-check failure; a passing run closes each                                                                         |
-| `nightly-mutation-retry.yml`    | Re-runs the failed jobs of a nightly mutation run once, after its first failed attempt; files nothing itself, and the mutation issue is filed from the retried attempt                                                |
-| `consumer-matrix-nightly.yml`   | Fails the run only; the step summary names the failing cell                                                                                                                                                           |
-| `post-publish-canary.yml`       | After a release is published: creates or comments on a `release-verification` issue when the published package fails to install, verify or run                                                                        |
+| Nightly                         | Finds a problem →                                                                                                                                                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nightly-audit.yml`             | Creates or comments on an issue labelled `security-audit`; auto-closes it when clean                                                                                                                                             |
+| `nightly-spec-drift.yml`        | Creates or comments on an issue labelled `spec-drift`; auto-closes it when clean. If the check itself fails, the same for `spec-drift-check-failed`                                                                              |
+| `nightly-sde.yml`               | Creates or comments on the issue titled "sde: nightly real-data run failed or the export drifted" when the real-data suite, the drift check or an SDE example fails, or the export drifted; closes it after the next green night |
+| `nightly-mutation.yml`          | Fails if a directory is below its mutation floor; creates or comments on the issue titled "mutation: nightly run failed" (label `mutation`), listing the jobs that did not succeed; closes it when every job succeeds            |
+| `nightly-benchmarks.yml`        | Creates or comments on an issue labelled `performance-nightly`; auto-closes it when the benchmarks and the soak both pass                                                                                                        |
+| `nightly-schemathesis.yml`      | Creates or comments on the issue titled "api-fuzz: nightly Schemathesis run failed" (label `api-fuzz`); closes it after the next green night                                                                                     |
+| `nightly-no-retry.yml`          | Fails the run and uploads `reports/no-retry/` as an artifact only                                                                                                                                                                |
+| `nightly-interleave.yml`        | Fails the run; the log names the broken invariant and the replay command                                                                                                                                                         |
+| `nightly-properties.yml`        | Creates or comments on the issue titled "Nightly property run failed"; closes it after the next green night                                                                                                                      |
+| `nightly-faults.yml`            | Creates or comments on the issue titled "Nightly fault tier failing"; closes it after the next green run                                                                                                                         |
+| `nightly-recorded-payloads.yml` | Opens or updates a pull request with the shape diff; a failed run keeps a `recorded-payloads-check-failed` issue open                                                                                                            |
+| `nightly-examples.yml`          | One issue per failing example, titled `Nightly example failing: examples/<file>`, and one for a type-check failure; a passing run closes each                                                                                    |
+| `nightly-mutation-retry.yml`    | Re-runs the failed jobs of a nightly mutation run once, after its first failed attempt; files nothing itself, and the mutation issue is filed from the retried attempt                                                           |
+| `consumer-matrix-nightly.yml`   | Fails the run only; the step summary names the failing cell                                                                                                                                                                      |
+| `post-publish-canary.yml`       | After a release is published: creates or comments on a `release-verification` issue when the published package fails to install, verify or run                                                                                   |
 
 The issue-filing workflows keep at most one open issue per label or title: if one is open they comment on it, otherwise they create one. Mutation and Schemathesis gained theirs in [#277](https://github.com/lgriffin/ESI.ts/issues/277); the no-retry run, the interleaving run and the consumer matrix still need an issue step (bead `esi-mbr`). Both new steps act only on runs of `master` that were not cancelled, so a manual dispatch from a branch neither opens nor closes an issue.
 
@@ -157,6 +158,10 @@ The issue-filing workflows keep at most one open issue per label or title: if on
 Checked by `tests/tdd/scripts/package-scripts.test.ts`, so it runs in `npm test`: every path a script names under `scripts/`, `examples/` or `tests/`, and every runner config it is pointed at, must be a file that exists. Adding a script whose target is not there fails the suite and names the command that would break. The same test reads the other direction: every `npm run <name>` that `README.md`, `CLAUDE.md`, `AGENTS.md`, the guides (ROADMAP.md aside, since it names scripts later plan items add) and the BDD README and GUIDE tell the reader to type must be a script `package.json` defines; a placeholder such as `npm run bdd:<domain>` is skipped.
 
 Two scripts used to point at files that were never committed — `sde:seed` at `scripts/seed-sde-test-db.ts` and `example:sde-cross-ref` at `examples/sde-cross-reference.ts`. Both are gone; the three SDE examples that do exist (`sde-fitting`, `sde-industry`, `sde-market-tree`) have scripts now.
+
+### GATE-07 · The real SDE export is loaded every night
+
+`nightly-sde.yml` (05:15 UTC, Track S Run 9) resolves CCP's current build number from the build feed, restores the export ZIP from `actions/cache` keyed on that build (downloading only on a miss), extracts it with `npm run sde:ingest -- --from-zip`, and then runs three things against it: `tests/integration/sde` with `SDE_REQUIRE_DATA=1`, so a missing export fails instead of skipping (the suite also queries one table per entity family of the SDE README's API reference); `npm run sde:drift`, which compares the export's file list with `SDE_FILE_REGISTRY` and every registered file's record keys, after the providers' transform, with the table's Zod schema, writes `reports/sde-drift.json` and the step summary, and exits 1 on drift; and `npm run examples:nightly -- --tier sde`, the four SDE examples. A scheduled run that fails, or finds drift, opens or comments on one issue titled "sde: nightly real-data run failed or the export drifted"; the next green night closes it. `tests/tdd/scripts/sde-drift.test.ts` drives the check over a fixture export with one unknown file and one record carrying a key the schema does not declare, checks that every registered file maps to a schema, and fails if the workflow stops downloading from the URLs `src/sde/ingestion/constants.ts` names.
 
 ### Counts in the documentation (DOC-04)
 
@@ -179,36 +184,37 @@ Test files are linted at commit and in CI with the `src/` rule set (`npm run lin
 
 ## Workflows
 
-All 26 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the directory's `README.md` points here). Every action is pinned to a full commit SHA and every workflow declares read-only top-level permissions with per-job escalation (`SEC-03`, see [SECURITY.md](SECURITY.md)).
+All 27 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the directory's `README.md` points here). Every action is pinned to a full commit SHA and every workflow declares read-only top-level permissions with per-job escalation (`SEC-03`, see [SECURITY.md](SECURITY.md)).
 
-| Workflow                        | Trigger                                                            | Blocks                        | Output                                                                        |
-| ------------------------------- | ------------------------------------------------------------------ | ----------------------------- | ----------------------------------------------------------------------------- |
-| `ci-fast.yml`                   | Push, any branch                                                   | No (covered by `ci-success`)  | Status                                                                        |
-| `ci.yml`                        | Pull request to `master`, `main`, `develop`                        | Required check (`ci-success`) | Status, coverage comment, artifacts                                           |
-| `codeql.yml`                    | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC        | No                            | Code scanning alerts                                                          |
-| `skill-eval.yml`                | PR touching `.claude/skills/**` or the skill eval runner; manual   | No                            | Status, artifacts                                                             |
-| `ears.yml`                      | PR touching `src/`, `tests/bdd/` or the EARS scripts; manual       | No                            | Status, step summary, `ears-report` artifact                                  |
-| `mutation-pr.yml`               | Every pull request to `master`                                     | No                            | Status and the `mutation-pr-report` artifact; advisory until the release gate |
-| `nightly-schemathesis.yml`      | Daily 01:00 UTC; manual                                            | No                            | Artifact; issue "api-fuzz: nightly Schemathesis run failed"                   |
-| `nightly-mutation.yml`          | Daily 02:00 UTC; manual                                            | No                            | Artifacts; issue "mutation: nightly run failed"                               |
-| `nightly-mutation-retry.yml`    | `workflow_run`: `nightly-mutation.yml` failed on its first attempt | No                            | Re-runs the failed jobs once                                                  |
-| `nightly-no-retry.yml`          | Daily 03:00 UTC; manual                                            | No                            | Artifact                                                                      |
-| `nightly-interleave.yml`        | Daily 03:30 UTC; manual                                            | No                            | Status, step summary                                                          |
-| `nightly-properties.yml`        | Daily 03:30 UTC; manual                                            | No                            | Issue "Nightly property run failed"                                           |
-| `nightly-faults.yml`            | Daily 03:30 UTC; manual                                            | No                            | Issue "Nightly fault tier failing"                                            |
-| `nightly-examples.yml`          | Daily 04:15 UTC; manual; PR touching `examples/` or its tooling    | No                            | One issue per failing example                                                 |
-| `nightly-audit.yml`             | Daily 05:00 UTC; manual                                            | No                            | `security-audit` issue                                                        |
-| `nightly-spec-drift.yml`        | Daily 06:00 UTC; manual                                            | No                            | `spec-drift` / `spec-drift-check-failed` issue                                |
-| `nightly-recorded-payloads.yml` | Daily 06:30 UTC; manual                                            | No                            | Pull request with the shape diff; `recorded-payloads-check-failed` issue      |
-| `scorecard.yml`                 | Mondays 04:00 UTC; manual; branch protection rule change           | No                            | SARIF to code scanning, public score                                          |
-| `maintenance.yml`               | Mondays 09:00 UTC; manual                                          | No                            | Artifacts                                                                     |
-| `release-please.yml`            | Push to `master`                                                   | —                             | Release PR, tag, GitHub release                                               |
-| `release.yml`                   | Tag `v*.*.*` pushed; GitHub release published                      | Publishing                    | npm, GitHub Packages, gh-pages, signed assets                                 |
-| `docs-site.yml`                 | Called by `release.yml` `deploy-docs`; manual on master or a tag   | Publishing the site           | The documentation site on the `gh-pages` branch                               |
-| `post-publish-canary.yml`       | GitHub release published; manual with a version                    | No                            | `release-verification` issue                                                  |
-| `spec-refresh.yml`              | Push to `spec-refresh/**`; manual                                  | No                            | Commits the re-vendored spec and regenerated files                            |
-| `nightly-benchmarks.yml`        | Daily 04:30 UTC; manual                                            | No                            | `performance-nightly` issue, `bench-data` branch, artifacts                   |
-| `consumer-matrix-nightly.yml`   | Daily 04:45 UTC; manual                                            | No                            | Status, step summary                                                          |
+| Workflow                        | Trigger                                                            | Blocks                        | Output                                                                                       |
+| ------------------------------- | ------------------------------------------------------------------ | ----------------------------- | -------------------------------------------------------------------------------------------- |
+| `ci-fast.yml`                   | Push, any branch                                                   | No (covered by `ci-success`)  | Status                                                                                       |
+| `ci.yml`                        | Pull request to `master`, `main`, `develop`                        | Required check (`ci-success`) | Status, coverage comment, artifacts                                                          |
+| `codeql.yml`                    | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC        | No                            | Code scanning alerts                                                                         |
+| `skill-eval.yml`                | PR touching `.claude/skills/**` or the skill eval runner; manual   | No                            | Status, artifacts                                                                            |
+| `ears.yml`                      | PR touching `src/`, `tests/bdd/` or the EARS scripts; manual       | No                            | Status, step summary, `ears-report` artifact                                                 |
+| `mutation-pr.yml`               | Every pull request to `master`                                     | No                            | Status and the `mutation-pr-report` artifact; advisory until the release gate                |
+| `nightly-schemathesis.yml`      | Daily 01:00 UTC; manual                                            | No                            | Artifact; issue "api-fuzz: nightly Schemathesis run failed"                                  |
+| `nightly-mutation.yml`          | Daily 02:00 UTC; manual                                            | No                            | Artifacts; issue "mutation: nightly run failed"                                              |
+| `nightly-mutation-retry.yml`    | `workflow_run`: `nightly-mutation.yml` failed on its first attempt | No                            | Re-runs the failed jobs once                                                                 |
+| `nightly-no-retry.yml`          | Daily 03:00 UTC; manual                                            | No                            | Artifact                                                                                     |
+| `nightly-interleave.yml`        | Daily 03:30 UTC; manual                                            | No                            | Status, step summary                                                                         |
+| `nightly-properties.yml`        | Daily 03:30 UTC; manual                                            | No                            | Issue "Nightly property run failed"                                                          |
+| `nightly-faults.yml`            | Daily 03:30 UTC; manual                                            | No                            | Issue "Nightly fault tier failing"                                                           |
+| `nightly-examples.yml`          | Daily 04:15 UTC; manual; PR touching `examples/` or its tooling    | No                            | One issue per failing example                                                                |
+| `nightly-audit.yml`             | Daily 05:00 UTC; manual                                            | No                            | `security-audit` issue                                                                       |
+| `nightly-sde.yml`               | Daily 05:15 UTC; manual                                            | No                            | Issue "sde: nightly real-data run failed or the export drifted"; `sde-drift-report` artifact |
+| `nightly-spec-drift.yml`        | Daily 06:00 UTC; manual                                            | No                            | `spec-drift` / `spec-drift-check-failed` issue                                               |
+| `nightly-recorded-payloads.yml` | Daily 06:30 UTC; manual                                            | No                            | Pull request with the shape diff; `recorded-payloads-check-failed` issue                     |
+| `scorecard.yml`                 | Mondays 04:00 UTC; manual; branch protection rule change           | No                            | SARIF to code scanning, public score                                                         |
+| `maintenance.yml`               | Mondays 09:00 UTC; manual                                          | No                            | Artifacts                                                                                    |
+| `release-please.yml`            | Push to `master`                                                   | —                             | Release PR, tag, GitHub release                                                              |
+| `release.yml`                   | Tag `v*.*.*` pushed; GitHub release published                      | Publishing                    | npm, GitHub Packages, gh-pages, signed assets                                                |
+| `docs-site.yml`                 | Called by `release.yml` `deploy-docs`; manual on master or a tag   | Publishing the site           | The documentation site on the `gh-pages` branch                                              |
+| `post-publish-canary.yml`       | GitHub release published; manual with a version                    | No                            | `release-verification` issue                                                                 |
+| `spec-refresh.yml`              | Push to `spec-refresh/**`; manual                                  | No                            | Commits the re-vendored spec and regenerated files                                           |
+| `nightly-benchmarks.yml`        | Daily 04:30 UTC; manual                                            | No                            | `performance-nightly` issue, `bench-data` branch, artifacts                                  |
+| `consumer-matrix-nightly.yml`   | Daily 04:45 UTC; manual                                            | No                            | Status, step summary                                                                         |
 
 ### `ci-fast.yml` — CI Fast
 
@@ -321,6 +327,10 @@ Daily at 04:30 UTC on Node 22. Three parts:
 
 Daily at 05:00 UTC. Runs `npm audit --json`, filters out accepted advisories with `scripts/quality/audit-check.ts --filter` (which also hard-fails on an expired acceptance), and counts what remains by severity. If anything remains it ensures the `security-audit` label exists, then creates an issue with a severity table, a per-package table and resolution steps, or comments the same tables on the open one. If nothing remains it closes any open `security-audit` issue with a comment. See [Dependency audit](#dependency-audit).
 
+### `nightly-sde.yml` — Nightly SDE Real Data
+
+Daily at 05:15 UTC. Loads CCP's current Static Data Export, cached per build, and runs the real-data integration suite, the registry and schema drift check and the SDE examples against it; a scheduled failure or drift keeps one fixed-title issue open. Described under [GATE-07](#gate-07--the-real-sde-export-is-loaded-every-night).
+
 ### `nightly-spec-drift.yml` — Nightly ESI Spec Drift
 
 Daily at 06:00 UTC. Detects three kinds of drift between the repository and the live ESI spec and reports them in one issue. Described in full under [Nightly spec drift](#nightly-spec-drift).
@@ -385,14 +395,14 @@ There is no auto-merge workflow for Dependabot pull requests; each one is merged
 
 Each example declares a tier in its header comment with `@nightly <tier>`:
 
-| Tier     | Meaning                                                        | Nightly           |
-| -------- | -------------------------------------------------------------- | ----------------- |
-| `public` | Needs no token                                                 | Run               |
-| `mixed`  | Public calls, plus authenticated ones it skips without a token | Run               |
-| `auth`   | Needs an access token                                          | Type-checked only |
-| `sde`    | Reads the Static Data Export                                   | Type-checked only |
+| Tier     | Meaning                                                        | Nightly                                     |
+| -------- | -------------------------------------------------------------- | ------------------------------------------- |
+| `public` | Needs no token                                                 | Run                                         |
+| `mixed`  | Public calls, plus authenticated ones it skips without a token | Run                                         |
+| `auth`   | Needs an access token                                          | Type-checked only                           |
+| `sde`    | Reads the Static Data Export                                   | Type-checked here; run in `nightly-sde.yml` |
 
-The job type-checks every example (`npm run typecheck:examples`, also a step in `ci.yml` and `ci-fast.yml`), then `npm run examples:nightly` runs each `public` and `mixed` example from source with no token. An example fails when it exits non-zero, times out after 120 seconds, or exits 0 after writing to `console.error` (the `scripts/docs/examples-strict.cjs` preload turns that into exit 86). A failure is retried once. The run step stops at 90 minutes; the results file is rewritten after every example, so the issue steps still act on the examples that finished.
+The job type-checks every example (`npm run typecheck:examples`, also a step in `ci.yml` and `ci-fast.yml`), then `npm run examples:nightly` runs each `public` and `mixed` example from source with no token. The `sde` examples join the run only where an export is on disk (`SDE_DATA_PATH`, else `sde-data/`), which is `nightly-sde.yml` with `--tier sde`; without one, `--tier sde` fails rather than reporting an empty run as green. An example fails when it exits non-zero, times out after 120 seconds, or exits 0 after writing to `console.error` (the `scripts/docs/examples-strict.cjs` preload turns that into exit 86). A failure is retried once. The run step stops at 90 minutes; the results file is rewritten after every example, so the issue steps still act on the examples that finished.
 
 Scheduled and manual runs share one concurrency group and queue, so their issue updates land in order. On those runs, each failing example gets an issue titled `Nightly example failing: examples/<file>`, or a comment on the open one; a later passing run closes it. A type-check failure keeps one issue, `Nightly examples do not type-check`. A pull request run opens no issues; the job result is the signal.
 
@@ -809,7 +819,8 @@ The same "explicit, reasoned exception" pattern appears in ten more places:
 | `docs:site`                      | `docs`, `docs:sync`, then the VitePress build (the published site)      |
 | `docs:site:dev` / `:preview`     | VitePress dev server after `docs:sync`; serve the built site            |
 | `token:create` / `token:refresh` | PKCE token into `.env`, and refresh it (see [SECURITY.md](SECURITY.md)) |
-| `sde:ingest`                     | Build the SDE database from CCP's archive                               |
+| `sde:ingest`                     | Download and extract CCP's archive; `--from-zip` extracts one on disk   |
+| `sde:drift`                      | An extracted export against `SDE_FILE_REGISTRY` and the Zod schemas     |
 | `health-check`                   | `status.getStatus()` against live ESI                                   |
 | `start` / `example`              | `examples/character-profile.ts`                                         |
 | `example:<name>`                 | One runnable example from `examples/`; see `npm run help -- example`    |

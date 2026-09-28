@@ -11,7 +11,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 | Generated operations (`src/generated/operations.generated.ts`) | <!-- metric:operations -->233<!-- /metric -->                                                                  |
 | EARS requirements in the specification                         | <!-- metric:requirements -->545<!-- /metric --> (<!-- metric:featureFiles -->73<!-- /metric --> feature files) |
 | Gherkin scenarios                                              | <!-- metric:scenarios -->703<!-- /metric -->                                                                   |
-| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->326<!-- /metric -->                                                                   |
+| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->327<!-- /metric -->                                                                   |
 | Statement coverage                                             | 98.2% (last measured at v9.8.0; floor 90%)                                                                     |
 
 ### What changed in revision 2
@@ -29,6 +29,8 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 - **2026-09-27, the charter audit.** `npm run charter:audit` holds every requirement block of this document to the rules `spec:audit` applies to a `Rule:` and fails an Enforced row that names no mechanism (PROC-06, Enforced). To pass it, twenty-three requirements that had stated two or three obligations were reworded to one `shall` each without changing what they require, three that said "it" now name the system, and DES-03, TEST-08 and GATE-03 name their mechanism in backticks.
 
 - **2026-09-28, provider method coverage (Track S Run 4).** `npm run spec:coverage:sde:ci` counts every `IStaticDataProvider` method as covered when a `Rule:` names it or a bound step reaches it, and gates the uncovered list against a shrink-only baseline; TEST-10 moves from Gap to Partial, and stays there until Phase 5 item 8 does the same for the domain clients.
+
+- **2026-09-28, the real export every night (Track S Run 9).** `nightly-sde.yml` downloads CCP's current Static Data Export (cached per build), loads it, runs the real-data integration suite with `SDE_REQUIRE_DATA=1`, runs `npm run sde:drift` (the export's file list against `SDE_FILE_REGISTRY`, each file's keys against the table's Zod schema) and the four `@nightly sde` examples, and keeps one fixed-title issue open while the run fails or the export drifts. GATE-07 (new) is Enforced.
 
 - **2026-09-27, the pull-request mutation gate.** The maintainer took `mutation-pr` out of `ci-success` and into its own workflow, `mutation-pr.yml`, so a pull request no longer waits up to 37 minutes for it: it still runs and reports on every pull request, the nightly still holds every floor, and ROADMAP.md's release gate carries the row that puts it back before 11.0.0 ships. GATE-01 needs 23 jobs; TEST-07 stays Enforced on the nightly.
 
@@ -460,6 +462,7 @@ What runs where. ● blocks; ◐ runs but does not block; · does not run.
 | Stryker mutation                                                |   ·    |  ·   |       ● changed files       | ◐ ratchet, files issue |     ·     |
 | Schemathesis API fuzz                                           |   ·    |  ·   |              ·              |     ◐ files issue      |     ·     |
 | Spec drift, faults, properties, examples, recorded payloads     |   ·    |  ·   |              ·              |     ◐ files issue      |     ·     |
+| Real SDE export: real-data suite, registry drift, SDE examples  |   ·    |  ·   |              ·              |     ◐ files issue      |     ·     |
 | OpenSSF Scorecard                                               |   ·    |  ·   |              ·              |        ◐ weekly        |     ·     |
 
 #### GATE-01 · Ubiquitous · Enforced
@@ -495,7 +498,7 @@ knip **shall** block the release gate on unused exports and dependencies, with a
 Every nightly job that finds a problem **shall** file or update a labelled GitHub issue rather than only failing the run.
 
 - **Why:** A red nightly nobody reads is the same as no nightly. Revision 1 marked this Enforced while two nightlies still filed nothing; revision 2 corrected it, and [#277](https://github.com/lgriffin/ESI.ts/issues/277) (bead `esi-mbr`) closed those two.
-- **Verified by:** Audit, spec drift, faults, properties, benchmarks, examples, mutation, Schemathesis and the post-publish canary file issues. `nightly-mutation.yml` and `nightly-schemathesis.yml` each end in a `report` job that opens or comments on one fixed-title issue (labels `mutation` and `api-fuzz`) and closes it on the next green run. Recorded-payload drift opens a pull request instead, and only a failed run files an issue. Still failing the run only: `nightly-no-retry.yml`, `nightly-interleave.yml` and `consumer-matrix-nightly.yml`, which is why this stays Partial.
+- **Verified by:** Audit, spec drift, faults, properties, benchmarks, examples, mutation, Schemathesis, the real SDE export (`nightly-sde.yml`) and the post-publish canary file issues. `nightly-mutation.yml` and `nightly-schemathesis.yml` each end in a `report` job that opens or comments on one fixed-title issue (labels `mutation` and `api-fuzz`) and closes it on the next green run. Recorded-payload drift opens a pull request instead, and only a failed run files an issue. Still failing the run only: `nightly-no-retry.yml`, `nightly-interleave.yml` and `consumer-matrix-nightly.yml`, which is why this stays Partial.
 
 #### GATE-06 · Ubiquitous · Enforced
 
@@ -503,6 +506,13 @@ Every nightly job that finds a problem **shall** file or update a labelled GitHu
 
 - **Why:** A script that points at a missing file (`sde:seed`, fixed in [#274](https://github.com/lgriffin/ESI.ts/issues/274)) fails only when someone runs it, and a document that tells the reader to run a script that does not exist fails only the reader.
 - **Verified by:** `tests/tdd/scripts/package-scripts.test.ts`, in `npm test`: every script target exists, and every `npm run <name>` in `README.md`, `CLAUDE.md`, `AGENTS.md`, `guides/` (ROADMAP.md aside, which names scripts later items add) and the BDD README and GUIDE is a defined script.
+
+#### GATE-07 · Ubiquitous · Enforced
+
+The nightly SDE run **shall** load CCP's current Static Data Export and report every file, record key and failing lookup the module does not know about as one tracked issue.
+
+- **Why:** `SDE_FILE_REGISTRY` and the Zod schemas are hand-written, and CCP publishes a new export without notice. Without a nightly against the real export, a new file or field is found by the first user who asks for it, and `sde-real-data.test.ts` skipping wherever `sde-data/` is absent meant the suite never ran in CI at all.
+- **Verified by:** `.github/workflows/nightly-sde.yml` (Track S Run 9): the build is resolved from CCP's feed, the ZIP restored from the cache keyed on it, `npm run sde:ingest -- --from-zip` extracts it, the real-data suite runs with `SDE_REQUIRE_DATA=1` so a missing export fails, `npm run sde:drift` writes `reports/sde-drift.json` and exits 1 on drift, `npm run examples:nightly -- --tier sde` runs the SDE examples, and the `report` job keeps one issue titled "sde: nightly real-data run failed or the export drifted". `tests/tdd/scripts/sde-drift.test.ts` proves the check names an unknown file and a new key over a fixture export, keeps a schema for every registered file, and pins the workflow to the module's download URLs.
 
 ---
 

@@ -1,0 +1,9 @@
+18:
+  name:
+    en: Mineral
+  categoryID: 4
+  published: true
+  anchorable: false
+  anchored: false
+  fittableNonSingleton: false
+  useBasePrice: false

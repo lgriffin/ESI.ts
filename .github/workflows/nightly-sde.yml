@@ -1,0 +1,172 @@
+name: Nightly SDE Real Data
+
+# Track S, Run 9. Loads CCP's current Static Data Export every night and
+# checks the module against it:
+#
+# real-data: resolves the current build number from CCP's build feed, restores
+#   the export ZIP from the cache keyed on that build (downloads only on a
+#   miss), extracts it with `sde:ingest --from-zip`, runs the real-data
+#   integration suite with SDE_REQUIRE_DATA=1 (so a missing export fails
+#   rather than skips), runs `sde:drift` (the export's file list against
+#   SDE_FILE_REGISTRY and each file's keys against the table's Zod schema),
+#   then the four `@nightly sde` examples through `examples:nightly --tier sde`.
+# report: keeps one open issue with a fixed title while the run fails or the
+#   export drifts, and closes it after the next green night, the pattern
+#   nightly-spec-drift.yml uses. Only scheduled runs touch the issue.
+
+on:
+  schedule:
+    - cron: '15 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-sde
+  cancel-in-progress: false
+
+env:
+  # The same URLs src/sde/ingestion/constants.ts downloads from;
+  # tests/tdd/scripts/sde-drift.test.ts fails if they drift apart.
+  SDE_LATEST_BUILD_URL: https://developers.eveonline.com/static-data/tranquility/latest.jsonl
+  SDE_DOWNLOAD_URL: https://developers.eveonline.com/static-data/eve-online-static-data-latest-yaml.zip
+
+jobs:
+  real-data:
+    name: Real export, drift and examples
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      build: ${{ steps.build.outputs.build }}
+      drift: ${{ steps.drift.outputs.drift }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve the current SDE build
+        id: build
+        run: |
+          BUILD=$(curl -fsSL --retry 3 "$SDE_LATEST_BUILD_URL" | grep -v '^[[:space:]]*$' | tail -n 1 | jq -r '.buildNumber')
+          if ! [[ "$BUILD" =~ ^[A-Za-z0-9._-]{1,64}$ ]]; then
+            echo "::error::Could not read a build number from $SDE_LATEST_BUILD_URL (got '$BUILD')"
+            exit 1
+          fi
+          echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+          echo "::notice title=SDE build::$BUILD"
+
+      - name: Restore the export from the cache
+        id: cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: sde-latest.zip
+          key: sde-zip-${{ steps.build.outputs.build }}
+
+      - name: Download the export
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: curl -fL --retry 3 --retry-delay 10 -o sde-latest.zip "$SDE_DOWNLOAD_URL"
+
+      - name: Save the export to the cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: sde-latest.zip
+          key: sde-zip-${{ steps.build.outputs.build }}
+
+      - name: Extract the export
+        run: npm run sde:ingest -- --from-zip sde-latest.zip --output sde-data
+
+      - name: Real-data integration tests
+        id: tests
+        env:
+          SDE_REQUIRE_DATA: '1'
+        run: npx jest --config config/jest/integration.config.cjs tests/integration/sde
+
+      - name: Export drift
+        id: drift
+        if: always() && steps.tests.outcome != 'skipped'
+        env:
+          BUILD: ${{ steps.build.outputs.build }}
+        run: |
+          set +e
+          npm run sde:drift -- --dir sde-data --build "$BUILD"
+          EXIT_CODE=$?
+          set -e
+          case "$EXIT_CODE" in
+            0) echo "drift=false" >> "$GITHUB_OUTPUT" ;;
+            1) echo "drift=true" >> "$GITHUB_OUTPUT"
+               echo "::warning title=SDE drift::The export drifted from SDE_FILE_REGISTRY or the schemas; see the step summary" ;;
+            *) echo "::error::sde:drift could not run (exit $EXIT_CODE)"; exit "$EXIT_CODE" ;;
+          esac
+
+      - name: SDE examples
+        if: always() && steps.tests.outcome != 'skipped'
+        run: npm run examples:nightly -- --tier sde
+
+      - name: Upload the drift report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: sde-drift-report
+          path: reports/sde-drift.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+  report:
+    name: Open or close the tracking issue
+    runs-on: ubuntu-latest
+    needs: real-data
+    if: always() && github.event_name == 'schedule'
+    permissions:
+      issues: write # open, comment on and close the nightly SDE issue
+
+    steps:
+      - name: Update the tracking issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RESULT: ${{ needs.real-data.result }}
+          DRIFT: ${{ needs.real-data.outputs.drift }}
+          BUILD: ${{ needs.real-data.outputs.build }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          TITLE="sde: nightly real-data run failed or the export drifted"
+          ISSUE=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number,title \
+            --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")
+          if [ "$RESULT" = "success" ] && [ "$DRIFT" != "true" ]; then
+            if [ -n "$ISSUE" ]; then
+              gh issue close "$ISSUE" --comment "Green again against build ${BUILD:-unknown} in $RUN_URL. Closing."
+            fi
+            exit 0
+          fi
+          if [ "$DRIFT" = "true" ]; then
+            WHAT="The export (build ${BUILD:-unknown}) drifted from \`SDE_FILE_REGISTRY\` or the Zod schemas"
+          else
+            WHAT="The nightly SDE run ended with \`$RESULT\` against build ${BUILD:-unknown}"
+          fi
+          BODY=$(cat <<EOF
+          $WHAT: $RUN_URL
+
+          - The step summary names each unknown file, missing file, new key and gone key; the \`sde-drift-report\` artifact carries the JSON.
+          - A new file wants an entry in \`SDE_FILE_REGISTRY\`, a type, a schema and a Rule; a new key wants the type and schema updated; a gone key wants the schema and the Rule that promised it revisited.
+          - A failed test names the record; a failed example prints its output in the job log.
+          - Reproduce locally: \`npm run sde:ingest\`, then \`SDE_REQUIRE_DATA=1 npx jest --config config/jest/integration.config.cjs tests/integration/sde\`, \`npm run sde:drift\` and \`npm run examples:nightly -- --tier sde\`.
+          EOF
+          )
+          if [ -n "$ISSUE" ]; then
+            gh issue comment "$ISSUE" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY"
+          fi
