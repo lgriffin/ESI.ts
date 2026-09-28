@@ -1,6 +1,9 @@
 import { existsSync, readFileSync } from 'fs';
 import * as path from 'path';
 
+import { formatProblems } from '../docs/doc-metrics-core';
+import { checkMetrics } from '../docs/doc-metrics';
+
 const ROOT = path.join(__dirname, '../..');
 
 function getPackageJsonVersion(): string {
@@ -94,6 +97,17 @@ function main(): void {
     process.exit(1);
   }
 
+  // DOC-04: the version banner and every count the docs quote sit between
+  // metric markers; a stale one, or a stale etc/doc-metrics.json, fails here.
+  const metricProblems = formatProblems(checkMetrics().report);
+  if (metricProblems.length > 0) {
+    for (const p of metricProblems) console.error(p);
+    console.error(
+      'Documentation metrics are stale; run `npm run docs:metrics`',
+    );
+    process.exit(1);
+  }
+
   const stale = Object.entries(versions).filter(
     ([, v]) => v !== packageVersion,
   );
@@ -105,7 +119,7 @@ function main(): void {
     process.exit(1);
   }
   console.log(
-    `Version consistency check passed: ${packageVersion} in package.json and src/core/constants.ts; the docs-site selector reads package.json${site ? ' and the built site shows it' : ''}`,
+    `Version consistency check passed: ${packageVersion} in package.json and src/core/constants.ts; the docs-site selector reads package.json${site ? ' and the built site shows it' : ''}; the documentation's marked counts and version match etc/doc-metrics.json and the source`,
   );
 }
 

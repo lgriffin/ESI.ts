@@ -20,7 +20,15 @@
         { "type": "refactor", "section": "Changed" },
         { "type": "perf", "section": "Changed" }
       ],
-      "extra-files": ["src/core/constants.ts"]
+      "extra-files": [
+        "src/core/constants.ts",
+        { "type": "generic", "path": "README.md" },
+        {
+          "type": "json",
+          "path": "etc/doc-metrics.json",
+          "jsonpath": "$.version"
+        }
+      ]
     }
   }
 }

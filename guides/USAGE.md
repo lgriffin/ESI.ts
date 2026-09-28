@@ -19,11 +19,11 @@ The README gives the one-minute tour. Deeper topics have their own guides:
 
 Three surfaces build a client. All three pass their configuration through `configureApiClient()`, so each gets the same middleware defaults: cache, request deduplication, rate limiter, retry, tenant and user agent.
 
-| Surface                               | Use it when                                            | Domain clients                                                 |
-| ------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------- |
-| `new EsiClient(config?)`              | You want everything; each domain is built on first use | All 39, as lazy getters                                        |
-| `new EsiClientBuilder()…build()`      | You want a named subset (`CustomEsiClient`)            | The ones you add; the rest are `undefined`                     |
-| `EsiApiFactory.createClient(type, …)` | You want one domain client on its own                  | Any of the 39; the nine named factories are deprecated (below) |
+| Surface                               | Use it when                                            | Domain clients                                                                                        |
+| ------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `new EsiClient(config?)`              | You want everything; each domain is built on first use | All <!-- metric:clients -->39<!-- /metric -->, as lazy getters                                        |
+| `new EsiClientBuilder()…build()`      | You want a named subset (`CustomEsiClient`)            | The ones you add; the rest are `undefined`                                                            |
+| `EsiApiFactory.createClient(type, …)` | You want one domain client on its own                  | Any of the <!-- metric:clients -->39<!-- /metric -->; the nine named factories are deprecated (below) |
 
 `ApiClientBuilder` is also exported. It is the low-level builder the domain clients share, and it does not call `configureApiClient`. Prefer the three surfaces above.
 
@@ -169,7 +169,7 @@ The typed reference for every method is the TypeDoc site (`npm run docs`). The g
 
 ### Coverage of the ESI specification
 
-The client wires 235 routes. That covers every one of the 233 operations in the vendored OpenAPI document (compatibility date 2026-08-18, `tests/contract/snapshots/esi-openapi.snapshot.json`). The two extra routes are `meta/openapi.json` and `meta/openapi.yaml`, which are the specification itself. `npm run spec:coverage` fails a pull request that leaves a spec operation unwired, and the nightly spec-drift workflow opens an issue when CCP adds one.
+The client wires <!-- metric:routes -->235<!-- /metric --> routes. That covers every one of the <!-- metric:operations -->233<!-- /metric --> operations in the vendored OpenAPI document (compatibility date <!-- metric:compatibilityDate -->2026-08-18<!-- /metric -->, `tests/contract/snapshots/esi-openapi.snapshot.json`). The two extra routes are `meta/openapi.json` and `meta/openapi.yaml`, which are the specification itself. `npm run spec:coverage` fails a pull request that leaves a spec operation unwired, and the nightly spec-drift workflow opens an issue when CCP adds one.
 
 The ESI specification is upstream, not infallible. Live validation found places where the documented wire format is wrong, and the endpoint definitions follow what ESI actually accepts:
 
@@ -289,7 +289,7 @@ const names = await client.batchPost(
 A paginated method comes in three forms:
 
 - The plain method fetches every page and returns one array.
-- The `stream*` form yields one validated page at a time, and stops fetching when you `break`. There are 73 of these across 19 clients.
+- The `stream*` form yields one validated page at a time, and stops fetching when you `break`. There are <!-- metric:streamMethods -->73<!-- /metric --> of these across <!-- metric:streamClients -->19<!-- /metric --> clients.
 - The `fetchAll*` form fetches the remaining pages concurrently, eight at a time.
 
 Cursor routes, such as Freelance Jobs, page with opaque `before` and `after` tokens through `fetchAllCursorPages`.
@@ -324,7 +324,7 @@ const scope: EsiScope = 'esi-assets.read_assets.v1';
 
 ## 8. Examples
 
-`examples/` holds 56 scripts. Every one is type-checked on each pull request that touches it, and nightly. The public ones also run against live ESI every night (`nightly-examples.yml`), and a failure opens one issue per example. Each has an npm script:
+`examples/` holds <!-- metric:examples -->58<!-- /metric --> scripts. Every one is type-checked on each pull request that touches it, and nightly. The public ones also run against live ESI every night (`nightly-examples.yml`), and a failure opens one issue per example. Each has an npm script:
 
 ```bash
 # Public (no token)

@@ -272,7 +272,7 @@ Needed only when ESI adds a tag that no existing client covers. Every step below
 10. **Specification and tests.** A new numbered feature file, step definitions, unit tests and a `tests/typetests/domain-responses.test-d.ts` assertion for at least one method, as in section 3.8.
 11. **API report.** `npm run build && npm run api-report`, and commit `etc/esi.ts.api.md`.
 
-The README's client table is still maintained by hand; update it until the counts and tables are generated (DOC-04).
+The README's client table is still maintained by hand. The client, route and operation counts are generated: run `npm run docs:metrics` after adding a client (DOC-04).
 
 ---
 

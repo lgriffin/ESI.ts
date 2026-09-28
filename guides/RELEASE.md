@@ -291,10 +291,11 @@ What it describes: the runtime dependency tree of the tarball's own `package.jso
 | `package-lock.json`                                                 | release-please (node release type) | `npm ci` in CI                        |
 | `.release-please-manifest.json`                                     | release-please                     | —                                     |
 | `src/core/constants.ts` (`PACKAGE_VERSION`, sent in the User-Agent) | release-please `extra-files`       | `npm run validate:versions`           |
-| README banner                                                       | by hand                            | nothing                               |
+| README release line (`metric:version`)                              | release-please `extra-files`       | `npm run validate:versions`           |
+| `etc/doc-metrics.json` (`version`)                                  | release-please `extra-files`       | `npm run validate:versions`           |
 | docs-site version menu                                              | read from `package.json` at build  | `npm run validate:versions -- --site` |
 
-`scripts/package/validate-versions.ts` compares `package.json` with `PACKAGE_VERSION`, checks that the docs-site selector is still read from `package.json`, and with `--site` checks the built site; it exits non-zero on a mismatch. It runs in `ci.yml` `static-analysis`, `release.yml` `validate-release` and `npm run check:all`, and with `--site` in the `documentation` job and `docs-site.yml`. The README banner is still by hand; `DOC-04` extends the check to it.
+`scripts/package/validate-versions.ts` compares `package.json` with `PACKAGE_VERSION`, checks that the docs-site selector is still read from `package.json`, and with `--site` checks the built site; it exits non-zero on a mismatch. It runs in `ci.yml` `static-analysis`, `release.yml` `validate-release` and `npm run check:all`, and with `--site` in the `documentation` job and `docs-site.yml`. It also runs the `DOC-04` metrics check, which compares the README's release line and every other marked count with `etc/doc-metrics.json` and the source.
 
 ---
 
