@@ -16,7 +16,11 @@
  * `this.client.market.getMarketHistory(...)` in a step file credits
  * `MarketClient`, a same-named method on another client credits that client,
  * and a call on `any` credits none. The call may sit in the step function or
- * in any `tests/bdd` function it calls, however deep.
+ * in any `tests/bdd` function it calls, however deep. A function nested in
+ * a step counts only when it runs: called, passed to a call, an entry of a
+ * dispatch table, or stored for a later step; one only declared does not.
+ * A client is a class the checker resolves as extending `BaseEsiClient`, so
+ * an aliased or namespaced import of the base counts.
  *
  * Steps are bound the way each runner binds them. A feature a legacy file in
  * `tests/bdd/step-definitions/` loads (`loadFeature` and `defineFeature`) is
@@ -51,7 +55,6 @@ import {
   groupedRatchetProblems,
   loadGroupedBaseBaseline,
   parseGroupedBaseline,
-  parseSource,
   serializeGroupedBaseline,
   stepFor,
   toPosix,
@@ -90,16 +93,37 @@ function isOwnPublicMethod(member: ts.ClassElement): boolean {
   );
 }
 
-function extendsBaseClient(node: ts.ClassDeclaration): boolean {
+/**
+ * Whether a class extends `BaseEsiClient` itself: the checker resolves the
+ * `extends` expression, through an import alias (`BaseEsiClient as Base`) or
+ * a namespace (`base.BaseEsiClient`), to the class of that name declared in
+ * `src/clients/`, so a same-named class elsewhere does not count.
+ */
+function extendsBaseClient(
+  node: ts.ClassDeclaration,
+  checker: ts.TypeChecker,
+  clientsDir: string,
+): boolean {
   return (node.heritageClauses ?? []).some(
     (clause) =>
       clause.token === ts.SyntaxKind.ExtendsKeyword &&
-      clause.types.some(
-        (t) =>
-          ts.isIdentifier(t.expression) && t.expression.text === BASE_CLIENT,
-      ),
+      clause.types.some((t) => {
+        let symbol = checker.getSymbolAtLocation(t.expression);
+        if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
+          symbol = checker.getAliasedSymbol(symbol);
+        }
+        return (symbol?.declarations ?? []).some(
+          (d) =>
+            ts.isClassDeclaration(d) &&
+            d.name?.text === BASE_CLIENT &&
+            isUnder(d.getSourceFile().fileName, clientsDir),
+        );
+      }),
   );
 }
+
+const isUnder = (fileName: string, dir: string): boolean =>
+  toPosix(path.normalize(fileName)).startsWith(dir);
 
 /**
  * Every public method each domain client declares, clients by class name,
@@ -107,18 +131,25 @@ function extendsBaseClient(node: ts.ClassDeclaration): boolean {
  * directory is missing or declares no client, since a check that read nothing
  * would pass for the wrong reason.
  */
-export function readClientMethods(root: string): ClientMethod[] {
+export function readClientMethods(
+  root: string,
+  project?: StepProject,
+): ClientMethod[] {
   const dir = path.join(root, CLIENTS_DIR);
   if (!existsSync(dir)) {
     throw new Error(`${CLIENTS_DIR} does not exist under ${root}.`);
   }
+  const { program, checker } = project ?? clientProject(root);
+  const clientsDir = toPosix(dir) + '/';
   const byClient = new Map<string, string[]>();
   for (const file of walk(dir, (n) => n.endsWith('.ts'))) {
-    for (const statement of parseSource(file).statements) {
+    const source = program.getSourceFile(file);
+    if (!source) continue;
+    for (const statement of source.statements) {
       if (
         !ts.isClassDeclaration(statement) ||
         !statement.name ||
-        !extendsBaseClient(statement)
+        !extendsBaseClient(statement, checker, clientsDir)
       ) {
         continue;
       }
@@ -152,20 +183,21 @@ export function clientOrder(methods: readonly { client: string }[]): string[] {
 // Step files, read with the type checker
 // ---------------------------------------------------------------------------
 
-/**
- * Converted and legacy step files and the clients in one program, crediting
- * a call the checker resolves to a client method's own declaration.
- */
-function clientProject(
-  root: string,
-  methods: ReadonlySet<string>,
-): StepProject {
-  const clientsDir = toPosix(path.join(root, CLIENTS_DIR)) + '/';
-  const project = new StepProject(root, [
+/** Converted and legacy step files and the clients, in one program. */
+function clientProject(root: string): StepProject {
+  return new StepProject(root, [
     ...walk(path.join(root, STEPS_DIR), (n) => n.endsWith('.ts')),
     ...walk(path.join(root, LEGACY_DIR), (n) => n.endsWith('.ts')),
     ...walk(path.join(root, CLIENTS_DIR), (n) => n.endsWith('.ts')),
   ]);
+}
+
+/** Credits a call the checker resolves to a client method's own declaration. */
+function creditClients(
+  project: StepProject,
+  methods: ReadonlySet<string>,
+): void {
+  const clientsDir = toPosix(path.join(project.root, CLIENTS_DIR)) + '/';
   const { checker } = project;
   project.creditWith((callee) => {
     const credited = new Set<string>();
@@ -175,9 +207,7 @@ function clientProject(
         !ts.isMethodDeclaration(declaration) ||
         !ts.isClassDeclaration(declaration.parent) ||
         !declaration.parent.name ||
-        !toPosix(
-          path.normalize(declaration.getSourceFile().fileName),
-        ).startsWith(clientsDir)
+        !isUnder(declaration.getSourceFile().fileName, clientsDir)
       ) {
         continue;
       }
@@ -186,7 +216,6 @@ function clientProject(
     }
     return [...credited];
   });
-  return project;
 }
 
 /** A `test(...)` a legacy file registers inside `defineFeature`. */
@@ -304,7 +333,7 @@ function readLegacyScenarios(
 
 /** The patterns the converted step files register. */
 export function readStepPatterns(root: string): StepPattern[] {
-  return clientProject(root, new Set()).stepPatterns();
+  return clientProject(root).stepPatterns();
 }
 
 // ---------------------------------------------------------------------------
@@ -351,9 +380,10 @@ function rulePatterns(
 }
 
 export function analyseCoverage(root: string): CoverageReport {
-  const clientMethods = readClientMethods(root);
+  const project = clientProject(root);
+  const clientMethods = readClientMethods(root, project);
   const keys = new Set(clientMethods.map((m) => key(m.client, m.name)));
-  const project = clientProject(root, keys);
+  creditClients(project, keys);
   const patterns = project.stepPatterns();
   const legacy = readLegacyScenarios(project);
   const byRuleText = rulePatterns(clientMethods);

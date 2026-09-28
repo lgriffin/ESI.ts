@@ -249,6 +249,39 @@ describe('client-spec-coverage: what counts as coverage', () => {
   });
 });
 
+describe('client-spec-coverage: nested callbacks and aliased bases', () => {
+  const CALLBACKS = path.join(FIXTURES, 'callbacks');
+  const report = analyseCoverage(CALLBACKS);
+  const covered = (name: string) =>
+    method(report, 'DeltaClient', name).scenarios > 0;
+
+  it('reads a client whose base is imported under an alias or a namespace, not a same-named class elsewhere', () => {
+    expect(clientOrder(readClientMethods(CALLBACKS))).toEqual([
+      'DeltaClient',
+      'EpsilonClient',
+    ]);
+    expect(integrityProblems(report)).toEqual([]);
+  });
+
+  it('does not credit a nested function a step declares but never runs', () => {
+    expect(covered('getUnusedArrow')).toBe(false);
+    expect(covered('getDeclaredOnly')).toBe(false);
+    expect(covered('getHeldOnly')).toBe(false);
+    expect(covered('getUnusedInLegacy')).toBe(false);
+  });
+
+  it('credits a nested function passed to a call, passed by name, in a dispatch table or stored for later', () => {
+    expect(covered('getInArgument')).toBe(true);
+    expect(covered('getPassedByName')).toBe(true);
+    expect(covered('getInTable')).toBe(true);
+    expect(covered('getAssigned')).toBe(true);
+  });
+
+  it('keeps crediting a legacy step callback registered with given/when/then', () => {
+    expect(covered('getInLegacyStep')).toBe(true);
+  });
+});
+
 describe('client-spec-coverage: the baseline ratchet', () => {
   const report = analyseCoverage(PROJECT);
   const measured = parseBaseline(serializeBaseline(report));

@@ -107,6 +107,60 @@ export function bodyOf(node: ts.Node): ts.Node | null {
   return null;
 }
 
+function isFunctionLike(node: ts.Node): boolean {
+  return (
+    ts.isArrowFunction(node) ||
+    ts.isFunctionExpression(node) ||
+    ts.isFunctionDeclaration(node) ||
+    ts.isMethodDeclaration(node) ||
+    ts.isAccessor(node)
+  );
+}
+
+/**
+ * Whether a nested function is live where it stands, so the calls in it are
+ * the enclosing step's. Live: invoked on the spot (an IIFE); an argument to a
+ * call or `new`, as in `expect(() => client.x()).rejects`, `promise.then(cb)`
+ * or `items.map(cb)`; an entry of an object or array literal, the dispatch
+ * table `const lookups = { a: (id) => p.getA(id) }; lookups[noun](id)`, whose
+ * entry the checker cannot pick; returned, or assigned to a property such as
+ * `this.action = () => client.x()`, for a later step or caller to run. Not
+ * live: a function only declared, or held in a variable, which is followed
+ * where it is called or passed by name instead.
+ */
+function isInvokedOrPassed(fn: ts.Node): boolean {
+  let node: ts.Node = fn;
+  while (
+    ts.isParenthesizedExpression(node.parent) ||
+    ts.isAsExpression(node.parent) ||
+    ts.isSatisfiesExpression(node.parent)
+  ) {
+    node = node.parent;
+  }
+  const parent = node.parent;
+  if (ts.isCallExpression(parent) || ts.isNewExpression(parent)) {
+    return (
+      parent.expression === node ||
+      (parent.arguments ?? []).some((a) => a === node)
+    );
+  }
+  if (ts.isPropertyAssignment(parent) && parent.initializer === node) {
+    return true;
+  }
+  if (ts.isArrayLiteralExpression(parent) || ts.isReturnStatement(parent)) {
+    return true;
+  }
+  // A concise arrow body returning a function: `() => () => client.x()`.
+  if (ts.isArrowFunction(parent) && parent.body === node) return true;
+  return (
+    ts.isBinaryExpression(parent) &&
+    parent.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+    parent.right === node &&
+    (ts.isPropertyAccessExpression(parent.left) ||
+      ts.isElementAccessExpression(parent.left))
+  );
+}
+
 /**
  * The method keys one call credits: the call's callee is a property access,
  * and the check decides from the checker whether it reaches one of its
@@ -210,14 +264,27 @@ export class StepProject {
     const reached = new Set<string>();
     this.reachedByBody.set(body, reached); // Set first, so recursion terminates.
 
+    const follow = (bodies: readonly ts.Node[]): void => {
+      for (const b of bodies) {
+        for (const m of this.reachedIn(b)) reached.add(m);
+      }
+    };
     const visit = (n: ts.Node): void => {
-      if (ts.isCallExpression(n)) {
+      // A nested function counts only when it runs: invoked on the spot or
+      // handed to a call. One that is only declared is followed, if at all,
+      // where it is called by name.
+      if (n !== body && isFunctionLike(n) && !isInvokedOrPassed(n)) return;
+      if (ts.isCallExpression(n) || ts.isNewExpression(n)) {
         const callee = n.expression;
-        if (ts.isPropertyAccessExpression(callee)) {
+        if (ts.isCallExpression(n) && ts.isPropertyAccessExpression(callee)) {
           for (const key of this.credit(callee)) reached.add(key);
         }
-        for (const calleeBody of this.bodiesOf(callee)) {
-          for (const m of this.reachedIn(calleeBody)) reached.add(m);
+        if (ts.isCallExpression(n)) follow(this.bodiesOf(callee));
+        // A function passed by name, as in `items.map(lookUp)`.
+        for (const arg of n.arguments ?? []) {
+          if (ts.isIdentifier(arg) || ts.isPropertyAccessExpression(arg)) {
+            follow(this.bodiesOf(arg));
+          }
         }
       }
       ts.forEachChild(n, visit);
