@@ -73,6 +73,16 @@ levels:
 - Failure messages name the fault, the target, each broken invariant, the
   Rule and a reproduce command. Keep them that way.
 
+## The nightly generator
+
+- `arbitraryFor` follows the schema's shape and cannot see a `.refine` across
+  fields (`CorporationInfoSchema` wants `tax_rate` or `tax_rates`), so the
+  nightly filters its bodies through `schema.safeParse` before serving them.
+  A refinement that rejects most bodies slows the run; write the arbitrary
+  for that shape instead.
+- A `textResponse` endpoint is served its string as the body. Text has no
+  JSON type to mutate, so those endpoints check the round trip only.
+
 ## Decisions the catalogue pins
 
 - **Content-Type is not trusted.** The body decides: valid JSON labelled

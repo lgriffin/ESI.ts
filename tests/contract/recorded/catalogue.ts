@@ -517,13 +517,8 @@ export const RECIPES: Recipe[] = [
     client: 'contracts',
     method: 'getPublicContracts',
     args: () => [S.theForgeRegionId],
-    derive: (body, upstreamPages) =>
-      defined({
-        publicContractPages: upstreamPages,
-        itemExchangeContractIds: all(body, (c) =>
-          c.type === 'item_exchange' ? (c.contract_id as number) : undefined,
-        ).slice(0, 3),
-      }),
+    derive: (_body, upstreamPages) =>
+      defined({ publicContractPages: upstreamPages }),
   },
   {
     endpoint: 'contract.getPublicContractBids',
@@ -563,7 +558,34 @@ export const RECIPES: Recipe[] = [
     endpoint: 'contract.getPublicContractItems',
     client: 'contracts',
     method: 'getPublicContractItems',
-    args: (ids, attempt) => [need(ids, 'itemExchangeContractIds', attempt)],
+    // Page 1 of the listing holds the oldest contracts, and ESI answers 200
+    // with an empty body for one that has expired or completed (the 2026-09-26
+    // and 2026-09-27 nightlies), so take the newest item exchanges instead:
+    // walk back from the last page, as the bids recipe does.
+    prepare: async (ids, get) => {
+      const last = Number(need(ids, 'publicContractPages'));
+      const lowest = Math.max(1, last - 4);
+      const newestItemExchangeIds: number[] = [];
+      for (
+        let page = last;
+        page >= lowest && newestItemExchangeIds.length < 12;
+        page--
+      ) {
+        const body = await get(
+          `contracts/public/${S.theForgeRegionId}?page=${page}`,
+        );
+        newestItemExchangeIds.push(
+          ...all(body, (c) =>
+            c.type === 'item_exchange' ? (c.contract_id as number) : undefined,
+          ).reverse(),
+        );
+      }
+      return defined({
+        newestItemExchangeIds: newestItemExchangeIds.slice(0, 12),
+      });
+    },
+    attempts: 12,
+    args: (ids, attempt) => [need(ids, 'newestItemExchangeIds', attempt)],
   },
 
   // Wars and killmails

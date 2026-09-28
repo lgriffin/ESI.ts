@@ -5,14 +5,22 @@ REPORT_DIR="${1:-./reports/schemathesis}"
 mkdir -p "$REPORT_DIR"
 chmod 777 "$REPORT_DIR"
 
-PRISM_PID=""
+PRISM_CONTAINER="esi-prism-$$"
+# Prism and Schemathesis share a bridge network rather than the host's, so
+# the run works on Docker Desktop too, where host networking is unavailable;
+# port 4010 is published for the readiness probe below.
+FUZZ_NETWORK="esi-fuzz-$$"
+# Prism runs from its image rather than node_modules: @stoplight/prism-http
+# pulls postman-collection, which needs @faker-js/faker 5 and cannot load
+# under the faker override the audit gate requires.
+PRISM_IMAGE="stoplight/prism:5@sha256:3f6d29e31bfe0b99587f0f6f79c423858dd6a2ea7e1e4658273ed930a78a9acf"
 
 cleanup() {
-  if [ -n "$PRISM_PID" ]; then
-    echo "Stopping Prism (PID: $PRISM_PID)..."
-    kill "$PRISM_PID" 2>/dev/null || true
-    wait "$PRISM_PID" 2>/dev/null || true
+  if docker ps -q --filter "name=^${PRISM_CONTAINER}$" | grep -q .; then
+    echo "Stopping Prism (container: $PRISM_CONTAINER)..."
+    docker rm -f "$PRISM_CONTAINER" >/dev/null 2>&1 || true
   fi
+  docker network rm "$FUZZ_NETWORK" >/dev/null 2>&1 || true
 }
 
 trap cleanup EXIT
@@ -89,8 +97,12 @@ const fs = require('fs');
 PREPROCESS
 
 echo "Starting Prism mock server on port 4010..."
-npx prism mock "$MODIFIED_SPEC" -p 4010 &
-PRISM_PID=$!
+docker network create "$FUZZ_NETWORK" >/dev/null
+docker run --rm -d --name "$PRISM_CONTAINER" \
+  --network "$FUZZ_NETWORK" --network-alias prism -p 4010:4010 \
+  -v "$MODIFIED_SPEC:/spec/esi-openapi-fuzz.json:ro" \
+  "$PRISM_IMAGE" \
+  mock -h 0.0.0.0 -p 4010 /spec/esi-openapi-fuzz.json >/dev/null
 
 echo "Waiting for Prism to be ready..."
 for i in $(seq 1 30); do
@@ -107,7 +119,7 @@ done
 
 echo "Running Schemathesis..."
 SCHEMATHESIS_EXIT=0
-docker run --rm --network host \
+docker run --rm --network "$FUZZ_NETWORK" \
   -v "$(cd "$REPORT_DIR" && pwd):/reports" \
   -v "$MODIFIED_SPEC:/spec/esi-openapi-fuzz.json:ro" \
   schemathesis/schemathesis \
@@ -115,7 +127,7 @@ docker run --rm --network host \
   --checks all \
   --exclude-checks negative_data_rejection,positive_data_acceptance,use_after_free,unsupported_method,response_schema_conformance,status_code_conformance \
   --max-examples 10 \
-  --url http://localhost:4010 \
+  --url http://prism:4010 \
   --workers 4 \
   --request-timeout 10000 \
   --request-retries 1 \

@@ -135,11 +135,20 @@ const canon = (v: unknown): string => JSON.stringify(v);
 /** Run one exchange; return the settled outcome and the requests it sent. */
 async function serve(def: EndpointDefinition, body: unknown) {
   const before = sentRequests().length;
-  queueResponse({
-    status: 200,
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  // A text endpoint is served its string as the body, not as a JSON string.
+  queueResponse(
+    def.textResponse
+      ? {
+          status: 200,
+          headers: { 'content-type': 'text/plain' },
+          body: String(body),
+        }
+      : {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(body),
+        },
+  );
   const client = fuzzClient(def);
   const settled = await client.call().then(
     (value) => ({ ok: true as const, value }),
@@ -174,9 +183,18 @@ describe(`Nightly payload fuzz (seed ${SEED}, ${RUNS} runs per endpoint)`, () =>
 
   it.each(CASES)('$name', async ({ name, def }) => {
     const schema = def.responseSchema;
-    const bodies = arbitraryFor(schema);
+    // The generator follows the schema's shape; a refinement across fields
+    // (CorporationInfoSchema wants tax_rate or tax_rates) it cannot see, so
+    // the bodies a refinement rejects are dropped here.
+    const bodies = arbitraryFor(schema).filter(
+      (body) => schema.safeParse(body).success,
+    );
+    // A text body has no JSON type to mutate: it is a string whatever it
+    // holds, so a text endpoint checks the round trip only.
     const withMutation = bodies.chain((body) => {
-      const mutations = mutationsFor(schema, body);
+      const mutations = def.textResponse
+        ? [undefined]
+        : mutationsFor(schema, body);
       return fc.record({
         body: fc.constant(body),
         mutation: fc.constantFrom(...mutations),
@@ -185,7 +203,9 @@ describe(`Nightly payload fuzz (seed ${SEED}, ${RUNS} runs per endpoint)`, () =>
 
     const details = await fc.check(
       fc.asyncProperty(withMutation, async ({ body, mutation }) => {
-        const where = `${name}: ${mutation.kind} at ${formatPath(mutation.path)}`;
+        const where = mutation
+          ? `${name}: ${mutation.kind} at ${formatPath(mutation.path)}`
+          : name;
 
         // The generated body is valid and comes back unchanged.
         if (!schema.safeParse(body).success) {
@@ -204,6 +224,7 @@ describe(`Nightly payload fuzz (seed ${SEED}, ${RUNS} runs per endpoint)`, () =>
             `${name}: a schema-valid body came back changed: sent ${canon(body)}, got ${canon(clean.settled.value)}`,
           );
         }
+        if (!mutation) return;
 
         const mutated = applyMutation(schema, body, mutation);
         const seen = await serve(def, mutated);
