@@ -242,7 +242,7 @@
     "fuzz:api": "bash scripts/spec/run-schemathesis.sh",
     "faults": "jest --config config/jest/faults.config.cjs",
     "faults:nightly": "jest --config config/jest/faults.nightly.config.cjs",
-    "mock:esi": "docker run --rm -p 4010:4010 stoplight/prism:5@sha256:3f6d29e31bfe0b99587f0f6f79c423858dd6a2ea7e1e4658273ed930a78a9acf mock -h 0.0.0.0 -p 4010 https://esi.evetech.net/meta/openapi.json",
+    "mock:esi": "docker run --rm -p 4010:4010 stoplight/prism:5@sha256:3f6d29e31bfe0b99587f0f6f79c423858dd6a2ea7e1e4658273ed930a78a9acf mock -h 0.0.0.0 -p 4010 -m false https://esi.evetech.net/meta/openapi.json",
     "test:types": "tsd --files 'tests/typetests/*.test-d.ts'",
     "test:export-coverage": "ts-node scripts/package/export-coverage.ts",
     "test:type-mutation": "ts-node scripts/mutation/type-mutation.ts",

@@ -12,7 +12,9 @@ PRISM_CONTAINER="esi-prism-$$"
 FUZZ_NETWORK="esi-fuzz-$$"
 # Prism runs from its image rather than node_modules: @stoplight/prism-http
 # pulls postman-collection, which needs @faker-js/faker 5 and cannot load
-# under the faker override the audit gate requires.
+# under the faker override the audit gate requires. Inside the image the CLI's
+# default multiprocess fork dies on start ("Cannot read properties of
+# undefined (reading 'isPrimary')", run 36401402326), so it serves in-process.
 PRISM_IMAGE="stoplight/prism:5@sha256:3f6d29e31bfe0b99587f0f6f79c423858dd6a2ea7e1e4658273ed930a78a9acf"
 
 cleanup() {
@@ -102,7 +104,7 @@ docker run -d --name "$PRISM_CONTAINER" \
   --network "$FUZZ_NETWORK" --network-alias prism -p 4010:4010 \
   -v "$MODIFIED_SPEC:/spec/esi-openapi-fuzz.json:ro" \
   "$PRISM_IMAGE" \
-  mock -h 0.0.0.0 -p 4010 /spec/esi-openapi-fuzz.json >/dev/null
+  mock -h 0.0.0.0 -p 4010 -m false /spec/esi-openapi-fuzz.json >/dev/null
 
 # Prism validates and dereferences the whole ESI document before it listens,
 # which takes well over 30 seconds on a CI runner, so the probe waits up to
