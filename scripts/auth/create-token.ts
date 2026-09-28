@@ -360,10 +360,14 @@ async function main(): Promise<void> {
       String(DEFAULT_PORT),
     10,
   );
-  const callbackPath =
+  // Normalised the way the callback server parses requests, so a value such
+  // as `callback` or `/a/../callback` matches the pathname the browser sends.
+  const callbackPath = new URL(
     process.env.ESI_SSO_CALLBACK_PATH ||
-    envVars.get('ESI_SSO_CALLBACK_PATH') ||
-    DEFAULT_CALLBACK_PATH;
+      envVars.get('ESI_SSO_CALLBACK_PATH') ||
+      DEFAULT_CALLBACK_PATH,
+    `http://localhost:${port}`,
+  ).pathname;
 
   if (!clientId) {
     console.error('\nESI_SSO_CLIENT_ID is not set.\n');
