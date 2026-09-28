@@ -13,6 +13,7 @@
   "src/core/requestPipeline": 38.5,
   "src/core/util": 42.8,
   "src/schemas": 0,
-  "src/sde": 20.6,
-  "src/sde/ingestion": 0
+  "src/sde": 29.2,
+  "src/sde/ingestion": 56,
+  "src/sde/providers": 56.5
 }
