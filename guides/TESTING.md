@@ -14,26 +14,26 @@ Three positions explain every choice below.
 
 ## Where the suite stands
 
-Measured on 2026-09-27 on `master` at `3d57e80` (v10.2.3; 11.0.0 in progress), on a 4-core machine. The command in the first column reproduces each row.
+Measured on 2026-09-28 on `master` at `9486fe2c` (v10.2.3; 11.0.0 in progress), on a 4-core machine. The command in the first column reproduces each row.
 
-| Command                                       | Config                                   | Suites | Tests | Result                                                                                         |
-| --------------------------------------------- | ---------------------------------------- | -----: | ----: | ---------------------------------------------------------------------------------------------- |
-| `npm test`                                    | `config/jest/unit.config.cjs`            |    244 | 7,198 | All pass, about 145 s                                                                          |
-| of which unit, `tests/tdd` (not composition)  | same                                     |    182 | 6,648 |                                                                                                |
-| of which specification, `tests/bdd`           | same                                     |     55 |   508 | 38 legacy `*.steps.ts` files and 17 `*.spec.ts` entries                                        |
-| of which composition, `tests/tdd/composition` | same                                     |      7 |    42 |                                                                                                |
-| `npm run fuzz`                                | `config/jest/fuzz.config.cjs`            |     15 | 1,240 | All pass, about 22 s with four workers                                                         |
-| `npm run faults`                              | `config/jest/faults.config.cjs`          |      2 |   148 | All pass                                                                                       |
-| `npm run contract:replay`                     | `config/jest/contract.replay.config.cjs` |      5 |   121 | All pass, over 86 recorded fixtures                                                            |
-| `npm run test:integration`                    | `config/jest/integration.config.cjs`     |      6 |   177 | 20 mocked pass; 157 live tests skip without `ESI_LIVE_TESTS`, `ESI_GATED_TESTS` or `sde-data/` |
-| **Offline total**                             |                                          |    272 | 8,884 | 8,727 run, 0 failures                                                                          |
+| Command                                       | Config                                   | Suites |  Tests | Result                                                                                         |
+| --------------------------------------------- | ---------------------------------------- | -----: | -----: | ---------------------------------------------------------------------------------------------- |
+| `npm test`                                    | `config/jest/unit.config.cjs`            |    291 |  8,308 | All pass, about 141 s                                                                          |
+| of which unit, `tests/tdd` (not composition)  | same                                     |    210 |  7,524 |                                                                                                |
+| of which specification, `tests/bdd`           | same                                     |     74 |    742 | 31 legacy `*.steps.ts` files and 43 `*.spec.ts` entries                                        |
+| of which composition, `tests/tdd/composition` | same                                     |      7 |     42 |                                                                                                |
+| `npm run fuzz`                                | `config/jest/fuzz.config.cjs`            |     15 |  1,240 | All pass, about 22 s with four workers                                                         |
+| `npm run faults`                              | `config/jest/faults.config.cjs`          |      2 |    148 | All pass                                                                                       |
+| `npm run contract:replay`                     | `config/jest/contract.replay.config.cjs` |      5 |    121 | All pass, over 86 recorded fixtures                                                            |
+| `npm run test:integration`                    | `config/jest/integration.config.cjs`     |      6 |    228 | 20 mocked pass; 208 live tests skip without `ESI_LIVE_TESTS`, `ESI_GATED_TESTS` or `sde-data/` |
+| **Offline total**                             |                                          |    319 | 10,045 | 9,837 run, 0 failures                                                                          |
 
 | Coverage (`npm run coverage`) | Measured | Floor (`config/jest/unit.config.cjs`) |
 | ----------------------------- | -------: | ------------------------------------: |
-| Statements                    |   97.18% |                                   90% |
-| Branches                      |   95.53% |                                   80% |
-| Functions                     |   91.25% |                                   75% |
-| Lines                         |   97.32% |                                   90% |
+| Statements                    |   97.79% |                                   90% |
+| Branches                      |   95.88% |                                   80% |
+| Functions                     |   93.57% |                                   75% |
+| Lines                         |   97.85% |                                   90% |
 
 Coverage is collected from `src/**/*.ts`, excluding `.d.ts`, `src/types/`, `*.generated.ts` and `src/clients/generated/`. The floors sit well below the measured values on purpose (`TEST-04`): they catch an untested module without turning one bad week into a broken gate. Mutation, not coverage, is what says the tests assert anything.
 
@@ -237,9 +237,9 @@ tests/
     helpers/           describeClientErrors and shared test utilities
   bdd/
     features/          the .feature files: core/, integration/, performance/, sde/
-    specs/             17 spec entries: 16 converted domains, plus step-library.spec.ts (the dry run)
+    specs/             43 spec entries: 42 converted domains, plus step-library.spec.ts (the dry run)
     steps/             given/ when/ then/, one step per file
-    step-definitions/  38 legacy defineFeature files, shrink-only (legacyStepFiles)
+    step-definitions/  31 legacy defineFeature files, shrink-only (legacyStepFiles)
     support/           binder, transport seam, World, per-domain fixtures
   fuzz/                15 fast-check suites; 7 model-based *.property.test.ts (two for the SDE)
   faults/              fault catalogue, its self-test, nightly payload fuzz
