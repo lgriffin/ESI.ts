@@ -191,7 +191,7 @@ Running the step definitions as the dry run for a `src/core/requestPipeline` cha
 ## How It Works
 
 1. **Instrumentation**: Stryker parses all files matching the `mutate` glob and identifies possible mutations (2,385 in the unit scope when the shards were balanced on 18 September 2026; see "Why the unit run is sharded").
-2. **Dry run**: Stryker runs the related tests once to establish a baseline and map which tests cover which code (`enableFindRelatedTests`).
+2. **Dry run**: Stryker runs the tests once to establish a baseline and map which tests cover which code. The unit run narrows the dry run to the tests Jest's module graph relates to the mutated files (`enableFindRelatedTests`); the BDD run cannot, because the step-library specs bind their steps at run time through `bindFeature(__filename)` and relate to nothing statically (the `sde` shard found no tests at all once Run 3 converted the SDE steps), so it runs every BDD spec and lets per-test coverage do the narrowing.
 3. **Mutation**: For each mutant, Stryker modifies the source and runs only the tests that cover the changed code (`perTest` coverage analysis). The TypeScript checker discards mutants that do not compile first.
 4. **Scoring**: Each mutant is classified:
 
