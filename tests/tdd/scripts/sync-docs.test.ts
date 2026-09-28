@@ -34,6 +34,7 @@ import {
   slugFor,
   titleOf,
 } from '../../../scripts/docs/sync-docs-core';
+import { githubSlug } from '../../../scripts/docs/heading-slug';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const read = (repoPath: string) =>
@@ -125,6 +126,161 @@ describe('the site over the real repository', () => {
     for (const target of Object.values(IMPORT_MAP)) {
       expect(exported).toContain(target);
     }
+  });
+});
+
+/**
+ * CHARTER DOC-01: one canonical file per topic, every other mention a link.
+ * A guide that is folded into another must be gone, and every link to a
+ * guide, with or without a heading anchor, must land on a file and a heading
+ * that exist, so a fold cannot leave a link to the retired copy behind.
+ */
+const FENCE_LINE = /^\s*(`{3,}|~{3,})/;
+/** An inline link's href, `[label](href "title")`. */
+const INLINE_LINK = /\[(?:[^[\]]|\[[^\]]*\])*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+/** A reference definition's href, `[label]: href "title"`. */
+const REFERENCE_LINK = /^\s{0,3}\[[^\]]+\]:\s*<?([^\s>]+)>?/;
+
+/** Lines outside fenced code, with inline code spans blanked. */
+function proseLines(markdown: string): string[] {
+  let fence: string | null = null;
+  const lines: string[] = [];
+  for (const line of markdown.split('\n')) {
+    const open = FENCE_LINE.exec(line);
+    if (open) {
+      if (fence === null) fence = open[1]![0]!;
+      else if (open[1]![0] === fence) fence = null;
+      continue;
+    }
+    if (fence === null) lines.push(line.replace(/(`+)[\s\S]*?\1/g, ''));
+  }
+  return lines;
+}
+
+/**
+ * The anchors a guide's headings get, from the slugifier the docs site is
+ * configured with (GitHub's), with GitHub's and markdown-it-anchor's suffix
+ * for a repeated heading (`-1`, `-2`), plus explicit `<a id>` targets.
+ */
+function headingAnchors(markdown: string): Set<string> {
+  const anchors = new Set<string>();
+  const seen = new Map<string, number>();
+  for (const line of proseLines(markdown.replace(/`/g, ''))) {
+    for (const m of line.matchAll(/<a\s+(?:id|name)="([^"]+)"/g))
+      anchors.add(m[1]!);
+    const heading = /^#{1,6}\s+(.*?)(?:\s+#+)?\s*$/.exec(line);
+    if (!heading) continue;
+    const slug = githubSlug(
+      heading[1]!.replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1'),
+    );
+    const count = seen.get(slug) ?? 0;
+    seen.set(slug, count + 1);
+    anchors.add(count === 0 ? slug : `${slug}-${count}`);
+  }
+  return anchors;
+}
+
+/**
+ * Every link in `markdown` (inline or a reference definition) to README.md
+ * or a guide that names a file or a heading that does not exist.
+ */
+function brokenGuideLinks(
+  source: string,
+  markdown: string,
+  guides: ReadonlyMap<string, string>,
+): string[] {
+  const hrefs = proseLines(markdown).flatMap((line) => {
+    const reference = REFERENCE_LINK.exec(line);
+    return [
+      ...[...line.matchAll(INLINE_LINK)].map((m) => m[1]!),
+      ...(reference ? [reference[1]!] : []),
+    ];
+  });
+  return hrefs.filter((href) => {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('/')) return false;
+    const [target, anchor] = href.split('#', 2) as [string, string?];
+    const file = target
+      ? path.posix.normalize(
+          path.posix.join(path.posix.dirname(source), target),
+        )
+      : source;
+    const isGuide =
+      file === 'README.md' ||
+      (file.startsWith('guides/') && file.endsWith('.md'));
+    if (!isGuide) return false;
+    const text = file === source ? markdown : guides.get(file);
+    if (text === undefined) return true;
+    return anchor !== undefined && !headingAnchors(text).has(anchor);
+  });
+}
+
+describe('one canonical file per topic (CHARTER DOC-01)', () => {
+  it('keeps retired copies of a folded guide deleted', () => {
+    const retired = ['TESTING.md', 'guides/MUTATION-TESTING.md'].filter(
+      (file) => existsSync(path.join(ROOT, file)),
+    );
+    expect(retired).toEqual([]);
+  });
+
+  it('states the canonical test tier table in guides/TESTING.md only', () => {
+    const restated = guideSources.filter((source) =>
+      proseLines(read(source)).some((line) =>
+        /^\|\s*Tier\s*\|.*\|\s*Signal that it can fail\s*\|/.test(line),
+      ),
+    );
+    expect(restated).toEqual(['guides/TESTING.md']);
+  });
+
+  const guides = new Map(guideSources.map((source) => [source, read(source)]));
+
+  it.each(guideSources.map((source) => [source] as const))(
+    '%s links only to guides and headings that exist',
+    (source) => {
+      expect(brokenGuideLinks(source, guides.get(source)!, guides)).toEqual([]);
+    },
+  );
+
+  describe('brokenGuideLinks', () => {
+    const fixture = new Map([
+      [
+        'guides/ROADMAP.md',
+        '# Roadmap\n\n## Where 11.0.0 stands\n\n## Notes\n\n## Notes\n\n## The `EsiClient` [guide](USAGE.md)\n',
+      ],
+    ]);
+    const check = (markdown: string) =>
+      brokenGuideLinks('guides/TESTING.md', markdown, fixture);
+
+    it('accepts the anchor the site and GitHub give a heading, repeats suffixed', () => {
+      expect(
+        check(
+          '[a](ROADMAP.md#where-1100-stands) [b](ROADMAP.md#notes-1) [c](ROADMAP.md#the-esiclient-guide) [d](ROADMAP.md)',
+        ),
+      ).toEqual([]);
+    });
+
+    it('rejects an anchor no slugifier the site uses produces', () => {
+      expect(
+        check(
+          '[a](ROADMAP.md#where-11-0-0-stands) [b](ROADMAP.md#notes-2) [c](MISSING.md)',
+        ),
+      ).toEqual([
+        'ROADMAP.md#where-11-0-0-stands',
+        'ROADMAP.md#notes-2',
+        'MISSING.md',
+      ]);
+    });
+
+    it('checks reference definitions as well as inline links', () => {
+      expect(
+        check(
+          'See [the roadmap][r] and [the plan][p].\n\n[r]: ROADMAP.md#where-1100-stands\n[p]: ROADMAP.md#missing-heading "Plan"\n',
+        ),
+      ).toEqual(['ROADMAP.md#missing-heading']);
+    });
+
+    it('checks an in-page anchor against the page itself', () => {
+      expect(check('## Here\n\n[a](#here) [b](#there)')).toEqual(['#there']);
+    });
   });
 });
 

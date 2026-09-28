@@ -446,7 +446,7 @@ of `src/` against the step definitions alone was killed at 30 minutes.
 `config/mutation/bdd-shards.json` and merges the reports. Raise the floors by
 dispatching it with `seed_bdd_thresholds`, which uploads
 `config/mutation/bdd-thresholds.json` raised to that run's scores for review; see
-[`guides/MUTATION-TESTING.md`](../../guides/MUTATION-TESTING.md#where-the-scores-stand).
+[`guides/TESTING.md`](../../guides/TESTING.md#where-the-scores-stand).
 
 ## The consistency check
 

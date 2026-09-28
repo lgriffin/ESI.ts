@@ -111,7 +111,7 @@ A request no route answers is rejected with an `EsiConfigurationError` naming th
 
 ## The engineering stance
 
-The project is run to a written [engineering charter](guides/CHARTER.md). It has <!-- metric:charterRequirements -->62<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->44<!-- /metric --> are **Enforced**, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->10<!-- /metric --> Partial and <!-- metric:charterGap -->2<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
+The project is run to a written [engineering charter](guides/CHARTER.md). It has <!-- metric:charterRequirements -->62<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->45<!-- /metric --> are **Enforced**, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->10<!-- /metric --> Partial and <!-- metric:charterGap -->1<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
 
 1. **The OpenAPI spec is upstream.** Types, cache TTLs, rate-limit groups, scopes and <!-- metric:operations -->233<!-- /metric --> typed operations are generated from it, and CI fails when they go stale.
 2. **Hand-write where judgement matters.** Method names, argument shapes and validation strictness are product decisions. Drift reports keep them honest against the spec.
@@ -176,23 +176,23 @@ The README orients and the guides are canonical. Each guide opens with the chart
 | [Logging](guides/LOGGING.md)                       | `ILogger`, per-client loggers, pino, `ESI_LOG_LEVEL`                                                 |
 | [Static data (SDE)](guides/SDE.md)                 | The offline Static Data Export module: its role, isolation, API ([module README](src/sde/README.md)) |
 
-| How it is built                                |                                                                                 |
-| ---------------------------------------------- | ------------------------------------------------------------------------------- |
-| [Engineering charter](guides/CHARTER.md)       | The requirements the project holds itself to, with status and gap register      |
-| [Roadmap to 11.0.0](guides/ROADMAP.md)         | Phases, definitions of done, the SDE programme, the release gate                |
-| [Lean decisions](guides/LEAN-DECISIONS.md)     | Why it is run this way: every decision since v7, with value stream maps         |
-| [Architecture](guides/ARCHITECTURE.md)         | Layers, ports, the request path, caching, retry, rate limiting, circuit breaker |
-| [Design rules](guides/DESIGN-RULES.md)         | Naming, schemas, adding an endpoint or a client, generated files                |
-| [Testing](guides/TESTING.md)                   | Every test tier, what it proves, how to run it                                  |
-| [Mutation testing](guides/MUTATION-TESTING.md) | Stryker shards, floors and the ratchet                                          |
-| [Quality gates](guides/QUALITY-GATES.md)       | What runs at commit, push, PR, nightly and release; every workflow              |
-| [Security](guides/SECURITY.md)                 | Runtime defences and supply-chain controls ([policy](SECURITY.md))              |
-| [Semantic versioning](guides/SEMVER.md)        | What is public; major, minor or patch; breaking-change commits                  |
-| [Release](guides/RELEASE.md)                   | Cutting a release, changelog, provenance, signatures, support window            |
-| [Audit](guides/AUDIT.md)                       | The Phase 0 measured baseline for 11.0                                          |
-| [OKF bundle](guides/OKF.md)                    | The generated Open Knowledge Format catalogue of ESI                            |
-| [Documentation](guides/DOCUMENTATION.md)       | Documentation surfaces, checked examples, TypeDoc                               |
-| [Beads](guides/BEADS.md)                       | Issue tracking workflow                                                         |
+| How it is built                                        |                                                                                 |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| [Engineering charter](guides/CHARTER.md)               | The requirements the project holds itself to, with status and gap register      |
+| [Roadmap to 11.0.0](guides/ROADMAP.md)                 | Phases, definitions of done, the SDE programme, the release gate                |
+| [Lean decisions](guides/LEAN-DECISIONS.md)             | Why it is run this way: every decision since v7, with value stream maps         |
+| [Architecture](guides/ARCHITECTURE.md)                 | Layers, ports, the request path, caching, retry, rate limiting, circuit breaker |
+| [Design rules](guides/DESIGN-RULES.md)                 | Naming, schemas, adding an endpoint or a client, generated files                |
+| [Testing](guides/TESTING.md)                           | Every test tier, what it proves, how to run it                                  |
+| [Mutation testing](guides/TESTING.md#mutation-testing) | Stryker shards, floors and the ratchet                                          |
+| [Quality gates](guides/QUALITY-GATES.md)               | What runs at commit, push, PR, nightly and release; every workflow              |
+| [Security](guides/SECURITY.md)                         | Runtime defences and supply-chain controls ([policy](SECURITY.md))              |
+| [Semantic versioning](guides/SEMVER.md)                | What is public; major, minor or patch; breaking-change commits                  |
+| [Release](guides/RELEASE.md)                           | Cutting a release, changelog, provenance, signatures, support window            |
+| [Audit](guides/AUDIT.md)                               | The Phase 0 measured baseline for 11.0                                          |
+| [OKF bundle](guides/OKF.md)                            | The generated Open Knowledge Format catalogue of ESI                            |
+| [Documentation](guides/DOCUMENTATION.md)               | Documentation surfaces, checked examples, TypeDoc                               |
+| [Beads](guides/BEADS.md)                               | Issue tracking workflow                                                         |
 
 ## Examples
 
