@@ -7,6 +7,7 @@
  */
 import type { Esi, ScopeTree } from '../../../src/client';
 import { EsiClient } from '../../../src/EsiClient';
+import type { IStaticDataProvider } from '../../../src/sde/IStaticDataProvider';
 import type { MockTransport } from '../../../src/testing';
 import { createSeamClient } from './transport';
 
@@ -31,6 +32,9 @@ export class World {
 
   /** The mock transport under the runtime (0057-mock-transport.feature), once a Given built it. */
   transport: MockTransport | undefined;
+
+  /** The SDE provider under test (features/sde), once a Given opened it; closed after the scenario. */
+  sde: IStaticDataProvider | undefined;
 
   /** Views a Given step opened on the runtime, by the name the scenario uses. */
   readonly views: Record<string, ScopeTree> = {};

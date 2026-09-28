@@ -33,13 +33,6 @@
     "tests/bdd/step-definitions/core/token-management.steps.ts",
     "tests/bdd/step-definitions/core/ui.steps.ts",
     "tests/bdd/step-definitions/integration/integration-workflows.steps.ts",
-    "tests/bdd/step-definitions/performance/performance.steps.ts",
-    "tests/bdd/step-definitions/sde/sde-character-lore.steps.ts",
-    "tests/bdd/step-definitions/sde/sde-dogma-industry.steps.ts",
-    "tests/bdd/step-definitions/sde/sde-error-handling.steps.ts",
-    "tests/bdd/step-definitions/sde/sde-market-hierarchy.steps.ts",
-    "tests/bdd/step-definitions/sde/sde-universe-hierarchy.steps.ts",
-    "tests/bdd/step-definitions/sde/sde-version-management.steps.ts",
-    "tests/bdd/step-definitions/sde/static-data-lookup.steps.ts"
+    "tests/bdd/step-definitions/performance/performance.steps.ts"
   ]
 }

@@ -342,7 +342,7 @@ graph TB
 
 ```bash
 npm test -- tests/tdd/sde/                                               # Unit (288 tests, ~1s)
-npm test -- tests/bdd/step-definitions/sde/                              # BDD (23 tests, ~1s)
+npm run bdd:sde                                                          # BDD (23 tests, ~1s)
 npx jest --config config/jest/integration.config.cjs -- tests/integration/sde/  # Integration (63 tests, ~60s)
 ```
 

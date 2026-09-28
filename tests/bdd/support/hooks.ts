@@ -10,4 +10,5 @@ Before(function () {
 
 After(function () {
   finishTransport();
+  this.sde?.close();
 });
