@@ -387,7 +387,7 @@ Test files:
 npm run fuzz -- --testPathPatterns sde-
 ```
 
-fast-check properties in `tests/fuzz/`, 100 runs each on a pull request and 10,000 in `nightly-properties.yml` (`FC_NUM_RUNS`, `FC_SEED` and `FC_PATH` replay a failure, see `tests/fuzz/AGENTS.md`):
+fast-check properties in `tests/fuzz/`, 100 runs each on a pull request and 10,000 in `nightly-properties.yml` (`npm run fuzz:properties` selects all three) (`FC_NUM_RUNS`, `FC_SEED` and `FC_PATH` replay a failure, see `tests/fuzz/AGENTS.md`):
 
 - `sde-transforms.property.test.ts` -- field-name normalisation is idempotent and reversible on the `ID` suffix; locale extraction always yields a string; record transforms rename keys and extract locale maps at any depth and flatten to SQLite values; metadata reads the nested `sde:` block first
 - `sde-provider-model.property.test.ts` -- a generated, internally consistent data set (a controlled fraction of foreign keys dangling) loaded into `MemorySdeProvider`, and into `SdeDataProvider` from a directory, answers every lookup as a naive oracle over the same arrays, lazily built foreign-key indexes included

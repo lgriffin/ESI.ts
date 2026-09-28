@@ -1011,6 +1011,22 @@ const jsonScalarArb: fc.Arbitrary<unknown> = fc.oneof(
   fc.constant(null),
 );
 
+/** JSON-compatible values up to `depth` levels of arrays and objects. */
+function jsonValueArb(depth: number): fc.Arbitrary<unknown> {
+  if (depth === 0) return jsonScalarArb;
+  const inner = jsonValueArb(depth - 1);
+  return fc.oneof(
+    { arbitrary: jsonScalarArb, weight: 2 },
+    { arbitrary: fc.array(inner, { maxLength: 3 }), weight: 1 },
+    {
+      arbitrary: fc.dictionary(fc.string({ maxLength: 4 }), inner, {
+        maxKeys: 3,
+      }),
+      weight: 1,
+    },
+  );
+}
+
 /**
  * An arbitrary of values `schema` accepts unchanged, derived from the zod
  * definition. Covers the constructs `src/sde/schemas.ts` uses; any other
@@ -1057,12 +1073,9 @@ export function schemaArbitrary(schema: z.ZodType): fc.Arbitrary<unknown> {
     case 'nullable':
       return fc.option(schemaArbitrary(def.innerType!), { nil: null });
     case 'unknown':
-      return fc.oneof(
-        jsonScalarArb,
-        fc.dictionary(fc.string({ maxLength: 4 }), jsonScalarArb, {
-          maxKeys: 2,
-        }),
-      );
+      // CCP's payloads under an `unknown` field are scalars, objects and
+      // arrays of objects (dogma attribute lists, material lists), nested.
+      return jsonValueArb(2);
     default:
       throw new Error(
         `schemaArbitrary: no generator for zod type "${def.type}" (add one in tests/fuzz/support/sde.ts)`,

@@ -23,7 +23,8 @@ are plain fast-check tests and are not covered by the rules below.
 | `sde-transforms.property.test.ts`        | SDE field-name normalisation is idempotent and reversible on the `ID` suffix, locale extraction always yields a string, record transforms rename and extract at any depth, metadata reads the nested block first |
 | `sde-provider-model.property.test.ts`    | `MemorySdeProvider` and `SdeDataProvider` (loaded from a directory, foreign-key indexes built lazily) answer every lookup, list, search and generic read as a naive oracle over the same arrays                  |
 
-`sde-schema-fuzz.test.ts` is a plain fast-check suite beside them: an
+`sde-schema-fuzz.test.ts` is a plain fast-check suite beside them, run by
+`fuzz:properties` and the nightly as well: an
 arbitrary derived from each zod definition in `src/sde/schemas.ts` proves a
 generated record round-trips through `parse` with an extra field kept and is
 rejected once a required key is removed. The SDE arbitraries, the oracle and

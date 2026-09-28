@@ -271,7 +271,7 @@ npm run bdd:steps            # BDD dry run: every step matches one definition, n
 npm run spec:audit           # EARS and Gherkin audit of the feature files
 npm run ears                 # one PASS/FAIL/NOT RUN verdict per Rule
 npm run fuzz                 # properties and fuzz
-npm run fuzz:properties      # the model-based properties only
+npm run fuzz:properties      # the model-based properties and the SDE schema fuzz
 npm run faults               # fault catalogue
 npm run faults:nightly       # seeded payload fuzz over every endpoint
 npm run contract:replay      # recorded payloads through the pipeline, no network
@@ -550,7 +550,7 @@ Compile-time assertions on the consumer-facing type surface (`TEST-06`): endpoin
 
 **Location:** `tests/fuzz/` (read `tests/fuzz/AGENTS.md` first)
 **Config:** `config/jest/fuzz.config.cjs`
-**Run:** `npm run fuzz` (12 suites, 957 tests, 2026-09-27); `npm run fuzz:properties` for the model-based ones
+**Run:** `npm run fuzz` (12 suites, 957 tests, 2026-09-27); `npm run fuzz:properties` for the model-based ones and the SDE schema fuzz
 **CI:** `fuzz-tests` in `ci.yml`; `nightly-properties.yml` at 10,000 runs per property
 
 Unit tests check the inputs someone thought of. Properties check invariants across every input fast-check generates, including the ones nobody would write by hand: an object whose `toString` returns an array, a string with an embedded null byte, an integer at `MAX_SAFE_INTEGER`. The first fuzz run found that `validatePathParam` throws a raw `TypeError` rather than an `EsiError` for such an object; that is still open (see [Known gaps](#known-gaps)).
