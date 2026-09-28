@@ -1,4 +1,4 @@
-import { type EveType } from '../../../../src/sde/types';
+import { type EveType } from '../../../../src/sde/domain/types';
 import { Then } from '../../support/steps';
 
 Then(

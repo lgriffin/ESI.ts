@@ -21,7 +21,7 @@ import type {
   SdeSoakRun,
 } from '../../../tests/benchmark/sde-soak';
 import { runSdeSoak } from '../../../tests/benchmark/sde-soak';
-import { SdeDataProvider } from '../../../src/sde/SdeDataProvider';
+import { SdeDataProvider } from '../../../src/sde/providers/yaml/SdeDataProvider';
 
 const MiB = 1024 * 1024;
 

@@ -56,7 +56,7 @@ import {
 export { EXIT_INTEGRITY, EXIT_RATCHET };
 export type { BaseBaseline, RatchetResult };
 
-export const PROVIDER_FILE = 'src/sde/IStaticDataProvider.ts';
+export const PROVIDER_FILE = 'src/sde/ports/IStaticDataProvider.ts';
 export const PROVIDER_INTERFACE = 'IStaticDataProvider';
 export const FEATURES_DIR = 'tests/bdd/features/sde';
 export const STEPS_DIR = 'tests/bdd/steps';

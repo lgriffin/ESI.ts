@@ -1,4 +1,4 @@
-import type { IStaticDataProvider } from './IStaticDataProvider';
+import type { IStaticDataProvider } from '../../ports/IStaticDataProvider';
 import type {
   EveType,
   EveGroup,
@@ -50,9 +50,9 @@ import type {
   Mission,
   Dungeon,
   EpicArc,
-} from './types';
-import type { SdeVersionInfo } from './version';
-import { sortedById } from './order';
+} from '../../domain/types';
+import type { SdeVersionInfo } from '../../version';
+import { sortedById } from '../order';
 
 export interface MemorySdeData {
   types?: EveType[];

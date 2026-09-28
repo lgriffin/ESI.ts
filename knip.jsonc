@@ -19,10 +19,6 @@
   // Compiled by tsc for its type assertions, imported by nothing.
   "ignore": ["src/types/generated/spec-alignment.check.ts"],
   "ignoreIssues": {
-    // The SDE schema catalogue: one Zod schema per SDE entity, kept complete
-    // on purpose (guides/SDE.md, src/sde/README.md) though only some are
-    // imported today.
-    "src/sde/schemas.ts": ["exports"],
     // The ingestion pipeline's barrel re-exports each module's option and
     // result types alongside its classes.
     "src/sde/ingestion/index.ts": ["types"],

@@ -13,8 +13,8 @@
  * one in a hundred a name search. Keys come from a seeded generator over the
  * IDs the export holds, so every run asks the same questions.
  */
-import { SdeDataProvider } from '../../src/sde/SdeDataProvider';
-import type { EveType } from '../../src/sde/types';
+import { SdeDataProvider } from '../../src/sde/providers/yaml/SdeDataProvider';
+import type { EveType } from '../../src/sde/domain/types';
 
 export interface SdeSoakOptions {
   /** The export directory `SdeDataProvider.fromDirectory` reads. */

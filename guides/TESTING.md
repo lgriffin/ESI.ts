@@ -903,7 +903,7 @@ The unit floors live in `config/mutation/unit-thresholds.json`, one per score di
 
 #### Where the scores stand
 
-The SDE directories (Track S Run 2, 2026-09-27) were seeded from a local run rather than a nightly: `src/sde` 87.6% and `src/sde/ingestion` 73.8% on the unit suite (1,317 mutants), `src/sde` 22.6% and `src/sde/ingestion` 0% BDD-only, floored two points below at 85.6 / 71.8 and 20.6 / 0 in the two floor files. The nightly matrix re-seeds them on its next complete run; until then those four floors are provisional and the table below, which lists the nightly-measured core, does not carry them.
+The SDE directories were seeded from local runs rather than a nightly. Track S Run 2 (2026-09-27) measured `src/sde` 87.6% and `src/sde/ingestion` 73.8% on the unit suite (1,317 mutants) and 22.6% / 0% BDD-only. Run 12 (2026-09-28) moved the files into `ports/`, `domain/`, `providers/`, `ingestion/` and `testing/`, and re-measured: unit `src/sde` 93.7% (15/16), `src/sde/ingestion` 73.8% (161/218) and `src/sde/providers` 89.5% (86/96) over 838 mutants; BDD-only, once #523 let the dry run find the step-library scenarios, `src/sde` 31.2% (5/16), `src/sde/ingestion` 58.0% (133/229) and `src/sde/providers` 58.5% (58/99) over 1,007 mutants. `src/sde/domain` holds only type declarations and schemas and yields no valid mutants; `src/sde/testing` is excluded from both runs like `src/testing`. The floors sit two points under the measured scores where the score rose and stay where it did not: unit 85.6 / 71.8 / 87.5, BDD 29.2 / 56.0 / 56.5. The nightly matrix re-seeds them on its next complete run; until then those floors are provisional and the table below, which lists the nightly-measured core, does not carry them.
 
 The first two complete runs of the sharded unit matrix: 18 September 2026 (run 35352679266) and 19 September 2026 (run 35428381994). Five shards, 38 to 82 minutes each, merged into one report of 37 mutated files. The 18 September run was the first time `src/core` had been scored since 16 September: the unsharded job stopped finishing inside its 240-minute timeout as the suite grew.
 
@@ -925,7 +925,7 @@ A snapshot, not a source of truth: the live numbers are whatever the last nightl
 
 Two caveats on comparing this table with an earlier one. A mutant that times out counts as detected, and how many time out depends on the machine, so a local run and a nightly disagree by a point or two on the same code (the seeding note above records `src/core/logger` at 55.5% nightly against 33.3% locally for exactly that reason), and two nightlies disagree too. And these are five separate shards merged, so each directory's score comes from the one shard that owns it rather than from a single process.
 
-The BDD-only floors in `config/mutation/bdd-thresholds.json` come from the same two nights by the same rule. 19 September was the first run in which every BDD shard finished; on 18 September the `core-rest` shard (since split into `core-support` and `core-root`) lost a runner and the merge refused the incomplete set, but the seven shards that did finish still count, so a mutant any of them left alive counts as undetected. Most directories were therefore measured once, and BDD-only scores are low by design: the scenarios exercise behaviour through the transport seam, not every branch. The 16 floors today run from 0% (`src/schemas`, where a schema declaration has little for a scenario to kill, and `src/sde/ingestion`, which no scenario reached when it was seeded) to 42.8% (`src/core/util`); `cat config/mutation/bdd-thresholds.json` lists them.
+The BDD-only floors in `config/mutation/bdd-thresholds.json` come from the same two nights by the same rule. 19 September was the first run in which every BDD shard finished; on 18 September the `core-rest` shard (since split into `core-support` and `core-root`) lost a runner and the merge refused the incomplete set, but the seven shards that did finish still count, so a mutant any of them left alive counts as undetected. Most directories were therefore measured once, and BDD-only scores are low by design: the scenarios exercise behaviour through the transport seam, not every branch. The 17 floors today run from 0% (`src/schemas`, where a schema declaration has little for a scenario to kill) and 11.7% (`src/core/rateLimiter`) to 42.8% (`src/core/util`) on the core and 56.5% (`src/sde/providers`) on the SDE, whose scenarios drive the providers directly rather than through a transport; `cat config/mutation/bdd-thresholds.json` lists them.
 
 #### The known-weak fixture
 
@@ -974,7 +974,7 @@ The unit run mutates `src/core/**/*.ts` and `src/sde/**/*.ts` with these exclusi
 
 - `src/core/endpoints/**`: endpoint definitions are data declarations, not logic
 - Interface-only files (`ILogger.ts`, `ICache.ts`, `IRateLimiter.ts`, `IRetryStrategy.ts`, `ICircuitBreaker.ts`, `IDeduplicator.ts`) and the `requestPipeline` barrel and dependency wiring
-- `src/sde/SdeTestDataFactory.ts`: a test fixture shipped for consumers' tests; mutating it would score the fixture, not the module
+- `src/sde/testing/**`: `SdeTestDataFactory`, a test fixture shipped for consumers' tests; mutating it would score the fixture, not the module
 
 Files NOT in scope (and why):
 
@@ -1006,6 +1006,8 @@ moduleNameMapper: {
 ```
 
 Without this, tests would import the original (un-mutated) source and every mutant would survive or show as "NoCoverage". Before the root import was mapped, `tests/tdd/auth/index.test.ts` compared classes loaded from the sandbox with classes loaded from the original tree, and the nightly's dry run failed on it (17 September 2026).
+
+Stryker links the project's `node_modules` into the sandbox only when it is a real directory: in a git worktree whose `node_modules` is a symlink to the main checkout's, the sandbox gets none, and every test file fails to compile with `Cannot find name 'jest'`. Make the worktree's `node_modules` a directory of per-package symlinks instead (Track S Run 12, 28 September 2026).
 
 #### Static mutants
 

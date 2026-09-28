@@ -16,8 +16,8 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import * as path from 'path';
-import { SdeDataProvider } from '../../src/sde/SdeDataProvider';
-import type { EveType } from '../../src/sde/types';
+import { SdeDataProvider } from '../../src/sde/providers/yaml/SdeDataProvider';
+import type { EveType } from '../../src/sde/domain/types';
 import type { BenchTask } from './tasks';
 
 export const DEFAULT_SDE_BENCH_TYPES = 50_000;

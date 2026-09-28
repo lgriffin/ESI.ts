@@ -43,7 +43,7 @@ const COMMON_EXCLUSIONS = [
   '!src/core/requestPipeline/dependencies.ts',
   // A test fixture shipped for consumers' tests, not behaviour a test of the
   // SDE protects: mutating it would score the fixture, not the module.
-  '!src/sde/SdeTestDataFactory.ts',
+  '!src/sde/testing/**',
 ];
 
 const { shards } = JSON.parse(

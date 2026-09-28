@@ -82,9 +82,9 @@ describe('the shards partition src/', () => {
 
   it('gives the SDE its own shard, ingestion included, which rest leaves alone', () => {
     // Track S Run 2: src/sde is scored, ratcheted and restored on its own.
-    expect(shardsClaiming('src/sde/SdeDataProvider.ts', shards)).toEqual([
-      'sde',
-    ]);
+    expect(
+      shardsClaiming('src/sde/providers/yaml/SdeDataProvider.ts', shards),
+    ).toEqual(['sde']);
     expect(
       shardsClaiming('src/sde/ingestion/SdeDatabaseBuilder.ts', shards),
     ).toEqual(['sde']);

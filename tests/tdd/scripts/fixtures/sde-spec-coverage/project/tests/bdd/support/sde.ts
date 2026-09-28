@@ -1,4 +1,4 @@
-import type { IStaticDataProvider } from '../../../src/sde/IStaticDataProvider';
+import type { IStaticDataProvider } from '../../../src/sde/ports/IStaticDataProvider';
 import { groupOf } from './chain';
 import type { World } from './world';
 

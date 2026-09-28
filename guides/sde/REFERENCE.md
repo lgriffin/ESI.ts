@@ -102,22 +102,35 @@ In-memory Maps
 
 ```
 src/sde/
-  index.ts                    Barrel exports
-  IStaticDataProvider.ts      Provider interface (~97 methods)
-  SdeDataProvider.ts          YAML-backed provider (fromDirectory / fromZip)
-  MemorySdeProvider.ts        Array-backed provider for testing
-  SdeTestDataFactory.ts       Test data factory with realistic defaults
-  types.ts                    109 entity interfaces
-  schemas.ts                  110 Zod validation schemas
+  index.ts                    ./sde entry point
+  memory.ts                   ./sde/memory entry point (no file code)
   version.ts                  SdeVersionInfo type
   errors.ts                   SdeError hierarchy
+  clock.ts                    The module's clock (a Clock port from src/core/ports)
   optionalPeers.ts            Lazy loading of js-yaml and adm-zip (optional peers)
+  ports/
+    IStaticDataProvider.ts    Provider interface (99 methods)
+  domain/
+    types.ts, schemas.ts      Barrels over the domains
+    universe/                 types.ts (interfaces) and schemas.ts (Zod) per domain:
+    types/  dogma/  industry/  market/  characters/  corporations/
+    skins/  content/  ui/     109 interfaces and 110 schemas in all
+    version/schemas.ts        SdeVersionSchema
+  providers/
+    order.ts                  ID ordering shared by both providers
+    yaml/SdeDataProvider.ts   YAML-backed provider (fromDirectory / fromZip)
+    memory/MemorySdeProvider.ts  Array-backed provider for tests and own data
   ingestion/
     constants.ts              SDE_FILE_REGISTRY (102 file specs)
     transforms.ts             Field normalization + locale extraction
     SdeDownloader.ts          HTTP download with progress callback
     SdeExtractor.ts           ZIP parsing (adm-zip + js-yaml)
+    metadata.ts               _sde.yaml parsing
+  testing/
+    SdeTestDataFactory.ts     Test data factory with realistic defaults
 ```
+
+Which folder may import which is in [SDE.md, Layers inside the module](../SDE.md#layers-inside-the-module); `npm run lint:layers` enforces it.
 
 The guides live outside the source tree, in `guides/sde/` (this reference, [USAGE.md](USAGE.md), [ARCHITECTURE.md](ARCHITECTURE.md), [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md), [API_CONTRACTS.md](API_CONTRACTS.md)), with [guides/SDE.md](../SDE.md) as the front door.
 
@@ -480,7 +493,7 @@ The module covers all 102 SDE YAML files. Major entity groups:
 | Content            | 5        | `Mission`, `Dungeon`, `EpicArc`, `Certificate`, `Landmark`                                                      |
 | Miscellaneous      | 46       | `Icon`, `Graphic`, `NotificationType`, `TranslationLanguage`, `SkillPlan`, and more                             |
 
-All 109 interfaces are exported from `src/sde/index.ts` and have corresponding Zod schemas in `src/sde/schemas.ts`.
+All 109 interfaces are exported from `src/sde/index.ts` and have corresponding Zod schemas beside them in `src/sde/domain/<domain>/schemas.ts`.
 
 ## SDE Ingestion CLI
 

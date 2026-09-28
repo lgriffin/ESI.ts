@@ -1,4 +1,4 @@
-import type { AsteroidBelt } from '../../../../src/sde/types';
+import type { AsteroidBelt } from '../../../../src/sde/domain/types';
 import { sdeProvider } from '../../support/sde';
 import { When } from '../../support/steps';
 

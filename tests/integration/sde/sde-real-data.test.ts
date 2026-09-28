@@ -15,8 +15,8 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { SdeDataProvider } from '../../../src/sde/SdeDataProvider';
-import type { IStaticDataProvider } from '../../../src/sde/IStaticDataProvider';
+import { SdeDataProvider } from '../../../src/sde/providers/yaml/SdeDataProvider';
+import type { IStaticDataProvider } from '../../../src/sde/ports/IStaticDataProvider';
 import type {
   EveType,
   EveGroup,
@@ -26,7 +26,7 @@ import type {
   Ancestry,
   MarketGroup,
   Skin,
-} from '../../../src/sde/types';
+} from '../../../src/sde/domain/types';
 
 const SDE_DIR = path.resolve(
   __dirname,

@@ -49,8 +49,8 @@ import type {
   Mission,
   Dungeon,
   EpicArc,
-} from './types';
-import type { SdeVersionInfo } from './version';
+} from '../domain/types';
+import type { SdeVersionInfo } from '../version';
 
 /**
  * The read-only port every SDE provider implements. A lookup by ID answers the
