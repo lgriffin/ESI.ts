@@ -39,7 +39,7 @@ The feature files run from `0001-static-data-lookup` to `0023-sde-ingestion`: th
 
 ## Where the scores stand
 
-Three mutation runs score the SDE, each with its own shard and its own floors, ratcheted the way the core's are (`guides/TESTING.md`, "Where the scores stand"): a floor rises to two points under a nightly score and never drops. All three come from the [nightly of 2026-09-28](https://github.com/lgriffin/ESI.ts/actions/runs/36396694021) on `1a08e19c`, the first complete nightly after Run 12 moved the module into `ports/`, `domain/`, `providers/`, `ingestion/` and `testing/`.
+Three mutation runs score the SDE, each with its own shard and its own floors, ratcheted the way the core's are (`guides/TESTING.md`, "Where the scores stand"): a complete nightly raises a floor to that night's score and never lowers one. The SDE floors below are still the provisional seeds Run 12 took from a local run on 2026-09-28, two points under what it measured, because no nightly has yet completed every job since (the run cited here failed on a core shard, so its raised thresholds were not committed); the scores are what the nightly measured. All three come from the [nightly of 2026-09-28](https://github.com/lgriffin/ESI.ts/actions/runs/36396694021) on `1a08e19c`, the first complete nightly after Run 12 moved the module into `ports/`, `domain/`, `providers/`, `ingestion/` and `testing/`.
 
 | Directory           | Unit score ([job](https://github.com/lgriffin/ESI.ts/actions/runs/36396694021/job/108875331280)) | Killed / valid | Unit floor | BDD-only score ([job](https://github.com/lgriffin/ESI.ts/actions/runs/36396694021/job/108875331754)) | Killed / valid | BDD floor |
 | ------------------- | -----------------------------------------------------------------------------------------------: | -------------: | ---------: | ---------------------------------------------------------------------------------------------------: | -------------: | --------: |
@@ -93,4 +93,4 @@ Type mutation rewrites the built `dist/sde/*.d.ts` (a field made optional, a uni
 - Run M: `ingestion/SdeExtractor.ts` (59.4%) and `ingestion/SdeDatabaseBuilder.ts` (66.0%) hold 37 of the 59 unit survivors; `providers/order.ts` and `clock.ts` have no BDD scenario that reaches them, by design, and stay unit-specified.
 - Two behaviours recorded by the programme and left for the maintainer, not the tests: an empty search fragment matches everything up to the limit, and a search limit below 1 answers one record (`ROADMAP.md`, Track S).
 
-Every floor here is a one-way ratchet, seeded from a nightly; a pull request cannot lower one, and a directory without a floor fails the ratchet.
+Every floor here is a one-way ratchet: the next complete nightly raises the provisional seeds to its scores, a pull request cannot lower one, and a directory without a floor fails the ratchet.
