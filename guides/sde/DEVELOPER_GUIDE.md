@@ -4,13 +4,10 @@ Guide for contributors adding entities, writing tests, or modifying the SDE modu
 
 ## Project Structure
 
+The guides, this one included, live in `guides/sde/` next to [guides/SDE.md](../SDE.md); the source tree is:
+
 ```
 src/sde/
-├── docs/                      # Documentation
-│   ├── USAGE.md               # End-user guide
-│   ├── DEVELOPER_GUIDE.md     # This file
-│   ├── ARCHITECTURE.md        # System architecture and C4 diagrams
-│   └── API_CONTRACTS.md       # Complete method reference
 ├── ingestion/                 # YAML download + parsing pipeline
 │   ├── constants.ts           # SDE_FILE_REGISTRY (102 YAML file specs)
 │   ├── SdeDownloader.ts       # HTTP download from CCP

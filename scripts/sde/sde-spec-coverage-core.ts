@@ -17,7 +17,7 @@
  *
  * The uncovered list is grouped by the entity families the interface declares
  * with its `// --- Family ---` comments, in the interface's order, which is the
- * order of the API Reference in `src/sde/README.md`. That list is the input to
+ * order of the API Reference in `guides/sde/REFERENCE.md`. That list is the input to
  * Track S Runs 5 and 6, and `scripts/sde/sde-spec-coverage-baseline.json`
  * holds it as a shrink-only ratchet (the `export-coverage-baseline.json`
  * pattern): the report fails on an uncovered method the baseline does not

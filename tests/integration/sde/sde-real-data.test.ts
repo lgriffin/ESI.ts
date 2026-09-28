@@ -39,7 +39,7 @@ const required = process.env.SDE_REQUIRE_DATA === '1';
 const canRun = hasData || required;
 
 /**
- * One lookup per entity family of the README's API reference: the whole
+ * One lookup per entity family of the module reference (guides/sde/REFERENCE.md): the whole
  * table through the generic accessor, then the first record back through the
  * family's own method. A family whose table is empty in the real export, or
  * whose lookup disagrees with the table, fails here before a user finds it.

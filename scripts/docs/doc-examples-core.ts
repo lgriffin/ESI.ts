@@ -43,8 +43,8 @@ export const HARNESS_DIR = path.join(REPO_ROOT, 'tests', 'doc-examples');
 export const DOC_SOURCES = [
   'README.md',
   'guides',
+  'guides/sde',
   'src/sde/README.md',
-  'src/sde/docs',
 ];
 
 /**

@@ -2,8 +2,9 @@
  * Generate the documentation site's content from the repository (DOC-03):
  * `npm run docs:sync`.
  *
- *   docs-site/guide/<slug>.md     README.md and every guides/*.md, links
- *                                 rewritten (scripts/docs/sync-docs-core.ts)
+ *   docs-site/guide/<slug>.md     README.md, every guides/*.md and every
+ *                                 guides/sde/*.md, links rewritten
+ *                                 (scripts/docs/sync-docs-core.ts)
  *   docs-site/guide/assets/...    the images those pages show
  *   docs-site/examples/<name>.md  one page per examples/*.ts, and an index
  *                                 (scripts/docs/examples-showcase-core.ts)
@@ -56,14 +57,25 @@ function clientNames(): Set<string> {
   );
 }
 
+/** README.md and every Markdown file under guides/, one folder deep. */
+function guideSources(root: string): string[] {
+  const guides = path.join(root, 'guides');
+  const sources = ['README.md'];
+  for (const entry of fs.readdirSync(guides, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.endsWith('.md')) {
+      sources.push(`guides/${entry.name}`);
+    } else if (entry.isDirectory()) {
+      for (const inner of fs.readdirSync(path.join(guides, entry.name))) {
+        if (inner.endsWith('.md'))
+          sources.push(`guides/${entry.name}/${inner}`);
+      }
+    }
+  }
+  return sources;
+}
+
 function syncGuides(): { slugs: Map<string, string>; count: number } {
-  const sources = [
-    'README.md',
-    ...fs
-      .readdirSync(path.join(ROOT, 'guides'))
-      .filter((f) => f.endsWith('.md'))
-      .map((f) => `guides/${f}`),
-  ];
+  const sources = guideSources(ROOT);
   const pages = planGuides(sources);
   const slugs = new Map(pages.map((p) => [p.source, p.slug]));
   const titles = new Map<string, string>();

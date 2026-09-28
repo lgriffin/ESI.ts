@@ -393,7 +393,7 @@ describe('the repository documentation', () => {
         'README.md',
         'guides/DOCUMENTATION.md',
         'src/sde/README.md',
-        'src/sde/docs/USAGE.md',
+        'guides/sde/USAGE.md',
       ]),
     );
   });
