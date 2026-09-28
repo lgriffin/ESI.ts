@@ -57,6 +57,7 @@ const WRITE_SCOPES: Record<string, string[]> = {
   'nightly-interleave.yml#report': ['issues'],
   'nightly-mutation-retry.yml#retry': ['actions'],
   'nightly-mutation.yml#report': ['issues'],
+  'nightly-live-health.yml#health': ['issues'],
   'nightly-no-retry.yml#report': ['issues'],
   'nightly-properties.yml#report': ['issues'],
   'nightly-recorded-payloads.yml#rerecord': ['contents', 'pull-requests'],

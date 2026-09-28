@@ -135,7 +135,7 @@ Measured on `master` on 2026-09-27 with the commands shown. [TESTING.md](guides/
 | Transport fault catalogue | 148 faults through the real pipeline                                                                                                                                                    | `npm run faults`                                                    |
 | Recorded ESI payloads     | 121 replay tests, re-recorded nightly with a drift PR                                                                                                                                   | `npm run contract:replay`                                           |
 | Mutation testing          | Per-directory floors, ratcheted nightly, changed files on every PR                                                                                                                      | `npm run mutation:ratchet`                                          |
-| CI                        | One required check (`ci-success`) over the full matrix; 27 workflows, 16 of them scheduled                                                                                              | [QUALITY-GATES.md](guides/QUALITY-GATES.md)                         |
+| CI                        | One required check (`ci-success`) over the full matrix; 28 workflows, 17 of them scheduled                                                                                              | [QUALITY-GATES.md](guides/QUALITY-GATES.md)                         |
 
 Every tier has to prove it can fail: a negative fixture, a killed mutant or a caught fault. Every floor is a one-way ratchet.
 
