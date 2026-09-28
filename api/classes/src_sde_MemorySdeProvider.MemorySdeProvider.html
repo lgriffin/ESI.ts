@@ -11,12 +11,19 @@
 <li><a href="../modules/src_sde_MemorySdeProvider.html">src/sde/MemorySdeProvider</a></li>
 <li><a href="" aria-current="page">MemorySdeProvider</a></li></ul>
 <h1>Class MemorySdeProvider</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>The read-only port every SDE provider implements. A lookup by ID answers the
+record or <code>null</code>; a whole-table read and a foreign-key list answer every
+matching record ordered by ID ascending, whatever order the export listed
+them in; a search answers the records whose name contains the fragment,
+case folded, up to the limit (25 by default).</p>
+</div></section>
 <section class="tsd-panel">
 <h4>Implements</h4>
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html" class="tsd-signature-type tsd-kind-interface">IStaticDataProvider</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L110">src/sde/MemorySdeProvider.ts:110</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L111">src/sde/MemorySdeProvider.ts:111</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -145,7 +152,7 @@
 <li><span><span class="tsd-kind-parameter">data</span>: <a href="../interfaces/src_sde_MemorySdeProvider.MemorySdeData.html" class="tsd-signature-type tsd-kind-interface">MemorySdeData</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">MemorySdeProvider</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L114">src/sde/MemorySdeProvider.ts:114</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L115">src/sde/MemorySdeProvider.ts:115</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -162,7 +169,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#gettype">getType</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L267">src/sde/MemorySdeProvider.ts:267</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L270">src/sde/MemorySdeProvider.ts:270</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettypesbygroup"><span>get<wbr/>Types<wbr/>By<wbr/>Group</span><a href="#gettypesbygroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -176,7 +183,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#gettypesbygroup">getTypesByGroup</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L270">src/sde/MemorySdeProvider.ts:270</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L273">src/sde/MemorySdeProvider.ts:273</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getgroup"><span>get<wbr/>Group</span><a href="#getgroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -190,7 +197,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.EveGroup.html" class="tsd-signature-type tsd-kind-interface">EveGroup</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getgroup">getGroup</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L273">src/sde/MemorySdeProvider.ts:273</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L276">src/sde/MemorySdeProvider.ts:276</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getgroupsbycategory"><span>get<wbr/>Groups<wbr/>By<wbr/>Category</span><a href="#getgroupsbycategory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -204,7 +211,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.EveGroup.html" class="tsd-signature-type tsd-kind-interface">EveGroup</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getgroupsbycategory">getGroupsByCategory</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L276">src/sde/MemorySdeProvider.ts:276</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L279">src/sde/MemorySdeProvider.ts:279</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcategory"><span>get<wbr/>Category</span><a href="#getcategory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -218,7 +225,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.EveCategory.html" class="tsd-signature-type tsd-kind-interface">EveCategory</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getcategory">getCategory</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L279">src/sde/MemorySdeProvider.ts:279</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L282">src/sde/MemorySdeProvider.ts:282</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallcategories"><span>get<wbr/>All<wbr/>Categories</span><a href="#getallcategories" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -228,7 +235,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.EveCategory.html" class="tsd-signature-type tsd-kind-interface">EveCategory</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallcategories">getAllCategories</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L282">src/sde/MemorySdeProvider.ts:282</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L285">src/sde/MemorySdeProvider.ts:285</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getregion"><span>get<wbr/>Region</span><a href="#getregion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -242,7 +249,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Region.html" class="tsd-signature-type tsd-kind-interface">Region</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getregion">getRegion</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L287">src/sde/MemorySdeProvider.ts:287</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L290">src/sde/MemorySdeProvider.ts:290</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallregions"><span>get<wbr/>All<wbr/>Regions</span><a href="#getallregions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -252,7 +259,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Region.html" class="tsd-signature-type tsd-kind-interface">Region</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallregions">getAllRegions</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L290">src/sde/MemorySdeProvider.ts:290</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L293">src/sde/MemorySdeProvider.ts:293</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getconstellation"><span>get<wbr/>Constellation</span><a href="#getconstellation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -266,7 +273,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Constellation.html" class="tsd-signature-type tsd-kind-interface">Constellation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getconstellation">getConstellation</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L293">src/sde/MemorySdeProvider.ts:293</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L296">src/sde/MemorySdeProvider.ts:296</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getconstellationsbyregion"><span>get<wbr/>Constellations<wbr/>By<wbr/>Region</span><a href="#getconstellationsbyregion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -280,7 +287,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Constellation.html" class="tsd-signature-type tsd-kind-interface">Constellation</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getconstellationsbyregion">getConstellationsByRegion</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L296">src/sde/MemorySdeProvider.ts:296</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L299">src/sde/MemorySdeProvider.ts:299</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getsolarsystem"><span>get<wbr/>Solar<wbr/>System</span><a href="#getsolarsystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -294,7 +301,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.SolarSystem.html" class="tsd-signature-type tsd-kind-interface">SolarSystem</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getsolarsystem">getSolarSystem</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L299">src/sde/MemorySdeProvider.ts:299</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L302">src/sde/MemorySdeProvider.ts:302</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getsolarsystemsbyconstellation"><span>get<wbr/>Solar<wbr/>Systems<wbr/>By<wbr/>Constellation</span><a href="#getsolarsystemsbyconstellation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -308,7 +315,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.SolarSystem.html" class="tsd-signature-type tsd-kind-interface">SolarSystem</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getsolarsystemsbyconstellation">getSolarSystemsByConstellation</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L302">src/sde/MemorySdeProvider.ts:302</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L305">src/sde/MemorySdeProvider.ts:305</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstargate"><span>get<wbr/>Stargate</span><a href="#getstargate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -322,7 +329,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Stargate.html" class="tsd-signature-type tsd-kind-interface">Stargate</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getstargate">getStargate</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L309">src/sde/MemorySdeProvider.ts:309</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L312">src/sde/MemorySdeProvider.ts:312</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstargatesbysystem"><span>get<wbr/>Stargates<wbr/>By<wbr/>System</span><a href="#getstargatesbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -336,7 +343,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Stargate.html" class="tsd-signature-type tsd-kind-interface">Stargate</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getstargatesbysystem">getStargatesBySystem</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L312">src/sde/MemorySdeProvider.ts:312</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L315">src/sde/MemorySdeProvider.ts:315</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchtypesbyname"><span>search<wbr/>Types<wbr/>By<wbr/>Name</span><a href="#searchtypesbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -351,7 +358,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#searchtypesbyname">searchTypesByName</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L317">src/sde/MemorySdeProvider.ts:317</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L320">src/sde/MemorySdeProvider.ts:320</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchsolarsystemsbyname"><span>search<wbr/>Solar<wbr/>Systems<wbr/>By<wbr/>Name</span><a href="#searchsolarsystemsbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -366,7 +373,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.SolarSystem.html" class="tsd-signature-type tsd-kind-interface">SolarSystem</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#searchsolarsystemsbyname">searchSolarSystemsByName</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L320">src/sde/MemorySdeProvider.ts:320</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L323">src/sde/MemorySdeProvider.ts:323</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstar"><span>get<wbr/>Star</span><a href="#getstar" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -380,7 +387,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Star.html" class="tsd-signature-type tsd-kind-interface">Star</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getstar">getStar</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L325">src/sde/MemorySdeProvider.ts:325</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L328">src/sde/MemorySdeProvider.ts:328</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstarbysystem"><span>get<wbr/>Star<wbr/>By<wbr/>System</span><a href="#getstarbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -394,7 +401,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Star.html" class="tsd-signature-type tsd-kind-interface">Star</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getstarbysystem">getStarBySystem</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L328">src/sde/MemorySdeProvider.ts:328</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L331">src/sde/MemorySdeProvider.ts:331</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getplanet"><span>get<wbr/>Planet</span><a href="#getplanet" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -408,7 +415,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Planet.html" class="tsd-signature-type tsd-kind-interface">Planet</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getplanet">getPlanet</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L333">src/sde/MemorySdeProvider.ts:333</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L336">src/sde/MemorySdeProvider.ts:336</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getplanetsbysystem"><span>get<wbr/>Planets<wbr/>By<wbr/>System</span><a href="#getplanetsbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -422,7 +429,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Planet.html" class="tsd-signature-type tsd-kind-interface">Planet</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getplanetsbysystem">getPlanetsBySystem</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L336">src/sde/MemorySdeProvider.ts:336</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L339">src/sde/MemorySdeProvider.ts:339</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmoon"><span>get<wbr/>Moon</span><a href="#getmoon" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -436,7 +443,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Moon.html" class="tsd-signature-type tsd-kind-interface">Moon</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getmoon">getMoon</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L339">src/sde/MemorySdeProvider.ts:339</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L342">src/sde/MemorySdeProvider.ts:342</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmoonsbysystem"><span>get<wbr/>Moons<wbr/>By<wbr/>System</span><a href="#getmoonsbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -450,7 +457,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Moon.html" class="tsd-signature-type tsd-kind-interface">Moon</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getmoonsbysystem">getMoonsBySystem</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L342">src/sde/MemorySdeProvider.ts:342</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L345">src/sde/MemorySdeProvider.ts:345</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getasteroidbelt"><span>get<wbr/>Asteroid<wbr/>Belt</span><a href="#getasteroidbelt" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -464,7 +471,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.AsteroidBelt.html" class="tsd-signature-type tsd-kind-interface">AsteroidBelt</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getasteroidbelt">getAsteroidBelt</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L345">src/sde/MemorySdeProvider.ts:345</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L348">src/sde/MemorySdeProvider.ts:348</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getasteroidbeltsbysystem"><span>get<wbr/>Asteroid<wbr/>Belts<wbr/>By<wbr/>System</span><a href="#getasteroidbeltsbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -478,7 +485,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.AsteroidBelt.html" class="tsd-signature-type tsd-kind-interface">AsteroidBelt</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getasteroidbeltsbysystem">getAsteroidBeltsBySystem</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L348">src/sde/MemorySdeProvider.ts:348</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L351">src/sde/MemorySdeProvider.ts:351</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getfaction"><span>get<wbr/>Faction</span><a href="#getfaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -492,7 +499,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Faction.html" class="tsd-signature-type tsd-kind-interface">Faction</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getfaction">getFaction</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L353">src/sde/MemorySdeProvider.ts:353</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L356">src/sde/MemorySdeProvider.ts:356</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallfactions"><span>get<wbr/>All<wbr/>Factions</span><a href="#getallfactions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -502,7 +509,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Faction.html" class="tsd-signature-type tsd-kind-interface">Faction</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallfactions">getAllFactions</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L356">src/sde/MemorySdeProvider.ts:356</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L359">src/sde/MemorySdeProvider.ts:359</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getrace"><span>get<wbr/>Race</span><a href="#getrace" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -516,7 +523,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Race.html" class="tsd-signature-type tsd-kind-interface">Race</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getrace">getRace</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L359">src/sde/MemorySdeProvider.ts:359</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L362">src/sde/MemorySdeProvider.ts:362</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallraces"><span>get<wbr/>All<wbr/>Races</span><a href="#getallraces" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -526,7 +533,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Race.html" class="tsd-signature-type tsd-kind-interface">Race</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallraces">getAllRaces</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L362">src/sde/MemorySdeProvider.ts:362</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L365">src/sde/MemorySdeProvider.ts:365</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getbloodline"><span>get<wbr/>Bloodline</span><a href="#getbloodline" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -540,7 +547,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Bloodline.html" class="tsd-signature-type tsd-kind-interface">Bloodline</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getbloodline">getBloodline</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L365">src/sde/MemorySdeProvider.ts:365</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L368">src/sde/MemorySdeProvider.ts:368</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getbloodlinesbyrace"><span>get<wbr/>Bloodlines<wbr/>By<wbr/>Race</span><a href="#getbloodlinesbyrace" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -554,7 +561,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Bloodline.html" class="tsd-signature-type tsd-kind-interface">Bloodline</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getbloodlinesbyrace">getBloodlinesByRace</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L368">src/sde/MemorySdeProvider.ts:368</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L371">src/sde/MemorySdeProvider.ts:371</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getancestry"><span>get<wbr/>Ancestry</span><a href="#getancestry" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -568,7 +575,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Ancestry.html" class="tsd-signature-type tsd-kind-interface">Ancestry</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getancestry">getAncestry</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L371">src/sde/MemorySdeProvider.ts:371</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L374">src/sde/MemorySdeProvider.ts:374</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getancestriesbybloodline"><span>get<wbr/>Ancestries<wbr/>By<wbr/>Bloodline</span><a href="#getancestriesbybloodline" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -582,7 +589,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Ancestry.html" class="tsd-signature-type tsd-kind-interface">Ancestry</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getancestriesbybloodline">getAncestriesByBloodline</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L374">src/sde/MemorySdeProvider.ts:374</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L377">src/sde/MemorySdeProvider.ts:377</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpccorporation"><span>get<wbr/>Npc<wbr/>Corporation</span><a href="#getnpccorporation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -596,7 +603,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.NpcCorporation.html" class="tsd-signature-type tsd-kind-interface">NpcCorporation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getnpccorporation">getNpcCorporation</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L379">src/sde/MemorySdeProvider.ts:379</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L382">src/sde/MemorySdeProvider.ts:382</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpccorporationsbyfaction"><span>get<wbr/>Npc<wbr/>Corporations<wbr/>By<wbr/>Faction</span><a href="#getnpccorporationsbyfaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -610,7 +617,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.NpcCorporation.html" class="tsd-signature-type tsd-kind-interface">NpcCorporation</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getnpccorporationsbyfaction">getNpcCorporationsByFaction</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L382">src/sde/MemorySdeProvider.ts:382</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L385">src/sde/MemorySdeProvider.ts:385</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpcstation"><span>get<wbr/>Npc<wbr/>Station</span><a href="#getnpcstation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -624,7 +631,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.NpcStation.html" class="tsd-signature-type tsd-kind-interface">NpcStation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getnpcstation">getNpcStation</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L385">src/sde/MemorySdeProvider.ts:385</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L388">src/sde/MemorySdeProvider.ts:388</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpcstationsbysystem"><span>get<wbr/>Npc<wbr/>Stations<wbr/>By<wbr/>System</span><a href="#getnpcstationsbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -638,7 +645,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.NpcStation.html" class="tsd-signature-type tsd-kind-interface">NpcStation</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getnpcstationsbysystem">getNpcStationsBySystem</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L388">src/sde/MemorySdeProvider.ts:388</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L391">src/sde/MemorySdeProvider.ts:391</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpcstationsbyowner"><span>get<wbr/>Npc<wbr/>Stations<wbr/>By<wbr/>Owner</span><a href="#getnpcstationsbyowner" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -652,7 +659,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.NpcStation.html" class="tsd-signature-type tsd-kind-interface">NpcStation</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getnpcstationsbyowner">getNpcStationsByOwner</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L391">src/sde/MemorySdeProvider.ts:391</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L394">src/sde/MemorySdeProvider.ts:394</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmarketgroup"><span>get<wbr/>Market<wbr/>Group</span><a href="#getmarketgroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -666,7 +673,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getmarketgroup">getMarketGroup</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L396">src/sde/MemorySdeProvider.ts:396</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L399">src/sde/MemorySdeProvider.ts:399</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmarketgroupsbyparent"><span>get<wbr/>Market<wbr/>Groups<wbr/>By<wbr/>Parent</span><a href="#getmarketgroupsbyparent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -680,7 +687,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getmarketgroupsbyparent">getMarketGroupsByParent</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L399">src/sde/MemorySdeProvider.ts:399</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L402">src/sde/MemorySdeProvider.ts:402</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getrootmarketgroups"><span>get<wbr/>Root<wbr/>Market<wbr/>Groups</span><a href="#getrootmarketgroups" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -690,7 +697,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getrootmarketgroups">getRootMarketGroups</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L402">src/sde/MemorySdeProvider.ts:402</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L405">src/sde/MemorySdeProvider.ts:405</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettypesbymarketgroup"><span>get<wbr/>Types<wbr/>By<wbr/>Market<wbr/>Group</span><a href="#gettypesbymarketgroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -704,7 +711,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#gettypesbymarketgroup">getTypesByMarketGroup</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L407">src/sde/MemorySdeProvider.ts:407</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L410">src/sde/MemorySdeProvider.ts:410</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchmarketgroupsbyname"><span>search<wbr/>Market<wbr/>Groups<wbr/>By<wbr/>Name</span><a href="#searchmarketgroupsbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -719,7 +726,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#searchmarketgroupsbyname">searchMarketGroupsByName</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L410">src/sde/MemorySdeProvider.ts:410</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L413">src/sde/MemorySdeProvider.ts:413</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmetagroup"><span>get<wbr/>Meta<wbr/>Group</span><a href="#getmetagroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -733,7 +740,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.MetaGroup.html" class="tsd-signature-type tsd-kind-interface">MetaGroup</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getmetagroup">getMetaGroup</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L415">src/sde/MemorySdeProvider.ts:415</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L418">src/sde/MemorySdeProvider.ts:418</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallmetagroups"><span>get<wbr/>All<wbr/>Meta<wbr/>Groups</span><a href="#getallmetagroups" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -743,7 +750,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.MetaGroup.html" class="tsd-signature-type tsd-kind-interface">MetaGroup</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallmetagroups">getAllMetaGroups</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L418">src/sde/MemorySdeProvider.ts:418</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L421">src/sde/MemorySdeProvider.ts:421</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="geticon"><span>get<wbr/>Icon</span><a href="#geticon" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -757,7 +764,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Icon.html" class="tsd-signature-type tsd-kind-interface">Icon</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#geticon">getIcon</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L421">src/sde/MemorySdeProvider.ts:421</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L424">src/sde/MemorySdeProvider.ts:424</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getgraphic"><span>get<wbr/>Graphic</span><a href="#getgraphic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -771,7 +778,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Graphic.html" class="tsd-signature-type tsd-kind-interface">Graphic</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getgraphic">getGraphic</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L424">src/sde/MemorySdeProvider.ts:424</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L427">src/sde/MemorySdeProvider.ts:427</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdogmaattribute"><span>get<wbr/>Dogma<wbr/>Attribute</span><a href="#getdogmaattribute" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -785,7 +792,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.DogmaAttribute.html" class="tsd-signature-type tsd-kind-interface">DogmaAttribute</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getdogmaattribute">getDogmaAttribute</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L429">src/sde/MemorySdeProvider.ts:429</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L432">src/sde/MemorySdeProvider.ts:432</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchdogmaattributesbyname"><span>search<wbr/>Dogma<wbr/>Attributes<wbr/>By<wbr/>Name</span><a href="#searchdogmaattributesbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -800,7 +807,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.DogmaAttribute.html" class="tsd-signature-type tsd-kind-interface">DogmaAttribute</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#searchdogmaattributesbyname">searchDogmaAttributesByName</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L432">src/sde/MemorySdeProvider.ts:432</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L435">src/sde/MemorySdeProvider.ts:435</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdogmaeffect"><span>get<wbr/>Dogma<wbr/>Effect</span><a href="#getdogmaeffect" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -814,7 +821,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.DogmaEffect.html" class="tsd-signature-type tsd-kind-interface">DogmaEffect</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getdogmaeffect">getDogmaEffect</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L435">src/sde/MemorySdeProvider.ts:435</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L438">src/sde/MemorySdeProvider.ts:438</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchdogmaeffectsbyname"><span>search<wbr/>Dogma<wbr/>Effects<wbr/>By<wbr/>Name</span><a href="#searchdogmaeffectsbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -829,7 +836,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.DogmaEffect.html" class="tsd-signature-type tsd-kind-interface">DogmaEffect</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#searchdogmaeffectsbyname">searchDogmaEffectsByName</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L438">src/sde/MemorySdeProvider.ts:438</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L441">src/sde/MemorySdeProvider.ts:441</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdogmaattributecategory"><span>get<wbr/>Dogma<wbr/>Attribute<wbr/>Category</span><a href="#getdogmaattributecategory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -843,7 +850,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.DogmaAttributeCategory.html" class="tsd-signature-type tsd-kind-interface">DogmaAttributeCategory</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getdogmaattributecategory">getDogmaAttributeCategory</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L441">src/sde/MemorySdeProvider.ts:441</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L444">src/sde/MemorySdeProvider.ts:444</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getalldogmaattributecategories"><span>get<wbr/>All<wbr/>Dogma<wbr/>Attribute<wbr/>Categories</span><a href="#getalldogmaattributecategories" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -853,7 +860,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.DogmaAttributeCategory.html" class="tsd-signature-type tsd-kind-interface">DogmaAttributeCategory</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getalldogmaattributecategories">getAllDogmaAttributeCategories</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L446">src/sde/MemorySdeProvider.ts:446</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L449">src/sde/MemorySdeProvider.ts:449</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdogmaunit"><span>get<wbr/>Dogma<wbr/>Unit</span><a href="#getdogmaunit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -867,7 +874,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.DogmaUnit.html" class="tsd-signature-type tsd-kind-interface">DogmaUnit</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getdogmaunit">getDogmaUnit</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L449">src/sde/MemorySdeProvider.ts:449</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L452">src/sde/MemorySdeProvider.ts:452</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getalldogmaunits"><span>get<wbr/>All<wbr/>Dogma<wbr/>Units</span><a href="#getalldogmaunits" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -877,7 +884,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.DogmaUnit.html" class="tsd-signature-type tsd-kind-interface">DogmaUnit</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getalldogmaunits">getAllDogmaUnits</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L452">src/sde/MemorySdeProvider.ts:452</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L455">src/sde/MemorySdeProvider.ts:455</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getblueprint"><span>get<wbr/>Blueprint</span><a href="#getblueprint" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -891,7 +898,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Blueprint.html" class="tsd-signature-type tsd-kind-interface">Blueprint</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getblueprint">getBlueprint</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L457">src/sde/MemorySdeProvider.ts:457</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L460">src/sde/MemorySdeProvider.ts:460</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getplanetschematic"><span>get<wbr/>Planet<wbr/>Schematic</span><a href="#getplanetschematic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -905,7 +912,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.PlanetSchematic.html" class="tsd-signature-type tsd-kind-interface">PlanetSchematic</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getplanetschematic">getPlanetSchematic</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L460">src/sde/MemorySdeProvider.ts:460</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L463">src/sde/MemorySdeProvider.ts:463</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallplanetschematics"><span>get<wbr/>All<wbr/>Planet<wbr/>Schematics</span><a href="#getallplanetschematics" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -915,7 +922,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.PlanetSchematic.html" class="tsd-signature-type tsd-kind-interface">PlanetSchematic</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallplanetschematics">getAllPlanetSchematics</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L463">src/sde/MemorySdeProvider.ts:463</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L466">src/sde/MemorySdeProvider.ts:466</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getindustryactivity"><span>get<wbr/>Industry<wbr/>Activity</span><a href="#getindustryactivity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -929,7 +936,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.IndustryActivity.html" class="tsd-signature-type tsd-kind-interface">IndustryActivity</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getindustryactivity">getIndustryActivity</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L466">src/sde/MemorySdeProvider.ts:466</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L469">src/sde/MemorySdeProvider.ts:469</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallindustryactivities"><span>get<wbr/>All<wbr/>Industry<wbr/>Activities</span><a href="#getallindustryactivities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -939,7 +946,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.IndustryActivity.html" class="tsd-signature-type tsd-kind-interface">IndustryActivity</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallindustryactivities">getAllIndustryActivities</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L469">src/sde/MemorySdeProvider.ts:469</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L472">src/sde/MemorySdeProvider.ts:472</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getagenttype"><span>get<wbr/>Agent<wbr/>Type</span><a href="#getagenttype" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -953,7 +960,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.AgentType.html" class="tsd-signature-type tsd-kind-interface">AgentType</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getagenttype">getAgentType</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L474">src/sde/MemorySdeProvider.ts:474</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L477">src/sde/MemorySdeProvider.ts:477</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallagenttypes"><span>get<wbr/>All<wbr/>Agent<wbr/>Types</span><a href="#getallagenttypes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -963,7 +970,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.AgentType.html" class="tsd-signature-type tsd-kind-interface">AgentType</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallagenttypes">getAllAgentTypes</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L477">src/sde/MemorySdeProvider.ts:477</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L480">src/sde/MemorySdeProvider.ts:480</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getagentinspace"><span>get<wbr/>Agent<wbr/>In<wbr/>Space</span><a href="#getagentinspace" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -977,7 +984,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.AgentInSpace.html" class="tsd-signature-type tsd-kind-interface">AgentInSpace</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getagentinspace">getAgentInSpace</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L480">src/sde/MemorySdeProvider.ts:480</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L483">src/sde/MemorySdeProvider.ts:483</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getagentsinspacebysystem"><span>get<wbr/>Agents<wbr/>In<wbr/>Space<wbr/>By<wbr/>System</span><a href="#getagentsinspacebysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -991,7 +998,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.AgentInSpace.html" class="tsd-signature-type tsd-kind-interface">AgentInSpace</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getagentsinspacebysystem">getAgentsInSpaceBySystem</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L483">src/sde/MemorySdeProvider.ts:483</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L486">src/sde/MemorySdeProvider.ts:486</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcertificate"><span>get<wbr/>Certificate</span><a href="#getcertificate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1005,7 +1012,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Certificate.html" class="tsd-signature-type tsd-kind-interface">Certificate</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getcertificate">getCertificate</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L488">src/sde/MemorySdeProvider.ts:488</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L491">src/sde/MemorySdeProvider.ts:491</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallcertificates"><span>get<wbr/>All<wbr/>Certificates</span><a href="#getallcertificates" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1015,7 +1022,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Certificate.html" class="tsd-signature-type tsd-kind-interface">Certificate</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallcertificates">getAllCertificates</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L491">src/sde/MemorySdeProvider.ts:491</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L494">src/sde/MemorySdeProvider.ts:494</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcharacterattribute"><span>get<wbr/>Character<wbr/>Attribute</span><a href="#getcharacterattribute" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1029,7 +1036,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.CharacterAttribute.html" class="tsd-signature-type tsd-kind-interface">CharacterAttribute</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getcharacterattribute">getCharacterAttribute</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L496">src/sde/MemorySdeProvider.ts:496</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L499">src/sde/MemorySdeProvider.ts:499</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallcharacterattributes"><span>get<wbr/>All<wbr/>Character<wbr/>Attributes</span><a href="#getallcharacterattributes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1039,7 +1046,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.CharacterAttribute.html" class="tsd-signature-type tsd-kind-interface">CharacterAttribute</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallcharacterattributes">getAllCharacterAttributes</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L499">src/sde/MemorySdeProvider.ts:499</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L502">src/sde/MemorySdeProvider.ts:502</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpccharacter"><span>get<wbr/>Npc<wbr/>Character</span><a href="#getnpccharacter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1053,7 +1060,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.NpcCharacter.html" class="tsd-signature-type tsd-kind-interface">NpcCharacter</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getnpccharacter">getNpcCharacter</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L504">src/sde/MemorySdeProvider.ts:504</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L507">src/sde/MemorySdeProvider.ts:507</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpccharactersbycorporation"><span>get<wbr/>Npc<wbr/>Characters<wbr/>By<wbr/>Corporation</span><a href="#getnpccharactersbycorporation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1067,7 +1074,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.NpcCharacter.html" class="tsd-signature-type tsd-kind-interface">NpcCharacter</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getnpccharactersbycorporation">getNpcCharactersByCorporation</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L507">src/sde/MemorySdeProvider.ts:507</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L510">src/sde/MemorySdeProvider.ts:510</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchnpccharactersbyname"><span>search<wbr/>Npc<wbr/>Characters<wbr/>By<wbr/>Name</span><a href="#searchnpccharactersbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1082,7 +1089,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.NpcCharacter.html" class="tsd-signature-type tsd-kind-interface">NpcCharacter</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#searchnpccharactersbyname">searchNpcCharactersByName</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L510">src/sde/MemorySdeProvider.ts:510</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L513">src/sde/MemorySdeProvider.ts:513</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getclonegrade"><span>get<wbr/>Clone<wbr/>Grade</span><a href="#getclonegrade" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1096,7 +1103,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.CloneGrade.html" class="tsd-signature-type tsd-kind-interface">CloneGrade</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getclonegrade">getCloneGrade</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L515">src/sde/MemorySdeProvider.ts:515</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L518">src/sde/MemorySdeProvider.ts:518</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallclonegrades"><span>get<wbr/>All<wbr/>Clone<wbr/>Grades</span><a href="#getallclonegrades" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1106,7 +1113,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.CloneGrade.html" class="tsd-signature-type tsd-kind-interface">CloneGrade</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallclonegrades">getAllCloneGrades</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L518">src/sde/MemorySdeProvider.ts:518</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L521">src/sde/MemorySdeProvider.ts:521</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcorporationactivity"><span>get<wbr/>Corporation<wbr/>Activity</span><a href="#getcorporationactivity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1120,7 +1127,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.CorporationActivity.html" class="tsd-signature-type tsd-kind-interface">CorporationActivity</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getcorporationactivity">getCorporationActivity</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L523">src/sde/MemorySdeProvider.ts:523</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L526">src/sde/MemorySdeProvider.ts:526</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallcorporationactivities"><span>get<wbr/>All<wbr/>Corporation<wbr/>Activities</span><a href="#getallcorporationactivities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1130,7 +1137,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.CorporationActivity.html" class="tsd-signature-type tsd-kind-interface">CorporationActivity</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallcorporationactivities">getAllCorporationActivities</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L528">src/sde/MemorySdeProvider.ts:528</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L531">src/sde/MemorySdeProvider.ts:531</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpccorporationdivision"><span>get<wbr/>Npc<wbr/>Corporation<wbr/>Division</span><a href="#getnpccorporationdivision" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1144,7 +1151,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.NpcCorporationDivision.html" class="tsd-signature-type tsd-kind-interface">NpcCorporationDivision</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getnpccorporationdivision">getNpcCorporationDivision</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L531">src/sde/MemorySdeProvider.ts:531</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L534">src/sde/MemorySdeProvider.ts:534</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallnpccorporationdivisions"><span>get<wbr/>All<wbr/>Npc<wbr/>Corporation<wbr/>Divisions</span><a href="#getallnpccorporationdivisions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1154,7 +1161,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.NpcCorporationDivision.html" class="tsd-signature-type tsd-kind-interface">NpcCorporationDivision</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallnpccorporationdivisions">getAllNpcCorporationDivisions</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L539">src/sde/MemorySdeProvider.ts:539</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L542">src/sde/MemorySdeProvider.ts:542</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getlandmark"><span>get<wbr/>Landmark</span><a href="#getlandmark" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1168,7 +1175,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Landmark.html" class="tsd-signature-type tsd-kind-interface">Landmark</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getlandmark">getLandmark</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L544">src/sde/MemorySdeProvider.ts:544</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L547">src/sde/MemorySdeProvider.ts:547</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getalllandmarks"><span>get<wbr/>All<wbr/>Landmarks</span><a href="#getalllandmarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1178,7 +1185,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Landmark.html" class="tsd-signature-type tsd-kind-interface">Landmark</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getalllandmarks">getAllLandmarks</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L547">src/sde/MemorySdeProvider.ts:547</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L550">src/sde/MemorySdeProvider.ts:550</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnotificationtype"><span>get<wbr/>Notification<wbr/>Type</span><a href="#getnotificationtype" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1192,7 +1199,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.NotificationType.html" class="tsd-signature-type tsd-kind-interface">NotificationType</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getnotificationtype">getNotificationType</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L552">src/sde/MemorySdeProvider.ts:552</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L555">src/sde/MemorySdeProvider.ts:555</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getschool"><span>get<wbr/>School</span><a href="#getschool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1206,7 +1213,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.School.html" class="tsd-signature-type tsd-kind-interface">School</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getschool">getSchool</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L557">src/sde/MemorySdeProvider.ts:557</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L560">src/sde/MemorySdeProvider.ts:560</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallschools"><span>get<wbr/>All<wbr/>Schools</span><a href="#getallschools" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1216,7 +1223,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.School.html" class="tsd-signature-type tsd-kind-interface">School</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallschools">getAllSchools</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L560">src/sde/MemorySdeProvider.ts:560</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L563">src/sde/MemorySdeProvider.ts:563</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getsecondarysun"><span>get<wbr/>Secondary<wbr/>Sun</span><a href="#getsecondarysun" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1230,7 +1237,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.SecondarySun.html" class="tsd-signature-type tsd-kind-interface">SecondarySun</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getsecondarysun">getSecondarySun</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L565">src/sde/MemorySdeProvider.ts:565</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L568">src/sde/MemorySdeProvider.ts:568</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getsecondarysunsbysystem"><span>get<wbr/>Secondary<wbr/>Suns<wbr/>By<wbr/>System</span><a href="#getsecondarysunsbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1244,7 +1251,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.SecondarySun.html" class="tsd-signature-type tsd-kind-interface">SecondarySun</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getsecondarysunsbysystem">getSecondarySunsBySystem</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L568">src/sde/MemorySdeProvider.ts:568</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L571">src/sde/MemorySdeProvider.ts:571</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getskin"><span>get<wbr/>Skin</span><a href="#getskin" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1258,7 +1265,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Skin.html" class="tsd-signature-type tsd-kind-interface">Skin</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getskin">getSkin</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L573">src/sde/MemorySdeProvider.ts:573</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L576">src/sde/MemorySdeProvider.ts:576</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getskinlicense"><span>get<wbr/>Skin<wbr/>License</span><a href="#getskinlicense" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1272,7 +1279,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.SkinLicense.html" class="tsd-signature-type tsd-kind-interface">SkinLicense</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getskinlicense">getSkinLicense</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L576">src/sde/MemorySdeProvider.ts:576</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L579">src/sde/MemorySdeProvider.ts:579</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getskinlicensesbyskin"><span>get<wbr/>Skin<wbr/>Licenses<wbr/>By<wbr/>Skin</span><a href="#getskinlicensesbyskin" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1286,7 +1293,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.SkinLicense.html" class="tsd-signature-type tsd-kind-interface">SkinLicense</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getskinlicensesbyskin">getSkinLicensesBySkin</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L579">src/sde/MemorySdeProvider.ts:579</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L582">src/sde/MemorySdeProvider.ts:582</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstationoperation"><span>get<wbr/>Station<wbr/>Operation</span><a href="#getstationoperation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1300,7 +1307,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.StationOperation.html" class="tsd-signature-type tsd-kind-interface">StationOperation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getstationoperation">getStationOperation</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L584">src/sde/MemorySdeProvider.ts:584</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L587">src/sde/MemorySdeProvider.ts:587</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallstationoperations"><span>get<wbr/>All<wbr/>Station<wbr/>Operations</span><a href="#getallstationoperations" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1310,7 +1317,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.StationOperation.html" class="tsd-signature-type tsd-kind-interface">StationOperation</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallstationoperations">getAllStationOperations</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L587">src/sde/MemorySdeProvider.ts:587</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L590">src/sde/MemorySdeProvider.ts:590</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstationservice"><span>get<wbr/>Station<wbr/>Service</span><a href="#getstationservice" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1324,7 +1331,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.StationService.html" class="tsd-signature-type tsd-kind-interface">StationService</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getstationservice">getStationService</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L590">src/sde/MemorySdeProvider.ts:590</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L593">src/sde/MemorySdeProvider.ts:593</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallstationservices"><span>get<wbr/>All<wbr/>Station<wbr/>Services</span><a href="#getallstationservices" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1334,7 +1341,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.StationService.html" class="tsd-signature-type tsd-kind-interface">StationService</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallstationservices">getAllStationServices</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L593">src/sde/MemorySdeProvider.ts:593</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L596">src/sde/MemorySdeProvider.ts:596</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettypedogma"><span>get<wbr/>Type<wbr/>Dogma</span><a href="#gettypedogma" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1348,7 +1355,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.TypeDogma.html" class="tsd-signature-type tsd-kind-interface">TypeDogma</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#gettypedogma">getTypeDogma</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L598">src/sde/MemorySdeProvider.ts:598</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L601">src/sde/MemorySdeProvider.ts:601</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettypematerial"><span>get<wbr/>Type<wbr/>Material</span><a href="#gettypematerial" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1362,7 +1369,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.TypeMaterial.html" class="tsd-signature-type tsd-kind-interface">TypeMaterial</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#gettypematerial">getTypeMaterial</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L601">src/sde/MemorySdeProvider.ts:601</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L604">src/sde/MemorySdeProvider.ts:604</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettypebonus"><span>get<wbr/>Type<wbr/>Bonus</span><a href="#gettypebonus" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1376,7 +1383,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.TypeBonus.html" class="tsd-signature-type tsd-kind-interface">TypeBonus</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#gettypebonus">getTypeBonus</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L604">src/sde/MemorySdeProvider.ts:604</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L607">src/sde/MemorySdeProvider.ts:607</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmission"><span>get<wbr/>Mission</span><a href="#getmission" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1390,7 +1397,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Mission.html" class="tsd-signature-type tsd-kind-interface">Mission</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getmission">getMission</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L609">src/sde/MemorySdeProvider.ts:609</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L612">src/sde/MemorySdeProvider.ts:612</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdungeon"><span>get<wbr/>Dungeon</span><a href="#getdungeon" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1404,7 +1411,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.Dungeon.html" class="tsd-signature-type tsd-kind-interface">Dungeon</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getdungeon">getDungeon</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L612">src/sde/MemorySdeProvider.ts:612</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L615">src/sde/MemorySdeProvider.ts:615</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getepicarc"><span>get<wbr/>Epic<wbr/>Arc</span><a href="#getepicarc" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1418,7 +1425,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.EpicArc.html" class="tsd-signature-type tsd-kind-interface">EpicArc</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getepicarc">getEpicArc</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L615">src/sde/MemorySdeProvider.ts:615</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L618">src/sde/MemorySdeProvider.ts:618</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallepicarcs"><span>get<wbr/>All<wbr/>Epic<wbr/>Arcs</span><a href="#getallepicarcs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1428,7 +1435,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_types.EpicArc.html" class="tsd-signature-type tsd-kind-interface">EpicArc</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallepicarcs">getAllEpicArcs</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L618">src/sde/MemorySdeProvider.ts:618</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L621">src/sde/MemorySdeProvider.ts:621</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getentity"><span>get<wbr/>Entity</span><a href="#getentity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1447,7 +1454,7 @@
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#getentityt">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getentity">getEntity</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L623">src/sde/MemorySdeProvider.ts:623</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L626">src/sde/MemorySdeProvider.ts:626</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallentities"><span>get<wbr/>All<wbr/>Entities</span><a href="#getallentities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1465,7 +1472,7 @@
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#getallentitiest">T</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getallentities">getAllEntities</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L630">src/sde/MemorySdeProvider.ts:630</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L633">src/sde/MemorySdeProvider.ts:633</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getversion"><span>get<wbr/>Version</span><a href="#getversion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1475,7 +1482,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_sde_version.SdeVersionInfo.html" class="tsd-signature-type tsd-kind-interface">SdeVersionInfo</a></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#getversion">getVersion</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L635">src/sde/MemorySdeProvider.ts:635</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L638">src/sde/MemorySdeProvider.ts:638</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="close"><span>close</span><a href="#close" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1485,7 +1492,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html">IStaticDataProvider</a>.<a href="../interfaces/src_sde_IStaticDataProvider.IStaticDataProvider.html#close">close</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L639">src/sde/MemorySdeProvider.ts:639</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/MemorySdeProvider.ts#L642">src/sde/MemorySdeProvider.ts:642</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

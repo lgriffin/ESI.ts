@@ -11,6 +11,13 @@
 <li><a href="../modules/src_sde_IStaticDataProvider.html">src/sde/IStaticDataProvider</a></li>
 <li><a href="" aria-current="page">IStaticDataProvider</a></li></ul>
 <h1>Interface IStaticDataProvider</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>The read-only port every SDE provider implements. A lookup by ID answers the
+record or <code>null</code>; a whole-table read and a foreign-key list answer every
+matching record ordered by ID ascending, whatever order the export listed
+them in; a search answers the records whose name contains the fragment,
+case folded, up to the limit (25 by default).</p>
+</div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">IStaticDataProvider</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-call-signature" href="#gettype-1">getType</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">typeId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#gettypesbygroup-1">getTypesByGroup</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">groupId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getgroup-1">getGroup</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">groupId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.EveGroup.html" class="tsd-signature-type tsd-kind-interface">EveGroup</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getgroupsbycategory-1">getGroupsByCategory</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">categoryId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.EveGroup.html" class="tsd-signature-type tsd-kind-interface">EveGroup</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getcategory-1">getCategory</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">categoryId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.EveCategory.html" class="tsd-signature-type tsd-kind-interface">EveCategory</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallcategories-1">getAllCategories</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.EveCategory.html" class="tsd-signature-type tsd-kind-interface">EveCategory</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getregion-1">getRegion</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">regionId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Region.html" class="tsd-signature-type tsd-kind-interface">Region</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallregions-1">getAllRegions</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Region.html" class="tsd-signature-type tsd-kind-interface">Region</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getconstellation-1">getConstellation</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">constellationId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Constellation.html" class="tsd-signature-type tsd-kind-interface">Constellation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getconstellationsbyregion-1">getConstellationsByRegion</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">regionId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Constellation.html" class="tsd-signature-type tsd-kind-interface">Constellation</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getsolarsystem-1">getSolarSystem</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">systemId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.SolarSystem.html" class="tsd-signature-type tsd-kind-interface">SolarSystem</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getsolarsystemsbyconstellation-1">getSolarSystemsByConstellation</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">constellationId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.SolarSystem.html" class="tsd-signature-type tsd-kind-interface">SolarSystem</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getstargate-1">getStargate</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">stargateId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Stargate.html" class="tsd-signature-type tsd-kind-interface">Stargate</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getstargatesbysystem-1">getStargatesBySystem</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">systemId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Stargate.html" class="tsd-signature-type tsd-kind-interface">Stargate</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#searchtypesbyname-1">searchTypesByName</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">limit</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#searchsolarsystemsbyname-1">searchSolarSystemsByName</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">limit</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.SolarSystem.html" class="tsd-signature-type tsd-kind-interface">SolarSystem</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getstar-1">getStar</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">starId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Star.html" class="tsd-signature-type tsd-kind-interface">Star</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getstarbysystem-1">getStarBySystem</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">systemId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Star.html" class="tsd-signature-type tsd-kind-interface">Star</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getplanet-1">getPlanet</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">planetId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Planet.html" class="tsd-signature-type tsd-kind-interface">Planet</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getplanetsbysystem-1">getPlanetsBySystem</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">systemId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Planet.html" class="tsd-signature-type tsd-kind-interface">Planet</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getmoon-1">getMoon</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">moonId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Moon.html" class="tsd-signature-type tsd-kind-interface">Moon</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getmoonsbysystem-1">getMoonsBySystem</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">systemId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Moon.html" class="tsd-signature-type tsd-kind-interface">Moon</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getasteroidbelt-1">getAsteroidBelt</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">asteroidBeltId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.AsteroidBelt.html" class="tsd-signature-type tsd-kind-interface">AsteroidBelt</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getasteroidbeltsbysystem-1">getAsteroidBeltsBySystem</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">systemId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.AsteroidBelt.html" class="tsd-signature-type tsd-kind-interface">AsteroidBelt</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getfaction-1">getFaction</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">factionId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Faction.html" class="tsd-signature-type tsd-kind-interface">Faction</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallfactions-1">getAllFactions</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Faction.html" class="tsd-signature-type tsd-kind-interface">Faction</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getrace-1">getRace</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">raceId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Race.html" class="tsd-signature-type tsd-kind-interface">Race</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallraces-1">getAllRaces</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Race.html" class="tsd-signature-type tsd-kind-interface">Race</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getbloodline-1">getBloodline</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">bloodlineId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Bloodline.html" class="tsd-signature-type tsd-kind-interface">Bloodline</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getbloodlinesbyrace-1">getBloodlinesByRace</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">raceId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Bloodline.html" class="tsd-signature-type tsd-kind-interface">Bloodline</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getancestry-1">getAncestry</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">ancestryId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Ancestry.html" class="tsd-signature-type tsd-kind-interface">Ancestry</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getancestriesbybloodline-1">getAncestriesByBloodline</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">bloodlineId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Ancestry.html" class="tsd-signature-type tsd-kind-interface">Ancestry</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getnpccorporation-1">getNpcCorporation</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">corporationId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.NpcCorporation.html" class="tsd-signature-type tsd-kind-interface">NpcCorporation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getnpccorporationsbyfaction-1">getNpcCorporationsByFaction</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">factionId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.NpcCorporation.html" class="tsd-signature-type tsd-kind-interface">NpcCorporation</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getnpcstation-1">getNpcStation</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">stationId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.NpcStation.html" class="tsd-signature-type tsd-kind-interface">NpcStation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getnpcstationsbysystem-1">getNpcStationsBySystem</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">systemId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.NpcStation.html" class="tsd-signature-type tsd-kind-interface">NpcStation</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getnpcstationsbyowner-1">getNpcStationsByOwner</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">ownerId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.NpcStation.html" class="tsd-signature-type tsd-kind-interface">NpcStation</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getmarketgroup-1">getMarketGroup</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">marketGroupId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getmarketgroupsbyparent-1">getMarketGroupsByParent</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">parentGroupId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getrootmarketgroups-1">getRootMarketGroups</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#gettypesbymarketgroup-1">getTypesByMarketGroup</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">marketGroupId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#searchmarketgroupsbyname-1">searchMarketGroupsByName</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">limit</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getmetagroup-1">getMetaGroup</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">metaGroupId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.MetaGroup.html" class="tsd-signature-type tsd-kind-interface">MetaGroup</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallmetagroups-1">getAllMetaGroups</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.MetaGroup.html" class="tsd-signature-type tsd-kind-interface">MetaGroup</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#geticon-1">getIcon</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">iconId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Icon.html" class="tsd-signature-type tsd-kind-interface">Icon</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getgraphic-1">getGraphic</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">graphicId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Graphic.html" class="tsd-signature-type tsd-kind-interface">Graphic</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getdogmaattribute-1">getDogmaAttribute</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">attributeId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.DogmaAttribute.html" class="tsd-signature-type tsd-kind-interface">DogmaAttribute</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#searchdogmaattributesbyname-1">searchDogmaAttributesByName</a><span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">limit</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.DogmaAttribute.html" class="tsd-signature-type tsd-kind-interface">DogmaAttribute</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getdogmaeffect-1">getDogmaEffect</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">effectId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.DogmaEffect.html" class="tsd-signature-type tsd-kind-interface">DogmaEffect</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#searchdogmaeffectsbyname-1">searchDogmaEffectsByName</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">limit</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.DogmaEffect.html" class="tsd-signature-type tsd-kind-interface">DogmaEffect</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getdogmaattributecategory-1">getDogmaAttributeCategory</a><span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">attributeCategoryId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.DogmaAttributeCategory.html" class="tsd-signature-type tsd-kind-interface">DogmaAttributeCategory</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getalldogmaattributecategories-1">getAllDogmaAttributeCategories</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.DogmaAttributeCategory.html" class="tsd-signature-type tsd-kind-interface">DogmaAttributeCategory</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getdogmaunit-1">getDogmaUnit</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">unitId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.DogmaUnit.html" class="tsd-signature-type tsd-kind-interface">DogmaUnit</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getalldogmaunits-1">getAllDogmaUnits</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.DogmaUnit.html" class="tsd-signature-type tsd-kind-interface">DogmaUnit</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getblueprint-1">getBlueprint</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">blueprintTypeId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Blueprint.html" class="tsd-signature-type tsd-kind-interface">Blueprint</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getplanetschematic-1">getPlanetSchematic</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">planetSchematicId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.PlanetSchematic.html" class="tsd-signature-type tsd-kind-interface">PlanetSchematic</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallplanetschematics-1">getAllPlanetSchematics</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.PlanetSchematic.html" class="tsd-signature-type tsd-kind-interface">PlanetSchematic</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getindustryactivity-1">getIndustryActivity</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">industryActivityId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.IndustryActivity.html" class="tsd-signature-type tsd-kind-interface">IndustryActivity</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallindustryactivities-1">getAllIndustryActivities</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.IndustryActivity.html" class="tsd-signature-type tsd-kind-interface">IndustryActivity</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getagenttype-1">getAgentType</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">agentTypeId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.AgentType.html" class="tsd-signature-type tsd-kind-interface">AgentType</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallagenttypes-1">getAllAgentTypes</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.AgentType.html" class="tsd-signature-type tsd-kind-interface">AgentType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getagentinspace-1">getAgentInSpace</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">characterId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.AgentInSpace.html" class="tsd-signature-type tsd-kind-interface">AgentInSpace</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getagentsinspacebysystem-1">getAgentsInSpaceBySystem</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">systemId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.AgentInSpace.html" class="tsd-signature-type tsd-kind-interface">AgentInSpace</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getcertificate-1">getCertificate</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">certificateId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Certificate.html" class="tsd-signature-type tsd-kind-interface">Certificate</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallcertificates-1">getAllCertificates</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Certificate.html" class="tsd-signature-type tsd-kind-interface">Certificate</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getcharacterattribute-1">getCharacterAttribute</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">attributeId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.CharacterAttribute.html" class="tsd-signature-type tsd-kind-interface">CharacterAttribute</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallcharacterattributes-1">getAllCharacterAttributes</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.CharacterAttribute.html" class="tsd-signature-type tsd-kind-interface">CharacterAttribute</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getnpccharacter-1">getNpcCharacter</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">characterId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.NpcCharacter.html" class="tsd-signature-type tsd-kind-interface">NpcCharacter</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getnpccharactersbycorporation-1">getNpcCharactersByCorporation</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">corporationId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.NpcCharacter.html" class="tsd-signature-type tsd-kind-interface">NpcCharacter</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#searchnpccharactersbyname-1">searchNpcCharactersByName</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">limit</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.NpcCharacter.html" class="tsd-signature-type tsd-kind-interface">NpcCharacter</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getclonegrade-1">getCloneGrade</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">cloneGradeId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.CloneGrade.html" class="tsd-signature-type tsd-kind-interface">CloneGrade</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallclonegrades-1">getAllCloneGrades</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.CloneGrade.html" class="tsd-signature-type tsd-kind-interface">CloneGrade</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getcorporationactivity-1">getCorporationActivity</a><span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">corporationActivityId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.CorporationActivity.html" class="tsd-signature-type tsd-kind-interface">CorporationActivity</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallcorporationactivities-1">getAllCorporationActivities</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.CorporationActivity.html" class="tsd-signature-type tsd-kind-interface">CorporationActivity</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getnpccorporationdivision-1">getNpcCorporationDivision</a><span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">npcCorporationDivisionId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.NpcCorporationDivision.html" class="tsd-signature-type tsd-kind-interface">NpcCorporationDivision</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallnpccorporationdivisions-1">getAllNpcCorporationDivisions</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.NpcCorporationDivision.html" class="tsd-signature-type tsd-kind-interface">NpcCorporationDivision</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getlandmark-1">getLandmark</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">landmarkId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Landmark.html" class="tsd-signature-type tsd-kind-interface">Landmark</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getalllandmarks-1">getAllLandmarks</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Landmark.html" class="tsd-signature-type tsd-kind-interface">Landmark</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getnotificationtype-1">getNotificationType</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">notificationTypeId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.NotificationType.html" class="tsd-signature-type tsd-kind-interface">NotificationType</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getschool-1">getSchool</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">schoolId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.School.html" class="tsd-signature-type tsd-kind-interface">School</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallschools-1">getAllSchools</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.School.html" class="tsd-signature-type tsd-kind-interface">School</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getsecondarysun-1">getSecondarySun</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">secondarySunId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.SecondarySun.html" class="tsd-signature-type tsd-kind-interface">SecondarySun</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getsecondarysunsbysystem-1">getSecondarySunsBySystem</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">systemId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.SecondarySun.html" class="tsd-signature-type tsd-kind-interface">SecondarySun</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getskin-1">getSkin</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">skinId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Skin.html" class="tsd-signature-type tsd-kind-interface">Skin</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getskinlicense-1">getSkinLicense</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">licenseTypeId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.SkinLicense.html" class="tsd-signature-type tsd-kind-interface">SkinLicense</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getskinlicensesbyskin-1">getSkinLicensesBySkin</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">skinId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.SkinLicense.html" class="tsd-signature-type tsd-kind-interface">SkinLicense</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getstationoperation-1">getStationOperation</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">stationOperationId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.StationOperation.html" class="tsd-signature-type tsd-kind-interface">StationOperation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallstationoperations-1">getAllStationOperations</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.StationOperation.html" class="tsd-signature-type tsd-kind-interface">StationOperation</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getstationservice-1">getStationService</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">stationServiceId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.StationService.html" class="tsd-signature-type tsd-kind-interface">StationService</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallstationservices-1">getAllStationServices</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.StationService.html" class="tsd-signature-type tsd-kind-interface">StationService</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#gettypedogma-1">getTypeDogma</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">typeId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.TypeDogma.html" class="tsd-signature-type tsd-kind-interface">TypeDogma</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#gettypematerial-1">getTypeMaterial</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">typeId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.TypeMaterial.html" class="tsd-signature-type tsd-kind-interface">TypeMaterial</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#gettypebonus-1">getTypeBonus</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">typeId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.TypeBonus.html" class="tsd-signature-type tsd-kind-interface">TypeBonus</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getmission-1">getMission</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">missionId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Mission.html" class="tsd-signature-type tsd-kind-interface">Mission</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getdungeon-1">getDungeon</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">dungeonId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.Dungeon.html" class="tsd-signature-type tsd-kind-interface">Dungeon</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getepicarc-1">getEpicArc</a><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">epicArcId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.EpicArc.html" class="tsd-signature-type tsd-kind-interface">EpicArc</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallepicarcs-1">getAllEpicArcs</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_types.EpicArc.html" class="tsd-signature-type tsd-kind-interface">EpicArc</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getentity-1">getEntity</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#getentityt">T</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">tableName</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#getentityt">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getallentities-1">getAllEntities</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#getallentitiest">T</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">tableName</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#getallentitiest">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#getversion-1">getVersion</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_sde_version.SdeVersionInfo.html" class="tsd-signature-type tsd-kind-interface">SdeVersionInfo</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#close-1">close</a><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
 <section class="tsd-panel">
 <h4>Implemented by</h4>
@@ -18,7 +25,7 @@
 <li><a href="../classes/src_sde_MemorySdeProvider.MemorySdeProvider.html" class="tsd-signature-type tsd-kind-class">MemorySdeProvider</a></li>
 <li><a href="../classes/src_sde_SdeDataProvider.SdeDataProvider.html" class="tsd-signature-type tsd-kind-class">SdeDataProvider</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L55">src/sde/IStaticDataProvider.ts:55</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L62">src/sde/IStaticDataProvider.ts:62</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -143,7 +150,7 @@
 <li><span><span class="tsd-kind-parameter">typeId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L57">src/sde/IStaticDataProvider.ts:57</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L64">src/sde/IStaticDataProvider.ts:64</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettypesbygroup"><span>get<wbr/>Types<wbr/>By<wbr/>Group</span><a href="#gettypesbygroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -156,7 +163,7 @@
 <li><span><span class="tsd-kind-parameter">groupId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L58">src/sde/IStaticDataProvider.ts:58</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L65">src/sde/IStaticDataProvider.ts:65</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getgroup"><span>get<wbr/>Group</span><a href="#getgroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -169,7 +176,7 @@
 <li><span><span class="tsd-kind-parameter">groupId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.EveGroup.html" class="tsd-signature-type tsd-kind-interface">EveGroup</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L59">src/sde/IStaticDataProvider.ts:59</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L66">src/sde/IStaticDataProvider.ts:66</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getgroupsbycategory"><span>get<wbr/>Groups<wbr/>By<wbr/>Category</span><a href="#getgroupsbycategory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -182,7 +189,7 @@
 <li><span><span class="tsd-kind-parameter">categoryId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.EveGroup.html" class="tsd-signature-type tsd-kind-interface">EveGroup</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L60">src/sde/IStaticDataProvider.ts:60</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L67">src/sde/IStaticDataProvider.ts:67</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcategory"><span>get<wbr/>Category</span><a href="#getcategory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -195,7 +202,7 @@
 <li><span><span class="tsd-kind-parameter">categoryId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.EveCategory.html" class="tsd-signature-type tsd-kind-interface">EveCategory</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L61">src/sde/IStaticDataProvider.ts:61</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L68">src/sde/IStaticDataProvider.ts:68</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallcategories"><span>get<wbr/>All<wbr/>Categories</span><a href="#getallcategories" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -204,7 +211,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.EveCategory.html" class="tsd-signature-type tsd-kind-interface">EveCategory</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L62">src/sde/IStaticDataProvider.ts:62</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L69">src/sde/IStaticDataProvider.ts:69</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getregion"><span>get<wbr/>Region</span><a href="#getregion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -217,7 +224,7 @@
 <li><span><span class="tsd-kind-parameter">regionId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Region.html" class="tsd-signature-type tsd-kind-interface">Region</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L65">src/sde/IStaticDataProvider.ts:65</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L72">src/sde/IStaticDataProvider.ts:72</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallregions"><span>get<wbr/>All<wbr/>Regions</span><a href="#getallregions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -226,7 +233,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Region.html" class="tsd-signature-type tsd-kind-interface">Region</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L66">src/sde/IStaticDataProvider.ts:66</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L73">src/sde/IStaticDataProvider.ts:73</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getconstellation"><span>get<wbr/>Constellation</span><a href="#getconstellation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -239,7 +246,7 @@
 <li><span><span class="tsd-kind-parameter">constellationId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Constellation.html" class="tsd-signature-type tsd-kind-interface">Constellation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L67">src/sde/IStaticDataProvider.ts:67</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L74">src/sde/IStaticDataProvider.ts:74</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getconstellationsbyregion"><span>get<wbr/>Constellations<wbr/>By<wbr/>Region</span><a href="#getconstellationsbyregion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -252,7 +259,7 @@
 <li><span><span class="tsd-kind-parameter">regionId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Constellation.html" class="tsd-signature-type tsd-kind-interface">Constellation</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L68">src/sde/IStaticDataProvider.ts:68</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L75">src/sde/IStaticDataProvider.ts:75</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getsolarsystem"><span>get<wbr/>Solar<wbr/>System</span><a href="#getsolarsystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -265,7 +272,7 @@
 <li><span><span class="tsd-kind-parameter">systemId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.SolarSystem.html" class="tsd-signature-type tsd-kind-interface">SolarSystem</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L69">src/sde/IStaticDataProvider.ts:69</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L76">src/sde/IStaticDataProvider.ts:76</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getsolarsystemsbyconstellation"><span>get<wbr/>Solar<wbr/>Systems<wbr/>By<wbr/>Constellation</span><a href="#getsolarsystemsbyconstellation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -278,7 +285,7 @@
 <li><span><span class="tsd-kind-parameter">constellationId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.SolarSystem.html" class="tsd-signature-type tsd-kind-interface">SolarSystem</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L70">src/sde/IStaticDataProvider.ts:70</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L77">src/sde/IStaticDataProvider.ts:77</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstargate"><span>get<wbr/>Stargate</span><a href="#getstargate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -291,7 +298,7 @@
 <li><span><span class="tsd-kind-parameter">stargateId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Stargate.html" class="tsd-signature-type tsd-kind-interface">Stargate</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L71">src/sde/IStaticDataProvider.ts:71</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L78">src/sde/IStaticDataProvider.ts:78</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstargatesbysystem"><span>get<wbr/>Stargates<wbr/>By<wbr/>System</span><a href="#getstargatesbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -304,7 +311,7 @@
 <li><span><span class="tsd-kind-parameter">systemId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Stargate.html" class="tsd-signature-type tsd-kind-interface">Stargate</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L72">src/sde/IStaticDataProvider.ts:72</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L79">src/sde/IStaticDataProvider.ts:79</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchtypesbyname"><span>search<wbr/>Types<wbr/>By<wbr/>Name</span><a href="#searchtypesbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -318,7 +325,7 @@
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">limit</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L75">src/sde/IStaticDataProvider.ts:75</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L82">src/sde/IStaticDataProvider.ts:82</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchsolarsystemsbyname"><span>search<wbr/>Solar<wbr/>Systems<wbr/>By<wbr/>Name</span><a href="#searchsolarsystemsbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -332,7 +339,7 @@
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">limit</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.SolarSystem.html" class="tsd-signature-type tsd-kind-interface">SolarSystem</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L76">src/sde/IStaticDataProvider.ts:76</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L83">src/sde/IStaticDataProvider.ts:83</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstar"><span>get<wbr/>Star</span><a href="#getstar" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -345,7 +352,7 @@
 <li><span><span class="tsd-kind-parameter">starId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Star.html" class="tsd-signature-type tsd-kind-interface">Star</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L79">src/sde/IStaticDataProvider.ts:79</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L86">src/sde/IStaticDataProvider.ts:86</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstarbysystem"><span>get<wbr/>Star<wbr/>By<wbr/>System</span><a href="#getstarbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -358,7 +365,7 @@
 <li><span><span class="tsd-kind-parameter">systemId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Star.html" class="tsd-signature-type tsd-kind-interface">Star</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L80">src/sde/IStaticDataProvider.ts:80</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L87">src/sde/IStaticDataProvider.ts:87</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getplanet"><span>get<wbr/>Planet</span><a href="#getplanet" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -371,7 +378,7 @@
 <li><span><span class="tsd-kind-parameter">planetId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Planet.html" class="tsd-signature-type tsd-kind-interface">Planet</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L81">src/sde/IStaticDataProvider.ts:81</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L88">src/sde/IStaticDataProvider.ts:88</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getplanetsbysystem"><span>get<wbr/>Planets<wbr/>By<wbr/>System</span><a href="#getplanetsbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -384,7 +391,7 @@
 <li><span><span class="tsd-kind-parameter">systemId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Planet.html" class="tsd-signature-type tsd-kind-interface">Planet</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L82">src/sde/IStaticDataProvider.ts:82</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L89">src/sde/IStaticDataProvider.ts:89</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmoon"><span>get<wbr/>Moon</span><a href="#getmoon" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -397,7 +404,7 @@
 <li><span><span class="tsd-kind-parameter">moonId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Moon.html" class="tsd-signature-type tsd-kind-interface">Moon</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L83">src/sde/IStaticDataProvider.ts:83</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L90">src/sde/IStaticDataProvider.ts:90</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmoonsbysystem"><span>get<wbr/>Moons<wbr/>By<wbr/>System</span><a href="#getmoonsbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -410,7 +417,7 @@
 <li><span><span class="tsd-kind-parameter">systemId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Moon.html" class="tsd-signature-type tsd-kind-interface">Moon</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L84">src/sde/IStaticDataProvider.ts:84</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L91">src/sde/IStaticDataProvider.ts:91</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getasteroidbelt"><span>get<wbr/>Asteroid<wbr/>Belt</span><a href="#getasteroidbelt" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -423,7 +430,7 @@
 <li><span><span class="tsd-kind-parameter">asteroidBeltId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.AsteroidBelt.html" class="tsd-signature-type tsd-kind-interface">AsteroidBelt</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L85">src/sde/IStaticDataProvider.ts:85</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L92">src/sde/IStaticDataProvider.ts:92</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getasteroidbeltsbysystem"><span>get<wbr/>Asteroid<wbr/>Belts<wbr/>By<wbr/>System</span><a href="#getasteroidbeltsbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -436,7 +443,7 @@
 <li><span><span class="tsd-kind-parameter">systemId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.AsteroidBelt.html" class="tsd-signature-type tsd-kind-interface">AsteroidBelt</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L86">src/sde/IStaticDataProvider.ts:86</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L93">src/sde/IStaticDataProvider.ts:93</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getfaction"><span>get<wbr/>Faction</span><a href="#getfaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -449,7 +456,7 @@
 <li><span><span class="tsd-kind-parameter">factionId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Faction.html" class="tsd-signature-type tsd-kind-interface">Faction</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L89">src/sde/IStaticDataProvider.ts:89</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L96">src/sde/IStaticDataProvider.ts:96</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallfactions"><span>get<wbr/>All<wbr/>Factions</span><a href="#getallfactions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -458,7 +465,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Faction.html" class="tsd-signature-type tsd-kind-interface">Faction</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L90">src/sde/IStaticDataProvider.ts:90</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L97">src/sde/IStaticDataProvider.ts:97</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getrace"><span>get<wbr/>Race</span><a href="#getrace" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -471,7 +478,7 @@
 <li><span><span class="tsd-kind-parameter">raceId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Race.html" class="tsd-signature-type tsd-kind-interface">Race</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L91">src/sde/IStaticDataProvider.ts:91</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L98">src/sde/IStaticDataProvider.ts:98</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallraces"><span>get<wbr/>All<wbr/>Races</span><a href="#getallraces" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -480,7 +487,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Race.html" class="tsd-signature-type tsd-kind-interface">Race</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L92">src/sde/IStaticDataProvider.ts:92</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L99">src/sde/IStaticDataProvider.ts:99</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getbloodline"><span>get<wbr/>Bloodline</span><a href="#getbloodline" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -493,7 +500,7 @@
 <li><span><span class="tsd-kind-parameter">bloodlineId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Bloodline.html" class="tsd-signature-type tsd-kind-interface">Bloodline</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L93">src/sde/IStaticDataProvider.ts:93</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L100">src/sde/IStaticDataProvider.ts:100</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getbloodlinesbyrace"><span>get<wbr/>Bloodlines<wbr/>By<wbr/>Race</span><a href="#getbloodlinesbyrace" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -506,7 +513,7 @@
 <li><span><span class="tsd-kind-parameter">raceId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Bloodline.html" class="tsd-signature-type tsd-kind-interface">Bloodline</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L94">src/sde/IStaticDataProvider.ts:94</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L101">src/sde/IStaticDataProvider.ts:101</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getancestry"><span>get<wbr/>Ancestry</span><a href="#getancestry" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -519,7 +526,7 @@
 <li><span><span class="tsd-kind-parameter">ancestryId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Ancestry.html" class="tsd-signature-type tsd-kind-interface">Ancestry</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L95">src/sde/IStaticDataProvider.ts:95</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L102">src/sde/IStaticDataProvider.ts:102</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getancestriesbybloodline"><span>get<wbr/>Ancestries<wbr/>By<wbr/>Bloodline</span><a href="#getancestriesbybloodline" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -532,7 +539,7 @@
 <li><span><span class="tsd-kind-parameter">bloodlineId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Ancestry.html" class="tsd-signature-type tsd-kind-interface">Ancestry</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L96">src/sde/IStaticDataProvider.ts:96</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L103">src/sde/IStaticDataProvider.ts:103</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpccorporation"><span>get<wbr/>Npc<wbr/>Corporation</span><a href="#getnpccorporation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -545,7 +552,7 @@
 <li><span><span class="tsd-kind-parameter">corporationId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.NpcCorporation.html" class="tsd-signature-type tsd-kind-interface">NpcCorporation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L99">src/sde/IStaticDataProvider.ts:99</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L106">src/sde/IStaticDataProvider.ts:106</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpccorporationsbyfaction"><span>get<wbr/>Npc<wbr/>Corporations<wbr/>By<wbr/>Faction</span><a href="#getnpccorporationsbyfaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -558,7 +565,7 @@
 <li><span><span class="tsd-kind-parameter">factionId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.NpcCorporation.html" class="tsd-signature-type tsd-kind-interface">NpcCorporation</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L100">src/sde/IStaticDataProvider.ts:100</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L107">src/sde/IStaticDataProvider.ts:107</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpcstation"><span>get<wbr/>Npc<wbr/>Station</span><a href="#getnpcstation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -571,7 +578,7 @@
 <li><span><span class="tsd-kind-parameter">stationId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.NpcStation.html" class="tsd-signature-type tsd-kind-interface">NpcStation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L101">src/sde/IStaticDataProvider.ts:101</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L108">src/sde/IStaticDataProvider.ts:108</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpcstationsbysystem"><span>get<wbr/>Npc<wbr/>Stations<wbr/>By<wbr/>System</span><a href="#getnpcstationsbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -584,7 +591,7 @@
 <li><span><span class="tsd-kind-parameter">systemId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.NpcStation.html" class="tsd-signature-type tsd-kind-interface">NpcStation</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L102">src/sde/IStaticDataProvider.ts:102</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L109">src/sde/IStaticDataProvider.ts:109</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpcstationsbyowner"><span>get<wbr/>Npc<wbr/>Stations<wbr/>By<wbr/>Owner</span><a href="#getnpcstationsbyowner" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -597,7 +604,7 @@
 <li><span><span class="tsd-kind-parameter">ownerId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.NpcStation.html" class="tsd-signature-type tsd-kind-interface">NpcStation</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L103">src/sde/IStaticDataProvider.ts:103</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L110">src/sde/IStaticDataProvider.ts:110</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmarketgroup"><span>get<wbr/>Market<wbr/>Group</span><a href="#getmarketgroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -610,7 +617,7 @@
 <li><span><span class="tsd-kind-parameter">marketGroupId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L106">src/sde/IStaticDataProvider.ts:106</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L113">src/sde/IStaticDataProvider.ts:113</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmarketgroupsbyparent"><span>get<wbr/>Market<wbr/>Groups<wbr/>By<wbr/>Parent</span><a href="#getmarketgroupsbyparent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -623,7 +630,7 @@
 <li><span><span class="tsd-kind-parameter">parentGroupId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L107">src/sde/IStaticDataProvider.ts:107</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L114">src/sde/IStaticDataProvider.ts:114</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getrootmarketgroups"><span>get<wbr/>Root<wbr/>Market<wbr/>Groups</span><a href="#getrootmarketgroups" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -632,7 +639,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L108">src/sde/IStaticDataProvider.ts:108</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L115">src/sde/IStaticDataProvider.ts:115</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettypesbymarketgroup"><span>get<wbr/>Types<wbr/>By<wbr/>Market<wbr/>Group</span><a href="#gettypesbymarketgroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -645,7 +652,7 @@
 <li><span><span class="tsd-kind-parameter">marketGroupId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.EveType.html" class="tsd-signature-type tsd-kind-interface">EveType</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L109">src/sde/IStaticDataProvider.ts:109</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L116">src/sde/IStaticDataProvider.ts:116</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchmarketgroupsbyname"><span>search<wbr/>Market<wbr/>Groups<wbr/>By<wbr/>Name</span><a href="#searchmarketgroupsbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -659,7 +666,7 @@
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">limit</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.MarketGroup.html" class="tsd-signature-type tsd-kind-interface">MarketGroup</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L110">src/sde/IStaticDataProvider.ts:110</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L117">src/sde/IStaticDataProvider.ts:117</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmetagroup"><span>get<wbr/>Meta<wbr/>Group</span><a href="#getmetagroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -672,7 +679,7 @@
 <li><span><span class="tsd-kind-parameter">metaGroupId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.MetaGroup.html" class="tsd-signature-type tsd-kind-interface">MetaGroup</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L113">src/sde/IStaticDataProvider.ts:113</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L120">src/sde/IStaticDataProvider.ts:120</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallmetagroups"><span>get<wbr/>All<wbr/>Meta<wbr/>Groups</span><a href="#getallmetagroups" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -681,7 +688,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.MetaGroup.html" class="tsd-signature-type tsd-kind-interface">MetaGroup</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L114">src/sde/IStaticDataProvider.ts:114</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L121">src/sde/IStaticDataProvider.ts:121</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="geticon"><span>get<wbr/>Icon</span><a href="#geticon" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -694,7 +701,7 @@
 <li><span><span class="tsd-kind-parameter">iconId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Icon.html" class="tsd-signature-type tsd-kind-interface">Icon</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L115">src/sde/IStaticDataProvider.ts:115</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L122">src/sde/IStaticDataProvider.ts:122</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getgraphic"><span>get<wbr/>Graphic</span><a href="#getgraphic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -707,7 +714,7 @@
 <li><span><span class="tsd-kind-parameter">graphicId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Graphic.html" class="tsd-signature-type tsd-kind-interface">Graphic</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L116">src/sde/IStaticDataProvider.ts:116</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L123">src/sde/IStaticDataProvider.ts:123</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdogmaattribute"><span>get<wbr/>Dogma<wbr/>Attribute</span><a href="#getdogmaattribute" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -720,7 +727,7 @@
 <li><span><span class="tsd-kind-parameter">attributeId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.DogmaAttribute.html" class="tsd-signature-type tsd-kind-interface">DogmaAttribute</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L119">src/sde/IStaticDataProvider.ts:119</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L126">src/sde/IStaticDataProvider.ts:126</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchdogmaattributesbyname"><span>search<wbr/>Dogma<wbr/>Attributes<wbr/>By<wbr/>Name</span><a href="#searchdogmaattributesbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -734,7 +741,7 @@
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">limit</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.DogmaAttribute.html" class="tsd-signature-type tsd-kind-interface">DogmaAttribute</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L120">src/sde/IStaticDataProvider.ts:120</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L127">src/sde/IStaticDataProvider.ts:127</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdogmaeffect"><span>get<wbr/>Dogma<wbr/>Effect</span><a href="#getdogmaeffect" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -747,7 +754,7 @@
 <li><span><span class="tsd-kind-parameter">effectId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.DogmaEffect.html" class="tsd-signature-type tsd-kind-interface">DogmaEffect</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L121">src/sde/IStaticDataProvider.ts:121</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L128">src/sde/IStaticDataProvider.ts:128</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchdogmaeffectsbyname"><span>search<wbr/>Dogma<wbr/>Effects<wbr/>By<wbr/>Name</span><a href="#searchdogmaeffectsbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -761,7 +768,7 @@
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">limit</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.DogmaEffect.html" class="tsd-signature-type tsd-kind-interface">DogmaEffect</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L122">src/sde/IStaticDataProvider.ts:122</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L129">src/sde/IStaticDataProvider.ts:129</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdogmaattributecategory"><span>get<wbr/>Dogma<wbr/>Attribute<wbr/>Category</span><a href="#getdogmaattributecategory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -774,7 +781,7 @@
 <li><span><span class="tsd-kind-parameter">attributeCategoryId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.DogmaAttributeCategory.html" class="tsd-signature-type tsd-kind-interface">DogmaAttributeCategory</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L123">src/sde/IStaticDataProvider.ts:123</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L130">src/sde/IStaticDataProvider.ts:130</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getalldogmaattributecategories"><span>get<wbr/>All<wbr/>Dogma<wbr/>Attribute<wbr/>Categories</span><a href="#getalldogmaattributecategories" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -783,7 +790,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.DogmaAttributeCategory.html" class="tsd-signature-type tsd-kind-interface">DogmaAttributeCategory</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L126">src/sde/IStaticDataProvider.ts:126</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L133">src/sde/IStaticDataProvider.ts:133</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdogmaunit"><span>get<wbr/>Dogma<wbr/>Unit</span><a href="#getdogmaunit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -796,7 +803,7 @@
 <li><span><span class="tsd-kind-parameter">unitId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.DogmaUnit.html" class="tsd-signature-type tsd-kind-interface">DogmaUnit</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L127">src/sde/IStaticDataProvider.ts:127</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L134">src/sde/IStaticDataProvider.ts:134</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getalldogmaunits"><span>get<wbr/>All<wbr/>Dogma<wbr/>Units</span><a href="#getalldogmaunits" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -805,7 +812,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.DogmaUnit.html" class="tsd-signature-type tsd-kind-interface">DogmaUnit</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L128">src/sde/IStaticDataProvider.ts:128</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L135">src/sde/IStaticDataProvider.ts:135</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getblueprint"><span>get<wbr/>Blueprint</span><a href="#getblueprint" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -818,7 +825,7 @@
 <li><span><span class="tsd-kind-parameter">blueprintTypeId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Blueprint.html" class="tsd-signature-type tsd-kind-interface">Blueprint</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L131">src/sde/IStaticDataProvider.ts:131</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L138">src/sde/IStaticDataProvider.ts:138</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getplanetschematic"><span>get<wbr/>Planet<wbr/>Schematic</span><a href="#getplanetschematic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -831,7 +838,7 @@
 <li><span><span class="tsd-kind-parameter">planetSchematicId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.PlanetSchematic.html" class="tsd-signature-type tsd-kind-interface">PlanetSchematic</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L132">src/sde/IStaticDataProvider.ts:132</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L139">src/sde/IStaticDataProvider.ts:139</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallplanetschematics"><span>get<wbr/>All<wbr/>Planet<wbr/>Schematics</span><a href="#getallplanetschematics" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -840,7 +847,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.PlanetSchematic.html" class="tsd-signature-type tsd-kind-interface">PlanetSchematic</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L133">src/sde/IStaticDataProvider.ts:133</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L140">src/sde/IStaticDataProvider.ts:140</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getindustryactivity"><span>get<wbr/>Industry<wbr/>Activity</span><a href="#getindustryactivity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -853,7 +860,7 @@
 <li><span><span class="tsd-kind-parameter">industryActivityId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.IndustryActivity.html" class="tsd-signature-type tsd-kind-interface">IndustryActivity</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L134">src/sde/IStaticDataProvider.ts:134</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L141">src/sde/IStaticDataProvider.ts:141</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallindustryactivities"><span>get<wbr/>All<wbr/>Industry<wbr/>Activities</span><a href="#getallindustryactivities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -862,7 +869,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.IndustryActivity.html" class="tsd-signature-type tsd-kind-interface">IndustryActivity</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L135">src/sde/IStaticDataProvider.ts:135</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L142">src/sde/IStaticDataProvider.ts:142</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getagenttype"><span>get<wbr/>Agent<wbr/>Type</span><a href="#getagenttype" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -875,7 +882,7 @@
 <li><span><span class="tsd-kind-parameter">agentTypeId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.AgentType.html" class="tsd-signature-type tsd-kind-interface">AgentType</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L138">src/sde/IStaticDataProvider.ts:138</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L145">src/sde/IStaticDataProvider.ts:145</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallagenttypes"><span>get<wbr/>All<wbr/>Agent<wbr/>Types</span><a href="#getallagenttypes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -884,7 +891,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.AgentType.html" class="tsd-signature-type tsd-kind-interface">AgentType</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L139">src/sde/IStaticDataProvider.ts:139</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L146">src/sde/IStaticDataProvider.ts:146</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getagentinspace"><span>get<wbr/>Agent<wbr/>In<wbr/>Space</span><a href="#getagentinspace" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -897,7 +904,7 @@
 <li><span><span class="tsd-kind-parameter">characterId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.AgentInSpace.html" class="tsd-signature-type tsd-kind-interface">AgentInSpace</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L140">src/sde/IStaticDataProvider.ts:140</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L147">src/sde/IStaticDataProvider.ts:147</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getagentsinspacebysystem"><span>get<wbr/>Agents<wbr/>In<wbr/>Space<wbr/>By<wbr/>System</span><a href="#getagentsinspacebysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -910,7 +917,7 @@
 <li><span><span class="tsd-kind-parameter">systemId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.AgentInSpace.html" class="tsd-signature-type tsd-kind-interface">AgentInSpace</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L141">src/sde/IStaticDataProvider.ts:141</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L148">src/sde/IStaticDataProvider.ts:148</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcertificate"><span>get<wbr/>Certificate</span><a href="#getcertificate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -923,7 +930,7 @@
 <li><span><span class="tsd-kind-parameter">certificateId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Certificate.html" class="tsd-signature-type tsd-kind-interface">Certificate</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L144">src/sde/IStaticDataProvider.ts:144</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L151">src/sde/IStaticDataProvider.ts:151</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallcertificates"><span>get<wbr/>All<wbr/>Certificates</span><a href="#getallcertificates" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -932,7 +939,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Certificate.html" class="tsd-signature-type tsd-kind-interface">Certificate</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L145">src/sde/IStaticDataProvider.ts:145</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L152">src/sde/IStaticDataProvider.ts:152</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcharacterattribute"><span>get<wbr/>Character<wbr/>Attribute</span><a href="#getcharacterattribute" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -945,7 +952,7 @@
 <li><span><span class="tsd-kind-parameter">attributeId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.CharacterAttribute.html" class="tsd-signature-type tsd-kind-interface">CharacterAttribute</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L148">src/sde/IStaticDataProvider.ts:148</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L155">src/sde/IStaticDataProvider.ts:155</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallcharacterattributes"><span>get<wbr/>All<wbr/>Character<wbr/>Attributes</span><a href="#getallcharacterattributes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -954,7 +961,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.CharacterAttribute.html" class="tsd-signature-type tsd-kind-interface">CharacterAttribute</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L149">src/sde/IStaticDataProvider.ts:149</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L156">src/sde/IStaticDataProvider.ts:156</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpccharacter"><span>get<wbr/>Npc<wbr/>Character</span><a href="#getnpccharacter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -967,7 +974,7 @@
 <li><span><span class="tsd-kind-parameter">characterId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.NpcCharacter.html" class="tsd-signature-type tsd-kind-interface">NpcCharacter</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L152">src/sde/IStaticDataProvider.ts:152</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L159">src/sde/IStaticDataProvider.ts:159</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpccharactersbycorporation"><span>get<wbr/>Npc<wbr/>Characters<wbr/>By<wbr/>Corporation</span><a href="#getnpccharactersbycorporation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -980,7 +987,7 @@
 <li><span><span class="tsd-kind-parameter">corporationId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.NpcCharacter.html" class="tsd-signature-type tsd-kind-interface">NpcCharacter</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L153">src/sde/IStaticDataProvider.ts:153</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L160">src/sde/IStaticDataProvider.ts:160</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchnpccharactersbyname"><span>search<wbr/>Npc<wbr/>Characters<wbr/>By<wbr/>Name</span><a href="#searchnpccharactersbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -994,7 +1001,7 @@
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">limit</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.NpcCharacter.html" class="tsd-signature-type tsd-kind-interface">NpcCharacter</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L154">src/sde/IStaticDataProvider.ts:154</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L161">src/sde/IStaticDataProvider.ts:161</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getclonegrade"><span>get<wbr/>Clone<wbr/>Grade</span><a href="#getclonegrade" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1007,7 +1014,7 @@
 <li><span><span class="tsd-kind-parameter">cloneGradeId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.CloneGrade.html" class="tsd-signature-type tsd-kind-interface">CloneGrade</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L157">src/sde/IStaticDataProvider.ts:157</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L164">src/sde/IStaticDataProvider.ts:164</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallclonegrades"><span>get<wbr/>All<wbr/>Clone<wbr/>Grades</span><a href="#getallclonegrades" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1016,7 +1023,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.CloneGrade.html" class="tsd-signature-type tsd-kind-interface">CloneGrade</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L158">src/sde/IStaticDataProvider.ts:158</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L165">src/sde/IStaticDataProvider.ts:165</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcorporationactivity"><span>get<wbr/>Corporation<wbr/>Activity</span><a href="#getcorporationactivity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1029,7 +1036,7 @@
 <li><span><span class="tsd-kind-parameter">corporationActivityId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.CorporationActivity.html" class="tsd-signature-type tsd-kind-interface">CorporationActivity</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L161">src/sde/IStaticDataProvider.ts:161</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L168">src/sde/IStaticDataProvider.ts:168</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallcorporationactivities"><span>get<wbr/>All<wbr/>Corporation<wbr/>Activities</span><a href="#getallcorporationactivities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1038,7 +1045,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.CorporationActivity.html" class="tsd-signature-type tsd-kind-interface">CorporationActivity</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L164">src/sde/IStaticDataProvider.ts:164</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L171">src/sde/IStaticDataProvider.ts:171</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnpccorporationdivision"><span>get<wbr/>Npc<wbr/>Corporation<wbr/>Division</span><a href="#getnpccorporationdivision" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1051,7 +1058,7 @@
 <li><span><span class="tsd-kind-parameter">npcCorporationDivisionId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.NpcCorporationDivision.html" class="tsd-signature-type tsd-kind-interface">NpcCorporationDivision</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L165">src/sde/IStaticDataProvider.ts:165</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L172">src/sde/IStaticDataProvider.ts:172</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallnpccorporationdivisions"><span>get<wbr/>All<wbr/>Npc<wbr/>Corporation<wbr/>Divisions</span><a href="#getallnpccorporationdivisions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1060,7 +1067,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.NpcCorporationDivision.html" class="tsd-signature-type tsd-kind-interface">NpcCorporationDivision</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L168">src/sde/IStaticDataProvider.ts:168</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L175">src/sde/IStaticDataProvider.ts:175</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getlandmark"><span>get<wbr/>Landmark</span><a href="#getlandmark" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1073,7 +1080,7 @@
 <li><span><span class="tsd-kind-parameter">landmarkId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Landmark.html" class="tsd-signature-type tsd-kind-interface">Landmark</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L171">src/sde/IStaticDataProvider.ts:171</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L178">src/sde/IStaticDataProvider.ts:178</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getalllandmarks"><span>get<wbr/>All<wbr/>Landmarks</span><a href="#getalllandmarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1082,7 +1089,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Landmark.html" class="tsd-signature-type tsd-kind-interface">Landmark</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L172">src/sde/IStaticDataProvider.ts:172</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L179">src/sde/IStaticDataProvider.ts:179</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getnotificationtype"><span>get<wbr/>Notification<wbr/>Type</span><a href="#getnotificationtype" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1095,7 +1102,7 @@
 <li><span><span class="tsd-kind-parameter">notificationTypeId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.NotificationType.html" class="tsd-signature-type tsd-kind-interface">NotificationType</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L175">src/sde/IStaticDataProvider.ts:175</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L182">src/sde/IStaticDataProvider.ts:182</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getschool"><span>get<wbr/>School</span><a href="#getschool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1108,7 +1115,7 @@
 <li><span><span class="tsd-kind-parameter">schoolId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.School.html" class="tsd-signature-type tsd-kind-interface">School</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L178">src/sde/IStaticDataProvider.ts:178</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L185">src/sde/IStaticDataProvider.ts:185</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallschools"><span>get<wbr/>All<wbr/>Schools</span><a href="#getallschools" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1117,7 +1124,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.School.html" class="tsd-signature-type tsd-kind-interface">School</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L179">src/sde/IStaticDataProvider.ts:179</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L186">src/sde/IStaticDataProvider.ts:186</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getsecondarysun"><span>get<wbr/>Secondary<wbr/>Sun</span><a href="#getsecondarysun" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1130,7 +1137,7 @@
 <li><span><span class="tsd-kind-parameter">secondarySunId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.SecondarySun.html" class="tsd-signature-type tsd-kind-interface">SecondarySun</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L182">src/sde/IStaticDataProvider.ts:182</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L189">src/sde/IStaticDataProvider.ts:189</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getsecondarysunsbysystem"><span>get<wbr/>Secondary<wbr/>Suns<wbr/>By<wbr/>System</span><a href="#getsecondarysunsbysystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1143,7 +1150,7 @@
 <li><span><span class="tsd-kind-parameter">systemId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.SecondarySun.html" class="tsd-signature-type tsd-kind-interface">SecondarySun</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L183">src/sde/IStaticDataProvider.ts:183</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L190">src/sde/IStaticDataProvider.ts:190</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getskin"><span>get<wbr/>Skin</span><a href="#getskin" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1156,7 +1163,7 @@
 <li><span><span class="tsd-kind-parameter">skinId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Skin.html" class="tsd-signature-type tsd-kind-interface">Skin</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L186">src/sde/IStaticDataProvider.ts:186</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L193">src/sde/IStaticDataProvider.ts:193</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getskinlicense"><span>get<wbr/>Skin<wbr/>License</span><a href="#getskinlicense" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1169,7 +1176,7 @@
 <li><span><span class="tsd-kind-parameter">licenseTypeId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.SkinLicense.html" class="tsd-signature-type tsd-kind-interface">SkinLicense</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L187">src/sde/IStaticDataProvider.ts:187</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L194">src/sde/IStaticDataProvider.ts:194</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getskinlicensesbyskin"><span>get<wbr/>Skin<wbr/>Licenses<wbr/>By<wbr/>Skin</span><a href="#getskinlicensesbyskin" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1182,7 +1189,7 @@
 <li><span><span class="tsd-kind-parameter">skinId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.SkinLicense.html" class="tsd-signature-type tsd-kind-interface">SkinLicense</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L188">src/sde/IStaticDataProvider.ts:188</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L195">src/sde/IStaticDataProvider.ts:195</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstationoperation"><span>get<wbr/>Station<wbr/>Operation</span><a href="#getstationoperation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1195,7 +1202,7 @@
 <li><span><span class="tsd-kind-parameter">stationOperationId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.StationOperation.html" class="tsd-signature-type tsd-kind-interface">StationOperation</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L191">src/sde/IStaticDataProvider.ts:191</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L198">src/sde/IStaticDataProvider.ts:198</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallstationoperations"><span>get<wbr/>All<wbr/>Station<wbr/>Operations</span><a href="#getallstationoperations" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1204,7 +1211,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.StationOperation.html" class="tsd-signature-type tsd-kind-interface">StationOperation</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L192">src/sde/IStaticDataProvider.ts:192</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L199">src/sde/IStaticDataProvider.ts:199</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstationservice"><span>get<wbr/>Station<wbr/>Service</span><a href="#getstationservice" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1217,7 +1224,7 @@
 <li><span><span class="tsd-kind-parameter">stationServiceId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.StationService.html" class="tsd-signature-type tsd-kind-interface">StationService</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L193">src/sde/IStaticDataProvider.ts:193</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L200">src/sde/IStaticDataProvider.ts:200</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallstationservices"><span>get<wbr/>All<wbr/>Station<wbr/>Services</span><a href="#getallstationservices" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1226,7 +1233,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.StationService.html" class="tsd-signature-type tsd-kind-interface">StationService</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L194">src/sde/IStaticDataProvider.ts:194</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L201">src/sde/IStaticDataProvider.ts:201</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettypedogma"><span>get<wbr/>Type<wbr/>Dogma</span><a href="#gettypedogma" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1239,7 +1246,7 @@
 <li><span><span class="tsd-kind-parameter">typeId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.TypeDogma.html" class="tsd-signature-type tsd-kind-interface">TypeDogma</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L197">src/sde/IStaticDataProvider.ts:197</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L204">src/sde/IStaticDataProvider.ts:204</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettypematerial"><span>get<wbr/>Type<wbr/>Material</span><a href="#gettypematerial" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1252,7 +1259,7 @@
 <li><span><span class="tsd-kind-parameter">typeId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.TypeMaterial.html" class="tsd-signature-type tsd-kind-interface">TypeMaterial</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L198">src/sde/IStaticDataProvider.ts:198</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L205">src/sde/IStaticDataProvider.ts:205</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettypebonus"><span>get<wbr/>Type<wbr/>Bonus</span><a href="#gettypebonus" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1265,7 +1272,7 @@
 <li><span><span class="tsd-kind-parameter">typeId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.TypeBonus.html" class="tsd-signature-type tsd-kind-interface">TypeBonus</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L199">src/sde/IStaticDataProvider.ts:199</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L206">src/sde/IStaticDataProvider.ts:206</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmission"><span>get<wbr/>Mission</span><a href="#getmission" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1278,7 +1285,7 @@
 <li><span><span class="tsd-kind-parameter">missionId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Mission.html" class="tsd-signature-type tsd-kind-interface">Mission</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L202">src/sde/IStaticDataProvider.ts:202</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L209">src/sde/IStaticDataProvider.ts:209</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdungeon"><span>get<wbr/>Dungeon</span><a href="#getdungeon" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1291,7 +1298,7 @@
 <li><span><span class="tsd-kind-parameter">dungeonId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.Dungeon.html" class="tsd-signature-type tsd-kind-interface">Dungeon</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L203">src/sde/IStaticDataProvider.ts:203</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L210">src/sde/IStaticDataProvider.ts:210</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getepicarc"><span>get<wbr/>Epic<wbr/>Arc</span><a href="#getepicarc" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1304,7 +1311,7 @@
 <li><span><span class="tsd-kind-parameter">epicArcId</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.EpicArc.html" class="tsd-signature-type tsd-kind-interface">EpicArc</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L204">src/sde/IStaticDataProvider.ts:204</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L211">src/sde/IStaticDataProvider.ts:211</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallepicarcs"><span>get<wbr/>All<wbr/>Epic<wbr/>Arcs</span><a href="#getallepicarcs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1313,7 +1320,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_types.EpicArc.html" class="tsd-signature-type tsd-kind-interface">EpicArc</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L205">src/sde/IStaticDataProvider.ts:205</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L212">src/sde/IStaticDataProvider.ts:212</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getentity"><span>get<wbr/>Entity</span><a href="#getentity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1331,7 +1338,7 @@
 <li><span><span class="tsd-kind-parameter">id</span>: <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#getentityt">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L208">src/sde/IStaticDataProvider.ts:208</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L215">src/sde/IStaticDataProvider.ts:215</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getallentities"><span>get<wbr/>All<wbr/>Entities</span><a href="#getallentities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1348,7 +1355,7 @@
 <li><span><span class="tsd-kind-parameter">tableName</span>: <span class="tsd-signature-type">string</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#getallentitiest">T</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L212">src/sde/IStaticDataProvider.ts:212</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L219">src/sde/IStaticDataProvider.ts:219</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getversion"><span>get<wbr/>Version</span><a href="#getversion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1357,7 +1364,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_sde_version.SdeVersionInfo.html" class="tsd-signature-type tsd-kind-interface">SdeVersionInfo</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L215">src/sde/IStaticDataProvider.ts:215</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L222">src/sde/IStaticDataProvider.ts:222</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="close"><span>close</span><a href="#close" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1366,7 +1373,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L216">src/sde/IStaticDataProvider.ts:216</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/sde/IStaticDataProvider.ts#L223">src/sde/IStaticDataProvider.ts:223</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
