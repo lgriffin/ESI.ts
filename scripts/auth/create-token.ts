@@ -7,6 +7,8 @@
  * Prerequisites:
  *   1. Register an application at https://developers.eveonline.com/
  *   2. Set callback URL to http://localhost:3000/sso_callback
+ *      (an application registered with another localhost path or port sets
+ *      ESI_SSO_CALLBACK_PATH and ESI_SSO_CALLBACK_PORT to match)
  *   3. Select ALL ESI scopes (or the ones you need)
  *   4. Copy the Client ID into your .env as ESI_SSO_CLIENT_ID
  *
@@ -211,12 +213,13 @@ function parseInvalidScope(description: string): string | null {
 
 function waitForCallback(
   port: number,
+  callbackPath: string,
   expectedState: string,
 ): Promise<CallbackResult> {
   return new Promise((resolve, reject) => {
     const server = http.createServer((req, res) => {
       const url = new URL(req.url || '/', `http://localhost:${port}`);
-      if (url.pathname !== DEFAULT_CALLBACK_PATH) {
+      if (url.pathname !== callbackPath) {
         res.writeHead(404);
         res.end('Not found');
         return;
@@ -288,7 +291,7 @@ function waitForCallback(
 
     server.listen(port, () => {
       console.log(
-        `Callback server listening on http://localhost:${port}${DEFAULT_CALLBACK_PATH}`,
+        `Callback server listening on http://localhost:${port}${callbackPath}`,
       );
     });
 
@@ -357,6 +360,10 @@ async function main(): Promise<void> {
       String(DEFAULT_PORT),
     10,
   );
+  const callbackPath =
+    process.env.ESI_SSO_CALLBACK_PATH ||
+    envVars.get('ESI_SSO_CALLBACK_PATH') ||
+    DEFAULT_CALLBACK_PATH;
 
   if (!clientId) {
     console.error('\nESI_SSO_CLIENT_ID is not set.\n');
@@ -364,7 +371,7 @@ async function main(): Promise<void> {
     console.log('  1. Go to https://developers.eveonline.com/');
     console.log('  2. Create a new application');
     console.log(
-      `  3. Set callback URL to: http://localhost:${port}${DEFAULT_CALLBACK_PATH}`,
+      `  3. Set callback URL to: http://localhost:${port}${callbackPath}`,
     );
     console.log('  4. Under "Permissions", select ALL ESI scopes');
     console.log('  5. Copy the Client ID');
@@ -376,7 +383,7 @@ async function main(): Promise<void> {
   }
 
   let scopes = await fetchAllScopes();
-  const redirectUri = `http://localhost:${port}${DEFAULT_CALLBACK_PATH}`;
+  const redirectUri = `http://localhost:${port}${callbackPath}`;
   const rejectedScopes: string[] = [];
   const MAX_RETRIES = 20;
 
@@ -408,7 +415,7 @@ async function main(): Promise<void> {
 
     let result: CallbackResult;
     try {
-      result = await waitForCallback(port, state);
+      result = await waitForCallback(port, callbackPath, state);
     } catch (err) {
       console.error(
         `\nCallback failed: ${err instanceof Error ? err.message : err}`,
