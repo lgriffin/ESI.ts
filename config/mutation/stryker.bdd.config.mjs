@@ -83,7 +83,13 @@ export default {
   testRunner: 'jest',
   jest: {
     configFile: 'config/jest/unit.config.cjs',
-    enableFindRelatedTests: true,
+    // The step-library specs (tests/bdd/specs) bind their steps at run time
+    // through bindFeature(__filename), so Jest's static module graph does not
+    // connect them to src/ and --findRelatedTests would select none of them
+    // (the sde shard found no tests at all once Run 3 converted the SDE
+    // steps). The dry run therefore runs every BDD spec; per-test coverage
+    // still decides which tests each mutant runs against.
+    enableFindRelatedTests: false,
     config: {
       roots: ['<rootDir>/src', path.join(projectRoot, 'tests')],
       testMatch: [
