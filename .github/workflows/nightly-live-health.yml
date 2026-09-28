@@ -1,0 +1,147 @@
+name: Nightly Live Health
+
+# The live-health gate (guides/AUDIT.md): a nightly smoke against Tranquility
+# that refreshes a maintained EVE SSO token, calls one public route and one
+# authenticated route through the real client, and validates both answers.
+# The script is scripts/quality/live-health.ts (`npm run health:live`).
+#
+# Secrets (Settings → Secrets and variables → Actions → Repository secrets):
+#   ESI_HEALTH_CLIENT_ID      the SSO application's client id
+#   ESI_HEALTH_CLIENT_SECRET  its secret; leave unset for a PKCE (public) app
+#   ESI_HEALTH_REFRESH_TOKEN  a refresh token for a character that granted
+#                             esi-location.read_online.v1
+# Until they exist the run reports "not configured" as a warning and files
+# nothing, so the workflow can land before the secrets do.
+#
+# On a failure the SDK or the token owns (exit 1, or any exit the script did
+# not choose, or a run that never reached the smoke) a run on master opens
+# one issue titled "Live health: the Tranquility smoke failed", or comments
+# on it when it is already open, and a later healthy run on master closes
+# it; a manual run from another branch only smokes. Tranquility or SSO being
+# unavailable (exit 2) is a warning, not an issue: CCP's downtime is not a
+# defect here. 05:45 UTC sits well clear of the 11:00 UTC downtime.
+#
+# EVE SSO returns the same refresh token on a refresh grant today. Should it
+# rotate one, the script says so and the next run fails at the refresh step
+# until the secret is updated by hand: writing it back would need a token
+# with secrets: write, which GITHUB_TOKEN never has.
+
+on:
+  schedule:
+    - cron: '45 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-live-health
+  cancel-in-progress: false
+
+env:
+  ISSUE_TITLE: 'Live health: the Tranquility smoke failed'
+
+jobs:
+  health:
+    name: Smoke Tranquility with an authenticated route
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write # open, comment on and close the single live-health issue
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Exit codes: 0 healthy, 1 failed, 2 unavailable, 3 not configured. Any
+      # other code (a killed process, a crash before the script decided) is a
+      # failure too, so it cannot leave the run green.
+      - name: Refresh the token and call ESI
+        id: smoke
+        env:
+          ESI_HEALTH_CLIENT_ID: ${{ secrets.ESI_HEALTH_CLIENT_ID }}
+          ESI_HEALTH_CLIENT_SECRET: ${{ secrets.ESI_HEALTH_CLIENT_SECRET }}
+          ESI_HEALTH_REFRESH_TOKEN: ${{ secrets.ESI_HEALTH_REFRESH_TOKEN }}
+        run: |
+          set +e
+          npm run health:live | tee live-health.txt
+          CODE=${PIPESTATUS[0]}
+          set -e
+          case "$CODE" in
+            0) VERDICT=healthy; echo "::notice title=Live health::healthy" ;;
+            2) VERDICT=unavailable; echo "::warning title=Live health::Tranquility or SSO unavailable; see the step summary" ;;
+            3) VERDICT=unconfigured; echo "::warning title=Live health::not configured: add ESI_HEALTH_CLIENT_ID and ESI_HEALTH_REFRESH_TOKEN (and ESI_HEALTH_CLIENT_SECRET for a confidential app) as repository secrets" ;;
+            *) VERDICT=failed; echo "::error title=Live health::failed (exit $CODE); see the step summary and the issue titled '$ISSUE_TITLE'" ;;
+          esac
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
+
+      # Only a run on master speaks for master: a manual run from a branch
+      # smokes and reports in its own summary but never touches the issue.
+      # An empty verdict means the run never reached the smoke (checkout,
+      # setup or npm ci failed), which is reported the same way, without
+      # blaming ESI.
+      - name: Open or update the issue
+        if: >-
+          !cancelled() && github.ref == 'refs/heads/master'
+          && steps.smoke.outputs.verdict != 'healthy'
+          && steps.smoke.outputs.verdict != 'unavailable'
+          && steps.smoke.outputs.verdict != 'unconfigured'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CODE: ${{ steps.smoke.outputs.code }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -f live-health.txt ]; then
+            DETAIL=$(printf '%s\n' "The smoke exited with code ${CODE}:" "" '```' "$(cat live-health.txt)" '```')
+          else
+            DETAIL="The run failed before the smoke ran (checkout, Node setup or \`npm ci\`); this is not an ESI or SSO finding. See the run for the failed step."
+          fi
+          BODY=$(printf '%s\n' \
+            "The nightly Tranquility smoke failed on $(date -u +%Y-%m-%d)." \
+            "" \
+            "$DETAIL" \
+            "" \
+            "- Run: $RUN_URL" \
+            "- Reproduce: \`npm run health:live\` with ESI_HEALTH_CLIENT_ID, ESI_HEALTH_CLIENT_SECRET and ESI_HEALTH_REFRESH_TOKEN set" \
+            "" \
+            "A refresh token SSO rejected needs a new one issued and the secret updated; anything else is the client's to fix. This issue closes itself on the next healthy run.")
+          NUMBER=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" \
+            --json number,title --jq ".[] | select(.title == \"$ISSUE_TITLE\") | .number" | head -n 1)
+          if [ -n "$NUMBER" ]; then
+            gh issue comment "$NUMBER" --body "$BODY"
+          else
+            gh issue create --title "$ISSUE_TITLE" --body "$BODY"
+          fi
+
+      - name: Close the issue when healthy
+        if: github.ref == 'refs/heads/master' && steps.smoke.outputs.verdict == 'healthy'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          NUMBER=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" \
+            --json number,title --jq ".[] | select(.title == \"$ISSUE_TITLE\") | .number" | head -n 1)
+          if [ -n "$NUMBER" ]; then
+            gh issue close "$NUMBER" --comment "The Tranquility smoke passed: $RUN_URL"
+          fi
+
+      - name: Fail the run
+        if: >-
+          !cancelled()
+          && steps.smoke.outputs.verdict != 'healthy'
+          && steps.smoke.outputs.verdict != 'unavailable'
+          && steps.smoke.outputs.verdict != 'unconfigured'
+        run: exit 1

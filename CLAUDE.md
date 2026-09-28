@@ -135,7 +135,7 @@ Key middleware in the pipeline:
 - **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: skill eval suite with thresholds and a cost budget
 - **spec-refresh.yml** — on push to `spec-refresh/**` or manual dispatch: re-vendors the ESI OpenAPI document at `COMPATIBILITY_DATE` and regenerates every generated file from it
 
-These are the ones an agent meets most. `.github/workflows/` holds 27 workflow files; `guides/QUALITY-GATES.md` lists every one and what it gates.
+These are the ones an agent meets most. `.github/workflows/` holds 28 workflow files; `guides/QUALITY-GATES.md` lists every one and what it gates.
 
 ## Semantic Versioning (enforced)
 
