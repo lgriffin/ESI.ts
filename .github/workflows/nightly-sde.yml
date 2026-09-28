@@ -45,6 +45,9 @@ jobs:
     outputs:
       build: ${{ steps.build.outputs.build }}
       drift: ${{ steps.drift.outputs.drift }}
+      # True when the archive under the build's cache key is the one this
+      # job tested: restored from the cache, or downloaded and verified.
+      cached: ${{ steps.cache.outputs.cache-hit == 'true' || steps.verify.outputs.verified == 'true' }}
 
     steps:
       - name: Checkout code
@@ -152,6 +155,10 @@ jobs:
     name: SDE benchmarks and heap soak on the real export
     runs-on: ubuntu-latest
     needs: real-data
+    # Only the archive the real-data job tested is measured. When the build
+    # changed between the feed and the archive requests nothing was cached
+    # under the build's key, so this job skips and the report says so.
+    if: needs.real-data.result == 'success' && needs.real-data.outputs.cached == 'true'
     timeout-minutes: 60
 
     steps:
@@ -169,9 +176,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # The real-data job saved the archive under this key before this job
-      # started, so a miss means the cache was evicted in between: fail
-      # rather than measure a different build than the one it tested.
+      # The real-data job restored or saved the archive under this key
+      # before this job started, so a miss means the cache was evicted in
+      # between: fail rather than measure a different build than the one it
+      # tested.
       - name: Restore the export from the cache
         id: cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -190,13 +198,12 @@ jobs:
         env:
           SDE_BENCH_DIR: sde-data
           BUILD: ${{ needs.real-data.outputs.build }}
+        # pipefail: the benchmark's own exit status fails the step through tee.
         run: |
-          {
-            echo "## SDE benchmarks, build ${BUILD}"
-            echo
-            npm run --silent benchmark -- --filter sde/ --rounds 2 --min-cpu-ms 300 --out reports/sde-bench
-            echo
-          } | tee -a "$GITHUB_STEP_SUMMARY"
+          set -o pipefail
+          printf '## SDE benchmarks, build %s\n\n' "$BUILD" >> "$GITHUB_STEP_SUMMARY"
+          npm run --silent benchmark -- --filter sde/ --rounds 2 --min-cpu-ms 300 --out reports/sde-bench | tee -a "$GITHUB_STEP_SUMMARY"
+          echo >> "$GITHUB_STEP_SUMMARY"
 
       - name: SDE heap soak
         run: npm run soak -- --sde --dir sde-data --out reports/sde-soak
@@ -234,7 +241,10 @@ jobs:
           TITLE="sde: nightly real-data run failed or the export drifted"
           ISSUE=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number,title \
             --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")
-          if [ "$RESULT" = "success" ] && [ "$PERF_RESULT" = "success" ] && [ "$DRIFT" != "true" ]; then
+          # A skipped performance job is a build that changed between the feed
+          # and the archive requests (see the real-data job): nothing failed,
+          # the next night measures it.
+          if [ "$RESULT" = "success" ] && { [ "$PERF_RESULT" = "success" ] || [ "$PERF_RESULT" = "skipped" ]; } && [ "$DRIFT" != "true" ]; then
             if [ -n "$ISSUE" ]; then
               gh issue close "$ISSUE" --comment "Green again against build ${BUILD:-unknown} in $RUN_URL. Closing."
             fi
