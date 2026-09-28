@@ -128,6 +128,8 @@ Ordering between phases: 2 before 3 (the builder is what Phase 3 moves `ClientRe
 
 **Also landed:** item 2's knip part: `release.yml` runs `npx knip` without `--no-exit-code` on a clean baseline, `knip.jsonc` treats tests, scripts and examples as entry points and gives each exception a reason, and `validate` and `check:all` block on it; GATE-04 Enforced. `ci.yml` still only reports.
 
+**Also landed 2026-09-28:** item 8, method-level traceability for the clients: `npm run spec:coverage:clients` (`scripts/spec/client-spec-coverage.ts`, checks in `client-spec-coverage-core.ts`, the call graph, baseline and command line shared with `spec:coverage:sde` through `scripts/spec/method-coverage-core.ts`) reads the public instance methods each of the 39 classes extending `BaseEsiClient` declares, inherited ones excluded, and counts one as covered when a Rule names it or a bound step calls it on that client, the type checker resolving the call; legacy `defineFeature` scenarios bind by title. 173 of 384 methods are covered; the 211 uncovered, most of them the `fetchAll*` and `stream*` page helpers, are committed as measured in `scripts/spec/client-spec-coverage-baseline.json`, grouped by client, and `spec:coverage:clients:ci` fails an addition, a stale entry or an unlisted uncovered method in `check:all`, `verify-local` and the `spec-audit` job. No scenarios added; TEST-10 Enforced.
+
 **Definition of done.** Every row of QUALITY-GATES.md's matrix matches a job; GATE-01 to GATE-06, TEST-10, TEST-11 and PROC-06 at Enforced in the CHARTER; the five issues closed; the AUDIT.md "Plan gates today" table re-run with Live health at Met.
 
 ## Phase 6 · Security and supply chain · Open

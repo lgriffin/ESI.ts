@@ -405,6 +405,10 @@ jobs:
       - name: Every provider method is named by a Rule or reached by a bound step
         run: npm run spec:coverage:sde:ci
 
+      # Also compares against master's copy of the baseline (fetched above).
+      - name: Every public client method is named by a Rule or called by a bound step
+        run: npm run spec:coverage:clients:ci
+
       - name: Rule titles agree with response schemas
         run: npm run validate:spec-consistency
 

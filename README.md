@@ -111,7 +111,7 @@ A request no route answers is rejected with an `EsiConfigurationError` naming th
 
 ## The engineering stance
 
-The project is run to a written [engineering charter](guides/CHARTER.md). It has <!-- metric:charterRequirements -->62<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->44<!-- /metric --> are **Enforced**, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->10<!-- /metric --> Partial and <!-- metric:charterGap -->2<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
+The project is run to a written [engineering charter](guides/CHARTER.md). It has <!-- metric:charterRequirements -->62<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->45<!-- /metric --> are **Enforced**, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->9<!-- /metric --> Partial and <!-- metric:charterGap -->2<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
 
 1. **The OpenAPI spec is upstream.** Types, cache TTLs, rate-limit groups, scopes and <!-- metric:operations -->233<!-- /metric --> typed operations are generated from it, and CI fails when they go stale.
 2. **Hand-write where judgement matters.** Method names, argument shapes and validation strictness are product decisions. Drift reports keep them honest against the spec.
