@@ -12,7 +12,8 @@ A TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), buil
 
 **Documentation site: [lgriffin.github.io/ESI.ts](https://lgriffin.github.io/ESI.ts/)**, with these guides, a page for every runnable example, and the [API reference](https://lgriffin.github.io/ESI.ts/api/) generated from the TSDoc.
 
-> **Release line.** `10.2.3` is current on npm and supports Node 18 and later. **11.0.0 is in progress.** It raises the floor to Node 22 and adds a new client built on one shared runtime, with typed public and per-character views. Nothing documented here is removed in 11.0. [What 11.0 changes](guides/USAGE.md#9-what-1100-changes) · [Roadmap and release gate](guides/ROADMAP.md)
+> **Release line.** Version <!-- metric:version -->10.2.3<!-- /metric --> <!-- x-release-please-version -->
+> is current on npm and supports Node 18 and later. **11.0.0 is in progress.** It raises the floor to Node 22 and adds a new client built on one shared runtime, with typed public and per-character views. Nothing documented here is removed in 11.0. [What 11.0 changes](guides/USAGE.md#9-what-1100-changes) · [Roadmap and release gate](guides/ROADMAP.md)
 
 ## Install
 
@@ -96,23 +97,23 @@ A request no route answers is rejected with an `EsiConfigurationError` naming th
 
 ## What you get
 
-| Capability              | What ESI.ts does                                                                                                                                                                                                                       |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Full coverage**       | 39 domain clients and 235 routes. They cover all 233 operations in the ESI specification at compatibility date 2026-08-18, plus the specification documents themselves. `spec:coverage` fails the build if one is missing.             |
-| **Runtime validation**  | Every GET response is checked against a hand-written Zod schema. Unknown fields pass through, so an additive change from CCP never breaks you. A changed shape throws `EsiValidationError` instead of corrupting your data quietly.    |
-| **Caching**             | A GET inside ESI's cache window makes no HTTP call. Older entries are revalidated with ETags, and a 5xx serves the stale copy. A write invalidates the reads it affects. Keys are hashed per token.                                    |
-| **Rate limiting**       | One bucket per ESI rate-limit group: 46 of them, generated from the spec. The limiter learns from ESI's headers and honours `Retry-After`. A 420 or 429 blocks only its own group.                                                     |
-| **Resilience**          | Exponential backoff with jitter, a single coalesced token refresh on 401, deduplication of identical in-flight GETs, and an opt-in circuit breaker. Each one is an interface you can replace.                                          |
-| **Pagination**          | Offset and cursor paging. `stream*` yields one validated page at a time, and `fetchAll*` fetches pages concurrently. `batch` and `batchPost` handle fan-out.                                                                           |
-| **Authentication**      | EVE SSO with PKCE, and a token manager that handles storage, proactive refresh, rotation, revocation and bulk refresh for many characters.                                                                                             |
-| **Static data**         | `./sde` answers offline queries over CCP's Static Data Export: 99 typed lookups with no database. It shares no code with the HTTP pipeline, and a lint rule enforces that.                                                             |
-| **Correct wire format** | Where the specification is wrong about how ESI reads a request (parameters in the query rather than the body, undocumented length limits), the definitions follow ESI. The specification documents this and live validation proved it. |
+| Capability              | What ESI.ts does                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Full coverage**       | <!-- metric:clients -->39<!-- /metric --> domain clients and <!-- metric:routes -->235<!-- /metric --> routes. They cover all <!-- metric:operations -->233<!-- /metric --> operations in the ESI specification at compatibility date <!-- metric:compatibilityDate -->2026-08-18<!-- /metric -->, plus the specification documents themselves. `spec:coverage` fails the build if one is missing. |
+| **Runtime validation**  | Every GET response is checked against a hand-written Zod schema. Unknown fields pass through, so an additive change from CCP never breaks you. A changed shape throws `EsiValidationError` instead of corrupting your data quietly.                                                                                                                                                                |
+| **Caching**             | A GET inside ESI's cache window makes no HTTP call. Older entries are revalidated with ETags, and a 5xx serves the stale copy. A write invalidates the reads it affects. Keys are hashed per token.                                                                                                                                                                                                |
+| **Rate limiting**       | One bucket per ESI rate-limit group: 46 of them, generated from the spec. The limiter learns from ESI's headers and honours `Retry-After`. A 420 or 429 blocks only its own group.                                                                                                                                                                                                                 |
+| **Resilience**          | Exponential backoff with jitter, a single coalesced token refresh on 401, deduplication of identical in-flight GETs, and an opt-in circuit breaker. Each one is an interface you can replace.                                                                                                                                                                                                      |
+| **Pagination**          | Offset and cursor paging. `stream*` yields one validated page at a time, and `fetchAll*` fetches pages concurrently. `batch` and `batchPost` handle fan-out.                                                                                                                                                                                                                                       |
+| **Authentication**      | EVE SSO with PKCE, and a token manager that handles storage, proactive refresh, rotation, revocation and bulk refresh for many characters.                                                                                                                                                                                                                                                         |
+| **Static data**         | `./sde` answers offline queries over CCP's Static Data Export: 99 typed lookups with no database. It shares no code with the HTTP pipeline, and a lint rule enforces that.                                                                                                                                                                                                                         |
+| **Correct wire format** | Where the specification is wrong about how ESI reads a request (parameters in the query rather than the body, undocumented length limits), the definitions follow ESI. The specification documents this and live validation proved it.                                                                                                                                                             |
 
 ## The engineering stance
 
-The project is run to a written [engineering charter](guides/CHARTER.md). It has 61 numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: 40 are **Enforced**, 6 Practised, 11 Partial and 4 Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
+The project is run to a written [engineering charter](guides/CHARTER.md). It has <!-- metric:charterRequirements -->61<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->41<!-- /metric --> are **Enforced**, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->11<!-- /metric --> Partial and <!-- metric:charterGap -->3<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
 
-1. **The OpenAPI spec is upstream.** Types, cache TTLs, rate-limit groups, scopes and 233 typed operations are generated from it, and CI fails when they go stale.
+1. **The OpenAPI spec is upstream.** Types, cache TTLs, rate-limit groups, scopes and <!-- metric:operations -->233<!-- /metric --> typed operations are generated from it, and CI fails when they go stale.
 2. **Hand-write where judgement matters.** Method names, argument shapes and validation strictness are product decisions. Drift reports keep them honest against the spec.
 3. **Tolerate additive change.** New fields and enum members from CCP never break a consumer. A removal is a breaking change.
 4. **Resilience is pluggable.** Retry, rate limiting, circuit breaking, deduplication, caching and transport are interfaces, not imports.
@@ -124,17 +125,17 @@ The project is run to a written [engineering charter](guides/CHARTER.md). It has
 
 Measured on `master` on 2026-09-27 with the commands shown. [TESTING.md](guides/TESTING.md) has the full breakdown.
 
-| Measure                   | Value                                                                                      | Reproduce                                                           |
-| ------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| Tests run offline         | 8,444 passing, 0 failing                                                                   | `npm test`, `fuzz`, `faults`, `contract:replay`, `test:integration` |
-| Unit, BDD and composition | 244 suites, 7,198 tests in about two and a half minutes                                    | `npm test`                                                          |
-| Coverage                  | 97.2% statements, 95.5% branches, 91.3% functions, 97.3% lines                             | `npm run coverage` (floors 90 / 80 / 75 / 90)                       |
-| Executable specification  | 405 EARS requirements, 496 scenarios, 54 feature files                                     | `npm run ears`                                                      |
-| Property and fuzz tests   | 957 tests; 10,000 runs a property nightly                                                  | `npm run fuzz`                                                      |
-| Transport fault catalogue | 148 faults through the real pipeline                                                       | `npm run faults`                                                    |
-| Recorded ESI payloads     | 121 replay tests, re-recorded nightly with a drift PR                                      | `npm run contract:replay`                                           |
-| Mutation testing          | Per-directory floors, ratcheted nightly, changed files on every PR                         | `npm run mutation:ratchet`                                          |
-| CI                        | One required check (`ci-success`) over the full matrix; 26 workflows, 15 of them scheduled | [QUALITY-GATES.md](guides/QUALITY-GATES.md)                         |
+| Measure                   | Value                                                                                                                                                                                   | Reproduce                                                           |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Tests run offline         | 8,444 passing, 0 failing                                                                                                                                                                | `npm test`, `fuzz`, `faults`, `contract:replay`, `test:integration` |
+| Unit, BDD and composition | 244 suites, 7,198 tests in about two and a half minutes                                                                                                                                 | `npm test`                                                          |
+| Coverage                  | 97.2% statements, 95.5% branches, 91.3% functions, 97.3% lines                                                                                                                          | `npm run coverage` (floors 90 / 80 / 75 / 90)                       |
+| Executable specification  | <!-- metric:requirements -->432<!-- /metric --> EARS requirements, <!-- metric:scenarios -->537<!-- /metric --> scenarios, <!-- metric:featureFiles -->57<!-- /metric --> feature files | `npm run ears`                                                      |
+| Property and fuzz tests   | 957 tests; 10,000 runs a property nightly                                                                                                                                               | `npm run fuzz`                                                      |
+| Transport fault catalogue | 148 faults through the real pipeline                                                                                                                                                    | `npm run faults`                                                    |
+| Recorded ESI payloads     | 121 replay tests, re-recorded nightly with a drift PR                                                                                                                                   | `npm run contract:replay`                                           |
+| Mutation testing          | Per-directory floors, ratcheted nightly, changed files on every PR                                                                                                                      | `npm run mutation:ratchet`                                          |
+| CI                        | One required check (`ci-success`) over the full matrix; 26 workflows, 15 of them scheduled                                                                                              | [QUALITY-GATES.md](guides/QUALITY-GATES.md)                         |
 
 Every tier has to prove it can fail: a negative fixture, a killed mutant or a caught fault. Every floor is a one-way ratchet.
 
@@ -195,7 +196,7 @@ The README orients and the guides are canonical. Each guide opens with the chart
 
 ## Examples
 
-`examples/` has 58 runnable scripts, each with an npm script. The public ones run against live ESI every night, and a failure opens an issue.
+`examples/` has <!-- metric:examples -->58<!-- /metric --> runnable scripts, each with an npm script. The public ones run against live ESI every night, and a failure opens an issue.
 
 ```bash
 npm run example:status      # quickest smoke test, no token

@@ -158,6 +158,10 @@ Checked by `tests/tdd/scripts/package-scripts.test.ts`, so it runs in `npm test`
 
 Two scripts used to point at files that were never committed — `sde:seed` at `scripts/seed-sde-test-db.ts` and `example:sde-cross-ref` at `examples/sde-cross-reference.ts`. Both are gone; the three SDE examples that do exist (`sde-fitting`, `sde-industry`, `sde-market-tree`) have scripts now.
 
+### Counts in the documentation (DOC-04)
+
+The counts the documentation quotes, such as clients, routes, operations, requirements, scenarios, examples and test files, sit between `metric:` markers and come from `etc/doc-metrics.json`. When a change adds or removes one of those things, run `npm run docs:metrics` and commit what it rewrites. `npm run validate:versions`, in `static-analysis`, fails the pull request otherwise and names each stale file and metric; `npm run docs:metrics -- --check` runs the same check without writing.
+
 ---
 
 ## Local hooks

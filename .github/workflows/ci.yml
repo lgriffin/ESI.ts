@@ -213,6 +213,8 @@ jobs:
 
       # REL-03: package.json and constants.ts agree (release-please bumps both;
       # this catches a hand edit), and the docs-site selector reads package.json.
+      # DOC-04: every count marked in README.md and the guides, and the README
+      # release line, match etc/doc-metrics.json and the source.
       - name: Validate the version string across package.json, constants and the docs site
         run: npm run validate:versions
 

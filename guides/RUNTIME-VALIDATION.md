@@ -136,7 +136,7 @@ Every domain module has a corresponding schema file in `src/schemas/`. The namin
 | `corporation` | `CorporationInfoSchema`, `CorporationAllianceHistorySchema`, ...                   |
 | `universe`    | `SolarSystemInfoSchema`, `TypeInfoSchema`, `StationInfoSchema`, ...                |
 | `market`      | `MarketOrderSchema`, `MarketHistorySchema`                                         |
-| ...           | All 31 domain modules have schemas                                                 |
+| ...           | All <!-- metric:schemaModules -->36<!-- /metric --> domain modules have schemas    |
 
 Import individual schemas from `@lgriffin/esi.ts`:
 
