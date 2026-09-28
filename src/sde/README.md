@@ -360,7 +360,7 @@ close(): void                   // No-op for YAML provider; present for interfac
 
 ## Testing
 
-The module uses a three-layer testing pyramid.
+The module uses a four-layer testing pyramid.
 
 ### Unit Tests (288 tests, ~1s)
 
@@ -380,6 +380,20 @@ Test files:
 - `transforms.test.ts` -- field normalization, locale extraction, nested normalization
 - `SdeExtractor.test.ts` -- ZIP parsing
 - `SdeDownloader.test.ts` -- HTTP mocking
+
+### Property Tests (3 suites, ~10s)
+
+```bash
+npm run fuzz -- --testPathPatterns sde-
+```
+
+fast-check properties in `tests/fuzz/`, 100 runs each on a pull request and 10,000 in `nightly-properties.yml` (`npm run fuzz:properties` selects all three) (`FC_NUM_RUNS`, `FC_SEED` and `FC_PATH` replay a failure, see `tests/fuzz/AGENTS.md`):
+
+- `sde-transforms.property.test.ts` -- field-name normalisation is idempotent and reversible on the `ID` suffix; locale extraction always yields a string; record transforms rename keys and extract locale maps at any depth and flatten to SQLite values; metadata reads the nested `sde:` block first
+- `sde-provider-model.property.test.ts` -- a generated, internally consistent data set (a controlled fraction of foreign keys dangling) loaded into `MemorySdeProvider`, and into `SdeDataProvider` from a directory, answers every lookup as a naive oracle over the same arrays, lazily built foreign-key indexes included
+- `sde-schema-fuzz.test.ts` -- a record generated from each zod schema round-trips through `parse` with an extra field kept, and is rejected once a required key is removed
+
+Every model-based property fails against registered known-bad providers and transforms (a dropped record, an ignored limit, an off-by-one ID, a stale foreign-key index), so a property that could not catch a defect cannot load.
 
 ### BDD Tests (186 scenarios, ~3s)
 

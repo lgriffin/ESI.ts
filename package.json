@@ -237,7 +237,7 @@
     "bench:trend": "ts-node scripts/bench/bench-trend.ts",
     "soak": "node --expose-gc -r ts-node/register/transpile-only scripts/bench/soak.ts",
     "fuzz": "jest --config config/jest/fuzz.config.cjs",
-    "fuzz:properties": "jest --config config/jest/fuzz.config.cjs --testPathPatterns=property.test",
+    "fuzz:properties": "jest --config config/jest/fuzz.config.cjs --testPathPatterns property.test sde-schema-fuzz.test",
     "fuzz:api": "bash scripts/spec/run-schemathesis.sh",
     "faults": "jest --config config/jest/faults.config.cjs",
     "faults:nightly": "jest --config config/jest/faults.nightly.config.cjs",

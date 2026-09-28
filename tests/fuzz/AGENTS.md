@@ -13,13 +13,24 @@ through `describeProperty` in [`support/property.ts`](support/property.ts).
 Older files in this directory (`*-fuzz.test.ts`, the fault-injection suite)
 are plain fast-check tests and are not covered by the rules below.
 
-| File                                     | Invariant                                                                                                                   |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `circuit-breaker-model.property.test.ts` | `CircuitBreaker` matches a closed/open/half-open reference model under any command sequence, including overlapping calls    |
-| `pagination-assembly.property.test.ts`   | Eager, `fetchAll*` and cursor walks return every page once, in order, for any page count, failure pattern and arrival order |
-| `cache-key.property.test.ts`             | Cache keys are deterministic, injective, in canonical query order, and scoped to the access token                           |
-| `etag-cache-model.property.test.ts`      | The ETag cache predicts every request, If-None-Match, result and stored entry across calls, identities, faults and time     |
-| `backoff.property.test.ts`               | `retryDelay` is finite, in `[0, maxDelayMs]` and monotonic in attempt for any jitter value                                  |
+| File                                     | Invariant                                                                                                                                                                                                        |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `circuit-breaker-model.property.test.ts` | `CircuitBreaker` matches a closed/open/half-open reference model under any command sequence, including overlapping calls                                                                                         |
+| `pagination-assembly.property.test.ts`   | Eager, `fetchAll*` and cursor walks return every page once, in order, for any page count, failure pattern and arrival order                                                                                      |
+| `cache-key.property.test.ts`             | Cache keys are deterministic, injective, in canonical query order, and scoped to the access token                                                                                                                |
+| `etag-cache-model.property.test.ts`      | The ETag cache predicts every request, If-None-Match, result and stored entry across calls, identities, faults and time                                                                                          |
+| `backoff.property.test.ts`               | `retryDelay` is finite, in `[0, maxDelayMs]` and monotonic in attempt for any jitter value                                                                                                                       |
+| `sde-transforms.property.test.ts`        | SDE field-name normalisation is idempotent and reversible on the `ID` suffix, locale extraction always yields a string, record transforms rename and extract at any depth, metadata reads the nested block first |
+| `sde-provider-model.property.test.ts`    | `MemorySdeProvider` and `SdeDataProvider` (loaded from a directory, foreign-key indexes built lazily) answer every lookup, list, search and generic read as a naive oracle over the same arrays                  |
+
+`sde-schema-fuzz.test.ts` is a plain fast-check suite beside them, run by
+`fuzz:properties` and the nightly as well: an
+arbitrary derived from each zod definition in `src/sde/schemas.ts` proves a
+generated record round-trips through `parse` with an extra field kept and is
+rejected once a required key is removed. The SDE arbitraries, the oracle and
+the provider mutants live in [`support/sde.ts`](support/sde.ts); a data set
+it generates is internally consistent (every foreign key names a parent that
+exists) except for a controlled one in ten that dangles.
 
 Drive the client through a real domain client and a fake ESI installed on
 `jest-fetch-mock` ([`support/fakeEsi.ts`](support/fakeEsi.ts)), the same seam
