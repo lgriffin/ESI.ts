@@ -17,6 +17,7 @@
  * the client existed once it is shut down; process listeners likewise.
  */
 import type { SoakRun } from '../../tests/benchmark/soak';
+import type { SdeSoakRun } from '../../tests/benchmark/sde-soak';
 
 export interface SoakThresholds {
   /** Growth above this rate over the second half is a leak. */
@@ -152,6 +153,117 @@ export function analyseSoak(
     heapLast: samples[samples.length - 1]?.heapUsed ?? 0,
     maxCacheEntries,
   };
+}
+
+/**
+ * The verdict on an SDE soak (tests/benchmark/sde-soak.ts).
+ *
+ * After each cycle's `close()` and two full collections the heap must be
+ * back within `tolerance(heapAfterLoad)` of the baseline measured before the
+ * first load: the larger of a fixed allowance and a fraction of what the
+ * load held, so a small residue (interned strings, a grown Map backing store)
+ * passes and a retained table does not. Each cycle's loaded heap must sit
+ * within the same tolerance of the first cycle's, so a provider that keeps
+ * the previous export alive across reloads fails too.
+ */
+export interface SdeSoakThresholds {
+  /** Retained bytes allowed after close, whatever the load held. */
+  maxRetainedBytes: number;
+  /** ...or this fraction of the loaded heap, when that is larger. */
+  maxRetainedFraction: number;
+}
+
+export const DEFAULT_SDE_THRESHOLDS: SdeSoakThresholds = {
+  maxRetainedBytes: 8 * 1024 * 1024,
+  maxRetainedFraction: 0.05,
+};
+
+export interface SdeSoakVerdict {
+  passed: boolean;
+  findings: string[];
+  /** The largest heap retained after a close, bytes above the baseline. */
+  maxRetainedBytes: number;
+  /** The tolerance the run was held to, bytes. */
+  toleranceBytes: number;
+}
+
+export function analyseSdeSoak(
+  run: SdeSoakRun,
+  thresholds: SdeSoakThresholds = DEFAULT_SDE_THRESHOLDS,
+): SdeSoakVerdict {
+  const findings: string[] = [];
+  const { cycles } = run;
+  if (cycles.length < 2) {
+    findings.push(
+      `Only ${cycles.length} cycle(s); the reload check needs at least 2.`,
+    );
+  }
+  const loaded = Math.max(0, ...cycles.map((c) => c.heapAfterLoad));
+  const toleranceBytes = Math.max(
+    thresholds.maxRetainedBytes,
+    thresholds.maxRetainedFraction * loaded,
+  );
+
+  let maxRetainedBytes = 0;
+  cycles.forEach((cycle, i) => {
+    const retained = cycle.heapAfterClose - run.heapBaseline;
+    maxRetainedBytes = Math.max(maxRetainedBytes, retained);
+    if (retained > toleranceBytes) {
+      findings.push(
+        `Cycle ${i + 1}: the heap stayed ${formatBytes(retained)} above the baseline after close (allowed ${formatBytes(toleranceBytes)}).`,
+      );
+    }
+    if (cycle.types === 0) {
+      findings.push(`Cycle ${i + 1}: the export loaded no types.`);
+    }
+  });
+
+  const first = cycles[0];
+  const last = cycles[cycles.length - 1];
+  if (first && last && cycles.length > 1) {
+    const growth = last.heapAfterLoad - first.heapAfterLoad;
+    if (growth > toleranceBytes) {
+      findings.push(
+        `The loaded heap grew ${formatBytes(growth)} from the first cycle to the last (allowed ${formatBytes(toleranceBytes)}).`,
+      );
+    }
+  }
+  if (run.unexpectedErrors.length > 0) {
+    findings.push(
+      `Lookups failed: ${run.unexpectedErrors.slice(0, 3).join('; ')}`,
+    );
+  }
+
+  return {
+    passed: findings.length === 0,
+    findings,
+    maxRetainedBytes,
+    toleranceBytes,
+  };
+}
+
+export function renderSdeSoakMarkdown(
+  run: SdeSoakRun,
+  verdict: SdeSoakVerdict,
+): string {
+  return [
+    `## SDE heap soak, build ${run.build}`,
+    '',
+    verdict.passed
+      ? 'The heap returned to its baseline after every close.'
+      : `**Failed.** ${verdict.findings.length} finding(s):`,
+    ...verdict.findings.map((f) => `- ${f}`),
+    '',
+    `${run.options.cycles} cycle(s) of load, ${run.options.lookups} lookups and close in ${(run.durationMs / 1000).toFixed(1)} s; baseline heap ${formatBytes(run.heapBaseline)}, tolerance ${formatBytes(verdict.toleranceBytes)}.`,
+    '',
+    '| Cycle | Types | Load | Heap after load | RSS after load | Peak heap | Lookups | Hits | Heap after close |',
+    '| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
+    ...run.cycles.map(
+      (c, i) =>
+        `| ${i + 1} | ${c.types} | ${(c.loadMs / 1000).toFixed(2)} s | ${formatBytes(c.heapAfterLoad)} | ${formatBytes(c.rssAfterLoad)} | ${formatBytes(c.peakHeap)} | ${(c.lookupsMs / 1000).toFixed(2)} s | ${c.hits} | ${formatBytes(c.heapAfterClose)} |`,
+    ),
+    '',
+  ].join('\n');
 }
 
 export function formatBytes(bytes: number): string {

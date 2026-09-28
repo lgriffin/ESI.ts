@@ -6,18 +6,20 @@ nothing else. Bundle size is owned by the size-limit budgets, not here.
 
 ## What is here
 
-| File                                    | Role                                                                                           |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `tasks.ts`                              | The micro-benchmark catalogue: per-request hot paths, each built in `setup`, timed in `fn`     |
-| `fixtures.ts`                           | Deterministic payloads and ESI response headers                                                |
-| `harness.ts`                            | One process: runs every task with mitata, writes one JSON result                               |
-| `summary.ts`                            | Per-process mean, p50, p75, p99 and RME from mitata's samples                                  |
-| `soak.ts`                               | Heap soak driver: 100 000 requests through a real `EsiClient`, plus the leaky fixture          |
-| `../../scripts/bench/bench-ab.ts`       | Bundles the harness for a base and a head tree, runs them in alternating processes             |
-| `../../scripts/bench-compare(-core).ts` | The statistical decision (below)                                                               |
-| `../../scripts/bench/bench-trend.ts`    | One JSON record per nightly run for the `bench-data` branch                                    |
-| `../../scripts/soak(-core).ts`          | Soak CLI and its verdict: heap slope, cache bound, timers, listeners                           |
-| `../tdd/benchmark/`                     | Unit tests: statistics on synthetic distributions, soak verdicts, the leak fixture, task smoke |
+| File                                    | Role                                                                                                                                                                                                               |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tasks.ts`                              | The micro-benchmark catalogue: per-request hot paths, each built in `setup`, timed in `fn`                                                                                                                         |
+| `fixtures.ts`                           | Deterministic payloads and ESI response headers                                                                                                                                                                    |
+| `harness.ts`                            | One process: runs every task with mitata, writes one JSON result                                                                                                                                                   |
+| `summary.ts`                            | Per-process mean, p50, p75, p99 and RME from mitata's samples                                                                                                                                                      |
+| `soak.ts`                               | Heap soak driver: 100 000 requests through a real `EsiClient`, plus the leaky fixture                                                                                                                              |
+| `sde.bench.ts`                          | The `sde/` tasks: `fromDirectory` load, lookups, cold and warm foreign-key lists, name searches, over a seeded 50k-type export written once per process (`SDE_BENCH_TYPES`, or the real export in `SDE_BENCH_DIR`) |
+| `sde-soak.ts`                           | SDE heap soak: load, 100 000 lookups, close, repeat; the heap must return to its baseline                                                                                                                          |
+| `../../scripts/bench/bench-ab.ts`       | Bundles the harness for a base and a head tree, runs them in alternating processes                                                                                                                                 |
+| `../../scripts/bench-compare(-core).ts` | The statistical decision (below)                                                                                                                                                                                   |
+| `../../scripts/bench/bench-trend.ts`    | One JSON record per nightly run for the `bench-data` branch                                                                                                                                                        |
+| `../../scripts/soak(-core).ts`          | Soak CLI and its verdicts: heap slope, cache bound, timers, listeners; `--sde` retained heap after close                                                                                                           |
+| `../tdd/benchmark/`                     | Unit tests: statistics on synthetic distributions, soak verdicts, the leak fixture, task smoke                                                                                                                     |
 
 ## The signal
 
@@ -29,6 +31,10 @@ nothing else. Bundle size is owned by the size-limit budgets, not here.
 - **Nightly** (`nightly-benchmarks.yml`): master against a pinned reference
   commit (15 rounds each), then the soak. One issue labelled
   `performance-nightly` while either fails.
+- **Nightly, real export** (`nightly-sde.yml`, job `performance`): the `sde/`
+  tasks and the SDE soak against CCP's current export, two rounds, medians and
+  the soak table in the step summary. These numbers describe a build, not a
+  commit, so they are not compared or published to `bench-data`.
 - **Proof the tier can fail:** `tests/tdd/benchmark/bench-compare.test.ts`
   fails a synthetic 30% regression and a missing baseline;
   `tests/tdd/benchmark/soak.test.ts` runs the real pipeline with
@@ -58,6 +64,8 @@ did not, fail closed. A task only the head measures is `new` and passes.
 ```bash
 npm run benchmark                          # this tree only: table of medians, compares nothing
 npm run benchmark -- --filter cache        # one area
+SDE_BENCH_TYPES=5000 npm run benchmark -- --filter sde/   # the SDE tasks on a smaller set
+npm run soak -- --sde                      # SDE soak on the generated set; --dir sde-data for a real export
 git worktree add --detach ../base origin/master
 npm run bench:ab -- --base ../base --head . --rounds 8
 npm run bench:compare                      # exit 1 on a regression
@@ -71,7 +79,8 @@ numbers.
 
 - **Adding a task:** add it to `tasks.ts` with a stable `<area>/<what>` name.
   Build state in `setup`, return only the operation in `fn`, and tear down
-  timers. Import from `../../src` by relative path: `bench-ab.ts` copies this
+  timers. A task whose one operation takes long (the SDE load) sets
+  `minSamples` below the default 30 so a process does not spend minutes on it. Import from `../../src` by relative path: `bench-ab.ts` copies this
   directory into the base tree and bundles it there.
 - **Renaming a task** breaks its series in the `bench-data` history. Both
   sides of a comparison run the head's harness, so the comparison itself is

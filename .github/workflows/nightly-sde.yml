@@ -10,6 +10,11 @@ name: Nightly SDE Real Data
 #   rather than skips), runs `sde:drift` (the export's file list against
 #   SDE_FILE_REGISTRY and each file's keys against the table's Zod schema),
 #   then the four `@nightly sde` examples through `examples:nightly --tier sde`.
+# performance (Run 10): restores the same archive and runs the `sde/`
+#   benchmark tasks (load, lookups, cold and warm foreign-key lists, name
+#   searches) and the SDE heap soak (load, 100 000 lookups, close, three
+#   times; the heap must return to its baseline) against the real export,
+#   publishing both tables to the step summary.
 # report: keeps one open issue with a fixed title while the run fails or the
 #   export drifts, and closes it after the next green night, the pattern
 #   nightly-spec-drift.yml uses. Only scheduled runs touch the issue.
@@ -40,6 +45,9 @@ jobs:
     outputs:
       build: ${{ steps.build.outputs.build }}
       drift: ${{ steps.drift.outputs.drift }}
+      # True when the archive under the build's cache key is the one this
+      # job tested: restored from the cache, or downloaded and verified.
+      cached: ${{ steps.cache.outputs.cache-hit == 'true' || steps.verify.outputs.verified == 'true' }}
 
     steps:
       - name: Checkout code
@@ -143,10 +151,78 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
+  performance:
+    name: SDE benchmarks and heap soak on the real export
+    runs-on: ubuntu-latest
+    needs: real-data
+    # Only the archive the real-data job tested is measured. When the build
+    # changed between the feed and the archive requests nothing was cached
+    # under the build's key, so this job skips and the report says so.
+    if: needs.real-data.result == 'success' && needs.real-data.outputs.cached == 'true'
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The real-data job restored or saved the archive under this key
+      # before this job started, so a miss means the cache was evicted in
+      # between: fail rather than measure a different build than the one it
+      # tested.
+      - name: Restore the export from the cache
+        id: cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: sde-latest.zip
+          key: sde-zip-${{ needs.real-data.outputs.build }}
+          fail-on-cache-miss: true
+
+      - name: Extract the export
+        run: npm run sde:ingest -- --from-zip sde-latest.zip --output sde-data
+
+      # The sde/ tasks (tests/benchmark/sde.bench.ts) against the real
+      # export: load time, lookups by ID, a cold and a warm foreign-key
+      # list, and two name searches. Two rounds, medians in the summary.
+      - name: SDE benchmarks
+        env:
+          SDE_BENCH_DIR: sde-data
+          BUILD: ${{ needs.real-data.outputs.build }}
+        # pipefail: the benchmark's own exit status fails the step through tee.
+        run: |
+          set -o pipefail
+          printf '## SDE benchmarks, build %s\n\n' "$BUILD" >> "$GITHUB_STEP_SUMMARY"
+          npm run --silent benchmark -- --filter sde/ --rounds 2 --min-cpu-ms 300 --out reports/sde-bench | tee -a "$GITHUB_STEP_SUMMARY"
+          echo >> "$GITHUB_STEP_SUMMARY"
+
+      - name: SDE heap soak
+        run: npm run soak -- --sde --dir sde-data --out reports/sde-soak
+
+      - name: Upload the measurements
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: sde-performance
+          path: |
+            reports/sde-bench/
+            reports/sde-soak/
+          if-no-files-found: ignore
+          retention-days: 90
+
   report:
     name: Open or close the tracking issue
     runs-on: ubuntu-latest
-    needs: real-data
+    needs: [real-data, performance]
     if: always() && github.event_name == 'schedule'
     permissions:
       issues: write # open, comment on and close the nightly SDE issue
@@ -157,6 +233,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           RESULT: ${{ needs.real-data.result }}
+          PERF_RESULT: ${{ needs.performance.result }}
           DRIFT: ${{ needs.real-data.outputs.drift }}
           BUILD: ${{ needs.real-data.outputs.build }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -164,7 +241,10 @@ jobs:
           TITLE="sde: nightly real-data run failed or the export drifted"
           ISSUE=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number,title \
             --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")
-          if [ "$RESULT" = "success" ] && [ "$DRIFT" != "true" ]; then
+          # A skipped performance job is a build that changed between the feed
+          # and the archive requests (see the real-data job): nothing failed,
+          # the next night measures it.
+          if [ "$RESULT" = "success" ] && { [ "$PERF_RESULT" = "success" ] || [ "$PERF_RESULT" = "skipped" ]; } && [ "$DRIFT" != "true" ]; then
             if [ -n "$ISSUE" ]; then
               gh issue close "$ISSUE" --comment "Green again against build ${BUILD:-unknown} in $RUN_URL. Closing."
             fi
@@ -172,6 +252,8 @@ jobs:
           fi
           if [ "$DRIFT" = "true" ]; then
             WHAT="The export (build ${BUILD:-unknown}) drifted from \`SDE_FILE_REGISTRY\` or the Zod schemas"
+          elif [ "$RESULT" = "success" ]; then
+            WHAT="The SDE benchmarks or heap soak ended with \`$PERF_RESULT\` against build ${BUILD:-unknown}"
           else
             WHAT="The nightly SDE run ended with \`$RESULT\` against build ${BUILD:-unknown}"
           fi
@@ -181,6 +263,7 @@ jobs:
           - The step summary names each unknown file, missing file, new key and gone key; the \`sde-drift-report\` artifact carries the JSON.
           - A new file wants an entry in \`SDE_FILE_REGISTRY\`, a type, a schema and a Rule; a new key wants the type and schema updated; a gone key wants the schema and the Rule that promised it revisited.
           - A failed test names the record; a failed example prints its output in the job log.
+          - A failed soak names the cycle whose heap stayed above the baseline after \`close()\`; the \`sde-performance\` artifact carries the benchmark medians and the soak samples. Reproduce with \`SDE_BENCH_DIR=sde-data npm run benchmark -- --filter sde/\` and \`npm run soak -- --sde --dir sde-data\`.
           - Reproduce locally: \`npm run sde:ingest\`, then \`SDE_REQUIRE_DATA=1 npx jest --config config/jest/integration.config.cjs tests/integration/sde\`, \`npm run sde:drift\` and \`npm run examples:nightly -- --tier sde\`.
           EOF
           )

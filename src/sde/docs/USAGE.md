@@ -46,7 +46,7 @@ import { SdeDataProvider } from '@lgriffin/esi.ts/sde';
 const sde = SdeDataProvider.fromDirectory('./sde-data');
 ```
 
-Reads all 102 YAML files from the directory. Takes 30-90 seconds depending on hardware, loading ~500K records into memory.
+Reads all 102 YAML files from the directory. Load time and memory for the current export are measured every night by `nightly-sde.yml` (see its step summary); `npm run soak -- --sde --dir <export>` measures them for an export on disk.
 
 ### From a ZIP archive
 

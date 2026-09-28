@@ -1,6 +1,7 @@
 /**
  * npm run soak -- [--requests 100000] [--out reports/soak]
  *                 [--inject-leak --expect-fail]
+ * npm run soak -- --sde [--dir sde-data] [--cycles 3] [--lookups 100000]
  *
  * Runs the heap soak (tests/benchmark/soak.ts) and fails on a leak, a cache
  * above its bound, or timers and listeners left behind. `npm run soak` runs
@@ -15,6 +16,12 @@
  * --inject-leak adds the leaky response interceptor. With --expect-fail the
  * exit code inverts: the run passes only if the analysis flags the leak,
  * which is how the nightly proves the soak can still fail.
+ *
+ * --sde runs the SDE scenario instead (tests/benchmark/sde-soak.ts): load
+ * the export in --dir (else SDE_DATA_PATH, else a generated set of
+ * SDE_BENCH_TYPES types), answer the lookups, close, repeat, and fail when
+ * the heap does not return to its baseline. The nightly SDE run points it at
+ * the real export and publishes the table.
  */
 import { appendFileSync, mkdirSync, writeFileSync } from 'fs';
 import * as path from 'path';
@@ -23,7 +30,14 @@ import {
   leakyInterceptor,
   runSoak,
 } from '../../tests/benchmark/soak';
-import { analyseSoak, renderSoakMarkdown } from './soak-core';
+import { sdeBenchData } from '../../tests/benchmark/sde.bench';
+import { SDE_SOAK_DEFAULTS, runSdeSoak } from '../../tests/benchmark/sde-soak';
+import {
+  analyseSdeSoak,
+  analyseSoak,
+  renderSdeSoakMarkdown,
+  renderSoakMarkdown,
+} from './soak-core';
 
 function arg(name: string): string | undefined {
   const index = process.argv.indexOf(`--${name}`);
@@ -39,6 +53,10 @@ async function main(): Promise<void> {
   const injectLeak = process.argv.includes('--inject-leak');
   const expectFail = process.argv.includes('--expect-fail');
   const out = arg('out') ?? path.join('reports', 'soak');
+  if (process.argv.includes('--sde')) {
+    await sdeSoak(gc, out);
+    return;
+  }
   const requests = Number(arg('requests') ?? SOAK_DEFAULTS.requests);
 
   const run = await runSoak({
@@ -75,6 +93,29 @@ async function main(): Promise<void> {
     }
     console.log('The injected leak was flagged, as expected.');
     return;
+  }
+  if (!verdict.passed) process.exit(1);
+}
+
+async function sdeSoak(gc: () => void, out: string): Promise<void> {
+  const dir = arg('dir') ?? process.env.SDE_DATA_PATH ?? sdeBenchData().dir;
+  const run = await runSdeSoak({
+    dir,
+    cycles: Number(arg('cycles') ?? SDE_SOAK_DEFAULTS.cycles),
+    lookups: Number(arg('lookups') ?? SDE_SOAK_DEFAULTS.lookups),
+    gc,
+  });
+  const verdict = analyseSdeSoak(run);
+  const markdown = renderSdeSoakMarkdown(run, verdict);
+
+  console.log(markdown);
+  mkdirSync(out, { recursive: true });
+  writeFileSync(
+    path.join(out, 'sde-soak.json'),
+    `${JSON.stringify({ run, verdict }, null, 2)}\n`,
+  );
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${markdown}\n`);
   }
   if (!verdict.passed) process.exit(1);
 }

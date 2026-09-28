@@ -209,7 +209,7 @@ The original design used better-sqlite3 to import SDE YAML into an SQLite databa
 - **Simpler dependency tree**: No native binary dependency (better-sqlite3 requires node-gyp)
 - **No build/import step**: No separate database build required before querying
 - **Native JS types**: Objects, arrays, booleans stay as-is instead of being serialized to JSON text columns
-- **Acceptable performance**: Full SDE (~500K records) loads in ~60 seconds and fits comfortably in memory (~200MB)
+- **Measured performance**: load time and memory are benchmarked (`tests/benchmark/sde.bench.ts`, `npm run soak -- --sde`) and published nightly against CCP's current export by `nightly-sde.yml`; the figures in the step summary are the ones to quote
 - **Nested structures preserved**: Stargate `destination`, star `statistics`, blueprint `activities` remain native objects
 
 ### `z.looseObject()` for All Schemas

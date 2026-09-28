@@ -1006,9 +1006,9 @@ jobs:
       - name: Check whether this pull request touches the hot paths
         id: hot
         run: |
-          if git diff --quiet HEAD^1 HEAD -- src/core/ src/schemas/ tests/benchmark/ scripts/bench/bench-ab.ts scripts/bench/bench-compare.ts scripts/bench/bench-compare-core.ts package-lock.json; then
+          if git diff --quiet HEAD^1 HEAD -- src/core/ src/schemas/ src/sde/ tests/benchmark/ scripts/bench/bench-ab.ts scripts/bench/bench-compare.ts scripts/bench/bench-compare-core.ts package-lock.json; then
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Benchmarks not run: nothing under src/core/, src/schemas/, tests/benchmark/, the bench scripts or package-lock.json changed." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "Benchmarks not run: nothing under src/core/, src/schemas/, src/sde/, tests/benchmark/, the bench scripts or package-lock.json changed." | tee -a "$GITHUB_STEP_SUMMARY"
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
