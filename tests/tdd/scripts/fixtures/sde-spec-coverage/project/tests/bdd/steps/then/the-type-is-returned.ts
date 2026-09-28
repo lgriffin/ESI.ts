@@ -1,5 +1,5 @@
 import { Then } from '../../support/steps';
 
 Then('the type is returned', function () {
-  expect(this.result).toBeDefined();
+  if (this.result === undefined) throw new Error('no type');
 });

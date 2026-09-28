@@ -3,6 +3,8 @@ Feature: Alpha
     Scenario: named in the rule only
       Given a provider
       Then the categories are not asserted
+      And an unrelated object is closed
+      And the version is not read
 
   Rule: When a type is looked up, the provider shall return it.
     Scenario: direct call

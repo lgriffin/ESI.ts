@@ -5,15 +5,17 @@
  * of tests/bdd/features/sde reach it, and the uncovered methods grouped by
  * entity family. See sde-spec-coverage-core.ts for what counts as coverage.
  *
- * Report mode exits 0 unless the check is broken (exit 2). --ci also fails
- * (exit 1) on an uncovered method missing from
- * scripts/sde/sde-spec-coverage-baseline.json, on a baseline entry that is now
- * covered or no longer a method, and on an entry absent from the base branch's
- * copy. The base is SDE_SPEC_COVERAGE_BASE_REF, then origin/master, then
- * master; with none available every entry counts as added.
+ * Exit 2 means the check itself is broken. When
+ * scripts/sde/sde-spec-coverage-baseline.json exists, the report also fails
+ * (exit 1) on an uncovered method it does not list under its family and on an
+ * entry that is now covered, no longer a method or under the wrong family,
+ * which needs no git history, so `check:local` runs it. --ci also fails on a
+ * method absent from the base branch's copy: SDE_SPEC_COVERAGE_BASE_REF, then
+ * origin/master, then master; with none available every entry counts as
+ * added.
  *
- * --write-baseline rewrites the baseline from today's result; the ratchet
- * still rejects any entry it adds.
+ * --write-baseline rewrites the baseline from today's result; --ci still
+ * rejects any method it adds.
  */
 import {
   appendFileSync,
@@ -26,6 +28,7 @@ import * as path from 'path';
 
 import {
   BASELINE_FILE,
+  type BaseBaseline,
   EXIT_INTEGRITY,
   EXIT_RATCHET,
   analyseCoverage,
@@ -63,26 +66,29 @@ function main(): number {
     writeFileSync(baselinePath, serializeBaseline(report));
     console.log(`\nBaseline written to ${BASELINE_FILE}.`);
   }
-  if (!ci) return 0;
+  if (!ci && !existsSync(baselinePath)) return 0;
 
   const baseline = existsSync(baselinePath)
     ? parseBaseline(readFileSync(baselinePath, 'utf-8'))
     : {};
   const hasEntries = Object.values(baseline).some((names) => names.length > 0);
-  const base = hasEntries
-    ? loadBaseBaseline(
-        root,
-        [
-          process.env.SDE_SPEC_COVERAGE_BASE_REF,
-          'origin/master',
-          'master',
-        ].filter((ref): ref is string => Boolean(ref)),
-      )
-    : { ref: null, baseline: {} };
-  if (hasEntries && base.ref !== null && base.baseline === null) {
-    console.log(
-      `\n${base.ref} has no ${BASELINE_FILE} yet; additions are not checked until it does.`,
-    );
+  let base: BaseBaseline | null = null;
+  if (ci) {
+    base = hasEntries
+      ? loadBaseBaseline(
+          root,
+          [
+            process.env.SDE_SPEC_COVERAGE_BASE_REF,
+            'origin/master',
+            'master',
+          ].filter((ref): ref is string => Boolean(ref)),
+        )
+      : { ref: null, baseline: {} };
+    if (hasEntries && base.ref !== null && base.baseline === null) {
+      console.log(
+        `\n${base.ref} has no ${BASELINE_FILE} yet; additions are not checked until it does.`,
+      );
+    }
   }
 
   const problems = ratchetProblems(applyBaseline(report, baseline, base));

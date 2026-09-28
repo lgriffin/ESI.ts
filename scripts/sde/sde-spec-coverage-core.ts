@@ -6,20 +6,24 @@
  * `IStaticDataProvider`: for each of its methods, how many `Rule:` blocks and
  * scenarios under `tests/bdd/features/sde/` reach it?
  *
- * A method counts as covered when a Rule's text names it, or when a step the
- * scenario binds calls it on the provider: `provider.getType(id)` in the step
- * file itself, or in a `tests/bdd/support/` function the step file calls.
- * Everything is read statically, with the TypeScript parser and the same step
- * resolution the runner uses, so the script runs without Jest.
+ * A method counts as covered when a Rule's text names it, or when the step
+ * function a scenario binds calls it on the provider: `provider.getType(id)`
+ * in the function itself, or in a `tests/bdd` function it calls, however deep.
+ * The TypeScript type checker decides what a call's receiver is, so a
+ * same-named method on another object, or on a value typed `any`, does not
+ * count, and it resolves each callee to its declaration, so a helper beside
+ * the caller and one in another module are followed alike. Steps resolve the
+ * way the runner resolves them, so the script runs without Jest.
  *
  * The uncovered list is grouped by the entity families the interface declares
  * with its `// --- Family ---` comments, in the interface's order, which is the
  * order of the API Reference in `src/sde/README.md`. That list is the input to
  * Track S Runs 5 and 6, and `scripts/sde/sde-spec-coverage-baseline.json`
  * holds it as a shrink-only ratchet (the `export-coverage-baseline.json`
- * pattern): CI fails on an uncovered method the baseline does not list, on a
- * baseline entry that is now covered or no longer a method, and on an entry
- * absent from the base branch's copy.
+ * pattern): the report fails on an uncovered method the baseline does not
+ * list under its family and on an entry that is now covered, no longer a
+ * method or under the wrong family; `--ci` also fails on a method absent from
+ * the base branch's copy.
  */
 import { execFileSync } from 'child_process';
 import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
@@ -119,194 +123,208 @@ export function familyOrder(methods: readonly ProviderMethod[]): string[] {
 }
 
 // ---------------------------------------------------------------------------
-// Method references in test code
+// Step files, read with the type checker
 // ---------------------------------------------------------------------------
 
-/**
- * Names of `<expr>.<method>(...)` calls in a node, filtered to the given set.
- */
-function calledMethods(node: ts.Node, methods: ReadonlySet<string>): string[] {
-  const found: string[] = [];
-  const visit = (n: ts.Node): void => {
-    if (
-      ts.isCallExpression(n) &&
-      ts.isPropertyAccessExpression(n.expression) &&
-      methods.has(n.expression.name.text)
-    ) {
-      found.push(n.expression.name.text);
-    }
-    ts.forEachChild(n, visit);
-  };
-  visit(node);
-  return found;
+/** The options the checker resolves the step files under; mirrors tsconfig. */
+const COMPILER_OPTIONS: ts.CompilerOptions = {
+  target: ts.ScriptTarget.ES2022,
+  module: ts.ModuleKind.CommonJS,
+  moduleResolution: ts.ModuleResolutionKind.Bundler,
+  strict: true,
+  skipLibCheck: true,
+  noEmit: true,
+  types: [],
+};
+
+interface StepPattern {
+  file: string;
+  regexp: RegExp;
+  /** The function registered for the pattern; null when it is not inline. */
+  callback: ts.Node | null;
 }
 
-/** Names of `<identifier>(...)` calls in a node. */
-function calledFunctions(node: ts.Node): Set<string> {
-  const found = new Set<string>();
-  const visit = (n: ts.Node): void => {
-    if (ts.isCallExpression(n) && ts.isIdentifier(n.expression)) {
-      found.add(n.expression.text);
-    }
-    ts.forEachChild(n, visit);
-  };
-  visit(node);
-  return found;
-}
+const KEYWORDS = new Set(['Given', 'When', 'Then']);
 
-/** Relative imports of a file, resolved to absolute `.ts` paths that exist. */
-function relativeImports(source: ts.SourceFile): string[] {
-  const files: string[] = [];
-  for (const statement of source.statements) {
-    if (
-      !ts.isImportDeclaration(statement) ||
-      !ts.isStringLiteral(statement.moduleSpecifier)
-    ) {
-      continue;
-    }
-    const specifier = statement.moduleSpecifier.text;
-    if (!specifier.startsWith('.')) continue;
-    const base = path.resolve(path.dirname(source.fileName), specifier);
-    for (const candidate of [`${base}.ts`, path.join(base, 'index.ts')]) {
-      if (existsSync(candidate)) {
-        files.push(candidate);
-        break;
-      }
-    }
+/** A function-like node's body, whatever form the declaration takes. */
+function bodyOf(node: ts.Node): ts.Node | null {
+  if (
+    (ts.isFunctionDeclaration(node) ||
+      ts.isFunctionExpression(node) ||
+      ts.isArrowFunction(node) ||
+      ts.isMethodDeclaration(node)) &&
+    node.body
+  ) {
+    return node.body;
   }
-  return files;
-}
-
-/**
- * The provider methods each top-level function of a module calls, by function
- * name, following the module's own relative imports one level at a time.
- */
-class SupportIndex {
-  private readonly cache = new Map<string, Map<string, Set<string>>>();
-
-  constructor(private readonly methods: ReadonlySet<string>) {}
-
-  functionsOf(file: string): Map<string, Set<string>> {
-    const cached = this.cache.get(file);
-    if (cached) return cached;
-    const byFunction = new Map<string, Set<string>>();
-    this.cache.set(file, byFunction); // Set first, so an import cycle terminates.
-
-    const source = parse(file);
-    const imported = relativeImports(source);
-    for (const statement of source.statements) {
-      const fn = topLevelFunction(statement);
-      if (!fn) continue;
-      const methods = new Set(calledMethods(fn.body, this.methods));
-      for (const callee of calledFunctions(fn.body)) {
-        for (const dependency of imported) {
-          for (const m of this.functionsOf(dependency).get(callee) ?? []) {
-            methods.add(m);
-          }
-        }
-      }
-      byFunction.set(fn.name, methods);
-    }
-    return byFunction;
-  }
-}
-
-function topLevelFunction(
-  statement: ts.Statement,
-): { name: string; body: ts.Node } | null {
-  if (ts.isFunctionDeclaration(statement) && statement.name && statement.body) {
-    return { name: statement.name.text, body: statement.body };
-  }
-  if (ts.isVariableStatement(statement)) {
-    for (const declaration of statement.declarationList.declarations) {
-      if (
-        ts.isIdentifier(declaration.name) &&
-        declaration.initializer &&
-        (ts.isArrowFunction(declaration.initializer) ||
-          ts.isFunctionExpression(declaration.initializer))
-      ) {
-        return { name: declaration.name.text, body: declaration.initializer };
-      }
-    }
+  if (
+    ts.isVariableDeclaration(node) &&
+    node.initializer &&
+    (ts.isArrowFunction(node.initializer) ||
+      ts.isFunctionExpression(node.initializer))
+  ) {
+    return node.initializer.body;
   }
   return null;
 }
 
 /**
- * The provider methods a step file reaches: the ones it calls itself, plus
- * the ones reached through the support functions it calls.
+ * The step files of a root, loaded once into a TypeScript program so the
+ * checker can say what a call's receiver is and where a callee is declared.
+ * Only files under `tests/bdd` are followed: a call into `src/` is the
+ * provider being used, not specified.
  */
-function methodsReachedBy(
-  stepFile: string,
-  methods: ReadonlySet<string>,
-  support: SupportIndex,
-): Set<string> {
-  const source = parse(stepFile);
-  const reached = new Set(calledMethods(source, methods));
-  const imported = relativeImports(source);
-  for (const callee of calledFunctions(source)) {
-    for (const dependency of imported) {
-      for (const m of support.functionsOf(dependency).get(callee) ?? []) {
-        reached.add(m);
-      }
-    }
+class StepProject {
+  readonly program: ts.Program;
+  readonly checker: ts.TypeChecker;
+  private readonly providerType: ts.Type | null;
+  private readonly testsDir: string;
+  private readonly reachedByBody = new Map<ts.Node, Set<string>>();
+
+  constructor(
+    readonly root: string,
+    private readonly methods: ReadonlySet<string>,
+  ) {
+    const stepFiles = walk(path.join(root, STEPS_DIR), (n) =>
+      n.endsWith('.ts'),
+    );
+    const providerFile = path.join(root, PROVIDER_FILE);
+    this.program = ts.createProgram(
+      [...stepFiles, providerFile],
+      COMPILER_OPTIONS,
+    );
+    this.checker = this.program.getTypeChecker();
+    this.testsDir = toPosix(path.join(root, 'tests', 'bdd')) + '/';
+
+    const iface = this.program
+      .getSourceFile(providerFile)
+      ?.statements.find(
+        (s): s is ts.InterfaceDeclaration =>
+          ts.isInterfaceDeclaration(s) && s.name.text === PROVIDER_INTERFACE,
+      );
+    this.providerType = iface
+      ? this.checker.getTypeAtLocation(iface.name)
+      : null;
   }
-  return reached;
-}
 
-// ---------------------------------------------------------------------------
-// Step resolution
-// ---------------------------------------------------------------------------
+  /** The patterns every step file registers, compiled the way the runner does. */
+  stepPatterns(): StepPattern[] {
+    const patterns: StepPattern[] = [];
+    for (const source of this.program.getSourceFiles()) {
+      const file = path.normalize(source.fileName);
+      if (!toPosix(file).startsWith(this.testsDir)) continue;
+      const visit = (node: ts.Node): void => {
+        if (
+          ts.isCallExpression(node) &&
+          ts.isIdentifier(node.expression) &&
+          KEYWORDS.has(node.expression.text)
+        ) {
+          const [pattern, callback] = node.arguments;
+          const fn =
+            callback &&
+            (ts.isArrowFunction(callback) || ts.isFunctionExpression(callback))
+              ? callback
+              : null;
+          if (pattern && ts.isStringLiteralLike(pattern)) {
+            patterns.push({
+              file,
+              regexp: compileExpression(pattern.text).regexp,
+              callback: fn,
+            });
+          } else if (pattern && ts.isRegularExpressionLiteral(pattern)) {
+            const text = pattern.text;
+            const close = text.lastIndexOf('/');
+            patterns.push({
+              file,
+              regexp: new RegExp(text.slice(1, close), text.slice(close + 1)),
+              callback: fn,
+            });
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(source);
+    }
+    return patterns;
+  }
 
-interface StepPattern {
-  file: string;
-  regexp: RegExp;
-}
+  /**
+   * The provider methods a step's callback reaches: `<provider>.method(...)`
+   * where the checker types the receiver as the provider (never `any`), in
+   * the callback itself or in any `tests/bdd` function it calls, however the
+   * call chain runs between modules or within one.
+   */
+  methodsReachedBy(callback: ts.Node): Set<string> {
+    const body = bodyOf(callback);
+    return body ? this.reachedIn(body) : new Set();
+  }
 
-const KEYWORDS = new Set(['Given', 'When', 'Then']);
+  private reachedIn(body: ts.Node): Set<string> {
+    const cached = this.reachedByBody.get(body);
+    if (cached) return cached;
+    const reached = new Set<string>();
+    this.reachedByBody.set(body, reached); // Set first, so recursion terminates.
 
-/** The one pattern each step file registers, compiled the way the runner does. */
-export function readStepPatterns(root: string): StepPattern[] {
-  const patterns: StepPattern[] = [];
-  for (const file of walk(path.join(root, STEPS_DIR), (n) =>
-    n.endsWith('.ts'),
-  )) {
-    const source = parse(file);
-    const visit = (node: ts.Node): void => {
-      if (
-        ts.isCallExpression(node) &&
-        ts.isIdentifier(node.expression) &&
-        KEYWORDS.has(node.expression.text)
-      ) {
-        const pattern = node.arguments[0];
-        if (pattern && ts.isStringLiteralLike(pattern)) {
-          patterns.push({
-            file,
-            regexp: compileExpression(pattern.text).regexp,
-          });
-        } else if (pattern && ts.isRegularExpressionLiteral(pattern)) {
-          const text = pattern.text;
-          const close = text.lastIndexOf('/');
-          patterns.push({
-            file,
-            regexp: new RegExp(text.slice(1, close), text.slice(close + 1)),
-          });
+    const visit = (n: ts.Node): void => {
+      if (ts.isCallExpression(n)) {
+        const callee = n.expression;
+        if (
+          ts.isPropertyAccessExpression(callee) &&
+          this.methods.has(callee.name.text) &&
+          this.isProvider(this.checker.getTypeAtLocation(callee.expression))
+        ) {
+          reached.add(callee.name.text);
+        }
+        for (const calleeBody of this.bodiesOf(callee)) {
+          for (const m of this.reachedIn(calleeBody)) reached.add(m);
         }
       }
-      ts.forEachChild(node, visit);
+      ts.forEachChild(n, visit);
     };
-    visit(source);
+    visit(body);
+    return reached;
   }
-  return patterns;
+
+  private isProvider(type: ts.Type): boolean {
+    if (!this.providerType) return false;
+    if (type.isUnion()) return type.types.some((t) => this.isProvider(t));
+    if (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) return false;
+    return this.checker.isTypeAssignableTo(type, this.providerType);
+  }
+
+  /** The bodies of the `tests/bdd` functions a callee expression names. */
+  private bodiesOf(callee: ts.Expression): ts.Node[] {
+    const name = ts.isPropertyAccessExpression(callee) ? callee.name : callee;
+    if (!ts.isIdentifier(name)) return [];
+    let symbol = this.checker.getSymbolAtLocation(name);
+    if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
+      symbol = this.checker.getAliasedSymbol(symbol);
+    }
+    const bodies: ts.Node[] = [];
+    for (const declaration of symbol?.declarations ?? []) {
+      const file = toPosix(
+        path.normalize(declaration.getSourceFile().fileName),
+      );
+      if (!file.startsWith(this.testsDir)) continue;
+      const body = bodyOf(declaration);
+      if (body) bodies.push(body);
+    }
+    return bodies;
+  }
 }
 
-/** The single step file a step text resolves to, or null (none or several). */
-function stepFileFor(
+/** The patterns the step files register; see StepProject.stepPatterns. */
+export function readStepPatterns(root: string): StepPattern[] {
+  return new StepProject(root, new Set()).stepPatterns();
+}
+
+/** The single step a step text resolves to, or null (none or several). */
+function stepFor(
   text: string,
   patterns: readonly StepPattern[],
-): string | null {
+): StepPattern | null {
   const matches = patterns.filter((p) => p.regexp.test(text));
-  return matches.length === 1 ? matches[0]!.file : null;
+  return matches.length === 1 ? matches[0]! : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -332,14 +350,16 @@ export interface CoverageReport {
 export function analyseCoverage(root: string): CoverageReport {
   const provider = readProviderMethods(root);
   const names = new Set(provider.map((m) => m.name));
-  const patterns = readStepPatterns(root);
-  const support = new SupportIndex(names);
-  const reachedByStepFile = new Map<string, Set<string>>();
-  const reached = (file: string): Set<string> => {
-    let set = reachedByStepFile.get(file);
+  const project = new StepProject(root, names);
+  const patterns = project.stepPatterns();
+  const reachedByStep = new Map<StepPattern, Set<string>>();
+  const reached = (step: StepPattern): Set<string> => {
+    let set = reachedByStep.get(step);
     if (!set) {
-      set = methodsReachedBy(file, names, support);
-      reachedByStepFile.set(file, set);
+      set = step.callback
+        ? project.methodsReachedBy(step.callback)
+        : new Set<string>();
+      reachedByStep.set(step, set);
     }
     return set;
   };
@@ -368,12 +388,12 @@ export function analyseCoverage(root: string): CoverageReport {
         scenarioCount += 1;
         const inScenario = new Set<string>();
         for (const step of scenario.steps) {
-          const file = stepFileFor(step.stepText, patterns);
-          if (!file) {
+          const bound = stepFor(step.stepText, patterns);
+          if (!bound) {
             unresolvedSteps.push(`${rel}:${step.lineNumber} ${step.stepText}`);
             continue;
           }
-          for (const m of reached(file)) inScenario.add(m);
+          for (const m of reached(bound)) inScenario.add(m);
         }
         for (const m of inScenario) {
           scenariosByMethod.set(m, (scenariosByMethod.get(m) ?? 0) + 1);
@@ -541,33 +561,51 @@ export function loadBaseBaseline(root: string, refs: string[]): BaseBaseline {
 }
 
 export interface RatchetResult {
-  /** Uncovered methods the baseline does not list: write a Rule. */
+  /** Uncovered methods the baseline does not list under their family: write a Rule. */
   unlisted: string[];
-  /** Baseline entries now covered or no longer a method: remove them. */
+  /** Entries now covered, no longer a method, or under the wrong family: remove them. */
   stale: string[];
-  /** Baseline entries absent from the base ref's copy: the list grew. */
+  /** Methods absent from the base ref's copy: the list grew. */
   added: string[];
   baseRefMissing: boolean;
 }
 
-const flatten = (baseline: CoverageBaseline): Set<string> =>
+/** `Family: method` keys, so a method under the wrong family does not pass. */
+const familyKeys = (baseline: CoverageBaseline): Set<string> =>
+  new Set(
+    Object.entries(baseline).flatMap(([family, names]) =>
+      names.map((n) => `${family}: ${n}`),
+    ),
+  );
+
+const methodNames = (baseline: CoverageBaseline): Set<string> =>
   new Set(Object.values(baseline).flat());
 
+/**
+ * The working tree against its committed baseline, family by family, and,
+ * when `base` is given, the baseline against the base branch's copy by method
+ * name (a method may move family without counting as an addition).
+ */
 export function applyBaseline(
   report: CoverageReport,
   baseline: CoverageBaseline,
-  base: BaseBaseline,
+  base: BaseBaseline | null,
 ): RatchetResult {
-  const listed = flatten(baseline);
-  const uncovered = flatten(uncoveredByFamily(report));
-  const unlisted = [...uncovered].filter((m) => !listed.has(m));
-  const stale = [...listed].filter((m) => !uncovered.has(m));
+  const listed = familyKeys(baseline);
+  const uncovered = familyKeys(uncoveredByFamily(report));
+  const unlisted = [...uncovered].filter((k) => !listed.has(k));
+  const stale = [...listed].filter((k) => !uncovered.has(k));
   const added: string[] = [];
-  if (base.ref === null || base.baseline !== null) {
-    const before = flatten(base.baseline ?? {});
-    added.push(...[...listed].filter((m) => !before.has(m)));
+  if (base && (base.ref === null || base.baseline !== null)) {
+    const before = methodNames(base.baseline ?? {});
+    added.push(...[...methodNames(baseline)].filter((m) => !before.has(m)));
   }
-  return { unlisted, stale, added, baseRefMissing: base.ref === null };
+  return {
+    unlisted,
+    stale,
+    added,
+    baseRefMissing: base !== null && base.ref === null,
+  };
 }
 
 export function ratchetProblems(result: RatchetResult): string[] {
@@ -575,12 +613,12 @@ export function ratchetProblems(result: RatchetResult): string[] {
   if (result.unlisted.length > 0) {
     problems.push(
       `${result.unlisted.length} provider methods are named by no Rule and reached by no bound step, ` +
-        `and are not in the baseline: ${result.unlisted.join(', ')}. Write a Rule and scenario for each.`,
+        `and are not in the baseline under their family: ${result.unlisted.join(', ')}. Write a Rule and scenario for each.`,
     );
   }
   if (result.stale.length > 0) {
     problems.push(
-      `${result.stale.length} baseline entries are now covered or no longer a provider method: ` +
+      `${result.stale.length} baseline entries are now covered, no longer a provider method, or under the wrong family: ` +
         `${result.stale.join(', ')}. Remove them from ${BASELINE_FILE} to lock the improvement in.`,
     );
   }

@@ -1,3 +1,5 @@
-export function groupOf(provider: any): unknown {
+import type { IStaticDataProvider } from '../../../src/sde/IStaticDataProvider';
+
+export function groupOf(provider: IStaticDataProvider): unknown {
   return provider.getGroup(2);
 }

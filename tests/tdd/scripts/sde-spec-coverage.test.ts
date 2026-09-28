@@ -3,12 +3,15 @@
  * (scripts/sde/sde-spec-coverage.ts).
  *
  * The check claims a provider method is covered only when a Rule's text names
- * it or a step the scenario binds calls it, directly or through a support
- * function. The fixture project under fixtures/sde-spec-coverage/project
- * exercises each way that claim could go wrong: a name in a comment or a
- * string, a support function nobody calls, a call two support modules deep,
- * a Rule that names the method in prose. A second fixture has a step no file
- * defines, which the check must report as broken rather than as uncovered.
+ * it or the step function a scenario binds calls it on the provider, directly
+ * or through a support function. The fixture project under
+ * fixtures/sde-spec-coverage/project exercises each way that claim could go
+ * wrong: a name in a comment or a string, a support function nobody calls, a
+ * call two support modules deep and one through a helper beside its caller, a
+ * same-named method on another object or on `any`, a second step in the same
+ * file, a Rule that names the method in prose. A second fixture has a step no
+ * file defines, which the check must report as broken rather than as
+ * uncovered.
  * The last cases run the check over this repository, so the committed
  * baseline and the interface cannot drift apart unnoticed.
  */
@@ -93,6 +96,7 @@ describe('sde-spec-coverage: the provider interface', () => {
     expect(readProviderMethods(PROJECT)).toEqual([
       { name: 'getType', family: 'Types' },
       { name: 'getGroup', family: 'Types' },
+      { name: 'getCategory', family: 'Types' },
       { name: 'getAllCategories', family: 'Types' },
       { name: 'getVersion', family: 'Lifecycle' },
       { name: 'close', family: 'Lifecycle' },
@@ -134,6 +138,29 @@ describe('sde-spec-coverage: what counts as coverage', () => {
     });
   });
 
+  it('follows a support function into a helper declared beside it', () => {
+    // walkChain -> categoryOf (same module, not exported) -> provider.getCategory.
+    expect(byName(report, 'getCategory')).toMatchObject({
+      rules: 1,
+      scenarios: 1,
+    });
+  });
+
+  it('ignores a same-named method on another object, or on a value typed any', () => {
+    // "an unrelated object is closed" calls other.close(), other.getVersion()
+    // and (any).close(); none is the provider.
+    expect(byName(report, 'close')).toMatchObject({ rules: 0, scenarios: 0 });
+  });
+
+  it('credits only the step function that matched, not the rest of its file', () => {
+    // two-in-one-file.ts also registers "the version is read", which calls
+    // this.sde.getVersion(); no scenario uses that step.
+    expect(byName(report, 'getVersion')).toMatchObject({
+      rules: 0,
+      scenarios: 0,
+    });
+  });
+
   it('counts a Rule whose text names the method, with no scenario reaching it', () => {
     expect(byName(report, 'getAllCategories')).toMatchObject({
       rules: 1,
@@ -162,14 +189,14 @@ describe('sde-spec-coverage: what counts as coverage', () => {
     expect(rendered).toContain('Types\n-----');
     expect(rendered).toMatch(/getType\s+1\s+2/);
     expect(rendered).toContain(
-      '3 of 5 provider methods are named by a Rule or reached by a bound step',
+      '4 of 6 provider methods are named by a Rule or reached by a bound step',
     );
     expect(rendered).toContain('Lifecycle: getVersion, close');
   });
 
   it('reads string patterns as Cucumber Expressions and regular expressions as they are', () => {
     const patterns = readStepPatterns(PROJECT);
-    expect(patterns).toHaveLength(5);
+    expect(patterns).toHaveLength(8);
     const lookup = patterns.find((p) =>
       p.file.endsWith('the-type-int-is-looked-up.ts'),
     );
@@ -222,10 +249,32 @@ describe('sde-spec-coverage: the baseline ratchet', () => {
         baseline: { Lifecycle: ['close'] },
       },
     );
-    expect(result.unlisted).toEqual(['getVersion']);
+    expect(result.unlisted).toEqual(['Lifecycle: getVersion']);
     expect(ratchetProblems(result).join('\n')).toMatch(
-      /getVersion.*Write a Rule/,
+      /Lifecycle: getVersion.*Write a Rule/,
     );
+  });
+
+  it('fails on an entry under the wrong family, so the planning list stays true', () => {
+    const misplaced = { Types: ['getVersion'], Lifecycle: ['close'] };
+    const result = applyBaseline(report, misplaced, {
+      ref: 'origin/master',
+      baseline: misplaced,
+    });
+    expect(result.unlisted).toEqual(['Lifecycle: getVersion']);
+    expect(result.stale).toEqual(['Types: getVersion']);
+    expect(result.added).toEqual([]);
+    expect(ratchetProblems(result).join('\n')).toMatch(/wrong family/);
+  });
+
+  it('checks the working tree alone when no base is given, for local runs', () => {
+    const result = applyBaseline(report, measured, null);
+    expect(result).toEqual({
+      unlisted: [],
+      stale: [],
+      added: [],
+      baseRefMissing: false,
+    });
   });
 
   it('fails on a stale entry: a method now covered, or gone from the interface', () => {
@@ -240,7 +289,7 @@ describe('sde-spec-coverage: the baseline ratchet', () => {
         },
       },
     );
-    expect(result.stale).toEqual(['getType', 'getRemoved']);
+    expect(result.stale).toEqual(['Types: getType', 'Types: getRemoved']);
     expect(ratchetProblems(result).join('\n')).toMatch(
       /lock the improvement in/,
     );
@@ -287,16 +336,32 @@ describe('sde-spec-coverage: the command line', () => {
     rmSync(scratch, { recursive: true, force: true });
   });
 
-  it('reports and exits 0 without --ci', () => {
+  it('reports and exits 0 without --ci when there is no baseline yet', () => {
     const { status, output } = runCli(['--root', scratch]);
     expect(status).toBe(0);
-    expect(output).toContain('3 of 5 provider methods');
+    expect(output).toContain('4 of 6 provider methods');
   });
 
   it('exits 1 under --ci when the uncovered methods are not baselined', () => {
     const { status, output } = runCli(['--ci', '--root', scratch]);
     expect(status).toBe(1);
-    expect(output).toMatch(/getVersion, close.*Write a Rule/);
+    expect(output).toMatch(
+      /Lifecycle: getVersion, Lifecycle: close.*Write a Rule/,
+    );
+  });
+
+  it('checks a committed baseline against the working tree without git, so check:local can run it', () => {
+    expect(runCli(['--write-baseline', '--root', scratch]).status).toBe(0);
+    expect(runCli(['--root', scratch]).output).toContain(
+      'matches the baseline',
+    );
+    writeFileSync(
+      path.join(scratch, BASELINE_FILE),
+      JSON.stringify({ uncovered: { Lifecycle: ['close'] } }),
+    );
+    const stale = runCli(['--root', scratch]);
+    expect(stale.status).toBe(1);
+    expect(stale.output).toMatch(/Lifecycle: getVersion.*Write a Rule/);
   });
 
   it('exits 2 when a step resolves to no file', () => {
@@ -341,7 +406,7 @@ describe('sde-spec-coverage: the command line', () => {
     );
     const grown = runCli(['--ci', '--root', scratch]);
     expect(grown.status).toBe(1);
-    expect(grown.output).toMatch(/now covered or no longer/);
+    expect(grown.output).toMatch(/now covered, no longer a provider method/);
   });
 
   it('loadBaseBaseline distinguishes no ref, a ref without the file, and a ref with it', () => {
