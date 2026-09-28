@@ -23,6 +23,8 @@ import {
 import { EveTypeSchema } from '../../../src/sde/schemas';
 import type {
   Constellation,
+  DogmaAttributeCategory,
+  DogmaUnit,
   EveCategory,
   EveGroup,
   EveType,
@@ -55,6 +57,84 @@ export function openHierarchicalProvider(world: World): IStaticDataProvider {
   world.sde = new MemorySdeProvider(
     SdeTestDataFactory.createHierarchicalTestData(),
   );
+  return world.sde;
+}
+
+// ---------------------------------------------------------------------------
+// The extended data set (features 0008 to 0012)
+// ---------------------------------------------------------------------------
+
+/** Categories beside Material: one with a group but no types, one with no groups. */
+export const SHIP_CATEGORY = { categoryId: 6, name: 'Ship' };
+export const CELESTIAL_CATEGORY = { categoryId: 2, name: 'Celestial' };
+export const FRIGATE_GROUP = { groupId: 25, name: 'Frigate' };
+/** A second region with no constellations loaded. */
+export const DOMAIN = { regionId: 10000043, name: 'Domain' };
+/** A third Forge system, so a name search can match more than one. */
+export const MAURASI = { solarSystemId: 30000148, name: 'Maurasi' };
+export const ROOT_MARKET_GROUP = 1031;
+export const MINERALS_MARKET_GROUP = 1857;
+
+export const DOGMA_ATTRIBUTE_CATEGORIES: DogmaAttributeCategory[] = [
+  {
+    attributeCategoryId: 1,
+    name: 'Fitting',
+    description: 'Fitting capabilities of a ship',
+  },
+  {
+    attributeCategoryId: 2,
+    name: 'Shield',
+    description: 'Shield attributes of a ship',
+  },
+];
+export const DOGMA_UNITS: DogmaUnit[] = [
+  { unitId: 1, name: 'Length', displayName: 'm', description: 'Meter' },
+  { unitId: 3, name: 'Time', displayName: 's', description: 'Second' },
+];
+export const HI_SLOT_EFFECT = { effectId: 12, name: 'hiSlotModifier' };
+
+/**
+ * The hierarchical data set plus the records the classification, geography,
+ * market and dogma features need: a second and third category, an empty
+ * group, an empty region, a third system, two dogma attribute categories,
+ * two units and a second effect.
+ */
+export function openExtendedProvider(world: World): IStaticDataProvider {
+  const data = SdeTestDataFactory.createHierarchicalTestData();
+  const solarSystems = [
+    ...(data.solarSystems ?? []),
+    SdeTestDataFactory.createSolarSystem({
+      systemId: MAURASI.solarSystemId,
+      name: MAURASI.name,
+      planetIDs: [],
+    }),
+  ];
+  world.sde = new MemorySdeProvider({
+    ...data,
+    categories: [
+      ...(data.categories ?? []),
+      SdeTestDataFactory.createEveCategory(SHIP_CATEGORY),
+      SdeTestDataFactory.createEveCategory(CELESTIAL_CATEGORY),
+    ],
+    groups: [
+      ...(data.groups ?? []),
+      SdeTestDataFactory.createEveGroup({
+        ...FRIGATE_GROUP,
+        categoryId: SHIP_CATEGORY.categoryId,
+      }),
+    ],
+    regions: [
+      ...(data.regions ?? []),
+      SdeTestDataFactory.createRegion({ ...DOMAIN, constellationIDs: [] }),
+    ],
+    solarSystems,
+    dogmaEffects: [
+      ...(data.dogmaEffects ?? []),
+      SdeTestDataFactory.createDogmaEffect(HI_SLOT_EFFECT),
+    ],
+    dogmaAttributeCategories: DOGMA_ATTRIBUTE_CATEGORIES,
+    dogmaUnits: DOGMA_UNITS,
+  });
   return world.sde;
 }
 
