@@ -30,6 +30,7 @@ import {
 } from '../quality/consumer-contract-core';
 import {
   CheckResult,
+  RELEASE_ASSET_PATTERNS,
   ReleaseCanaryError,
   assetIdentitySpec,
   canaryProblems,
@@ -127,10 +128,10 @@ function waitForRegistry(version: string, waitSeconds: number): CheckResult {
  *   2. `sha256sum --check --strict checksums.txt` — the bytes match what was
  *      recorded; --strict so a file missing from the checksum file is a
  *      failure rather than a silent pass;
- *   3. `cosign verify-blob --bundle <asset>.sigstore.json` for the tarball
- *      and the SBOM, anchored on the workflow identity for this tag — the
- *      bytes are what `release.yml` signed, by the OIDC identity it was
- *      allowed to mint;
+ *   3. `cosign verify-blob --bundle <asset>.sigstore.json` for the tarball,
+ *      the SBOM and the docs archive, anchored on the workflow identity for
+ *      this tag — the bytes are what `release.yml` signed, by the OIDC
+ *      identity it was allowed to mint;
  *   4. the SBOM names this version — a SBOM for a different release proves
  *      nothing about the bytes on this tag.
  *
@@ -147,8 +148,11 @@ function verifyReleaseAssets(
 ): CheckResult {
   const { identity, issuer } = assetIdentitySpec(repository, version);
   const base = `lgriffin-esi.ts-${version}`;
-  const assets = [`${base}.tgz`, `${base}.cdx.json`];
-  const bundles = [`${base}.tgz.sigstore.json`, `${base}.cdx.json.sigstore.json`];
+  // The three files release.yml signs and lists in checksums.txt.
+  // checksums.txt itself is unsigned, so a sum alone proves nothing about
+  // a file whose bundle goes unverified.
+  const assets = [`${base}.tgz`, `${base}.cdx.json`, 'docs.tar.gz'];
+  const bundles = assets.map((asset) => `${asset}.sigstore.json`);
 
   // 1. Download. `--clobber` so a rerun over the same directory is clean.
   const download = run(
@@ -159,14 +163,7 @@ function verifyReleaseAssets(
       `v${version}`,
       '--repo',
       repository,
-      '--pattern',
-      '*.tgz',
-      '--pattern',
-      '*.cdx.json',
-      '--pattern',
-      '*.sigstore.json',
-      '--pattern',
-      'checksums.txt',
+      ...RELEASE_ASSET_PATTERNS.flatMap((pattern) => ['--pattern', pattern]),
       '--clobber',
       '-D',
       dir,
@@ -191,8 +188,8 @@ function verifyReleaseAssets(
     };
   }
 
-  // 3. The cosign bundles for the tarball and the SBOM, anchored on the
-  // workflow identity for this tag. `cosign` exits non-zero and says why.
+  // 3. The cosign bundles for the tarball, the SBOM and the docs, anchored
+  // on the workflow identity for this tag. `cosign` exits non-zero and says why.
   for (const asset of assets) {
     const bundle = `${asset}.sigstore.json`;
     if (!bundles.includes(bundle)) {
@@ -241,9 +238,7 @@ function verifyReleaseAssets(
     };
   }
   const componentVersion = (doc as Record<string, unknown> | undefined)
-    ?.metadata as
-    | { component?: { version?: unknown } }
-    | undefined;
+    ?.metadata as { component?: { version?: unknown } } | undefined;
   const versionField = componentVersion?.component?.version;
   if (versionField !== version) {
     return {
@@ -256,7 +251,7 @@ function verifyReleaseAssets(
   return {
     check: 'assets',
     ok: true,
-    detail: `checksums verify; cosign verifies ${assets.join(' and ')} under ${identity}; SBOM names ${version}`,
+    detail: `checksums verify; cosign verifies ${assets.join(', ')} under ${identity}; SBOM names ${version}`,
   };
 }
 

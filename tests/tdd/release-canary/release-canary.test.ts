@@ -15,6 +15,7 @@
 import {
   CANARY_CHECKS,
   CheckResult,
+  RELEASE_ASSET_PATTERNS,
   ReleaseCanaryError,
   assetIdentitySpec,
   canaryProblems,
@@ -22,6 +23,8 @@ import {
   renderCanaryReport,
   versionFrom,
 } from '../../../scripts/release/release-canary-core';
+import { readFileSync } from 'fs';
+import * as path from 'path';
 
 function ok(check: CheckResult['check']): CheckResult {
   return { check, ok: true, detail: 'fine' };
@@ -170,5 +173,38 @@ describe('renderCanaryReport', () => {
       expect(report).toContain(`\`${check}\``);
     }
     expect(report).toContain('not reported');
+  });
+});
+
+describe('RELEASE_ASSET_PATTERNS', () => {
+  const globToRegExp = (glob: string): RegExp =>
+    new RegExp(
+      `^${glob.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`,
+    );
+  const matched = (file: string): boolean =>
+    RELEASE_ASSET_PATTERNS.some((pattern) => globToRegExp(pattern).test(file));
+
+  it('downloads every file release.yml lists in checksums.txt', () => {
+    const workflow = readFileSync(
+      path.join(__dirname, '../../../.github/workflows/release.yml'),
+      'utf8',
+    );
+    const step = /run: sha256sum (.+?) > checksums\.txt/.exec(workflow);
+    expect(step?.[1]).toBeDefined();
+    const stepOutputs: Record<string, string> = {
+      $TARBALL: 'lgriffin-esi.ts-11.0.0.tgz',
+      $SBOM: 'lgriffin-esi.ts-11.0.0.cdx.json',
+    };
+    const files = (step?.[1] ?? '')
+      .split(/\s+/)
+      .map((arg) => arg.replace(/"/g, ''))
+      .map((arg) => stepOutputs[arg] ?? arg);
+    expect(files).toContain('docs.tar.gz');
+    expect(files.filter((file) => !matched(file))).toEqual([]);
+  });
+
+  it('downloads checksums.txt and the signature bundles', () => {
+    expect(matched('checksums.txt')).toBe(true);
+    expect(matched('docs.tar.gz.sigstore.json')).toBe(true);
   });
 });

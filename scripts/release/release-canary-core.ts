@@ -77,6 +77,22 @@ export function versionFrom(ref: string): string {
 }
 
 /**
+ * The `gh release download` patterns the asset check fetches. They must cover
+ * every file `release.yml` writes into `checksums.txt`, because
+ * `sha256sum --check --strict` fails on a listed file that is not on disk:
+ * 11.0.0's canary went red on `docs.tar.gz`, which `*.tgz` does not match.
+ * A self-test reads the checksum step out of `release.yml` and holds the two
+ * together.
+ */
+export const RELEASE_ASSET_PATTERNS = [
+  '*.tgz',
+  '*.tar.gz',
+  '*.cdx.json',
+  '*.sigstore.json',
+  'checksums.txt',
+] as const;
+
+/**
  * The identity `release.yml` is expected to verify under. Keyless cosign
  * carries the workflow, not a key, in the certificate: `.github/workflows`
  * plus the tag it ran on. So the canary can anchor `--certificate-identity`
