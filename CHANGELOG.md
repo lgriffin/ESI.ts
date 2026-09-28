@@ -501,9 +501,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **spec-audit:** hold step files to one step per file and ratchet the legacy ones ([405298e](https://github.com/lgriffin/ESI.ts/commit/405298e75bede0da43a83ce14ad2ba2294511475))
 * **spec-audit:** skip the CLI fixtures where the audit cannot start ([3cb173e](https://github.com/lgriffin/ESI.ts/commit/3cb173eb3ed7a0587b4a87c9b517c0405f258fba))
 
-## [Unreleased]
+### Added (token management detail)
 
-### Added
+Drafted under `[Unreleased]` before release-please took over and shipped in
+10.0.0; the list above links the same commits.
 
 - **`EsiTokenManager`** — higher-level auth abstraction that owns the SSO token lifecycle for one or many characters (#185). Exchanges an authorization code, decodes the character id, name and scopes from the token, persists it through a pluggable `ITokenStorage`, refreshes ahead of expiry (`refreshSkewMs`, default 60 s), coalesces concurrent refreshes per character, persists the rotated refresh token before returning, and records an SSO `invalid_grant` so later calls fail locally with `TokenRevokedError`. `createClient(characterId)` returns an `EsiClient` wired with the character's token and a refresh provider bound to the manager; `tokenProviderFor(characterId)` exposes that provider for clients built by hand
 - **Bulk refresh** — `refreshAll({ concurrency, expiringWithinMs, signal })` refreshes stored tokens with a concurrency cap (default 5), isolates failures per character, skips tokens outside an optional staleness window, and flags SSO 429/5xx failures as `retryable` (#187). Per-character failures never reject; every character gets a `RefreshResult`. A throwing `onProgress` callback and a non-finite `concurrency` value are tolerated; only a storage adapter that cannot list tokens rejects the call
@@ -513,7 +514,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/bdd/features/core/0054-token-management.feature` — 26 EARS requirements covering the above, including the refresh-versus-removal and refresh-versus-re-authorization races, which the manager resolves in favour of the newer state
 - `examples/token-manager.ts` and `npm run example:token-manager`
 
-## [9.9.0] - 2026-09-15
+## [9.9.0] - 2026-09-15 (not published)
+
+Never tagged or published to npm; everything below shipped in 10.0.0.
 
 ### Added
 
@@ -531,7 +534,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `toPinoLogger` detached pino's methods from their instance, so every log call through the default logger threw `Cannot read properties of undefined (reading 'Symbol(pino.msgPrefix)')`
 
-## [9.8.0] - 2026-09-10
+## [9.8.1] - 2026-09-13 (not published)
+
+Written to `package.json` only, never tagged or published. Its CI and release
+provenance changes shipped in 10.0.0.
+
+## [9.8.0] - 2026-09-10 (not published)
+
+Never tagged or published to npm; everything below shipped in 10.0.0.
 
 No change to the published API surface — this release is entirely about how
 the library's behaviour is specified and enforced. Consumers upgrading from
@@ -579,6 +589,81 @@ everything below.
 - **Nightly audit report corruption** — `nightly-audit.yml` merged stderr into its JSON report, so a single warning line would have made every `jq` query silently report zero vulnerabilities
 - Zod v4 deprecation: `z.ZodTypeAny` replaced with `z.ZodType`
 
+## [9.6.2] - 2026-09-09 (not published)
+
+Written to `package.json` only; see 9.7.0.
+
+## [9.6.1] - 2026-08-29 (not published)
+
+Written to `package.json` only; see 9.7.0.
+
+## [9.6.0] - 2026-08-20
+
+First release since 9.4.0. Versions 9.5.0, 9.5.1 and 9.5.2 were bumped in
+`package.json` but never published, so upgrading from 9.4.0 picks up
+everything below.
+
+### Added
+
+- **`CosmeticsClient` and `ParagonHubClient`** — new domain clients for the SKINR cosmetics endpoints (3) and the Paragon Hub endpoints (5), with Zod schemas and inferred types, exported from the package root. `MercenaryClient` and `SkyhooksClient` gain per-item detail endpoints (4), closing the spec drift for compatibility date 2026-08-18 ([#189](https://github.com/lgriffin/ESI.ts/issues/189))
+- **`@lgriffin/esi.ts/sde/memory` sub-path export** — imports `MemorySdeProvider` without loading `adm-zip`, so ESM consumers (tsx, Vite) no longer hit its CommonJS `require('fs')` chain. `adm-zip` and `js-yaml` are no longer bundled ([#194](https://github.com/lgriffin/ESI.ts/issues/194))
+- **npm provenance** — releases are published with `--provenance`, so the registry carries a signed SLSA attestation
+
+### Security
+
+- **ETag cache isolated per access token** — cache keys for authenticated endpoints (`requiresAuth: true`) now include a hash of the token, so a cache shared between clients for different characters can no longer serve one character's response to another. Public endpoints still share entries
+- `setAccessToken()` and token refresh no longer clear the whole cache; with per-token keys the blanket clear was unnecessary and emptied caches shared with other clients
+- GitHub Actions pinned by commit SHA and workflow token permissions reduced
+
+## [9.5.2] - 2026-08-20 (not published)
+
+Written to `package.json` only; see 9.6.0.
+
+## [9.5.1] - 2026-08-20 (not published)
+
+Written to `package.json` only; see 9.6.0.
+
+## [9.5.0] - 2026-08-20 (not published)
+
+Written to `package.json` only; see 9.6.0.
+
+## [9.4.0] - 2026-08-19
+
+First release since 9.1.0. Versions 9.1.1, 9.1.2, 9.1.3 and 9.2.0 were bumped
+in `package.json` but never published, and 9.3.0 was never used, so upgrading
+from 9.1.0 picks up everything below.
+
+### Added
+
+- **`@lgriffin/esi.ts/sde` sub-path export** — a standalone reader for CCP's Static Data Export with no ESI dependency. `SdeDataProvider` loads the SDE YAML files from disk into memory and `MemorySdeProvider` serves data you supply; both implement `IStaticDataProvider`. All 101 SDE entity types have typed interfaces and Zod schemas, with `SdeTestDataFactory` for test data. Examples cover type lookup, fitting, industry and the market group tree
+- **`compatibilityDate` client option** — `EsiClientConfig.compatibilityDate` sets the `X-Compatibility-Date` header per client instead of always sending the built-in constant, so consumers can pin ESI behaviour ([#178](https://github.com/lgriffin/ESI.ts/issues/178))
+- **`esiEnum()`** in `@lgriffin/esi.ts/schemas` — an enum schema that accepts values it does not know, so a value CCP adds to an ESI enum no longer fails response validation ([#184](https://github.com/lgriffin/ESI.ts/issues/184))
+
+### Changed
+
+- Types regenerated from the ESI spec
+- Nightly security audit, OpenSSF Scorecard and an Are The Types Wrong package check added to CI; mutation testing moved from the pull request pipeline to a nightly run
+
+### Security
+
+- npm overrides for `esbuild` (>= 0.28.1) and `uuid` (~11.1.1) clear two advisories in the dependency tree
+
+## [9.2.0] - 2026-08-18 (not published)
+
+Written to `package.json` only; see 9.4.0.
+
+## [9.1.3] - 2026-08-18 (not published)
+
+Written to `package.json` only; see 9.4.0.
+
+## [9.1.2] - 2026-08-18 (not published)
+
+Written to `package.json` only; see 9.4.0.
+
+## [9.1.1] - 2026-08-18 (not published)
+
+Written to `package.json` only; see 9.4.0.
+
 ## [9.1.0] - 2026-08-14
 
 ### Added
@@ -623,6 +708,38 @@ everything below.
 
 - **Response interceptor status fix** — response interceptors previously received a hardcoded 200 status; they now receive the actual HTTP status code from the response
 - **CI consolidated** — `pr-validation.yml` merged into `ci.yml`; all PR validation now runs through the main CI pipeline
+
+## [8.0.0] - 2026-08-05
+
+### Breaking Changes
+
+- **Market order types split by ESI shape** — `MarketClient.getCharacterOrders()`, `getCharacterOrderHistory()`, `getCorporationOrders()` and `getCorporationOrderHistory()` return `CharacterMarketOrder`, `CharacterMarketOrderHistory`, `CorporationMarketOrder` and `CorporationMarketOrderHistory` instead of the shared `MarketOrder`. Retype annotations on these calls
+- **Resilience components are typed by interface** — `ApiClient.getCircuitBreaker()` / `setCircuitBreaker()` take and return `ICircuitBreaker`, and the deduplicator accessors take `IDeduplicator`, instead of the concrete classes
+- **`CustomEsiClient` and `EsiApiFactory` honour the full configuration** — both now go through the new `configureApiClient()`, so cache, deduplication, circuit breaker, retry, interceptors and timeout settings that were silently ignored now take effect
+- **Logging uses pino instead of winston**; the `ILogger` interface is unchanged
+- The package now ships an ES module build (`module`) beside the CommonJS one
+
+### Added
+
+- **`stream*` methods on 16 more domain clients** — 57 new async-generator methods for paginated endpoints, and `BaseEsiClient.streamEndpoint()` is now public for endpoints without a named wrapper
+- **Opt-in request body validation** — `validateRequest: true` in `EsiClientConfig` validates POST/PUT/DELETE bodies against the endpoint's `requestSchema` before sending. `EsiValidationError` gains a `direction` field (`ValidationDirection`)
+- **`IRetryStrategy`** — inject a custom retry strategy, following the `ICircuitBreaker` and `IDeduplicator` pattern
+- **Circuit breaker `keyStrategy`** — `'resolved'` (default) or `'template'` in `CircuitBreakerConfig` groups circuits by resolved URL or endpoint template, and an optional cleanup timer is stopped with `destroy()`
+- **Typed `createClient()` results** — `InferEndpointResult<D>` infers each method's return type from its endpoint's response schema instead of `unknown`
+
+### Fixed
+
+- Pagination and the rate limiter rethrow `EsiError` and `CircuitOpenError` with their status and retry classification instead of a plain `Error`; an exhausted rate-limit wait throws a retryable 429 instead of proceeding
+- Cursor pagination throws `TimeoutError` on abort, so `isTimeout()` recognises it
+- Cache entries use the endpoint's spec TTL so ETags survive long enough to revalidate
+- Circuit breaker half-open probes no longer leak their slot on an early exception
+- Structure market requests send the correct auth flag and `Accept` header
+- Schema fields added from the ESI spec that responses may omit (`fleet_boss_id`, `allow_access_with_standings`, `allow_alliance_access`, `position`, sovereignty `alliance_id` and `solar_system_id`) are optional
+
+### Security
+
+- `ApiClient` serialises without its access token, `EsiValidationError` messages no longer include unsanitised URLs, and the ETag cache is cleared on token rotation
+- High-severity npm audit findings and CodeQL findings resolved
 
 ## [7.4.0] - 2026-07-17
 
