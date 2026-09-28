@@ -381,18 +381,29 @@ Test files:
 - `SdeExtractor.test.ts` -- ZIP parsing
 - `SdeDownloader.test.ts` -- HTTP mocking
 
-### BDD Tests (23 tests, ~1s)
+### BDD Tests (60 scenarios, ~2s)
 
 ```bash
 npm run bdd:sde
 ```
 
-Feature files in `tests/bdd/features/sde/`:
+Feature files in `tests/bdd/features/sde/`, one EARS requirement per `Rule:`:
 
-- `static-data-lookup.feature` -- type lookup, search, hierarchy navigation, stargates
-- `sde-universe-hierarchy.feature` -- stars, planets, moons, asteroid belts
-- `sde-character-lore.feature` -- factions, races, bloodlines, NPC stations
-- `sde-dogma-industry.feature` -- dogma attributes, blueprints, planet schematics
+- `0001-static-data-lookup.feature` -- type lookup, search, hierarchy navigation, stargates
+- `0002-sde-universe-hierarchy.feature` -- stars, planets, moons, asteroid belts by system
+- `0003-sde-market-hierarchy.feature` -- root market groups and children
+- `0004-sde-dogma-industry.feature` -- dogma attributes, blueprints, planet schematics
+- `0005-sde-character-lore.feature` -- factions, races, bloodlines, NPC stations
+- `0006-sde-version-management.feature`, `0007-sde-error-handling.feature`
+- `0008-sde-type-classification.feature` -- types of a group, groups of a category, every category
+- `0009-sde-universe-geography.feature` -- regions, constellations, systems and stargates by ID, system search
+- `0010-sde-celestial-bodies.feature` -- stars, planets, moons, asteroid belts by their own ID
+- `0011-sde-market-groups.feature` -- market group by ID, its types, group search
+- `0012-sde-dogma-definitions.feature` -- effects, attribute categories, units, attribute and effect search
+
+`npm run spec:coverage:sde` lists the provider methods no Rule names and no
+bound step reaches; `scripts/sde/sde-spec-coverage-baseline.json` holds that
+list and may only shrink.
 
 ### Integration Tests (63 tests, ~60s)
 

@@ -53,7 +53,7 @@ a feature with neither or both:
 - a **spec entry**, `specs/<area>/NNNN-domain.spec.ts`, whose whole content is
   `bindFeature(__filename)`. Its steps come from the global library in
   `steps/`. A domain is converted when it has a spec entry: the core domains
-  listed by `ls tests/bdd/specs/core` and, since 2026-09-28, the seven SDE
+  listed by `ls tests/bdd/specs/core` and, since 2026-09-28, the SDE
   features under `specs/sde/`.
 - a **legacy step file**, `step-definitions/<area>/<domain>.steps.ts`, bound
   with `loadFeature(<path>)` / `defineFeature`, with every step inline. These
