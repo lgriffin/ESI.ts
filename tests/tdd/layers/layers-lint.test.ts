@@ -129,6 +129,15 @@ describe('layer lint rule', () => {
     ['src/sde/providers/yaml/SdeDataProvider.ts', '../../index', 'sdeLayer'],
     ['src/sde/providers/yaml/SdeDataProvider.ts', '../../memory', 'sdeLayer'],
     ['src/sde/providers/yaml/SdeDataProvider.ts', '../..', 'sdeLayer'],
+    // A .js specifier (bundler resolution) names the same entry point.
+    ['src/sde/providers/yaml/SdeDataProvider.ts', '../../index.js', 'sdeLayer'],
+    [
+      'src/sde/providers/yaml/SdeDataProvider.ts',
+      '../../memory.js',
+      'sdeLayer',
+    ],
+    ['src/sde/testing/SdeTestDataFactory.ts', '../index.js', 'sdeLayer'],
+    ['src/sde/ingestion/SdeExtractor.ts', '../domain/types.js', 'sdeLayer'],
     [
       'src/sde/testing/SdeTestDataFactory.ts',
       '../ingestion/transforms',
@@ -218,6 +227,7 @@ describe('layer lint rule', () => {
       '../../ports/IStaticDataProvider',
     ],
     ['src/sde/providers/yaml/SdeDataProvider.ts', '../../domain/types'],
+    ['src/sde/providers/yaml/SdeDataProvider.ts', '../../domain/types.js'],
     ['src/sde/providers/yaml/SdeDataProvider.ts', '../order'],
     ['src/sde/providers/yaml/SdeDataProvider.ts', '../../ingestion'],
     ['src/sde/providers/memory/MemorySdeProvider.ts', '../../version'],

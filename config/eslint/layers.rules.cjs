@@ -209,7 +209,10 @@ function checkSdeLayer(importer, specifier, target, relative) {
       : null;
   }
   if (!within(target, SDE)) return null;
-  const targetFile = target.endsWith('.ts') ? target : `${target}.ts`;
+  // `../../index.js` under bundler resolution is `index.ts`: strip any
+  // extension before naming the source file, so no spelling reaches an
+  // entry point unchecked.
+  const targetFile = `${target.replace(/\.(?:[cm]?[jt]s|d\.ts)$/, '')}.ts`;
   const targetLayer =
     target === SDE || SDE_ENTRIES.includes(targetFile)
       ? 'entry'
