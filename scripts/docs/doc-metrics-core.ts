@@ -378,26 +378,56 @@ export interface RewriteResult {
   text: string;
   changes: MarkerChange[];
   errors: MarkerError[];
+  /** The metric name of every well-formed marker outside code, in order. */
+  found: string[];
+}
+
+const LIST_ITEM = /^ {0,3}(?:[-*+]|\d{1,9}[.)])(?:[ \t]|$)/;
+
+/** A line indented by four columns or more (a tab counts as four). */
+function isIndented(line: string): boolean {
+  return /^(?: {4}| {0,3}\t)/.test(line);
 }
 
 /**
- * The text with fenced code blocks and inline code spans blanked out, offsets
- * unchanged, so a marker written as an example in code is not a marker.
+ * The text with code blanked out, offsets unchanged, so a marker written as
+ * an example in code is not a marker. Code is a fenced block, an inline code
+ * span, or an indented code block as CommonMark reads one: a line indented
+ * four columns or more that follows a blank line or another indented code
+ * line (so it cannot continue a paragraph), outside a list, where the same
+ * indentation continues the list item instead.
  */
 export function maskCode(text: string): string {
   let fence: string | null = null;
+  let prev: 'blank' | 'code' | 'other' = 'blank';
+  let inList = false;
   return text
     .split('\n')
     .map((line) => {
+      const blank = line.trim() === '';
       const open = /^ {0,3}(`{3,}|~{3,})/.exec(line);
       if (fence) {
         if (open && open[1]!.startsWith(fence)) fence = null;
+        prev = 'other';
+        return ' '.repeat(line.length);
+      }
+      if (blank) {
+        // A blank line inside an indented block keeps the block open.
+        if (prev !== 'code') prev = 'blank';
+        return line;
+      }
+      if (isIndented(line) && !inList && prev !== 'other') {
+        prev = 'code';
         return ' '.repeat(line.length);
       }
       if (open) {
         fence = open[1]!;
+        prev = 'other';
         return ' '.repeat(line.length);
       }
+      if (LIST_ITEM.test(line)) inList = true;
+      else if (!/^[ \t]/.test(line)) inList = false;
+      prev = 'other';
       return line.replace(/(`+)(?:(?!\1)[^`]|`(?!\1))*?\1/g, (span) =>
         ' '.repeat(span.length),
       );
@@ -423,6 +453,7 @@ export function rewriteMarkers(text: string, metrics: Metrics): RewriteResult {
   const known = new Set<string>(METRIC_NAMES);
   const masked = maskCode(text);
   const covered: Array<[number, number]> = [];
+  const found: string[] = [];
   let out = '';
   let copied = 0;
 
@@ -432,6 +463,7 @@ export function rewriteMarkers(text: string, metrics: Metrics): RewriteResult {
     const name = match[1]!;
     const value = match[2]!;
     covered.push([offset, offset + whole.length]);
+    found.push(name);
     const line = lineAt(text, offset);
     if (!known.has(name)) {
       errors.push({ line, message: `unknown metric "${name}"` });
@@ -467,7 +499,7 @@ export function rewriteMarkers(text: string, metrics: Metrics): RewriteResult {
     }
   }
   errors.sort((a, b) => a.line - b.line);
-  return { text: out, changes, errors };
+  return { text: out, changes, errors, found };
 }
 
 export interface DocFile {
@@ -502,6 +534,14 @@ function sameJson(committed: string | null, metrics: Metrics): boolean {
   }
 }
 
+/**
+ * Markers a document must carry exactly once. The README's release line is
+ * the version banner DOC-04 checks; without its marker a stale release line
+ * would pass.
+ */
+export const REQUIRED_MARKERS: Readonly<Record<string, readonly MetricName[]>> =
+  { 'README.md': ['version'] };
+
 export function checkDocs(
   docs: readonly DocFile[],
   metrics: Metrics,
@@ -516,6 +556,19 @@ export function checkDocs(
   for (const doc of docs) {
     const result = rewriteMarkers(doc.text, metrics);
     for (const e of result.errors) report.errors.push({ path: doc.path, ...e });
+    for (const name of REQUIRED_MARKERS[doc.path] ?? []) {
+      const n = result.found.filter((f) => f === name).length;
+      if (n !== 1) {
+        report.errors.push({
+          path: doc.path,
+          line: 1,
+          message:
+            n === 0
+              ? `missing the metric:${name} marker`
+              : `carries ${n} metric:${name} markers; it needs exactly one`,
+        });
+      }
+    }
     if (result.changes.length > 0) {
       report.stale.push({ path: doc.path, changes: result.changes });
       report.rewritten.push({ path: doc.path, text: result.text });

@@ -256,20 +256,103 @@ describe('rewriteMarkers', () => {
       text,
       changes: [],
       errors: [],
+      found: [],
     });
+  });
+
+  it('ignores a marker at the start of an indented code line', () => {
+    const text =
+      'An example:\n\n    <!-- metric:bogus -->1<!-- /metric --> clients\n';
+    const masked = maskCode(text);
+    expect(masked).toHaveLength(text.length);
+    expect(masked.includes('metric')).toBe(false);
+    expect(rewriteMarkers(text, m).errors).toEqual([]);
+  });
+
+  it('ignores a marker in the middle of an indented code line, and after a blank line inside the block', () => {
+    const text = [
+      'Intro.',
+      '',
+      '    first line of code',
+      '',
+      '\tthe <!-- metric:clients -->1<!-- /metric --> clients',
+      'After the block, <!-- metric:clients -->1<!-- /metric --> clients.',
+    ].join('\n');
+    const result = rewriteMarkers(text, m);
+    expect(result.found).toEqual(['clients']);
+    expect(result.changes).toEqual([
+      { metric: 'clients', line: 6, from: '1', to: '39' },
+    ]);
+  });
+
+  it('reads an indented line that continues a paragraph or a list item as prose', () => {
+    const text = [
+      'A paragraph that wraps',
+      '    onto <!-- metric:clients -->1<!-- /metric --> indented line.',
+      '',
+      '- A list item',
+      '',
+      '    continued with <!-- metric:clients -->1<!-- /metric --> clients.',
+    ].join('\n');
+    expect(rewriteMarkers(text, m).changes.map((c) => c.line)).toEqual([2, 6]);
   });
 });
 
 describe('checkDocs', () => {
   const m = metrics({ clients: 39 });
   const json = formatMetricsJson(m);
+  const README =
+    'Version <!-- metric:version -->1.2.3<!-- /metric -->\nA <!-- metric:clients -->39<!-- /metric -->';
+
+  it('fails a README with no version marker, so a stale release line cannot pass', () => {
+    const report = checkDocs(
+      [{ path: 'README.md', text: 'Version 1.0.0 is current on npm.' }],
+      m,
+      json,
+    );
+    expect(formatProblems(report)).toEqual([
+      'README.md:1: missing the metric:version marker',
+    ]);
+  });
+
+  it('fails a README with two version markers', () => {
+    const report = checkDocs(
+      [
+        {
+          path: 'README.md',
+          text: `${README}\nAgain <!-- metric:version -->1.2.3<!-- /metric -->`,
+        },
+      ],
+      m,
+      json,
+    );
+    expect(formatProblems(report)).toEqual([
+      'README.md:1: carries 2 metric:version markers; it needs exactly one',
+    ]);
+  });
+
+  it('does not count a version marker written in code', () => {
+    const report = checkDocs(
+      [
+        {
+          path: 'README.md',
+          text: 'Write `<!-- metric:version -->1<!-- /metric -->` to mark it.',
+        },
+      ],
+      m,
+      json,
+    );
+    expect(formatProblems(report)).toEqual([
+      'README.md:1: missing the metric:version marker',
+    ]);
+  });
 
   it('passes when every marked value and the JSON are current', () => {
     const report = checkDocs(
       [
         {
           path: 'README.md',
-          text: 'A <!-- metric:clients -->39<!-- /metric -->',
+          text: README,
         },
       ],
       m,
@@ -283,7 +366,7 @@ describe('checkDocs', () => {
       [
         {
           path: 'README.md',
-          text: 'A <!-- metric:clients -->39<!-- /metric -->',
+          text: README,
         },
         {
           path: 'guides/USAGE.md',
