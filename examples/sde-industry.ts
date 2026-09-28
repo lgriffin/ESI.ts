@@ -9,7 +9,7 @@
  *
  * @nightly sde
  */
-import { SdeDataProvider } from '../src/sde';
+import { SdeDataProvider, type Blueprint } from '../src/sde';
 
 function main() {
   const sde = SdeDataProvider.fromDirectory(
@@ -17,14 +17,21 @@ function main() {
   );
 
   try {
-    // Rifter Blueprint (587 is the Rifter itself; blueprints are keyed by
-    // their own type ID, and the first nightly against the real export
-    // found no blueprint 587)
-    const RIFTER_BP_ID = 787;
-    const bp = sde.getBlueprint(RIFTER_BP_ID);
+    // Find the blueprint by what it builds rather than by a hard-coded
+    // blueprint type ID: the export keys blueprints by their own type ID,
+    // which the SDE can renumber, and the second nightly against the real
+    // export found neither 587 (the Rifter) nor 787 (its usual blueprint).
+    const RIFTER_ID = 587;
+    const blueprints = sde.getAllEntities<Blueprint>('eve_blueprints');
+    const bp =
+      blueprints.find((b) =>
+        b.activities.manufacturing?.products?.some(
+          (p) => p.typeId === RIFTER_ID,
+        ),
+      ) ?? blueprints.find((b) => b.activities.manufacturing !== undefined);
 
     if (!bp) {
-      console.error(`Blueprint ${RIFTER_BP_ID} not found`);
+      console.error('No blueprint with a manufacturing activity found');
       return;
     }
 
