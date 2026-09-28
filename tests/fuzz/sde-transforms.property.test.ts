@@ -91,8 +91,16 @@ describeProperty<Normalize>({
 
 type ExtractLocale = typeof extractLocale;
 
+// A map whose every locale entry is not a string: the only input that
+// separates "return the entry" from "return the fallback", so it is drawn
+// often enough that 200 runs cannot miss it (CI seed -1231326067 did).
+const nonStringLocaleMapArb: fc.Arbitrary<Record<string, unknown>> = fc
+  .oneof(fc.integer(), fc.boolean(), fc.constant({}), fc.constant([]))
+  .map((value) => Object.fromEntries(LOCALES.map((l) => [l, value])));
+
 const localeInputArb: fc.Arbitrary<unknown> = fc.oneof(
   { arbitrary: localeMapArb, weight: 3 },
+  { arbitrary: nonStringLocaleMapArb, weight: 2 },
   { arbitrary: fc.string({ maxLength: 8 }), weight: 1 },
   { arbitrary: fc.anything(), weight: 2 },
 );
