@@ -137,6 +137,19 @@ function queueMarketTypes(): void {
   });
 }
 
+type PageHelper = 'stream' | 'fetch-all';
+const HELPER = /(stream|fetch-all)/.source;
+
+/** Read every market type through a stream* or a fetchAll* helper. */
+async function readMarketTypesThrough(
+  client: EsiClient,
+  helper: PageHelper,
+): Promise<number[]> {
+  return helper === 'stream'
+    ? streamMarketTypes(client)
+    : client.market.fetchAllMarketTypes(THE_FORGE);
+}
+
 /** Two pages of market types, each with its own ETag, announcing 2 pages. */
 const MARKET_TYPE_PAGES = [[34, 35], [36]];
 
@@ -991,41 +1004,6 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Streaming market types after an ordinary market types call', ({
-    given,
-    and,
-    when,
-    then,
-  }) => {
-    let streamClient: EsiClient;
-    let streamed: number[] = [];
-
-    given('a client with an empty cache', () => {
-      streamClient = createStreamClient();
-    });
-
-    and('the client has fetched the market types for The Forge', async () => {
-      queueMarketTypes();
-      await streamClient.market.getMarketTypes(THE_FORGE);
-      expect(requestHeader(0, 'If-None-Match')).toBeUndefined();
-    });
-
-    when('the client streams the market types for The Forge', async () => {
-      queueMarketTypes();
-      streamed = await streamMarketTypes(streamClient);
-    });
-
-    then('the stream yields every market type', () => {
-      expect(streamed).toEqual(MARKET_TYPE_IDS);
-    });
-
-    and('the streamed request carried no If-None-Match header', () => {
-      expect(fetchMock.mock.calls).toHaveLength(2);
-      expect(requestHeader(1, 'If-None-Match')).toBeUndefined();
-      streamClient.shutdown();
-    });
-  });
-
   // ── Identity ──────────────────────────────────────────────────────
 
   test('Structure orders revalidated by a 304 after the access token is replaced', ({
@@ -1506,115 +1484,6 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Streaming market types inside their 600 second spec TTL sends a request', ({
-    given,
-    and,
-    when,
-    then,
-  }) => {
-    let streamClient: EsiClient;
-    let streamed: number[] = [];
-
-    given('a client with an empty cache', () => {
-      streamClient = createStreamClient();
-    });
-
-    and('the client has fetched the market types for The Forge', async () => {
-      queueMarketTypes();
-      await streamClient.market.getMarketTypes(THE_FORGE);
-    });
-
-    when('the client streams the market types for The Forge', async () => {
-      queueMarketTypes();
-      streamed = await streamMarketTypes(streamClient);
-    });
-
-    then('the stream yields every market type', () => {
-      expect(streamed).toEqual(MARKET_TYPE_IDS);
-    });
-
-    and('the client sent a request for the streamed page', () => {
-      expect(fetchMock.mock.calls).toHaveLength(2);
-      expect(String(fetchMock.mock.calls[1]![0])).toContain(
-        `markets/${THE_FORGE}/types`,
-      );
-      streamClient.shutdown();
-    });
-  });
-
-  test('An ordinary market types call after streaming them fetches afresh', ({
-    given,
-    and,
-    when,
-    then,
-  }) => {
-    let streamClient: EsiClient;
-    let result: unknown;
-
-    given('a client with an empty cache', () => {
-      streamClient = createStreamClient();
-    });
-
-    and('the client has streamed the market types for The Forge', async () => {
-      queueMarketTypes();
-      expect(await streamMarketTypes(streamClient)).toEqual(MARKET_TYPE_IDS);
-    });
-
-    when('the client requests the market types for The Forge', async () => {
-      queueMarketTypes();
-      result = await streamClient.market.getMarketTypes(THE_FORGE);
-    });
-
-    then('the client resolves with every market type', () => {
-      expect(result).toEqual(MARKET_TYPE_IDS);
-    });
-
-    and('the ordinary request carried no If-None-Match header', () => {
-      expect(fetchMock.mock.calls).toHaveLength(2);
-      expect(requestHeader(1, 'If-None-Match')).toBeUndefined();
-      streamClient.shutdown();
-    });
-  });
-
-  test('Streaming market types answered with HTTP 500 rejects despite the cached entry', ({
-    given,
-    and,
-    when,
-    then,
-  }) => {
-    let streamClient: EsiClient;
-    let error: unknown;
-
-    given('a client with an empty cache', () => {
-      streamClient = createStreamClient();
-    });
-
-    and('the client has fetched the market types for The Forge', async () => {
-      queueMarketTypes();
-      await streamClient.market.getMarketTypes(THE_FORGE);
-      expect(streamClient.getCacheStats()!.totalEntries).toBe(1);
-    });
-
-    and('ESI answers the streamed market types page with HTTP 500', () => {
-      queueErrorResponse(500);
-    });
-
-    when(
-      'the client streams the market types for The Forge expecting a failure',
-      async () => {
-        error = await captureRejection(streamMarketTypes(streamClient));
-      },
-    );
-
-    then(
-      /^the stream rejects with an EsiError carrying status (\d+)$/,
-      (status: string) => {
-        expectEsiError(error, Number(status));
-        expect(fetchMock.mock.calls).toHaveLength(2);
-        streamClient.shutdown();
-      },
-    );
-  });
   test('Page 2 of the market types is asked unconditionally despite an entry for its URL', ({
     given,
     and,
@@ -1692,5 +1561,175 @@ defineFeature(feature, (test) => {
       expect(pageClient.getCacheStats()!.totalEntries).toBe(Number(count));
       pageClient.shutdown();
     });
+  });
+  // ── The stream* and fetchAll* helpers ───────────────────────────────
+
+  test('Reading market types through the <helper> helper after an ordinary market types call', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let helperClient: EsiClient;
+    let read: number[] = [];
+
+    given('a client with an empty cache', () => {
+      helperClient = createStreamClient();
+    });
+
+    and('the client has fetched the market types for The Forge', async () => {
+      queueMarketTypes();
+      await helperClient.market.getMarketTypes(THE_FORGE);
+      expect(requestHeader(0, 'If-None-Match')).toBeUndefined();
+      expect(helperClient.getCacheStats()!.totalEntries).toBe(1);
+    });
+
+    when(
+      new RegExp(
+        `^the client reads the market types for The Forge through the ${HELPER} helper$`,
+      ),
+      async (helper: PageHelper) => {
+        queueMarketTypes();
+        read = await readMarketTypesThrough(helperClient, helper);
+      },
+    );
+
+    then('the helper yields every market type', () => {
+      expect(read).toEqual(MARKET_TYPE_IDS);
+    });
+
+    and("the helper's request carried no If-None-Match header", () => {
+      expect(fetchMock.mock.calls).toHaveLength(2);
+      expect(requestHeader(1, 'If-None-Match')).toBeUndefined();
+      helperClient.shutdown();
+    });
+  });
+
+  test('Reading market types through the <helper> helper inside their 600 second spec TTL sends a request', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let helperClient: EsiClient;
+    let read: number[] = [];
+
+    given('a client with an empty cache', () => {
+      helperClient = createStreamClient();
+    });
+
+    and('the client has fetched the market types for The Forge', async () => {
+      queueMarketTypes();
+      await helperClient.market.getMarketTypes(THE_FORGE);
+      expect(helperClient.getCacheStats()!.totalEntries).toBe(1);
+    });
+
+    when(
+      new RegExp(
+        `^the client reads the market types for The Forge through the ${HELPER} helper$`,
+      ),
+      async (helper: PageHelper) => {
+        queueMarketTypes();
+        read = await readMarketTypesThrough(helperClient, helper);
+      },
+    );
+
+    then('the helper yields every market type', () => {
+      expect(read).toEqual(MARKET_TYPE_IDS);
+    });
+
+    and("the client sent a request for the helper's page", () => {
+      expect(fetchMock.mock.calls).toHaveLength(2);
+      expect(String(fetchMock.mock.calls[1]![0])).toContain(
+        `markets/${THE_FORGE}/types`,
+      );
+      helperClient.shutdown();
+    });
+  });
+
+  test('An ordinary market types call after reading them through the <helper> helper fetches afresh', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let helperClient: EsiClient;
+    let result: unknown;
+
+    given('a client with an empty cache', () => {
+      helperClient = createStreamClient();
+    });
+
+    and(
+      new RegExp(
+        `^the client has read the market types for The Forge through the ${HELPER} helper$`,
+      ),
+      async (helper: PageHelper) => {
+        queueMarketTypes();
+        expect(await readMarketTypesThrough(helperClient, helper)).toEqual(
+          MARKET_TYPE_IDS,
+        );
+        expect(helperClient.getCacheStats()!.totalEntries).toBe(0);
+      },
+    );
+
+    when('the client requests the market types for The Forge', async () => {
+      queueMarketTypes();
+      result = await helperClient.market.getMarketTypes(THE_FORGE);
+    });
+
+    then('the client resolves with every market type', () => {
+      expect(result).toEqual(MARKET_TYPE_IDS);
+    });
+
+    and('the ordinary request carried no If-None-Match header', () => {
+      expect(fetchMock.mock.calls).toHaveLength(2);
+      expect(requestHeader(1, 'If-None-Match')).toBeUndefined();
+      helperClient.shutdown();
+    });
+  });
+
+  test('Market types read through the <helper> helper and answered with HTTP 500 reject despite the cached entry', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let helperClient: EsiClient;
+    let error: unknown;
+
+    given('a client with an empty cache', () => {
+      helperClient = createStreamClient();
+    });
+
+    and('the client has fetched the market types for The Forge', async () => {
+      queueMarketTypes();
+      await helperClient.market.getMarketTypes(THE_FORGE);
+      expect(helperClient.getCacheStats()!.totalEntries).toBe(1);
+    });
+
+    and("ESI answers the helper's market types page with HTTP 500", () => {
+      queueErrorResponse(500);
+    });
+
+    when(
+      new RegExp(
+        `^the client reads the market types for The Forge through the ${HELPER} helper expecting a failure$`,
+      ),
+      async (helper: PageHelper) => {
+        error = await captureRejection(
+          readMarketTypesThrough(helperClient, helper),
+        );
+      },
+    );
+
+    then(
+      /^the helper rejects with an EsiError carrying status (\d+)$/,
+      (status: string) => {
+        expectEsiError(error, Number(status));
+        expect(fetchMock.mock.calls).toHaveLength(2);
+        helperClient.shutdown();
+      },
+    );
   });
 });

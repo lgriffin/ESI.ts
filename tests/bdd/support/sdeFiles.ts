@@ -194,17 +194,46 @@ export function sdeErrorOf(world: World): SdeError {
 
 export type OptionalPeer = 'js-yaml' | 'adm-zip';
 
+function moduleNotFound(peer: string): Error {
+  return Object.assign(new Error(`Cannot find module '${peer}'`), {
+    code: 'MODULE_NOT_FOUND',
+  });
+}
+
 /**
  * Make a peer unresolvable for the rest of the scenario, the way an install
  * without it behaves: requiring it raises Node's module-not-found error.
+ *
+ * Both routes a module can take to the peer are closed. Jest's registry
+ * answers a plain `require` or `import`; `createRequire`, which
+ * `src/sde/optionalPeers.ts` loads the peers through, is replaced for any
+ * module loaded afresh after this step, with a require that refuses every
+ * uninstalled peer and resolves everything else as Node would.
  */
 export function uninstallPeer(world: World, peer: OptionalPeer): void {
+  const missing: Set<string> = (world.values.uninstalledPeers ??= new Set());
+  missing.add(peer);
   jest.doMock(peer, () => {
-    throw Object.assign(new Error(`Cannot find module '${peer}'`), {
-      code: 'MODULE_NOT_FOUND',
-    });
+    throw moduleNotFound(peer);
   });
-  world.cleanups.push(() => jest.dontMock(peer));
+  jest.doMock('node:module', () => {
+    const actual =
+      jest.requireActual<typeof import('node:module')>('node:module');
+    return {
+      ...actual,
+      createRequire: (from: string | URL) => {
+        const real = actual.createRequire(from);
+        return Object.assign((id: string): unknown => {
+          if (missing.has(id)) throw moduleNotFound(id);
+          return real(id);
+        }, real);
+      },
+    };
+  });
+  world.cleanups.push(() => {
+    jest.dontMock(peer);
+    jest.dontMock('node:module');
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -212,8 +241,9 @@ export function uninstallPeer(world: World, peer: OptionalPeer): void {
 // ---------------------------------------------------------------------------
 
 /**
- * Load `./sde` afresh, so the peers a Given step uninstalled are what its
- * modules see, and build a MemorySdeProvider holding Tritanium from it.
+ * Load `./sde` afresh, so its modules, `optionalPeers.ts` included, run
+ * against the peers a Given step uninstalled, and build a MemorySdeProvider
+ * holding Tritanium from it. A peer loaded at import time throws here.
  */
 export function openMemoryProviderFromFreshSdeEntry(world: World): void {
   let entry: typeof sdeEntry | undefined;

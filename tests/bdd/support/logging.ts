@@ -61,12 +61,43 @@ export function loggedRequestUrls(logger: RecordingLogger): URL[] {
     .map((line) => new URL(line.message.slice(REQUEST_LINE.length)));
 }
 
-/** Every message and every string context value the logger received. */
+/** The key and value pairs of a Map, a Set (no keys) or any other object. */
+function entriesOf(value: object): Array<[unknown, unknown]> {
+  if (value instanceof Map) return [...value.entries()];
+  if (value instanceof Set) return [...value].map((v) => [undefined, v]);
+  return Object.entries(value);
+}
+
+/**
+ * Every string reachable from a logged value: the value itself, or every
+ * string inside it however deeply nested, through arrays, plain objects,
+ * Maps, Sets and Errors (message, stack and cause included). Keys are
+ * included too, since a header name can carry the value it names.
+ */
+export function stringsIn(
+  value: unknown,
+  seen = new WeakSet<object>(),
+): string[] {
+  if (typeof value === 'string') return [value];
+  if (value === null || typeof value !== 'object') return [];
+  if (seen.has(value)) return [];
+  seen.add(value);
+  const out: string[] = [];
+  if (value instanceof Error) {
+    out.push(value.message, ...(value.stack ? [value.stack] : []));
+    out.push(...stringsIn(value.cause, seen));
+  }
+  const entries = entriesOf(value);
+  for (const [key, inner] of entries) {
+    out.push(...stringsIn(key, seen), ...stringsIn(inner, seen));
+  }
+  return out;
+}
+
+/** Every message the logger received and every string anywhere in its context. */
 export function loggedText(logger: RecordingLogger): string[] {
   return logger.lines.flatMap((line) => [
     line.message,
-    ...Object.values(line.context ?? {}).filter(
-      (value): value is string => typeof value === 'string',
-    ),
+    ...stringsIn(line.context),
   ]);
 }

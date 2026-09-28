@@ -130,14 +130,20 @@ Feature: ETag Caching
     The stream* and fetchAll* helpers read every page afresh and keep no
     cache of their own, so a 304 would leave them with no body to return.
     An ordinary call to the same URL stores an ETag, and sending it from a
-    streamed page turned the next 304 into an EsiError.
+    streamed page turned the next 304 into an EsiError. The stream* helpers
+    and fetchAll* (fetchAllEndpoint) are separate flows, so both are driven.
 
-    Scenario: Streaming market types after an ordinary market types call
+    Scenario Outline: Reading market types through the <helper> helper after an ordinary market types call
       Given a client with an empty cache
       And the client has fetched the market types for The Forge
-      When the client streams the market types for The Forge
-      Then the stream yields every market type
-      And the streamed request carried no If-None-Match header
+      When the client reads the market types for The Forge through the <helper> helper
+      Then the helper yields every market type
+      And the helper's request carried no If-None-Match header
+
+      Examples:
+        | helper    |
+        | stream    |
+        | fetch-all |
 
   Rule: If a stream or fetch-all helper requests a page while the ETag cache holds an entry inside its spec TTL, then the EsiClient shall not answer the page from that entry.
     The helpers take the lighter single-page path, which has no spec-TTL
@@ -145,36 +151,51 @@ Feature: ETag Caching
     combined array is not a page, so serving it page by page would repeat
     or drop items.
 
-    Scenario: Streaming market types inside their 600 second spec TTL sends a request
+    Scenario Outline: Reading market types through the <helper> helper inside their 600 second spec TTL sends a request
       Given a client with an empty cache
       And the client has fetched the market types for The Forge
-      When the client streams the market types for The Forge
-      Then the stream yields every market type
-      And the client sent a request for the streamed page
+      When the client reads the market types for The Forge through the <helper> helper
+      Then the helper yields every market type
+      And the client sent a request for the helper's page
+
+      Examples:
+        | helper    |
+        | stream    |
+        | fetch-all |
 
   Rule: If a stream or fetch-all helper receives a page, then the EsiClient shall not store that page in the ETag cache.
     A page is part of a resource, not the resource an ordinary call caches
     under the same URL. Storing it would let a later ordinary call be
     answered with one page of a multi-page result.
 
-    Scenario: An ordinary market types call after streaming them fetches afresh
+    Scenario Outline: An ordinary market types call after reading them through the <helper> helper fetches afresh
       Given a client with an empty cache
-      And the client has streamed the market types for The Forge
+      And the client has read the market types for The Forge through the <helper> helper
       When the client requests the market types for The Forge
       Then the client resolves with every market type
       And the ordinary request carried no If-None-Match header
+
+      Examples:
+        | helper    |
+        | stream    |
+        | fetch-all |
 
   Rule: If a page requested by a stream or fetch-all helper is answered with a 5xx status while the ETag cache holds an entry for its URL, then the EsiClient shall not serve that entry in place of the page.
     Stale-on-error belongs to the eager path. The helper's page is not the
     combined array the entry holds, so the failure reaches the caller as an
     EsiError.
 
-    Scenario: Streaming market types answered with HTTP 500 rejects despite the cached entry
+    Scenario Outline: Market types read through the <helper> helper and answered with HTTP 500 reject despite the cached entry
       Given a client with an empty cache
       And the client has fetched the market types for The Forge
-      And ESI answers the streamed market types page with HTTP 500
-      When the client streams the market types for The Forge expecting a failure
-      Then the stream rejects with an EsiError carrying status 500
+      And ESI answers the helper's market types page with HTTP 500
+      When the client reads the market types for The Forge through the <helper> helper expecting a failure
+      Then the helper rejects with an EsiError carrying status 500
+
+      Examples:
+        | helper    |
+        | stream    |
+        | fetch-all |
 
   # ── Serving from cache when ESI fails ───────────────────────────────
 
