@@ -9,6 +9,29 @@ describe('MemorySdeProvider', () => {
       new MemorySdeProvider(SdeTestDataFactory.createHierarchicalTestData()),
   );
 
+  describe('table order', () => {
+    it('serves tables and foreign-key lists ordered by ID ascending whatever order they were registered in', () => {
+      const provider = new MemorySdeProvider({
+        categories: [
+          SdeTestDataFactory.createEveCategory({ categoryId: 6, name: 'Ship' }),
+          SdeTestDataFactory.createEveCategory({
+            categoryId: 4,
+            name: 'Material',
+          }),
+        ],
+        types: [36, 34, 35].map((typeId) =>
+          SdeTestDataFactory.createEveType({ typeId, groupId: 18 }),
+        ),
+      });
+      expect(provider.getAllCategories().map((c) => c.categoryId)).toEqual([
+        4, 6,
+      ]);
+      expect(provider.getTypesByGroup(18).map((t) => t.typeId)).toEqual([
+        34, 35, 36,
+      ]);
+    });
+  });
+
   describe('empty state', () => {
     it('should return null for all single lookups when empty', () => {
       const provider = new MemorySdeProvider();
