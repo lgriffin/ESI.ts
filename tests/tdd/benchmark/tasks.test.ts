@@ -1,3 +1,6 @@
+// The SDE tasks generate their export in setup; a small one keeps the smoke quick.
+process.env.SDE_BENCH_TYPES = '2000';
+
 import { tasks } from '../../../tests/benchmark/tasks';
 import { summarise, percentile } from '../../../tests/benchmark/summary';
 

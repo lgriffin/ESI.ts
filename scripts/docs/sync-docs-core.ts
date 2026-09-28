@@ -4,8 +4,9 @@
  * they work there.
  *
  * `guides/` is the single source. `npm run docs:sync` (scripts/docs/sync-docs.ts)
- * copies README.md and every `guides/*.md` into docs-site/guide/ at build
- * time; the copies are git-ignored, so the site cannot drift from the guides.
+ * copies README.md, every `guides/*.md` and every `guides/sde/*.md` into
+ * docs-site/guide/ at build time; the copies are git-ignored, so the site
+ * cannot drift from the guides.
  *
  * A guide's links are written for GitHub: `USAGE.md#8-examples`,
  * `../src/sde/README.md`, `lean/figures/x.svg`. On the site a link to another
@@ -43,7 +44,17 @@ export const GUIDE_SECTIONS: ReadonlyArray<{
       'guides/ERRORS.md',
       'guides/RUNTIME-VALIDATION.md',
       'guides/LOGGING.md',
+    ],
+  },
+  {
+    text: 'Static Data Export',
+    sources: [
       'guides/SDE.md',
+      'guides/sde/REFERENCE.md',
+      'guides/sde/USAGE.md',
+      'guides/sde/ARCHITECTURE.md',
+      'guides/sde/DEVELOPER_GUIDE.md',
+      'guides/sde/API_CONTRACTS.md',
     ],
   },
   {
@@ -78,10 +89,15 @@ export interface GuidePage {
   section: string;
 }
 
-/** `README.md` is the guide index; `guides/MULTI-CHARACTER.md` is `multi-character`. */
+/**
+ * `README.md` is the guide index; `guides/MULTI-CHARACTER.md` is
+ * `multi-character`; a guide in a subfolder carries it as a prefix, so
+ * `guides/sde/USAGE.md` is `sde-usage` and cannot collide with `guides/USAGE.md`.
+ */
 export function slugFor(source: string): string {
   if (source === 'README.md') return 'index';
-  return path.posix.basename(source, '.md').toLowerCase();
+  const relative = source.startsWith('guides/') ? source.slice(7) : source;
+  return relative.replace(/\.md$/, '').replace(/\//g, '-').toLowerCase();
 }
 
 /**

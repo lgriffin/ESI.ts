@@ -10,17 +10,17 @@ the commands are listed with each table.
 
 Line counts exclude `*.generated.ts`.
 
-| Area                 | Files | Lines | Origin                                                          |
-| -------------------- | ----: | ----: | --------------------------------------------------------------- |
-| `src/clients`        |    40 |  4965 | Hand-written: 39 domain clients plus `BaseEsiClient`            |
-| `src/core/endpoints` |    42 |  2501 | Hand-written endpoint definitions (234 path and method entries) |
-| `src/core` (rest)    |    46 |  4909 | Hand-written pipeline, cache, retry, rate limiter, pagination   |
-| `src/schemas`        |    39 |  2571 | Hand-written Zod schemas, checked by `npm run schema:drift`     |
-| `src/types`          |    40 |  1437 | Hand-written response types, branded IDs                        |
-| `src/auth`           |     9 |  1399 | Hand-written SSO and token handling                             |
-| `src/sde`            |    18 |  6289 | Hand-written SDE ingestion and query (separate sub-path export) |
-| `src/config`         |     4 |    88 | Hand-written                                                    |
-| `src/testing`        |     2 |  1054 | Hand-written test helpers (public sub-path)                     |
+| Area                 | Files | Lines | Origin                                                                                |
+| -------------------- | ----: | ----: | ------------------------------------------------------------------------------------- |
+| `src/clients`        |    40 |  4965 | Hand-written: 39 domain clients plus `BaseEsiClient`                                  |
+| `src/core/endpoints` |    42 |  2501 | Hand-written endpoint definitions (234 path and method entries)                       |
+| `src/core` (rest)    |    46 |  4909 | Hand-written pipeline, cache, retry, rate limiter, pagination                         |
+| `src/schemas`        |    39 |  2571 | Hand-written Zod schemas, checked by `npm run schema:drift`                           |
+| `src/types`          |    40 |  1437 | Hand-written response types, branded IDs                                              |
+| `src/auth`           |     9 |  1399 | Hand-written SSO and token handling                                                   |
+| `src/sde`            |    20 |  6379 | Hand-written SDE ingestion and query (separate sub-path export); refreshed 2026-09-28 |
+| `src/config`         |     4 |    88 | Hand-written                                                                          |
+| `src/testing`        |     2 |  1054 | Hand-written test helpers (public sub-path)                                           |
 
 Generated from the ESI spec at compatibility date 2026-05-19 (`npm run generate:types`):
 
@@ -89,7 +89,8 @@ file sets no floor for that directory.
 | `src/core/requestPipeline` |                                          75.2 |                                             38.5 |
 | `src/core/util`            |                                          95.4 |                                             42.8 |
 | `src/schemas`              |                                             — |                                              0.0 |
-| `src/sde`                  |                                             — |                                             10.6 |
+| `src/sde`                  |                                          85.6 |                                             20.6 |
+| `src/sde/ingestion`        |                                          71.8 |                                              0.0 |
 
 The plan's target is 90 on the hand-written core and 80 repo-wide. Only
 `src/core/middleware` and `src/core/util` meet 90 today; `src/core/logger`

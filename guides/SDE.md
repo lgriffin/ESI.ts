@@ -6,16 +6,16 @@ EVE Online has two sources of truth about the game. The **ESI API** says what is
 
 Topics with their own document are summarised here and linked:
 
-| Topic                                                                    | Canonical document                                                    |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| The HTTP client's layers, request path and middleware                    | [ARCHITECTURE.md](ARCHITECTURE.md)                                    |
-| The SDE module's internals: load pipeline, storage, entity relationships | [src/sde/docs/ARCHITECTURE.md](../src/sde/docs/ARCHITECTURE.md)       |
-| Every `IStaticDataProvider` method, by family                            | [src/sde/README.md](../src/sde/README.md#api-reference)               |
-| Provider patterns and query examples                                     | [src/sde/docs/USAGE.md](../src/sde/docs/USAGE.md)                     |
-| Adding an entity type or a YAML file to the registry                     | [src/sde/docs/DEVELOPER_GUIDE.md](../src/sde/docs/DEVELOPER_GUIDE.md) |
-| Error classes on both sides and where to import the guards               | [ERRORS.md](ERRORS.md)                                                |
-| The rule that keeps the two apart and the tests that hold it             | [CHARTER.md](CHARTER.md#arch-10--ubiquitous--enforced), ARCH-10       |
-| The eleven overnight runs that bring the SDE up to the core's standard   | [ROADMAP.md](ROADMAP.md#track-s--the-sde-programme)                   |
+| Topic                                                                    | Canonical document                                              |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| The HTTP client's layers, request path and middleware                    | [ARCHITECTURE.md](ARCHITECTURE.md)                              |
+| The SDE module's internals: load pipeline, storage, entity relationships | [sde/ARCHITECTURE.md](sde/ARCHITECTURE.md)                      |
+| Every `IStaticDataProvider` method, by family                            | [sde/REFERENCE.md](sde/REFERENCE.md#api-reference)              |
+| Provider patterns and query examples                                     | [sde/USAGE.md](sde/USAGE.md)                                    |
+| Adding an entity type or a YAML file to the registry                     | [sde/DEVELOPER_GUIDE.md](sde/DEVELOPER_GUIDE.md)                |
+| Error classes on both sides and where to import the guards               | [ERRORS.md](ERRORS.md)                                          |
+| The rule that keeps the two apart and the tests that hold it             | [CHARTER.md](CHARTER.md#arch-10--ubiquitous--enforced), ARCH-10 |
+| The eleven overnight runs that bring the SDE up to the core's standard   | [ROADMAP.md](ROADMAP.md#track-s--the-sde-programme)             |
 
 ---
 
@@ -236,7 +236,7 @@ Again, no edge crosses from `clientBox` to `sdeBox` or back. `npm run lint:layer
 
 ### C4 Level 3 — Component: the SDE module
 
-What happens between `fromDirectory()` and `getType()`. The full component diagram, the load pipeline and the entity relationship diagram are in [src/sde/docs/ARCHITECTURE.md](../src/sde/docs/ARCHITECTURE.md); this is the shape.
+What happens between `fromDirectory()` and `getType()`. The full component diagram, the load pipeline and the entity relationship diagram are in [sde/ARCHITECTURE.md](sde/ARCHITECTURE.md); this is the shape.
 
 | Component                 | File                                         | Responsibility                                                                                                                                                                   |
 | ------------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -346,7 +346,7 @@ The 99 methods fall into families; each single-entity lookup returns `T | null`,
 | Industry              | `getBlueprint`, `getIndustryActivity`, `getPlanetSchematic`                                  | `blueprint_type_id`, `activity_id` on industry jobs      |
 | Version and lifecycle | `getVersion`, `close`                                                                        | See [Freshness](#freshness-and-versions)                 |
 
-The complete list, family by family, is in [src/sde/README.md](../src/sde/README.md#api-reference).
+The complete list, family by family, is in [sde/REFERENCE.md](sde/REFERENCE.md#api-reference).
 
 ---
 
@@ -458,4 +458,4 @@ Nothing ties the two together, because nothing in CCP's data does: an ESI respon
 
 ## Where this is going
 
-Track S is twelve overnight runs, each a PR, that bring the SDE to the standard of the core: layer lint (done, Run 1), coverage ratchet, step-library BDD, per-method spec coverage, error contracts, property tests, type tests, real-data nightly, benchmarks and soak, security review, the documentation move, and last the restructuring. Run 11 moves `src/sde/docs/` under `guides/sde/` with this file as the index, reduces `src/sde/README.md` to a pointer, and publishes the set on the documentation site. Until then this guide is the front door and the module's own docs are the reference behind it. Run 12, after every other run, splits `src/sde/` into `ports/`, `domain/`, `providers/`, `ingestion/` and `testing/` with layer rules inside the module, keeping the `./sde` and `./sde/memory` exports as they are; the level 3 diagram above is redrawn then.
+Track S is twelve overnight runs, each a PR, that bring the SDE to the standard of the core: layer lint (done, Run 1), coverage ratchet, step-library BDD, per-method spec coverage, error contracts, property tests, type tests, real-data nightly, benchmarks and soak, security review, the documentation move, and last the restructuring. Run 11 (landed 2026-09-28) moved the module's doc set under `guides/sde/` with this file as the index and `src/sde/README.md` as a pointer, so the whole set is published on the documentation site. Run 12, after every other run, splits `src/sde/` into `ports/`, `domain/`, `providers/`, `ingestion/` and `testing/` with layer rules inside the module, keeping the `./sde` and `./sde/memory` exports as they are; the level 3 diagram above is redrawn then.

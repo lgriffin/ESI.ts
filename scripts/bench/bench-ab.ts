@@ -142,8 +142,16 @@ function runProcess(
   const result = spawnSync(process.execPath, args, {
     cwd: tree,
     stdio: ['ignore', 'inherit', 'inherit'],
-    // The same fallback the bundle used, for the packages left external.
-    env: { ...process.env, NODE_PATH: path.resolve(fallbackModules) },
+    env: {
+      ...process.env,
+      // The same fallback the bundle used, for the packages left external.
+      NODE_PATH: path.resolve(fallbackModules),
+      // A real export named relative to where the comparison was started,
+      // not to the base worktree the base process runs in.
+      ...(process.env.SDE_BENCH_DIR
+        ? { SDE_BENCH_DIR: path.resolve(process.env.SDE_BENCH_DIR) }
+        : {}),
+    },
   });
   if (result.status !== 0) {
     throw new Error(

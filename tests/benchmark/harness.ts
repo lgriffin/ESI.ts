@@ -60,7 +60,7 @@ async function main(): Promise<void> {
       const stats = await measure(timed, {
         gc,
         min_cpu_time: minCpuMs * 1e6,
-        min_samples: 30,
+        min_samples: task.minSamples ?? 30,
         batch_samples: 1024,
       });
       result.tasks[task.name] = summarise(stats.samples);

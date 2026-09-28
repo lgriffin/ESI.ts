@@ -33,12 +33,18 @@ import {
   colonyLayout,
   marketOrders,
 } from './fixtures';
+import { sdeTasks } from './sde.bench';
 
 export interface BenchTask {
   /** Stable identifier, `<area>/<what>`. */
   name: string;
   /** Build state and return the function to time. */
   setup(): Promise<Measured> | Measured;
+  /**
+   * Samples mitata must collect before the CPU-time budget decides (30 when
+   * unset). A task whose one operation takes a second sets fewer.
+   */
+  minSamples?: number;
 }
 
 export interface Measured {
@@ -327,4 +333,7 @@ export const tasks: BenchTask[] = [
       return { fn: () => batchFetch(keys, fetcher, { concurrency: 10 }) };
     },
   },
+
+  // ── SDE: load and lookups (tests/benchmark/sde.bench.ts) ──────────────
+  ...sdeTasks,
 ];
