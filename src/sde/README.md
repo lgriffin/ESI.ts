@@ -88,7 +88,7 @@ In-memory Maps
 
 ### Key Design Decisions
 
-**YAML-native, no database.** All data lives in `Map<string, Map<number|string, Record<string, unknown>>>`. The outer map is keyed by table name (e.g., `eve_types`), the inner map by entity primary key. This trades memory (~500 MB at peak) for zero external dependencies and instant startup queries.
+**YAML-native, no database.** All data lives in `Map<string, Map<number|string, Record<string, unknown>>>`. The outer map is keyed by table name (e.g., `eve_types`), the inner map by entity primary key. This trades memory for zero external dependencies and instant startup queries. What it costs is measured, not estimated: on the generated 50,000-type benchmark set the loaded heap is 64 MiB after a full collection (RSS 348 MiB, load 0.7 s, Node 22), and every night `nightly-sde.yml` loads CCP's current export and publishes the same table for that build (load time, heap and RSS after load, peak heap over 100,000 lookups, heap after `close()`) in its step summary; `npm run soak -- --sde --dir sde-data` prints it for an export on disk.
 
 **Field normalization.** CCP uses `groupID`, `solarSystemID`; we normalize to `groupId`, `solarSystemId` via regex `/ID(?=[A-Z]|$)/g`. This applies recursively to nested objects (e.g., stargate `destination.solarSystemId`).
 
