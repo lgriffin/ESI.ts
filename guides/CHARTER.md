@@ -1,6 +1,6 @@
 # ESI.ts Engineering Charter
 
-**Package:** `@lgriffin/esi.ts` · **Charter revision:** 2 (2026-09-27) · **Status:** adopted
+**Package:** `@lgriffin/esi.ts` · **Charter revision:** 3 (2026-09-28) · **Status:** adopted
 
 The governing statement of how ESI.ts is designed, built, tested, secured, documented and released. Every guide in this folder derives from a numbered requirement here, and every requirement is written in the same EARS form the test suite already uses, so the charter can be audited the way the specification is.
 
@@ -12,7 +12,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 | EARS requirements in the specification                         | <!-- metric:requirements -->566<!-- /metric --> (<!-- metric:featureFiles -->73<!-- /metric --> feature files) |
 | Gherkin scenarios                                              | <!-- metric:scenarios -->726<!-- /metric -->                                                                   |
 | Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->333<!-- /metric -->                                                                   |
-| Statement coverage                                             | 98.2% (last measured at v9.8.0; floor 90%)                                                                     |
+| Statement coverage                                             | 97.8% (`npm run coverage` on master `114a485a`, 2026-09-28; floor 90%)                                         |
 
 ### What changed in revision 2
 
@@ -22,7 +22,14 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 - **11.0.0 decisions** recorded below. REL-05 now states the Node 22 floor, so it reads Gap until the 11.0.0 engines bump lands; the requirement changed, the code did not regress.
 - **Gap register** rows closed with evidence, the eleven findings filed after revision 1 (#290 to #300) added, and one new finding (a bare `..` path parameter) registered.
 
-### Amendments after revision 2
+### What changed in revision 3
+
+- **Header re-measured** on master `114a485a` (2026-09-28): 566 requirements in 73 feature files, 726 scenarios, 332 test files, statement coverage 97.8% (branches 95.9%, functions 93.6%, lines 97.9%). Revision 2 quoted 545 requirements and 703 scenarios, and a coverage figure from v9.8.0.
+- **Statuses moved to Enforced** since revision 2, each by the amendment below it: ARCH-06, ARCH-09, ARCH-10 (new), DOC-01, DOC-03, DOC-04, GATE-04, GATE-05, GATE-06, GATE-07 (new), REL-03, REL-05, TEST-09, TEST-10, TEST-11 (new) and PROC-06 (new). TEST-07's stale-survivor gap is closed and its status is unchanged.
+- **Still Partial or Gap:** ARCH-07, ARCH-08, DES-08, DOC-05, DOC-06, REL-04, REL-06, PROC-04, PROC-05, and SEC-07, which waits on branch protection that includes administrators, a setting only the maintainer can change ([#270](https://github.com/lgriffin/ESI.ts/issues/270)). The Scorecard number in the header is unchanged for the same reason; Part 11 step 8 records it when the maintainer's items land.
+- **11.0.0 decisions since revision 2** stand as recorded under Amendments: no bridge between the core and the SDE, mutation off the release path, and the exclusions stated as Rules.
+
+### Amendments after revision 2 (the detail behind revision 3)
 
 - **2026-09-28, one testing guide (DOC-01).** `guides/MUTATION-TESTING.md` is folded into `guides/TESTING.md` as its "Mutation testing" section and deleted, after root `TESTING.md` the day before; every link now points at the section. DOC-01 moves from Gap to Enforced: `tests/tdd/scripts/sync-docs.test.ts` keeps the retired copies deleted, keeps the tier table in TESTING.md alone, and fails on a guide link to a missing guide or heading ([#273](https://github.com/lgriffin/ESI.ts/issues/273)).
 - **2026-09-27, EARS governance.** Six decisions from the review of the specification's reach, taken by the maintainer on the recommendations recorded in the roadmap: exclusions are stated as unwanted-behaviour Rules (TEST-11, new); the charter itself is audited like a feature file (PROC-06, new); every public client method traces to a Rule (TEST-10, new, shared with Track S Run 4); `npm run ears` already runs in CI (`ears.yml`, on every pull request that touches `src/`, `tests/bdd/` or the EARS scripts; `bdd-tests` and `spec-audit` gate the same ground inside `ci-success`), and making it a required check is a branch-protection setting for the maintainer that would first need the workflow's path filters removed, so a documentation-only pull request is not blocked by a check that never ran; TEST-01 moves to Practised because its RED step is a workflow, not a check; TEST-07 gains the 11.0.0 mutation floors. Statuses that moved down did so with the reason in the row.
