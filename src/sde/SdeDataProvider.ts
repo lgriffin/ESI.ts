@@ -55,6 +55,7 @@ import type {
   EpicArc,
 } from './types';
 import type { SdeVersionInfo } from './version';
+import { sortedById } from './order';
 import {
   SDE_FILE_REGISTRY,
   SDE_METADATA_FILENAME,
@@ -176,14 +177,13 @@ export class SdeDataProvider implements IStaticDataProvider {
     spec: SdeFileSpec,
     raw: Record<string | number, Record<string, unknown>>,
   ): void {
-    const records = new Map<number | string, Record<string, unknown>>();
+    const rows: Array<[number | string, Record<string, unknown>]> = [];
     for (const [key, value] of Object.entries(raw)) {
       if (value == null || typeof value !== 'object') continue;
       const id = spec.idType === 'string' ? key : Number(key);
-      const transformed = transformRecordNative(id, value, spec);
-      records.set(id, transformed);
+      rows.push([id, transformRecordNative(id, value, spec)]);
     }
-    this.entities.set(spec.tableName, records);
+    this.entities.set(spec.tableName, new Map(sortedById(rows, ([id]) => id)));
   }
 
   // ---------------------------------------------------------------

@@ -52,6 +52,13 @@ import type {
 } from './types';
 import type { SdeVersionInfo } from './version';
 
+/**
+ * The read-only port every SDE provider implements. A lookup by ID answers the
+ * record or `null`; a whole-table read and a foreign-key list answer every
+ * matching record ordered by ID ascending, whatever order the export listed
+ * them in; a search answers the records whose name contains the fragment,
+ * case folded, up to the limit (25 by default).
+ */
 export interface IStaticDataProvider {
   // --- Types, Groups, Categories ---
   getType(typeId: number): EveType | null;

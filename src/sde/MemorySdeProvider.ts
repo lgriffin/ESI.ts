@@ -52,6 +52,7 @@ import type {
   EpicArc,
 } from './types';
 import type { SdeVersionInfo } from './version';
+import { sortedById } from './order';
 
 export interface MemorySdeData {
   types?: EveType[];
@@ -119,7 +120,9 @@ export class MemorySdeProvider implements IStaticDataProvider {
     ): void => {
       this.data.set(
         key,
-        new Map((items ?? []).map((item) => [idFn(item), item])),
+        new Map(
+          sortedById(items ?? [], idFn).map((item) => [idFn(item), item]),
+        ),
       );
     };
 

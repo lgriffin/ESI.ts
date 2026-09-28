@@ -85,6 +85,24 @@ export function openHierarchicalProvider(world: World): IStaticDataProvider {
   return world.sde;
 }
 
+/**
+ * Open a provider over categories 3, 2, 1 and the three minerals of group 18
+ * listed with the highest ID first, so a provider that keeps load order
+ * answers descending.
+ */
+export function openDescendingProvider(world: World): IStaticDataProvider {
+  world.sde = new MemorySdeProvider({
+    categories: [3, 2, 1].map((categoryId) =>
+      SdeTestDataFactory.createEveCategory({ categoryId }),
+    ),
+    groups: [SdeTestDataFactory.createEveGroup({ groupId: 18, categoryId: 3 })],
+    types: [36, 35, 34].map((typeId) =>
+      SdeTestDataFactory.createEveType({ typeId, groupId: 18 }),
+    ),
+  });
+  return world.sde;
+}
+
 // ---------------------------------------------------------------------------
 // The extended data set (features 0008 to 0012)
 // ---------------------------------------------------------------------------
