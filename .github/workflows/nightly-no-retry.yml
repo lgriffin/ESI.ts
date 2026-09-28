@@ -142,7 +142,9 @@ jobs:
     name: Open or close the no-retry issue
     runs-on: ubuntu-latest
     needs: no-retry
-    if: ${{ !cancelled() && github.ref == 'refs/heads/master' }}
+    # Scheduled runs only: a manual seed replay is a diagnosis, not the next
+    # night, so it neither opens nor closes the issue.
+    if: ${{ !cancelled() && github.event_name == 'schedule' && github.ref == 'refs/heads/master' }}
     # One report at a time, so two overlapping runs cannot both find no issue
     # and both create one. A running report is never cancelled.
     concurrency:
@@ -182,6 +184,9 @@ jobs:
           ## Nightly no-retry run failed — ${TODAY}
 
           The run ended with \`${RESULT}\`: ${RUN_URL}
+
+          If the job stopped before its test step (checkout, install or setup), the
+          run log shows where; the notes below apply when the tests ran and failed.
 
           A test failed, or needed a retry, with the test order shuffled by a fresh
           seed. The job log and step summary name the failing tests and the seed;
