@@ -104,6 +104,12 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'spec:coverage:clients',
+    covers:
+      'every public domain-client method is named by a Rule or called by a bound step, or in the committed baseline',
+    stage: 'quick',
+  },
+  {
     script: 'charter:audit',
     covers:
       'CHARTER.md requirement blocks are EARS-compliant and Enforced rows name a mechanism',
@@ -226,6 +232,8 @@ export const NOT_RUN_LOCALLY: Record<string, string> = {
   'schema:drift:ci': 'downloads the live ESI OpenAPI document',
   'spec:coverage:sde:ci':
     'compares the baseline against origin/master, which a checkout may lack; spec:coverage:sde checks it against the working tree',
+  'spec:coverage:clients:ci':
+    'compares the baseline against origin/master, which a checkout may lack; spec:coverage:clients checks it against the working tree',
   'validate:esi': 'downloads the live ESI OpenAPI document',
   'validate:spec': 'Redocly downloads and lints the live ESI OpenAPI document',
   'mutation:fixture':
