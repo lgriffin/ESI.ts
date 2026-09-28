@@ -11,7 +11,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 | Generated operations (`src/generated/operations.generated.ts`) | <!-- metric:operations -->233<!-- /metric -->                                                                  |
 | EARS requirements in the specification                         | <!-- metric:requirements -->566<!-- /metric --> (<!-- metric:featureFiles -->73<!-- /metric --> feature files) |
 | Gherkin scenarios                                              | <!-- metric:scenarios -->726<!-- /metric -->                                                                   |
-| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->333<!-- /metric -->                                                                   |
+| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->334<!-- /metric -->                                                                   |
 | Statement coverage                                             | 97.8% (`npm run coverage` on master `114a485a`, 2026-09-28; floor 90%)                                         |
 
 ### What changed in revision 2

@@ -92,7 +92,9 @@ describe('classify', () => {
     expect(classify(new SsoError(400, 'invalid_grant'), 'sso').code).toBe(
       EXIT.failed,
     );
-    expect(classify(new TokenRevokedError('revoked', 1), 'sso').code).toBe(EXIT.failed);
+    expect(classify(new TokenRevokedError('revoked', 1), 'sso').code).toBe(
+      EXIT.failed,
+    );
     expect(classify(new TokenDecodeError('no sub'), 'sso').code).toBe(
       EXIT.failed,
     );
