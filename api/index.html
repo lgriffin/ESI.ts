@@ -1,0 +1,377 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@lgriffin/esi.ts - EVE Online ESI API Client - v10.2.3</title><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v10.2.3</a>
+<div id="tsd-toolbar-links"><a href="https://github.com/lgriffin/ESI.ts">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts">NPM</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<h1>@lgriffin/esi.ts - EVE Online ESI API Client - v10.2.3</h1></div>
+<div class="tsd-panel tsd-typography"><h1 id="esits" class="tsd-anchor-link">ESI.ts<a href="#esits" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p><a href="https://badge.fury.io/js/%40lgriffin%2Fesi.ts"><img src="https://badge.fury.io/js/%40lgriffin%2Fesi.ts.svg" alt="npm version"></a>
+<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
+<a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.4%2B-blue" alt="TypeScript"></a>
+<a href="https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml"><img src="https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml/badge.svg" alt="CI/CD Pipeline"></a>
+<a href="guides/TESTING.md"><img src="https://img.shields.io/badge/coverage-97%25-brightgreen" alt="Coverage"></a>
+<a href="https://www.npmjs.com/package/@lgriffin/esi.ts"><img src="https://img.shields.io/npm/dm/%40lgriffin/esi.ts" alt="npm downloads"></a>
+<a href="https://scorecard.dev/viewer/?uri=github.com/lgriffin/ESI.ts"><img src="https://api.scorecard.dev/projects/github.com/lgriffin/ESI.ts/badge" alt="OpenSSF Scorecard"></a></p>
+<p>A TypeScript client for the <a href="https://esi.evetech.net/">EVE Online ESI API</a>, built as an engineered product rather than a generated wrapper. It covers every operation in the ESI OpenAPI specification. Every response is validated at runtime, and caching, rate limiting, retry and pagination follow the rules ESI actually enforces. The claims on this page are backed by a test suite that is itself tested.</p>
+<p><strong>Documentation site: <a href="https://lgriffin.github.io/ESI.ts/">lgriffin.github.io/ESI.ts</a></strong>, with these guides, a page for every runnable example, and the <a href="https://lgriffin.github.io/ESI.ts/api/">API reference</a> generated from the TSDoc.</p>
+<blockquote>
+<p><strong>Release line.</strong> Version <!-- metric:version -->10.2.3<!-- /metric --> <!-- x-release-please-version -->
+is current on npm and supports Node 18 and later. <strong>11.0.0 is in progress.</strong> It raises the floor to Node 22 and adds a new client built on one shared runtime, with typed public and per-character views. Nothing documented here is removed in 11.0. <a href="media/USAGE.md#9-what-1100-changes">What 11.0 changes</a> · <a href="media/ROADMAP.md">Roadmap and release gate</a></p>
+</blockquote>
+<h2 id="install" class="tsd-anchor-link">Install<a href="#install" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">install</span><span class="hl-1"> </span><span class="hl-2">@lgriffin/esi.ts</span>
+</code><button type="button">Copy</button></pre>
+
+<p>You need Node.js 22.12 or later from 11.0.0; 10.x, current on npm, supports Node 18 and 20. TypeScript projects need TypeScript 5.4 or later, under <code>node16</code>, <code>nodenext</code> or <code>bundler</code> module resolution. The consumer contract checks every one of those combinations against the published tarball, as ES module and CommonJS.</p>
+<h2 id="quick-start" class="tsd-anchor-link">Quick start<a href="#quick-start" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="typescript"><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-4">EsiClient</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@lgriffin/esi.ts&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">client</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-0">EsiClient</span><span class="hl-1">({ </span><span class="hl-4">userAgent:</span><span class="hl-1"> </span><span class="hl-2">&#39;my-app/1.0 (you@example.com)&#39;</span><span class="hl-1"> });</span><br/><span class="hl-3">try</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">status</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">client</span><span class="hl-1">.</span><span class="hl-4">status</span><span class="hl-1">.</span><span class="hl-0">getStatus</span><span class="hl-1">();</span><br/><span class="hl-1">  </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-2">`</span><span class="hl-5">${</span><span class="hl-4">status</span><span class="hl-7">.</span><span class="hl-4">players</span><span class="hl-5">}</span><span class="hl-2"> pilots online`</span><span class="hl-1">);</span><br/><span class="hl-1">} </span><span class="hl-3">finally</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-4">client</span><span class="hl-1">.</span><span class="hl-0">shutdown</span><span class="hl-1">();</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Public data needs no token. For character data, pass an EVE SSO access token, or set <code>ESI_ACCESS_TOKEN</code>, and the client attaches it only to the calls that declare a scope:</p>
+<pre><code class="typescript"><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">character</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">client</span><span class="hl-1">.</span><span class="hl-4">characters</span><span class="hl-1">.</span><span class="hl-0">getCharacterPublicInfo</span><span class="hl-1">(</span><span class="hl-4">characterId</span><span class="hl-1">);</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">prices</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">client</span><span class="hl-1">.</span><span class="hl-4">market</span><span class="hl-1">.</span><span class="hl-0">getMarketPrices</span><span class="hl-1">();</span><br/><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">authed</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-0">EsiClient</span><span class="hl-1">({ </span><span class="hl-4">accessToken:</span><span class="hl-1"> </span><span class="hl-4">token</span><span class="hl-1"> });</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">wallet</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">authed</span><span class="hl-1">.</span><span class="hl-4">wallet</span><span class="hl-1">.</span><span class="hl-0">getCharacterWallet</span><span class="hl-1">(</span><span class="hl-4">characterId</span><span class="hl-1">);</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Next: <a href="media/USAGE.md">Using the client</a> for configuration and every domain client, and <a href="media/AUTHENTICATION.md">Authentication</a> for SSO, refresh and many characters.</p>
+<h3 id="multiple-characters" class="tsd-anchor-link">Multiple characters<a href="#multiple-characters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>An application that acts for many characters has one relationship with ESI, so <code>@lgriffin/esi.ts/client</code> builds one runtime and a view per identity. The views share the rate limiter, the error budget and the ETag cache; each identity's authenticated entries stay apart. <code>esi.public</code> is typed so that an authenticated call does not compile.</p>
+<pre><code class="typescript"><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-4">createEsi</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@lgriffin/esi.ts/client&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">esi</span><span class="hl-1"> = </span><span class="hl-0">createEsi</span><span class="hl-1">({ </span><span class="hl-4">userAgent:</span><span class="hl-1"> </span><span class="hl-2">&#39;my-app/1.0 (you@example.com)&#39;</span><span class="hl-1"> });</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">status</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">esi</span><span class="hl-1">.</span><span class="hl-4">public</span><span class="hl-1">.</span><span class="hl-4">status</span><span class="hl-1">.</span><span class="hl-0">get</span><span class="hl-1">();</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">wallet</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">esi</span><br/><span class="hl-1">  .</span><span class="hl-0">as</span><span class="hl-1">(</span><span class="hl-4">tokens</span><span class="hl-1">.</span><span class="hl-0">identity</span><span class="hl-1">(</span><span class="hl-4">characterId</span><span class="hl-1">))</span><br/><span class="hl-1">  .</span><span class="hl-0">character</span><span class="hl-1">(</span><span class="hl-4">characterId</span><span class="hl-1">)</span><br/><span class="hl-1">  .</span><span class="hl-4">wallet</span><span class="hl-1">.</span><span class="hl-0">get</span><span class="hl-1">();</span>
+</code><button type="button">Copy</button></pre>
+
+<p><a href="media/MULTI-CHARACTER.md">Many characters</a> has the identities (<code>EsiTokenManager</code>, a raw token, a <code>TokenProvider</code>), what the views share, and the move from <code>tokens.createClient</code>.</p>
+<h3 id="testing-your-application-without-esi" class="tsd-anchor-link">Testing your application without ESI<a href="#testing-your-application-without-esi" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p><code>createMockTransport()</code> from <code>@lgriffin/esi.ts/testing</code> answers requests from a table of routes and records what your code sent. Everything between your call and the transport is the real pipeline, so this runs as written:</p>
+<pre><code class="typescript"><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-4">createEsi</span><span class="hl-1">, </span><span class="hl-4">identityFromToken</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@lgriffin/esi.ts/client&#39;</span><span class="hl-1">;</span><br/><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-4">createMockTransport</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@lgriffin/esi.ts/testing&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">transport</span><span class="hl-1"> = </span><span class="hl-0">createMockTransport</span><span class="hl-1">().</span><span class="hl-0">respond</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-4">method:</span><span class="hl-1"> </span><span class="hl-2">&#39;GET&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-4">path:</span><span class="hl-1"> </span><span class="hl-2">&#39;/characters/{character_id}/wallet&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-4">body:</span><span class="hl-1"> </span><span class="hl-8">1234567.89</span><span class="hl-1">,</span><br/><span class="hl-1">});</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">esi</span><span class="hl-1"> = </span><span class="hl-0">createEsi</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-4">userAgent:</span><span class="hl-1"> </span><span class="hl-2">&#39;my-app/1.0 (you@example.com)&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-4">transport</span><span class="hl-1">,</span><br/><span class="hl-1">});</span><br/><span class="hl-3">try</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">view</span><span class="hl-1"> = </span><span class="hl-4">esi</span><span class="hl-1">.</span><span class="hl-0">as</span><span class="hl-1">(</span><span class="hl-0">identityFromToken</span><span class="hl-1">(</span><span class="hl-2">&#39;an-access-token&#39;</span><span class="hl-1">));</span><br/><span class="hl-1">  </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">wallet</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">view</span><span class="hl-1">.</span><span class="hl-0">character</span><span class="hl-1">(</span><span class="hl-8">2114794365</span><span class="hl-1">).</span><span class="hl-4">wallet</span><span class="hl-1">.</span><span class="hl-0">get</span><span class="hl-1">();</span><br/><span class="hl-1">  </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-4">wallet</span><span class="hl-1">); </span><span class="hl-9">// 1234567.89</span><br/><span class="hl-1">  </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-4">transport</span><span class="hl-1">.</span><span class="hl-4">sent</span><span class="hl-1">[</span><span class="hl-8">0</span><span class="hl-1">]?.</span><span class="hl-4">headers</span><span class="hl-1">[</span><span class="hl-2">&#39;authorization&#39;</span><span class="hl-1">]); </span><span class="hl-9">// Bearer an-access-token</span><br/><span class="hl-1">} </span><span class="hl-3">finally</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-4">esi</span><span class="hl-1">.</span><span class="hl-0">shutdown</span><span class="hl-1">();</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+<p>A request no route answers is rejected with an <code>EsiConfigurationError</code> naming the request, without a retry, and appears in <code>transport.unrouted</code>. <a href="media/TESTING.md#testing-your-application">Testing</a> has the route options and the record.</p>
+<h2 id="what-you-get" class="tsd-anchor-link">What you get<a href="#what-you-get" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>What ESI.ts does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Full coverage</strong></td>
+<td><!-- metric:clients -->39<!-- /metric --> domain clients and <!-- metric:routes -->235<!-- /metric --> routes. They cover all <!-- metric:operations -->233<!-- /metric --> operations in the ESI specification at compatibility date <!-- metric:compatibilityDate -->2026-08-18<!-- /metric -->, plus the specification documents themselves. <code>spec:coverage</code> fails the build if one is missing.</td>
+</tr>
+<tr>
+<td><strong>Runtime validation</strong></td>
+<td>Every GET response is checked against a hand-written Zod schema. Unknown fields pass through, so an additive change from CCP never breaks you. A changed shape throws <code>EsiValidationError</code> instead of corrupting your data quietly.</td>
+</tr>
+<tr>
+<td><strong>Caching</strong></td>
+<td>A GET inside ESI's cache window makes no HTTP call. Older entries are revalidated with ETags, and a 5xx serves the stale copy. A write invalidates the reads it affects. Keys are hashed per token.</td>
+</tr>
+<tr>
+<td><strong>Rate limiting</strong></td>
+<td>One bucket per ESI rate-limit group: 46 of them, generated from the spec. The limiter learns from ESI's headers and honours <code>Retry-After</code>. A 420 or 429 blocks only its own group.</td>
+</tr>
+<tr>
+<td><strong>Resilience</strong></td>
+<td>Exponential backoff with jitter, a single coalesced token refresh on 401, deduplication of identical in-flight GETs, and an opt-in circuit breaker. Each one is an interface you can replace.</td>
+</tr>
+<tr>
+<td><strong>Pagination</strong></td>
+<td>Offset and cursor paging. <code>stream*</code> yields one validated page at a time, and <code>fetchAll*</code> fetches pages concurrently. <code>batch</code> and <code>batchPost</code> handle fan-out.</td>
+</tr>
+<tr>
+<td><strong>Authentication</strong></td>
+<td>EVE SSO with PKCE, and a token manager that handles storage, proactive refresh, rotation, revocation and bulk refresh for many characters.</td>
+</tr>
+<tr>
+<td><strong>Static data</strong></td>
+<td><code>./sde</code> answers offline queries over CCP's Static Data Export: 99 typed lookups with no database. It shares no code with the HTTP pipeline, and a lint rule enforces that.</td>
+</tr>
+<tr>
+<td><strong>Correct wire format</strong></td>
+<td>Where the specification is wrong about how ESI reads a request (parameters in the query rather than the body, undocumented length limits), the definitions follow ESI. The specification documents this and live validation proved it.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-engineering-stance" class="tsd-anchor-link">The engineering stance<a href="#the-engineering-stance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>The project is run to a written <a href="media/CHARTER.md">engineering charter</a>. It has <!-- metric:charterRequirements -->61<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->41<!-- /metric --> are <strong>Enforced</strong>, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->12<!-- /metric --> Partial and <!-- metric:charterGap -->2<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:</p>
+<ol>
+<li><strong>The OpenAPI spec is upstream.</strong> Types, cache TTLs, rate-limit groups, scopes and <!-- metric:operations -->233<!-- /metric --> typed operations are generated from it, and CI fails when they go stale.</li>
+<li><strong>Hand-write where judgement matters.</strong> Method names, argument shapes and validation strictness are product decisions. Drift reports keep them honest against the spec.</li>
+<li><strong>Tolerate additive change.</strong> New fields and enum members from CCP never break a consumer. A removal is a breaking change.</li>
+<li><strong>Resilience is pluggable.</strong> Retry, rate limiting, circuit breaking, deduplication, caching and transport are interfaces, not imports.</li>
+<li><strong>Secure by construction.</strong> HTTPS and a host allowlist are checked at construction, tokens are attached only where a scope is declared, URLs are redacted in every error, and cache keys are hashed per token. Each control is a test.</li>
+<li><strong>The specification executes.</strong> Behaviour is written as EARS requirements in Gherkin, one per <code>Rule:</code>, and verified by scenarios that mock only the transport. The audit fails a pull request that weakens the wording.</li>
+<li><strong>Verifiable supply chain.</strong> Every action is SHA-pinned and every token least-privilege. Releases carry npm provenance, a signed SBOM, cosign signatures and checksums.</li>
+</ol>
+<h3 id="by-the-numbers" class="tsd-anchor-link">By the numbers<a href="#by-the-numbers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Measured on <code>master</code> on 2026-09-27 with the commands shown. <a href="media/TESTING.md">TESTING.md</a> has the full breakdown.</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Value</th>
+<th>Reproduce</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tests run offline</td>
+<td>8,444 passing, 0 failing</td>
+<td><code>npm test</code>, <code>fuzz</code>, <code>faults</code>, <code>contract:replay</code>, <code>test:integration</code></td>
+</tr>
+<tr>
+<td>Unit, BDD and composition</td>
+<td>244 suites, 7,198 tests in about two and a half minutes</td>
+<td><code>npm test</code></td>
+</tr>
+<tr>
+<td>Coverage</td>
+<td>97.2% statements, 95.5% branches, 91.3% functions, 97.3% lines</td>
+<td><code>npm run coverage</code> (floors 90 / 80 / 75 / 90)</td>
+</tr>
+<tr>
+<td>Executable specification</td>
+<td><!-- metric:requirements -->544<!-- /metric --> EARS requirements, <!-- metric:scenarios -->701<!-- /metric --> scenarios, <!-- metric:featureFiles -->73<!-- /metric --> feature files</td>
+<td><code>npm run ears</code></td>
+</tr>
+<tr>
+<td>Property and fuzz tests</td>
+<td>957 tests; 10,000 runs a property nightly</td>
+<td><code>npm run fuzz</code></td>
+</tr>
+<tr>
+<td>Transport fault catalogue</td>
+<td>148 faults through the real pipeline</td>
+<td><code>npm run faults</code></td>
+</tr>
+<tr>
+<td>Recorded ESI payloads</td>
+<td>121 replay tests, re-recorded nightly with a drift PR</td>
+<td><code>npm run contract:replay</code></td>
+</tr>
+<tr>
+<td>Mutation testing</td>
+<td>Per-directory floors, ratcheted nightly, changed files on every PR</td>
+<td><code>npm run mutation:ratchet</code></td>
+</tr>
+<tr>
+<td>CI</td>
+<td>One required check (<code>ci-success</code>) over the full matrix; 26 workflows, 15 of them scheduled</td>
+<td><a href="media/QUALITY-GATES.md">QUALITY-GATES.md</a></td>
+</tr>
+</tbody>
+</table>
+<p>Every tier has to prove it can fail: a negative fixture, a killed mutant or a caught fault. Every floor is a one-way ratchet.</p>
+<h2 id="packages-in-the-box" class="tsd-anchor-link">Packages in the box<a href="#packages-in-the-box" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<table>
+<thead>
+<tr>
+<th>Import</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@lgriffin/esi.ts</code></td>
+<td><code>EsiClient</code>, <code>EsiClientBuilder</code>, <code>EsiApiFactory</code>, domain clients, auth, errors, generated types and scopes</td>
+</tr>
+<tr>
+<td><code>@lgriffin/esi.ts/schemas</code></td>
+<td>The Zod response schemas</td>
+</tr>
+<tr>
+<td><code>@lgriffin/esi.ts/errors</code></td>
+<td>Error classes and type guards, including the auth errors</td>
+</tr>
+<tr>
+<td><code>@lgriffin/esi.ts/testing</code></td>
+<td><code>createMockTransport</code> and <code>TestDataFactory</code> for your own tests</td>
+</tr>
+<tr>
+<td><code>@lgriffin/esi.ts/client</code></td>
+<td><code>createEsi</code>: one shared runtime, <code>esi.public</code> (authenticated calls do not compile) and <code>esi.as(identity)</code></td>
+</tr>
+<tr>
+<td><code>@lgriffin/esi.ts/sde</code></td>
+<td><code>SdeDataProvider</code> (YAML and ZIP, through the optional peers <code>js-yaml</code> and <code>adm-zip</code>) and <code>MemorySdeProvider</code></td>
+</tr>
+<tr>
+<td><code>@lgriffin/esi.ts/sde/memory</code></td>
+<td><code>MemorySdeProvider</code> alone, with no file-system or parser code, for browsers and bundles</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="typescript"><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-4">MarketOrderSchema</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@lgriffin/esi.ts/schemas&#39;</span><span class="hl-1">;</span><br/><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-4">EsiError</span><span class="hl-1">, </span><span class="hl-4">isRetryable</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@lgriffin/esi.ts/errors&#39;</span><span class="hl-1">;</span><br/><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-4">SdeDataProvider</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@lgriffin/esi.ts/sde&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">sdeData</span><span class="hl-1"> = </span><span class="hl-4">SdeDataProvider</span><span class="hl-1">.</span><span class="hl-0">fromDirectory</span><span class="hl-1">(</span><span class="hl-2">&#39;./sde-data&#39;</span><span class="hl-1">);</span><br/><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-4">sdeData</span><span class="hl-1">.</span><span class="hl-0">getType</span><span class="hl-1">(</span><span class="hl-8">34</span><span class="hl-1">)?.</span><span class="hl-4">name</span><span class="hl-1">); </span><span class="hl-9">// &quot;Tritanium&quot;</span><br/><span class="hl-4">sdeData</span><span class="hl-1">.</span><span class="hl-0">close</span><span class="hl-1">();</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="guides" class="tsd-anchor-link">Guides<a href="#guides" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>The README orients and the guides are canonical. Each guide opens with the charter requirements it implements.</p>
+<table>
+<thead>
+<tr>
+<th>Using ESI.ts</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="media/USAGE.md">Using the client</a></td>
+<td>Construction, configuration, every domain client, metadata, batching, examples, what 11.0 changes</td>
+</tr>
+<tr>
+<td><a href="media/AUTHENTICATION.md">Authentication</a></td>
+<td>Tokens, refresh on 401, SSO with PKCE, the multi-character token manager</td>
+</tr>
+<tr>
+<td><a href="media/MULTI-CHARACTER.md">Many characters</a></td>
+<td>One runtime, <code>esi.public</code>, <code>esi.as(identity)</code>, what the views share, moving from <code>createClient</code></td>
+</tr>
+<tr>
+<td><a href="media/PAGINATION.md">Pagination</a></td>
+<td>Offset and cursor paging, <code>stream*</code>, <code>fetchAll*</code>, failure behaviour</td>
+</tr>
+<tr>
+<td><a href="media/ERRORS.md">Errors</a></td>
+<td>Error classes, type guards, retryability, safe mode</td>
+</tr>
+<tr>
+<td><a href="media/RUNTIME-VALIDATION.md">Runtime validation</a></td>
+<td>Zod response and request validation</td>
+</tr>
+<tr>
+<td><a href="media/LOGGING.md">Logging</a></td>
+<td><code>ILogger</code>, per-client loggers, pino, <code>ESI_LOG_LEVEL</code></td>
+</tr>
+<tr>
+<td><a href="media/SDE.md">Static data (SDE)</a></td>
+<td>The offline Static Data Export module: its role, isolation, API (<a href="media/README.md">module README</a>)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>How it is built</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="media/CHARTER.md">Engineering charter</a></td>
+<td>The requirements the project holds itself to, with status and gap register</td>
+</tr>
+<tr>
+<td><a href="media/ROADMAP.md">Roadmap to 11.0.0</a></td>
+<td>Phases, definitions of done, the SDE programme, the release gate</td>
+</tr>
+<tr>
+<td><a href="media/LEAN-DECISIONS.md">Lean decisions</a></td>
+<td>Why it is run this way: every decision since v7, with value stream maps</td>
+</tr>
+<tr>
+<td><a href="media/ARCHITECTURE.md">Architecture</a></td>
+<td>Layers, ports, the request path, caching, retry, rate limiting, circuit breaker</td>
+</tr>
+<tr>
+<td><a href="media/DESIGN-RULES.md">Design rules</a></td>
+<td>Naming, schemas, adding an endpoint or a client, generated files</td>
+</tr>
+<tr>
+<td><a href="media/TESTING.md">Testing</a></td>
+<td>Every test tier, what it proves, how to run it</td>
+</tr>
+<tr>
+<td><a href="media/MUTATION-TESTING.md">Mutation testing</a></td>
+<td>Stryker shards, floors and the ratchet</td>
+</tr>
+<tr>
+<td><a href="media/QUALITY-GATES.md">Quality gates</a></td>
+<td>What runs at commit, push, PR, nightly and release; every workflow</td>
+</tr>
+<tr>
+<td><a href="media/SECURITY.md">Security</a></td>
+<td>Runtime defences and supply-chain controls (<a href="media/SECURITY-1.md">policy</a>)</td>
+</tr>
+<tr>
+<td><a href="media/SEMVER.md">Semantic versioning</a></td>
+<td>What is public; major, minor or patch; breaking-change commits</td>
+</tr>
+<tr>
+<td><a href="media/RELEASE.md">Release</a></td>
+<td>Cutting a release, changelog, provenance, signatures, support window</td>
+</tr>
+<tr>
+<td><a href="media/AUDIT.md">Audit</a></td>
+<td>The Phase 0 measured baseline for 11.0</td>
+</tr>
+<tr>
+<td><a href="media/OKF.md">OKF bundle</a></td>
+<td>The generated Open Knowledge Format catalogue of ESI</td>
+</tr>
+<tr>
+<td><a href="media/DOCUMENTATION.md">Documentation</a></td>
+<td>Documentation surfaces, checked examples, TypeDoc</td>
+</tr>
+<tr>
+<td><a href="media/BEADS.md">Beads</a></td>
+<td>Issue tracking workflow</td>
+</tr>
+</tbody>
+</table>
+<h2 id="examples" class="tsd-anchor-link">Examples<a href="#examples" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p><code>examples/</code> has <!-- metric:examples -->58<!-- /metric --> runnable scripts, each with an npm script. The public ones run against live ESI every night, and a failure opens an issue.</p>
+<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">example:status</span><span class="hl-1">      </span><span class="hl-9"># quickest smoke test, no token</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">example:market</span><span class="hl-1">      </span><span class="hl-9"># prices and history</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">example:streaming</span><span class="hl-1">   </span><span class="hl-9"># stream* over a large region</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">example</span><span class="hl-1">             </span><span class="hl-9"># full character profile (ESI_ACCESS_TOKEN)</span>
+</code><button type="button">Copy</button></pre>
+
+<p>The full list is in <a href="media/USAGE.md#8-examples">USAGE.md</a>, and the <a href="https://lgriffin.github.io/ESI.ts/examples/">examples showcase</a> has a page for each with its source, what it needs and the command that runs it.</p>
+<h2 id="contributing" class="tsd-anchor-link">Contributing<a href="#contributing" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="bash"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">clone</span><span class="hl-1"> </span><span class="hl-2">https://github.com/lgriffin/ESI.ts.git</span><span class="hl-1"> &amp;&amp; </span><span class="hl-0">cd</span><span class="hl-1"> </span><span class="hl-2">ESI.ts</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">ci</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">check:local</span><span class="hl-1"> </span><span class="hl-5">--</span><span class="hl-1"> </span><span class="hl-5">--fast</span><span class="hl-1">   </span><span class="hl-9"># every offline CI tier, minus the build</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Read <a href="media/CONTRIBUTING.md">CONTRIBUTING.md</a> first. Every behaviour change starts with an EARS requirement and a failing scenario. Every commit is a conventional commit classified by <a href="media/SEMVER.md">SEMVER.md</a>. No floor is ever lowered. Work is tracked in GitHub issues labelled by release and phase, mirrored in <a href="media/BEADS.md">beads</a>.</p>
+<h2 id="license" class="tsd-anchor-link">License<a href="#license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>GPL-3.0-or-later. See <a href="media/LICENSE">LICENSE</a>.</p>
+<hr>
+<p><strong>o7</strong></p>
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#esits"><span>ESI.ts</span></a>
+<ul>
+<li><a href="#install"><span>Install</span></a></li>
+<li><a href="#quick-start"><span>Quick start</span></a></li>
+<li>
+<ul>
+<li><a href="#multiple-characters"><span>Multiple characters</span></a></li>
+<li><a href="#testing-your-application-without-esi"><span>Testing your application without <wbr/>ESI</span></a></li></ul></li>
+<li><a href="#what-you-get"><span>What you get</span></a></li>
+<li><a href="#the-engineering-stance"><span>The engineering stance</span></a></li>
+<li>
+<ul>
+<li><a href="#by-the-numbers"><span>By the numbers</span></a></li></ul></li>
+<li><a href="#packages-in-the-box"><span>Packages in the box</span></a></li>
+<li><a href="#guides"><span>Guides</span></a></li>
+<li><a href="#examples"><span>Examples</span></a></li>
+<li><a href="#contributing"><span>Contributing</span></a></li>
+<li><a href="#license"><span>License</span></a></li></ul></div></details></div>
+<div class="site-menu">
+<nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://esi.evetech.net/ui/">ESI Documentation</a><a href="https://www.eveonline.com/">EVE Online</a><a href="https://github.com/lgriffin/ESI.ts" class="tsd-nav-link">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts" class="tsd-nav-link">NPM</a></nav>
+<nav class="tsd-navigation"><a href="modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v10.2.3</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>
