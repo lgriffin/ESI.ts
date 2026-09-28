@@ -87,17 +87,18 @@ It has to be a separate workflow: a job inside a run cannot re-run its own run. 
 
 A single job over all of `src/core` took almost exactly two hours on 14, 15 and 16 September 2026 (119m40s, 120m08s, 119m26s) and then stopped finishing inside its 240-minute timeout. Nothing about the mutants changed: the unit suite grew from ~4,957 tests to 6,468, and with `coverageAnalysis: perTest` every added test slows every mutant. A nightly that never completes scores nothing and publishes no baseline, which is how the pull request gate came to mutate from scratch and time out as well (`esi-23g.52`).
 
-`config/mutation/unit-shards.json` splits `src/core` five ways, balanced by mutant count. Counts are a property of the source and the mutator config rather than of the test suite, so these are the same numbers the BDD shards use:
+`config/mutation/unit-shards.json` splits `src/core` five ways, balanced by mutant count, and gives `src/sde` a shard of its own (Track S Run 2), so the SDE is scored, ratcheted and restored on its own. Counts are a property of the source and the mutator config rather than of the test suite, so these are the same numbers the BDD shards use:
 
-| Shard                   | Directories                                               | Mutants |
-| :---------------------- | :-------------------------------------------------------- | ------: |
-| `core-backoff`          | rateLimiter, circuitBreaker                               |     594 |
-| `core-request-pipeline` | requestPipeline                                           |     503 |
-| `core-root`             | `src/core` itself, and endpoints, which the globs exclude |     453 |
-| `core-cache`            | cache, pagination, middleware                             |     448 |
-| `core-support`          | logger, util                                              |     387 |
+| Shard                   | Directories                                                   | Mutants |
+| :---------------------- | :------------------------------------------------------------ | ------: |
+| `core-backoff`          | rateLimiter, circuitBreaker                                   |     594 |
+| `core-request-pipeline` | requestPipeline                                               |     503 |
+| `core-root`             | `src/core` itself, and endpoints, which the globs exclude     |     453 |
+| `core-cache`            | cache, pagination, middleware                                 |     448 |
+| `core-support`          | logger, util                                                  |     387 |
+| `sde`                   | `src/sde`, ingestion included; the test-data factory excluded |   1,317 |
 
-They sum to 2,385, which is what the unsharded run instruments; the arithmetic is the check that nothing fell between them.
+The core shards sum to 2,385, which is what the unsharded run over `src/core` instrumented when they were balanced; with `sde` the unsharded run instruments 3,702. The arithmetic is the check that nothing fell between them.
 
 `UNIT_MUTATION_SHARD=<name> npm run mutation` runs one, writing to `reports/mutation/shards/<name>/`. `npm run mutation:unit:merge` puts them back together for the ratchet and refuses a run with a shard missing, empty or overlapping another. `tests/tdd/mutation-ratchet/unitShards.test.ts` asserts the shards partition `src/core`, so a regrouping cannot drop a directory: orphaning `src/core/endpoints` fails 46 of its cases.
 
@@ -178,7 +179,7 @@ One job mutating all of `src/` against the BDD suite alone does not finish: 4,49
 
 A split run only means the same thing as the single run it replaces if nothing falls between the shards, so two checks hold it together:
 
-- `tests/tdd/mutation-ratchet/bddShards.test.ts` asserts the shards partition `src/`: every TypeScript file belongs to exactly one. A file claimed by none is never mutated and its directory's score quietly improves; a file claimed by two is counted twice. The exclusions in `config/mutation/stryker.bdd.config.mjs` are shared by every shard, so the union of the shards mutates exactly what the unsharded glob did.
+- `tests/tdd/mutation-ratchet/bddShards.test.ts` asserts the shards partition `src/`: every TypeScript file belongs to exactly one. `src/sde` has a shard of its own since Track S Run 2 (1,536 mutants), so the SDE's BDD scenarios are scored, ratcheted and restored apart from `rest`. A file claimed by none is never mutated and its directory's score quietly improves; a file claimed by two is counted twice. The exclusions in `config/mutation/stryker.bdd.config.mjs` are shared by every shard, so the union of the shards mutates exactly what the unsharded glob did.
 - `npm run mutation:bdd:merge` (`scripts/mutation/mutation-merge-core.ts`) refuses to merge a run with a shard missing, a shard that mutated nothing, or two shards reporting one file. Without that, a shard whose job died would leave its directories scored on whatever else ran, which reads as a pass.
 
 Seed the floors from a completed run: dispatch the workflow with `seed_bdd_thresholds`, which prints and uploads `config/mutation/bdd-thresholds.json` raised to that run's scores. Nothing commits it; `--update` never lowers a floor.
@@ -209,10 +210,11 @@ Config files: `config/mutation/stryker.config.mjs` (unit suite, nightly and pull
 
 ### Scope
 
-The unit run mutates `src/core/**/*.ts` with these exclusions:
+The unit run mutates `src/core/**/*.ts` and `src/sde/**/*.ts` with these exclusions:
 
 - `src/core/endpoints/**`: endpoint definitions are data declarations, not logic
 - Interface-only files (`ILogger.ts`, `ICache.ts`, `IRateLimiter.ts`, `IRetryStrategy.ts`, `ICircuitBreaker.ts`, `IDeduplicator.ts`) and the `requestPipeline` barrel and dependency wiring
+- `src/sde/SdeTestDataFactory.ts`: a test fixture shipped for consumers' tests; mutating it would score the fixture, not the module
 
 Files NOT in scope (and why):
 
@@ -230,6 +232,8 @@ A pull request that changes only out-of-scope `src/` files skips the mutation st
 ### Thresholds
 
 The unit config has no global `break`; the per-directory floors in `config/mutation/unit-thresholds.json` are the gate. `high: 80` and `low: 60` only colour the HTML report.
+
+A directory is `src/<area>` for most of the tree and `src/core/<sub>` or `src/sde/<sub>` inside the core and the SDE, whose parts differ enough that one number would hide a weak one (`directoryOf` in `scripts/mutation/mutation-ratchet-core.ts`). The SDE floors are provisional: `src/sde` and `src/sde/ingestion` were seeded on 2026-09-27 from a local unit run (87.6% and 73.8%, 1,317 mutants, 4 minutes) minus two points, and the BDD-only pair from a local run of the `sde` BDD shard the same way (`src/sde` 22.6% so 20.6, up from the 10.6 the whole tree scored before its subdirectories were split out; `src/sde/ingestion` 0, because no scenario reaches ingestion until Track S Run 6 specifies it), until the nightly matrix re-seeds them; floors come from the nightly, never from a laptop. Fifteen SDE mutants crash the test runner rather than fail a test (a missing-file check removed, a transform recursing on itself) and count as `RuntimeError`, which no score counts.
 
 ### Sandbox and Module Resolution
 

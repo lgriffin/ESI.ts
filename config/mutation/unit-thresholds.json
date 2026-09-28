@@ -7,5 +7,7 @@
   "src/core/pagination": 73.9,
   "src/core/rateLimiter": 77.9,
   "src/core/requestPipeline": 75.2,
-  "src/core/util": 95.4
+  "src/core/util": 95.4,
+  "src/sde": 85.6,
+  "src/sde/ingestion": 71.8
 }

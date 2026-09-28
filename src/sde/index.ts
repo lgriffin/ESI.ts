@@ -1,6 +1,7 @@
 export type { IStaticDataProvider } from './IStaticDataProvider';
 
 export { SdeDataProvider } from './SdeDataProvider';
+export type { SdeDataProviderOptions } from './SdeDataProvider';
 export { MemorySdeProvider } from './MemorySdeProvider';
 export type { MemorySdeData } from './MemorySdeProvider';
 

@@ -45,15 +45,25 @@ export interface DirectoryScore {
 export type Thresholds = Record<string, number>;
 
 /**
+ * The trees whose immediate subdirectories are scored on their own
+ * (`src/core/cache`, `src/sde/ingestion`); every other top-level directory of
+ * src/ is one score.
+ */
+const SCORED_BY_SUBDIRECTORY = ['core', 'sde'];
+
+/**
  * The directory a file is scored under: `src/<area>` for most of the tree,
  * `src/core/<sub>` inside core, where the pipeline components differ enough
- * that a single number would hide a weak one.
+ * that a single number would hide a weak one, and `src/sde/<sub>` inside the
+ * SDE for the same reason (Track S Run 2).
  */
 export function directoryOf(file: string): string {
   const parts = normalise(file).split('/');
   const srcIndex = parts.indexOf('src');
   const rel = srcIndex === -1 ? parts : parts.slice(srcIndex);
-  if (rel[1] === 'core' && rel.length > 3) return rel.slice(0, 3).join('/');
+  if (SCORED_BY_SUBDIRECTORY.includes(rel[1] ?? '') && rel.length > 3) {
+    return rel.slice(0, 3).join('/');
+  }
   if (rel.length > 2) return rel.slice(0, 2).join('/');
   return rel.slice(0, -1).join('/') || (rel[0] ?? '');
 }

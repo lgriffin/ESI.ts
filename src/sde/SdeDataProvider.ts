@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import type { Clock } from '../core/ports/Clock';
 import type { IStaticDataProvider } from './IStaticDataProvider';
 import type {
   EveType,
@@ -65,12 +66,25 @@ import { parseSdeMetadata } from './ingestion/metadata';
 import { transformRecordNative } from './ingestion/transforms';
 import { SdeError } from './errors';
 import { loadJsYaml } from './optionalPeers';
+import { systemClock } from './clock';
 
-function toVersionInfo(metadata: SdeMetadata | undefined): SdeVersionInfo {
+/** Options for {@link SdeDataProvider.fromDirectory} and {@link SdeDataProvider.fromZip}. */
+export interface SdeDataProviderOptions {
+  /**
+   * Where `importedAt` in {@link SdeVersionInfo} reads the time from.
+   * Defaults to the wall clock; a test passes a fixed one.
+   */
+  clock?: Clock;
+}
+
+function toVersionInfo(
+  metadata: SdeMetadata | undefined,
+  clock: Clock,
+): SdeVersionInfo {
   return {
     version: metadata?.buildNumber || 'unknown',
     buildDate: metadata?.releaseDate || 'unknown',
-    importedAt: new Date().toISOString(),
+    importedAt: new Date(clock.now()).toISOString(),
   };
 }
 
@@ -89,7 +103,10 @@ export class SdeDataProvider implements IStaticDataProvider {
     this.versionInfo = version;
   }
 
-  static fromDirectory(dirPath: string): SdeDataProvider {
+  static fromDirectory(
+    dirPath: string,
+    options: SdeDataProviderOptions = {},
+  ): SdeDataProvider {
     const resolvedDir = path.resolve(dirPath);
     if (!fs.existsSync(resolvedDir)) {
       throw new SdeError(`SDE directory not found: ${resolvedDir}`);
@@ -100,7 +117,9 @@ export class SdeDataProvider implements IStaticDataProvider {
       ? parseSdeMetadata(fs.readFileSync(metaPath, 'utf-8'))
       : undefined;
 
-    const provider = new SdeDataProvider(toVersionInfo(metadata));
+    const provider = new SdeDataProvider(
+      toVersionInfo(metadata, options.clock ?? systemClock),
+    );
 
     for (const spec of SDE_FILE_REGISTRY) {
       const filePath = path.join(resolvedDir, spec.yamlFile);
@@ -119,7 +138,10 @@ export class SdeDataProvider implements IStaticDataProvider {
     return provider;
   }
 
-  static fromZip(zipPath: string): SdeDataProvider {
+  static fromZip(
+    zipPath: string,
+    options: SdeDataProviderOptions = {},
+  ): SdeDataProvider {
     const resolvedPath = path.resolve(zipPath);
     if (!fs.existsSync(resolvedPath)) {
       throw new SdeError(`SDE ZIP file not found: ${resolvedPath}`);
@@ -128,7 +150,9 @@ export class SdeDataProvider implements IStaticDataProvider {
     const extractor = new SdeExtractor();
     const metadata = extractor.readMetadata(resolvedPath);
 
-    const provider = new SdeDataProvider(toVersionInfo(metadata));
+    const provider = new SdeDataProvider(
+      toVersionInfo(metadata, options.clock ?? systemClock),
+    );
 
     const yamlFiles = SDE_FILE_REGISTRY.map((s) => s.yamlFile);
     const parsedFiles = extractor.parseFiles(resolvedPath, yamlFiles);

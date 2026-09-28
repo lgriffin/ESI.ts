@@ -112,28 +112,31 @@ describe('determinism lint rules', () => {
     expect(outcome.filesLinted).toBe(1);
   });
 
-  it('allow-lists the clock module path', async () => {
-    expect(CLOCK_MODULES).toEqual(['src/core/clock.ts']);
+  it('allow-lists the clock module paths', async () => {
+    // The SDE keeps its own copy: it may import nothing of the core but the
+    // ports (lint:layers, ARCH-10), so it cannot share src/core/clock.ts.
+    expect(CLOCK_MODULES).toEqual(['src/core/clock.ts', 'src/sde/clock.ts']);
 
-    const outcome = await lint(
-      fixture('compliant', 'clock.ts'),
-      'src/core/clock.ts',
-    );
+    for (const clockModule of CLOCK_MODULES) {
+      const outcome = await lint(fixture('compliant', 'clock.ts'), clockModule);
 
-    expect(outcome.fatal).toEqual([]);
-    expect(outcome.filesLinted).toBe(1);
-    expect(outcome.sites).toEqual([]);
+      expect(outcome.fatal).toEqual([]);
+      expect(outcome.filesLinted).toBe(1);
+      expect(outcome.sites).toEqual([]);
+    }
   });
 
-  it('allow-lists only that path: the same code elsewhere reports every construct', async () => {
-    const outcome = await lint(
-      fixture('compliant', 'clock.ts'),
+  it('allow-lists only those paths: the same code elsewhere reports every construct', async () => {
+    for (const elsewhere of [
       'src/core/util/clock.ts',
-    );
+      'src/sde/ingestion/clock.ts',
+    ]) {
+      const outcome = await lint(fixture('compliant', 'clock.ts'), elsewhere);
 
-    expect(new Set(outcome.sites.map((s) => s.construct))).toEqual(
-      new Set(CONSTRUCTS),
-    );
+      expect(new Set(outcome.sites.map((s) => s.construct))).toEqual(
+        new Set(CONSTRUCTS),
+      );
+    }
   });
 
   it('applies only to src/', async () => {
