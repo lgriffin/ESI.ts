@@ -55,6 +55,7 @@ export const GUIDE_SECTIONS: ReadonlyArray<{
       'guides/sde/ARCHITECTURE.md',
       'guides/sde/DEVELOPER_GUIDE.md',
       'guides/sde/API_CONTRACTS.md',
+      'guides/sde/TESTING.md',
     ],
   },
   {

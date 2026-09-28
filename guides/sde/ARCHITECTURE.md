@@ -299,26 +299,25 @@ graph TB
     subgraph "Testing Pyramid"
         direction TB
 
-        integration["Integration Tests (63 tests)
-        Real CCP SDE data (~60s)
+        integration["Integration Tests (114 tests, nightly)
+        Real CCP SDE data via nightly-sde.yml
         Well-known entity lookups
         Referential integrity checks
         Row count validation
-        Data quality assertions"]
+        Export drift against the registry and schemas"]
 
-        bdd["BDD Tests (23 tests, 7 suites)
-        jest-cucumber feature scenarios
-        Universe hierarchy navigation
-        Character/lore lookups
-        Dogma and industry queries
-        Static data lookups"]
+        bdd["BDD Scenarios (192 scenarios, 23 features)
+        137 EARS Rules, one per requirement
+        Every provider method reached by a Rule
+        Universe, market, dogma, character, NPC families
+        Loading, optional peers, memory entry, ingestion"]
 
-        unit["Unit Tests (288 tests, 8 suites)
+        unit["Unit Tests (580 tests, 17 suites)
         Schema validation (valid/invalid/extra fields)
         SdeTestDataFactory (defaults + overrides)
-        MemorySdeProvider (all query methods)
+        MemorySdeProvider and SdeDataProvider (all query methods)
         IStaticDataProvider contract (null/empty returns)
-        Ingestion transforms (normalization, locale)"]
+        Ingestion: download, extract, build, transforms"]
     end
 
     integration --- bdd
@@ -329,21 +328,24 @@ graph TB
     style integration fill:#ff9800,color:#fff
 ```
 
+Beneath the pyramid sit the tiers that say whether the tests above it can fail: three fuzz suites (249 property and schema tests), two tsd files, unit, BDD-only and type mutation with per-directory floors, the layer and determinism lints, the benchmarks and the heap soak. [TESTING.md](TESTING.md) is the scorecard: every tier, its measured number, its floor and the command that reproduces it.
+
 ### Test Infrastructure
 
-| Component                            | Purpose                                                                                                                                                                     |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SdeTestDataFactory`                 | Creates realistic test fixtures matching real CCP data structures. One factory method per entity type. `createHierarchicalTestData()` builds a connected graph of entities. |
-| `MemorySdeProvider`                  | Accepts typed arrays via `MemorySdeData`, implements `IStaticDataProvider`. Used in all unit and BDD tests. No file I/O.                                                    |
-| `IStaticDataProvider` contract tests | Verify null returns for missing IDs, empty arrays for missing FK values, and correct typing on all 97 methods.                                                              |
-| Integration tests                    | Load real CCP SDE data via `SdeDataProvider.fromDirectory()`. Skipped automatically when `sde-data/` directory is absent (CI-safe).                                         |
+| Component                            | Purpose                                                                                                                                                                                            |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SdeTestDataFactory`                 | Creates realistic test fixtures matching real CCP data structures. One factory method per entity type. `createHierarchicalTestData()` builds a connected graph of entities.                        |
+| `MemorySdeProvider`                  | Accepts typed arrays via `MemorySdeData`, implements `IStaticDataProvider`. Used in all unit and BDD tests. No file I/O.                                                                           |
+| `IStaticDataProvider` contract tests | Verify null returns for missing IDs, empty arrays for missing FK values, and correct typing on all 96 methods.                                                                                     |
+| Integration tests                    | Load real CCP SDE data via `SdeDataProvider.fromDirectory()`. Skipped automatically when `sde-data/` directory is absent; `nightly-sde.yml` downloads the current export and requires them to run. |
 
 ### Running Tests
 
 ```bash
-npm test -- tests/tdd/sde/                                               # Unit (288 tests, ~1s)
-npm run bdd:sde                                                          # BDD (23 tests, ~1s)
-npx jest --config config/jest/integration.config.cjs -- tests/integration/sde/  # Integration (63 tests, ~60s)
+npx jest --config config/jest/unit.config.cjs tests/tdd/sde                    # Unit (580 tests, ~23s)
+npm run bdd:sde                                                                # BDD (192 scenarios, ~12s)
+npx jest --config config/jest/fuzz.config.cjs sde                              # Fuzz (249 tests, ~18s)
+npx jest --config config/jest/integration.config.cjs tests/integration/sde/    # Integration (114 tests; needs sde-data/)
 ```
 
 ## 8. Module File Layout
