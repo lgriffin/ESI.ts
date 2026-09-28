@@ -26,6 +26,7 @@ import type {
   Ancestry,
   MarketGroup,
   Skin,
+  Blueprint,
 } from '../../../src/sde/domain/types';
 
 const SDE_DIR = path.resolve(
@@ -646,13 +647,15 @@ const FAMILY_SMOKE: FamilySmoke[] = [
   // ---------------------------------------------------------------
 
   describe('blueprints', () => {
-    it('blueprint 681 should have manufacturing activity', () => {
-      const bp = sde.getBlueprint(681);
-      if (bp) {
-        expect(bp.activities).toBeDefined();
-        expect(bp.activities.manufacturing).toBeDefined();
-        expect(bp.activities.manufacturing!.time).toBeGreaterThan(0);
-      }
+    it('a blueprint that manufactures something carries a timed manufacturing activity', () => {
+      // Found by activity rather than by a hard-coded id, so the assertion
+      // runs against every export instead of being skipped when the id is gone.
+      const bp = sde
+        .getAllEntities<Blueprint>('eve_blueprints')
+        .find((b) => (b.activities.manufacturing?.products?.length ?? 0) > 0);
+      expect(bp).toBeDefined();
+      expect(bp!.activities.manufacturing!.time).toBeGreaterThan(0);
+      expect(sde.getBlueprint(bp!.blueprintTypeId)).toEqual(bp);
     });
   });
 
