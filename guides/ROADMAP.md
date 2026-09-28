@@ -230,6 +230,7 @@ If a gate cannot be made green in one night, ship the partial with a shrink-only
 - **Brief.** Follow `tests/bdd/README.md` sections 6 to 8 and `tests/bdd/GUIDE.md` exactly. Do not reword any Rule text. Where two legacy files define the same step phrase with different bodies, unify the phrase in the step library and adjust the scenario text, recording each such change in the PR body. Run `lint:bdd-seam` and `lint:suite-health` after conversion. Paste the before and after `ears --only=sde` summaries in the PR body.
 - **PR.** `test(bdd): convert SDE step definitions to the step library`
 - **Marker.** no `sde/` entries in `legacyStepFiles`.
+- **Landed 2026-09-28.** `tests/bdd/specs/sde/0001…0007` bind the seven features against 66 new step files and `tests/bdd/support/sde.ts`; no scenario text or Rule text changed, and `ears --only=sde` reports 21 requirements across 7 features, 23 scenarios, before and after. The World carries the open provider (`this.sde`) and the After hook closes it. The one step the legacy files repeated with different nouns (`the result should contain at least N …`) became one regular-expression step.
 
 #### Run 4 · Method-level spec coverage gate · 1 night · `chore`
 

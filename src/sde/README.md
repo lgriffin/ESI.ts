@@ -384,7 +384,7 @@ Test files:
 ### BDD Tests (23 tests, ~1s)
 
 ```bash
-npm test -- tests/bdd/step-definitions/sde/
+npm run bdd:sde
 ```
 
 Feature files in `tests/bdd/features/sde/`:

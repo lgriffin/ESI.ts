@@ -308,7 +308,7 @@ it('should accept overrides', () => {
 
 ### BDD tests (`tests/bdd/`)
 
-Feature files in `tests/bdd/features/sde/` with step definitions in `tests/bdd/step-definitions/sde/`:
+Feature files in `tests/bdd/features/sde/`, each bound by a spec entry in `tests/bdd/specs/sde/` to the step library (`tests/bdd/steps/`, one step per file; fixtures in `tests/bdd/support/sde.ts`):
 
 ```gherkin
 Feature: New Thing Lookup

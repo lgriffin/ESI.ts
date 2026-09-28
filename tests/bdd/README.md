@@ -52,14 +52,13 @@ a feature with neither or both:
 
 - a **spec entry**, `specs/<area>/NNNN-domain.spec.ts`, whose whole content is
   `bindFeature(__filename)`. Its steps come from the global library in
-  `steps/`. Sixteen domains are converted (`ls tests/bdd/specs/core`):
-  access-lists, alliance, clones, corporation projects, cosmetics, dogma,
-  insurance, killmails, mail, market, meta, request-headers, route, universe,
-  wallet, wars. With `step-library.spec.ts` that makes 17 spec files.
+  `steps/`. A domain is converted when it has a spec entry: the core domains
+  listed by `ls tests/bdd/specs/core` and, since 2026-09-28, the seven SDE
+  features under `specs/sde/`.
 - a **legacy step file**, `step-definitions/<area>/<domain>.steps.ts`, bound
   with `loadFeature(<path>)` / `defineFeature`, with every step inline. These
   are listed in `scripts/spec/spec-audit-exceptions.json` under `legacyStepFiles`
-  (38 entries on 2026-09-27), and the list only shrinks.
+  (31 entries on 2026-09-28), and the list only shrinks.
 
 ## The runner
 
