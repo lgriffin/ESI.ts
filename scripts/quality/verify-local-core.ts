@@ -98,6 +98,12 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'spec:coverage:sde:ci',
+    covers:
+      'every IStaticDataProvider method is named by a Rule or reached by a bound step (shrink-only baseline)',
+    stage: 'quick',
+  },
+  {
     script: 'charter:audit',
     covers:
       'CHARTER.md requirement blocks are EARS-compliant and Enforced rows name a mechanism',

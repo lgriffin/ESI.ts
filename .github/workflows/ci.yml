@@ -399,6 +399,10 @@ jobs:
       - name: Audit the charter's requirement blocks
         run: npm run charter:audit
 
+      # Also compares against master's copy of the baseline (fetched above).
+      - name: Every provider method is named by a Rule or reached by a bound step
+        run: npm run spec:coverage:sde:ci
+
       - name: Rule titles agree with response schemas
         run: npm run validate:spec-consistency
 
