@@ -16,7 +16,7 @@ import * as sdeEntry from '../../../src/sde/index';
 import * as memoryEntry from '../../../src/sde/memory';
 import { SdeDataProvider } from '../../../src/sde/providers/yaml/SdeDataProvider';
 import { SdeError } from '../../../src/sde/errors';
-import { SdeTestDataFactory } from '../../../src/sde/SdeTestDataFactory';
+import { SdeTestDataFactory } from '../../../src/sde/testing/SdeTestDataFactory';
 import { SdeDatabaseBuilder } from '../../../src/sde/ingestion/SdeDatabaseBuilder';
 import { SdeDownloader } from '../../../src/sde/ingestion/SdeDownloader';
 import { SdeExtractor } from '../../../src/sde/ingestion/SdeExtractor';
