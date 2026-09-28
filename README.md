@@ -219,7 +219,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) first. Every behaviour change starts wit
 
 ## License
 
-GPL-3.0-or-later. See [LICENSE](LICENSE).
+GPL-3.0-or-later. See [LICENSE](LICENSE) for the licence text and [NOTICE](NOTICE) for the copyright line and CCP's trademark notice; EVE Online is the property of CCP hf. and this project is not affiliated with or endorsed by them.
 
 ---
 

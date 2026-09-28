@@ -4,15 +4,16 @@
 
 The governing statement of how ESI.ts is designed, built, tested, secured, documented and released. Every guide in this folder derives from a numbered requirement here, and every requirement is written in the same EARS form the test suite already uses, so the charter can be audited the way the specification is.
 
-| Measured from the source (`npm run docs:metrics`)              |                                                                                                                |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Domain clients                                                 | <!-- metric:clients -->39<!-- /metric -->                                                                      |
-| ESI endpoints wired                                            | <!-- metric:routes -->235<!-- /metric -->                                                                      |
-| Generated operations (`src/generated/operations.generated.ts`) | <!-- metric:operations -->233<!-- /metric -->                                                                  |
-| EARS requirements in the specification                         | <!-- metric:requirements -->566<!-- /metric --> (<!-- metric:featureFiles -->73<!-- /metric --> feature files) |
-| Gherkin scenarios                                              | <!-- metric:scenarios -->726<!-- /metric -->                                                                   |
-| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->333<!-- /metric -->                                                                   |
-| Statement coverage                                             | 97.8% (`npm run coverage` on master `114a485a`, 2026-09-28; floor 90%)                                         |
+| Measured from the source (`npm run docs:metrics`)              |                                                                                                                   |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Domain clients                                                 | <!-- metric:clients -->39<!-- /metric -->                                                                         |
+| ESI endpoints wired                                            | <!-- metric:routes -->235<!-- /metric -->                                                                         |
+| Generated operations (`src/generated/operations.generated.ts`) | <!-- metric:operations -->233<!-- /metric -->                                                                     |
+| EARS requirements in the specification                         | <!-- metric:requirements -->566<!-- /metric --> (<!-- metric:featureFiles -->73<!-- /metric --> feature files)    |
+| Gherkin scenarios                                              | <!-- metric:scenarios -->726<!-- /metric -->                                                                      |
+| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->333<!-- /metric -->                                                                      |
+| Statement coverage                                             | 97.8% (`npm run coverage` on master `114a485a`, 2026-09-28; floor 90%)                                            |
+| OpenSSF Scorecard                                              | 8.3 / 10 (`scorecard.yml` run 36409177565 on master `9486fe2c`, 2026-09-28; 8.2 on 2026-09-21, 6.7 on 2026-08-24) |
 
 ### What changed in revision 2
 
@@ -26,7 +27,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 - **Header re-measured** on master `114a485a` (2026-09-28): 566 requirements in 73 feature files, 726 scenarios, 333 test files, statement coverage 97.8% (branches 95.9%, functions 93.6%, lines 97.9%). Revision 2 quoted 545 requirements and 703 scenarios, and a coverage figure from v9.8.0.
 - **Statuses moved to Enforced** since revision 2, each by the amendment below it: ARCH-06, ARCH-09, ARCH-10 (new), DOC-01, DOC-03, DOC-04, GATE-04, GATE-05, GATE-06, GATE-07 (new), REL-03, REL-05, TEST-09, TEST-10, TEST-11 (new) and PROC-06 (new). TEST-07's stale-survivor gap is closed and its status is unchanged.
-- **Still Partial or Gap:** ARCH-07, ARCH-08, DES-08, DOC-05, DOC-06, REL-04, REL-06, PROC-04, PROC-05, and SEC-07, which waits on branch protection that includes administrators, a setting only the maintainer can change ([#270](https://github.com/lgriffin/ESI.ts/issues/270)). The Scorecard number in the header is unchanged for the same reason; Part 11 step 8 records it when the maintainer's items land.
+- **Still Partial or Gap:** ARCH-07, ARCH-08, DES-08, DOC-05, DOC-06, REL-04, REL-06, PROC-04, PROC-05, and SEC-07, which waits on branch protection that includes administrators, a setting only the maintainer can change ([#270](https://github.com/lgriffin/ESI.ts/issues/270)). The Scorecard number in the header is 8.3 (2026-09-28); Part 11 step 8 records the next one when the maintainer's items land.
 - **11.0.0 decisions since revision 2** stand as recorded under Amendments: no bridge between the core and the SDE, mutation off the release path, and the exclusions stated as Rules.
 
 ### Amendments after revision 2 (the detail behind revision 3)
