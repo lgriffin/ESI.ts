@@ -24,14 +24,37 @@
  * list under its family and on an entry that is now covered, no longer a
  * method or under the wrong family; `--ci` also fails on a method absent from
  * the base branch's copy.
+ *
+ * The call graph, the step patterns, the baseline and the command line are
+ * shared with `spec:coverage:clients` through `scripts/spec/method-coverage-core.ts`.
  */
-import { execFileSync } from 'child_process';
-import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 
 import { outlineFeature } from '../../tests/bdd/support/outline';
-import { compileExpression } from '../../tests/bdd/support/steps';
+import {
+  type BaseBaseline,
+  EXIT_INTEGRITY,
+  EXIT_RATCHET,
+  type GroupedBaseline,
+  type RatchetResult,
+  type RatchetWords,
+  StepProject,
+  type StepPattern,
+  applyGroupedBaseline,
+  groupedRatchetProblems,
+  loadGroupedBaseBaseline,
+  parseGroupedBaseline,
+  parseSource,
+  serializeGroupedBaseline,
+  stepFor,
+  toPosix,
+  walk,
+} from '../spec/method-coverage-core';
+
+export { EXIT_INTEGRITY, EXIT_RATCHET };
+export type { BaseBaseline, RatchetResult };
 
 export const PROVIDER_FILE = 'src/sde/IStaticDataProvider.ts';
 export const PROVIDER_INTERFACE = 'IStaticDataProvider';
@@ -39,33 +62,6 @@ export const FEATURES_DIR = 'tests/bdd/features/sde';
 export const STEPS_DIR = 'tests/bdd/steps';
 export const SUPPORT_DIR = 'tests/bdd/support';
 export const BASELINE_FILE = 'scripts/sde/sde-spec-coverage-baseline.json';
-
-export const EXIT_RATCHET = 1;
-export const EXIT_INTEGRITY = 2;
-
-function toPosix(p: string): string {
-  return p.split(path.sep).join('/');
-}
-
-function walk(dir: string, keep: (name: string) => boolean): string[] {
-  if (!existsSync(dir)) return [];
-  const found: string[] = [];
-  for (const entry of readdirSync(dir).sort()) {
-    const abs = path.join(dir, entry);
-    if (statSync(abs).isDirectory()) found.push(...walk(abs, keep));
-    else if (keep(entry)) found.push(abs);
-  }
-  return found;
-}
-
-function parse(file: string): ts.SourceFile {
-  return ts.createSourceFile(
-    file,
-    readFileSync(file, 'utf-8'),
-    ts.ScriptTarget.Latest,
-    true,
-  );
-}
 
 // ---------------------------------------------------------------------------
 // The provider's methods
@@ -90,7 +86,7 @@ export function readProviderMethods(root: string): ProviderMethod[] {
   if (!existsSync(file)) {
     throw new Error(`${PROVIDER_FILE} does not exist under ${root}.`);
   }
-  const source = parse(file);
+  const source = parseSource(file);
   const text = source.getFullText();
   const iface = source.statements.find(
     (s): s is ts.InterfaceDeclaration =>
@@ -126,205 +122,46 @@ export function familyOrder(methods: readonly ProviderMethod[]): string[] {
 // Step files, read with the type checker
 // ---------------------------------------------------------------------------
 
-/** The options the checker resolves the step files under; mirrors tsconfig. */
-const COMPILER_OPTIONS: ts.CompilerOptions = {
-  target: ts.ScriptTarget.ES2022,
-  module: ts.ModuleKind.CommonJS,
-  moduleResolution: ts.ModuleResolutionKind.Bundler,
-  strict: true,
-  skipLibCheck: true,
-  noEmit: true,
-  types: [],
-};
-
-interface StepPattern {
-  file: string;
-  regexp: RegExp;
-  /** The function registered for the pattern; null when it is not inline. */
-  callback: ts.Node | null;
-}
-
-const KEYWORDS = new Set(['Given', 'When', 'Then']);
-
-/** A function-like node's body, whatever form the declaration takes. */
-function bodyOf(node: ts.Node): ts.Node | null {
-  if (
-    (ts.isFunctionDeclaration(node) ||
-      ts.isFunctionExpression(node) ||
-      ts.isArrowFunction(node) ||
-      ts.isMethodDeclaration(node)) &&
-    node.body
-  ) {
-    return node.body;
-  }
-  if (
-    ts.isVariableDeclaration(node) &&
-    node.initializer &&
-    (ts.isArrowFunction(node.initializer) ||
-      ts.isFunctionExpression(node.initializer))
-  ) {
-    return node.initializer.body;
-  }
-  return null;
-}
-
 /**
- * The step files of a root, loaded once into a TypeScript program so the
- * checker can say what a call's receiver is and where a callee is declared.
- * Only files under `tests/bdd` are followed: a call into `src/` is the
- * provider being used, not specified.
+ * The step files and the provider interface in one program, crediting
+ * `<provider>.method(...)` where the checker types the receiver as the
+ * provider (never `any`).
  */
-class StepProject {
-  readonly program: ts.Program;
-  readonly checker: ts.TypeChecker;
-  private readonly providerType: ts.Type | null;
-  private readonly testsDir: string;
-  private readonly reachedByBody = new Map<ts.Node, Set<string>>();
-
-  constructor(
-    readonly root: string,
-    private readonly methods: ReadonlySet<string>,
-  ) {
-    const stepFiles = walk(path.join(root, STEPS_DIR), (n) =>
-      n.endsWith('.ts'),
+function providerProject(
+  root: string,
+  methods: ReadonlySet<string>,
+): StepProject {
+  const providerFile = path.join(root, PROVIDER_FILE);
+  const project = new StepProject(root, [
+    ...walk(path.join(root, STEPS_DIR), (n) => n.endsWith('.ts')),
+    providerFile,
+  ]);
+  const { checker } = project;
+  const iface = project.program
+    .getSourceFile(providerFile)
+    ?.statements.find(
+      (s): s is ts.InterfaceDeclaration =>
+        ts.isInterfaceDeclaration(s) && s.name.text === PROVIDER_INTERFACE,
     );
-    const providerFile = path.join(root, PROVIDER_FILE);
-    this.program = ts.createProgram(
-      [...stepFiles, providerFile],
-      COMPILER_OPTIONS,
-    );
-    this.checker = this.program.getTypeChecker();
-    this.testsDir = toPosix(path.join(root, 'tests', 'bdd')) + '/';
-
-    const iface = this.program
-      .getSourceFile(providerFile)
-      ?.statements.find(
-        (s): s is ts.InterfaceDeclaration =>
-          ts.isInterfaceDeclaration(s) && s.name.text === PROVIDER_INTERFACE,
-      );
-    this.providerType = iface
-      ? this.checker.getTypeAtLocation(iface.name)
-      : null;
-  }
-
-  /** The patterns every step file registers, compiled the way the runner does. */
-  stepPatterns(): StepPattern[] {
-    const patterns: StepPattern[] = [];
-    for (const source of this.program.getSourceFiles()) {
-      const file = path.normalize(source.fileName);
-      if (!toPosix(file).startsWith(this.testsDir)) continue;
-      const visit = (node: ts.Node): void => {
-        if (
-          ts.isCallExpression(node) &&
-          ts.isIdentifier(node.expression) &&
-          KEYWORDS.has(node.expression.text)
-        ) {
-          const [pattern, callback] = node.arguments;
-          const fn =
-            callback &&
-            (ts.isArrowFunction(callback) || ts.isFunctionExpression(callback))
-              ? callback
-              : null;
-          if (pattern && ts.isStringLiteralLike(pattern)) {
-            patterns.push({
-              file,
-              regexp: compileExpression(pattern.text).regexp,
-              callback: fn,
-            });
-          } else if (pattern && ts.isRegularExpressionLiteral(pattern)) {
-            const text = pattern.text;
-            const close = text.lastIndexOf('/');
-            patterns.push({
-              file,
-              regexp: new RegExp(text.slice(1, close), text.slice(close + 1)),
-              callback: fn,
-            });
-          }
-        }
-        ts.forEachChild(node, visit);
-      };
-      visit(source);
-    }
-    return patterns;
-  }
-
-  /**
-   * The provider methods a step's callback reaches: `<provider>.method(...)`
-   * where the checker types the receiver as the provider (never `any`), in
-   * the callback itself or in any `tests/bdd` function it calls, however the
-   * call chain runs between modules or within one.
-   */
-  methodsReachedBy(callback: ts.Node): Set<string> {
-    const body = bodyOf(callback);
-    return body ? this.reachedIn(body) : new Set();
-  }
-
-  private reachedIn(body: ts.Node): Set<string> {
-    const cached = this.reachedByBody.get(body);
-    if (cached) return cached;
-    const reached = new Set<string>();
-    this.reachedByBody.set(body, reached); // Set first, so recursion terminates.
-
-    const visit = (n: ts.Node): void => {
-      if (ts.isCallExpression(n)) {
-        const callee = n.expression;
-        if (
-          ts.isPropertyAccessExpression(callee) &&
-          this.methods.has(callee.name.text) &&
-          this.isProvider(this.checker.getTypeAtLocation(callee.expression))
-        ) {
-          reached.add(callee.name.text);
-        }
-        for (const calleeBody of this.bodiesOf(callee)) {
-          for (const m of this.reachedIn(calleeBody)) reached.add(m);
-        }
-      }
-      ts.forEachChild(n, visit);
-    };
-    visit(body);
-    return reached;
-  }
-
-  private isProvider(type: ts.Type): boolean {
-    if (!this.providerType) return false;
-    if (type.isUnion()) return type.types.some((t) => this.isProvider(t));
+  const providerType = iface ? checker.getTypeAtLocation(iface.name) : null;
+  const isProvider = (type: ts.Type): boolean => {
+    if (!providerType) return false;
+    if (type.isUnion()) return type.types.some((t) => isProvider(t));
     if (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) return false;
-    return this.checker.isTypeAssignableTo(type, this.providerType);
-  }
-
-  /** The bodies of the `tests/bdd` functions a callee expression names. */
-  private bodiesOf(callee: ts.Expression): ts.Node[] {
-    const name = ts.isPropertyAccessExpression(callee) ? callee.name : callee;
-    if (!ts.isIdentifier(name)) return [];
-    let symbol = this.checker.getSymbolAtLocation(name);
-    if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
-      symbol = this.checker.getAliasedSymbol(symbol);
-    }
-    const bodies: ts.Node[] = [];
-    for (const declaration of symbol?.declarations ?? []) {
-      const file = toPosix(
-        path.normalize(declaration.getSourceFile().fileName),
-      );
-      if (!file.startsWith(this.testsDir)) continue;
-      const body = bodyOf(declaration);
-      if (body) bodies.push(body);
-    }
-    return bodies;
-  }
+    return checker.isTypeAssignableTo(type, providerType);
+  };
+  project.creditWith((callee) =>
+    methods.has(callee.name.text) &&
+    isProvider(checker.getTypeAtLocation(callee.expression))
+      ? [callee.name.text]
+      : [],
+  );
+  return project;
 }
 
 /** The patterns the step files register; see StepProject.stepPatterns. */
 export function readStepPatterns(root: string): StepPattern[] {
-  return new StepProject(root, new Set()).stepPatterns();
-}
-
-/** The single step a step text resolves to, or null (none or several). */
-function stepFor(
-  text: string,
-  patterns: readonly StepPattern[],
-): StepPattern | null {
-  const matches = patterns.filter((p) => p.regexp.test(text));
-  return matches.length === 1 ? matches[0]! : null;
+  return providerProject(root, new Set()).stepPatterns();
 }
 
 // ---------------------------------------------------------------------------
@@ -350,7 +187,7 @@ export interface CoverageReport {
 export function analyseCoverage(root: string): CoverageReport {
   const provider = readProviderMethods(root);
   const names = new Set(provider.map((m) => m.name));
-  const project = new StepProject(root, names);
+  const project = providerProject(root, names);
   const patterns = project.stepPatterns();
   const reachedByStep = new Map<StepPattern, Set<string>>();
   const reached = (step: StepPattern): Set<string> => {
@@ -484,102 +321,36 @@ export function integrityProblems(report: CoverageReport): string[] {
 // ---------------------------------------------------------------------------
 
 /** Uncovered methods that are known and tolerated, by family. */
-export type CoverageBaseline = Record<string, string[]>;
+export type CoverageBaseline = GroupedBaseline;
+
+export const RATCHET_WORDS: RatchetWords = {
+  methods: 'provider methods',
+  method: 'provider method',
+  group: 'family',
+  baselineFile: BASELINE_FILE,
+  baseRefEnv: 'SDE_SPEC_COVERAGE_BASE_REF',
+  addedBy: 'name',
+};
 
 export function parseBaseline(raw: string): CoverageBaseline {
-  const parsed = JSON.parse(raw) as { uncovered?: unknown };
-  const section = parsed.uncovered ?? {};
-  if (
-    typeof section !== 'object' ||
-    section === null ||
-    Array.isArray(section)
-  ) {
-    throw new Error(
-      "Baseline 'uncovered' must be an object of family → method names.",
-    );
-  }
-  const baseline: CoverageBaseline = {};
-  for (const [family, names] of Object.entries(section)) {
-    if (!Array.isArray(names) || names.some((n) => typeof n !== 'string')) {
-      throw new Error(
-        `Baseline family '${family}' must be an array of method names.`,
-      );
-    }
-    baseline[family] = names as string[];
-  }
-  return baseline;
+  return parseGroupedBaseline(raw, 'family');
 }
 
 export function serializeBaseline(report: CoverageReport): string {
-  return `${JSON.stringify(
-    {
-      $comment:
-        'IStaticDataProvider methods no Rule names and no bound step reaches, ' +
-        'by entity family in the interface order. Shrink-only: CI fails on an ' +
-        'uncovered method missing from this list, on an entry that is now ' +
-        'covered or no longer a method, and on any entry not on master. ' +
-        'Regenerate with npm run spec:coverage:sde -- --write-baseline.',
-      uncovered: uncoveredByFamily(report),
-    },
-    null,
-    2,
-  )}\n`;
-}
-
-export interface BaseBaseline {
-  ref: string | null;
-  baseline: CoverageBaseline | null;
+  return serializeGroupedBaseline(
+    'IStaticDataProvider methods no Rule names and no bound step reaches, ' +
+      'by entity family in the interface order. Shrink-only: CI fails on an ' +
+      'uncovered method missing from this list, on an entry that is now ' +
+      'covered or no longer a method, and on any entry not on master. ' +
+      'Regenerate with npm run spec:coverage:sde -- --write-baseline.',
+    uncoveredByFamily(report),
+  );
 }
 
 /** The baseline as the integration branch has it; see export-coverage-core. */
 export function loadBaseBaseline(root: string, refs: string[]): BaseBaseline {
-  const git = (args: string[]) =>
-    execFileSync('git', args, {
-      cwd: root,
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    });
-  for (const ref of refs) {
-    try {
-      git(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`]);
-    } catch {
-      continue;
-    }
-    let raw: string;
-    try {
-      raw = git(['show', `${ref}:./${BASELINE_FILE}`]);
-    } catch {
-      return { ref, baseline: null };
-    }
-    try {
-      return { ref, baseline: parseBaseline(raw) };
-    } catch {
-      return { ref, baseline: {} };
-    }
-  }
-  return { ref: null, baseline: null };
+  return loadGroupedBaseBaseline(root, refs, BASELINE_FILE, parseBaseline);
 }
-
-export interface RatchetResult {
-  /** Uncovered methods the baseline does not list under their family: write a Rule. */
-  unlisted: string[];
-  /** Entries now covered, no longer a method, or under the wrong family: remove them. */
-  stale: string[];
-  /** Methods absent from the base ref's copy: the list grew. */
-  added: string[];
-  baseRefMissing: boolean;
-}
-
-/** `Family: method` keys, so a method under the wrong family does not pass. */
-const familyKeys = (baseline: CoverageBaseline): Set<string> =>
-  new Set(
-    Object.entries(baseline).flatMap(([family, names]) =>
-      names.map((n) => `${family}: ${n}`),
-    ),
-  );
-
-const methodNames = (baseline: CoverageBaseline): Set<string> =>
-  new Set(Object.values(baseline).flat());
 
 /**
  * The working tree against its committed baseline, family by family, and,
@@ -591,45 +362,14 @@ export function applyBaseline(
   baseline: CoverageBaseline,
   base: BaseBaseline | null,
 ): RatchetResult {
-  const listed = familyKeys(baseline);
-  const uncovered = familyKeys(uncoveredByFamily(report));
-  const unlisted = [...uncovered].filter((k) => !listed.has(k));
-  const stale = [...listed].filter((k) => !uncovered.has(k));
-  const added: string[] = [];
-  if (base && (base.ref === null || base.baseline !== null)) {
-    const before = methodNames(base.baseline ?? {});
-    added.push(...[...methodNames(baseline)].filter((m) => !before.has(m)));
-  }
-  return {
-    unlisted,
-    stale,
-    added,
-    baseRefMissing: base !== null && base.ref === null,
-  };
+  return applyGroupedBaseline(
+    uncoveredByFamily(report),
+    baseline,
+    base,
+    'name',
+  );
 }
 
 export function ratchetProblems(result: RatchetResult): string[] {
-  const problems: string[] = [];
-  if (result.unlisted.length > 0) {
-    problems.push(
-      `${result.unlisted.length} provider methods are named by no Rule and reached by no bound step, ` +
-        `and are not in the baseline under their family: ${result.unlisted.join(', ')}. Write a Rule and scenario for each.`,
-    );
-  }
-  if (result.stale.length > 0) {
-    problems.push(
-      `${result.stale.length} baseline entries are now covered, no longer a provider method, or under the wrong family: ` +
-        `${result.stale.join(', ')}. Remove them from ${BASELINE_FILE} to lock the improvement in.`,
-    );
-  }
-  if (result.added.length > 0) {
-    problems.push(
-      result.baseRefMissing
-        ? `No base ref resolved, so every baseline entry counts as added (${result.added.length}). ` +
-            'Set SDE_SPEC_COVERAGE_BASE_REF or fetch origin/master.'
-        : `${result.added.length} baseline entries are not on the base branch: ${result.added.join(', ')}. ` +
-            'The list only shrinks; write the Rule instead.',
-    );
-  }
-  return problems;
+  return groupedRatchetProblems(result, RATCHET_WORDS);
 }
