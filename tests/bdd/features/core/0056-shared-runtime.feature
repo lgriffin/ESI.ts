@@ -50,7 +50,7 @@ Feature: One runtime, many identities
 
   # ── The public view
 
-  Rule: When the public view requests an operation, the runtime shall send no Authorization header.
+  Rule: If the public view requests an operation while another view holds a token, then the runtime shall not send an Authorization header.
     The public view holds no token, so nothing it sends can be attributed to a
     character, whatever tokens the runtime's other views hold.
 

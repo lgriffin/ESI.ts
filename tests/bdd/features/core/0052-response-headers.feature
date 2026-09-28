@@ -70,6 +70,43 @@ Feature: ESI Response Header Best Practices
       When the client calls it with metadata
       Then the meta shall contain the language
 
+  # ── Headers the client does not honour ─────────────────────────────
+
+  Rule: If a response body is valid JSON under a Content-Type other than application/json, then the EsiClient shall not reject the response.
+    The body decides, not the label on it. ESI's edge has served JSON under
+    text/plain, and a body that is not JSON is refused as a parse error
+    whatever its Content-Type says (ERRORS.md, EsiFaultError), so trusting the
+    header would only add a way to fail a good response.
+
+    Scenario: A server status served as text/plain resolves with its fields
+      Given an API response whose JSON body is labelled text/plain
+      When the client calls it with metadata
+      Then the meta shall carry the server status from the body
+
+  Rule: If a page after the first carries an X-Pages count that differs from page 1's, then the EsiClient shall not change the number of pages it requests.
+    Page 1's X-Pages is authoritative (PAGINATION.md). A count that grows
+    while the pages are walked describes a different snapshot of the
+    resource, so following it would stitch two snapshots together. A count
+    that shrinks ends at the first empty page instead.
+
+    Scenario: Page 2 announcing a third page is the last page requested
+      Given ESI answers the market types with page 1 announcing 2 pages and page 2 announcing 3
+      When the client requests the market types for The Forge
+      Then the client resolves with the market types of pages 1 and 2
+      And the client requested 2 pages
+
+  Rule: If page 1 announces more than 1000 pages, then the EsiClient shall not request a page past page 1000.
+    The cap bounds how long one call can run and how much of the error
+    budget a misreported X-Pages can spend. No ESI resource comes near it.
+    The cap belongs to the eager call; the stream and fetch-all helpers
+    follow X-Pages without it.
+
+    Scenario: X-Pages of 1001 is walked as far as page 1000
+      Given ESI answers the market types with page 1 announcing 1001 pages and a type on every page
+      When the client requests the market types for The Forge
+      Then the client resolves with 1000 market types
+      And the client requested 1000 pages
+
   # ── Failure responses ───────────────────────────────────────────────
 
   Rule: The EsiError shall expose the status code, request URL, and request identifier supplied at construction.

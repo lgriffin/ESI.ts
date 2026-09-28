@@ -16,6 +16,7 @@ import * as sdeEntry from '../../../src/sde/index';
 import * as memoryEntry from '../../../src/sde/memory';
 import { SdeDataProvider } from '../../../src/sde/SdeDataProvider';
 import { SdeError } from '../../../src/sde/errors';
+import { SdeTestDataFactory } from '../../../src/sde/SdeTestDataFactory';
 import { SdeDatabaseBuilder } from '../../../src/sde/ingestion/SdeDatabaseBuilder';
 import { SdeDownloader } from '../../../src/sde/ingestion/SdeDownloader';
 import { SdeExtractor } from '../../../src/sde/ingestion/SdeExtractor';
@@ -80,6 +81,14 @@ export const RAW_SDE_FILES: Record<string, unknown> = {
       useBasePrice: true,
     },
   },
+};
+
+/**
+ * A file CCP might ship before the registry names it, whose text js-yaml
+ * refuses (an unclosed flow sequence), so reading it would fail the load.
+ */
+export const UNREGISTERED_INVALID_YAML: Record<string, string> = {
+  'futureTable.yaml': 'records: [unclosed\n',
 };
 
 /** The YAML files a `listFiles` over `RAW_SDE_FILES` reports, in archive order. */
@@ -201,6 +210,22 @@ export function uninstallPeer(world: World, peer: OptionalPeer): void {
 // ---------------------------------------------------------------------------
 // Entry points
 // ---------------------------------------------------------------------------
+
+/**
+ * Load `./sde` afresh, so the peers a Given step uninstalled are what its
+ * modules see, and build a MemorySdeProvider holding Tritanium from it.
+ */
+export function openMemoryProviderFromFreshSdeEntry(world: World): void {
+  let entry: typeof sdeEntry | undefined;
+  jest.isolateModules(() => {
+    entry = jest.requireActual<typeof sdeEntry>('../../../src/sde/index');
+  });
+  world.sde = new entry!.MemorySdeProvider({
+    types: [
+      SdeTestDataFactory.createEveType({ typeId: 34, name: 'Tritanium' }),
+    ],
+  });
+}
 
 export interface EntryPointComparison {
   /** Runtime exports of `./sde` that `./sde/memory` lacks, `SdeDataProvider` aside. */

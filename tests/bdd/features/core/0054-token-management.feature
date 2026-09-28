@@ -131,6 +131,21 @@ Feature: Token Management
       Then the storage shall hold a token for character 2114794365 named "Aurora Vale"
       And the stored scopes shall be "esi-wallet.read_character_wallet.v1 esi-assets.read_assets.v1"
 
+  Rule: If an access token from SSO carries a signature that EVE SSO's published keys do not verify, then the token manager shall not reject the token.
+    The token manager decodes the claims without verifying the signature:
+    the token arrives straight from SSO's token endpoint over TLS, which is
+    what vouches for it (AUTHENTICATION.md, "Guarantees and limits"). A token
+    a third party hands over is not authenticated by decoding it. Opt-in JWKS
+    verification is tracked in #256; until it lands, fetching keys is not
+    part of adding a character.
+
+    Scenario: A token whose signature SSO never made is stored under its character
+      Given a token manager backed by in-memory storage
+      And the SSO token endpoint returns a token for character 2114794365 "Aurora Vale" whose signature SSO never made
+      When the character is added from the authorization code "abc123"
+      Then the storage shall hold a token for character 2114794365 named "Aurora Vale"
+      And the token manager sent the token exchange request alone
+
   Rule: When a character that already has a stored token is added again, the token manager shall replace the stored token rather than storing a second entry.
     Storage is keyed by character id, so a re-authorization never accumulates
     duplicate rows the way an append-only token table can. The newest consent

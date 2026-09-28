@@ -28,3 +28,22 @@ Feature: Log redaction
       When the client requests the server status
       Then the logged request URL shall carry "refresh_token" with the value "[REDACTED]"
       And no logged line shall contain "r-9f2c"
+
+  Rule: If a request carries an access token, then the client logger shall not receive that token.
+    The bearer token travels in the Authorization header, and no log call
+    includes request headers, so the token has no path to a log line whatever
+    the configured level. The scenarios record every level, on a call that
+    succeeds and on one ESI refuses, and look for the token in each message
+    and each string field of its context.
+
+    Scenario: A wallet balance read leaves no token in the log
+      Given a client that logs every level to a recording logger
+      And an authenticated character for wallet
+      When the client requests their wallet balance
+      Then no logged line shall contain "bdd-access-token"
+
+    Scenario: A wallet balance refused with HTTP 401 leaves no token in the log
+      Given a client that logs every level to a recording logger
+      And ESI rejects the character's token
+      When the client requests their wallet balance and ESI refuses it
+      Then no logged line shall contain "bdd-access-token"

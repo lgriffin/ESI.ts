@@ -68,6 +68,26 @@ Feature: ETag Caching
       When the server would return an error
       Then the client shall return the originally cached data
 
+  Rule: If a response carries an Expires header, then the ETag cache shall not take the entry's freshness from it.
+    Freshness comes from the endpoint's spec cache metadata, or from
+    Cache-Control max-age where the spec gives none. Expires is exposed on
+    withMetadata as meta.expires, but an Expires already past, or a day
+    ahead, changes nothing about when the entry is revalidated.
+
+    Scenario: A server status whose Expires has passed is still served inside its spec TTL
+      Given a client whose ETag cache holds the server status from a response whose Expires header had already passed
+      When the client requests the server status 10 seconds later
+      Then the client resolves with the cached server status
+      And the client sent 1 request
+
+    Scenario: A server status whose Expires lies a day ahead is revalidated after its spec TTL
+      Given a client whose ETag cache holds the server status from a response whose Expires header lies a day ahead
+      And the 30 second spec cache TTL of the server status has elapsed
+      And ESI answers the revalidation of the server status with HTTP 304
+      When the client requests the server status
+      Then the client resolves with the cached server status
+      And the client sent 2 requests
+
   Rule: When an authenticated paginated GET has resolved with every page, the ETag cache shall answer a repeat call inside the spec TTL with every page.
     The combined array is what the caller received, so it is what a cached
     answer must return. Entries for authenticated endpoints are keyed by the
@@ -81,7 +101,32 @@ Feature: ETag Caching
       Then both calls resolve with the assets from both pages
       And the client sent 2 requests
 
-  Rule: When a stream or fetch-all helper requests a page, the EsiClient shall send the request without an If-None-Match header.
+  Rule: If a paginated call requests a page after the first while the ETag cache holds an entry for that page's URL, then the EsiClient shall not send an If-None-Match header for that page.
+    Pages 2 to N are fetched unconditionally (PAGINATION.md). A 304 on one
+    page would stand for a slice of an older snapshot, and only page 1's
+    ETag names the combined array the cache keeps. The entry in the scenario
+    is seeded by hand, since no call of the client stores one.
+
+    Scenario: Page 2 of the market types is asked unconditionally despite an entry for its URL
+      Given a client whose ETag cache holds an entry for page 2 of the market types
+      And ESI answers the market types with 2 pages
+      When the client requests the market types for The Forge
+      Then the client resolves with the market types of both pages
+      And the page 2 request carried no If-None-Match header
+
+  Rule: If a paginated call receives a page after the first, then the ETag cache shall not store that page under its own URL.
+    The combined array is stored once, under page 1's URL with page 1's
+    ETag, after every page is in. An entry per page would be one nobody
+    reads, and each would take a slot from the configured maximum.
+
+    Scenario: A two-page market types call leaves one cache entry
+      Given a client with an empty cache
+      And ESI answers the market types with 2 pages
+      When the client requests the market types for The Forge
+      Then the client resolves with the market types of both pages
+      And the ETag cache holds 1 entry
+
+  Rule: If a stream or fetch-all helper requests a page, then the EsiClient shall not send an If-None-Match header.
     The stream* and fetchAll* helpers read every page afresh and keep no
     cache of their own, so a 304 would leave them with no body to return.
     An ordinary call to the same URL stores an ETag, and sending it from a
@@ -93,6 +138,43 @@ Feature: ETag Caching
       When the client streams the market types for The Forge
       Then the stream yields every market type
       And the streamed request carried no If-None-Match header
+
+  Rule: If a stream or fetch-all helper requests a page while the ETag cache holds an entry inside its spec TTL, then the EsiClient shall not answer the page from that entry.
+    The helpers take the lighter single-page path, which has no spec-TTL
+    lookup (PAGINATION.md, "What stream* and fetchAll* skip"). A cached
+    combined array is not a page, so serving it page by page would repeat
+    or drop items.
+
+    Scenario: Streaming market types inside their 600 second spec TTL sends a request
+      Given a client with an empty cache
+      And the client has fetched the market types for The Forge
+      When the client streams the market types for The Forge
+      Then the stream yields every market type
+      And the client sent a request for the streamed page
+
+  Rule: If a stream or fetch-all helper receives a page, then the EsiClient shall not store that page in the ETag cache.
+    A page is part of a resource, not the resource an ordinary call caches
+    under the same URL. Storing it would let a later ordinary call be
+    answered with one page of a multi-page result.
+
+    Scenario: An ordinary market types call after streaming them fetches afresh
+      Given a client with an empty cache
+      And the client has streamed the market types for The Forge
+      When the client requests the market types for The Forge
+      Then the client resolves with every market type
+      And the ordinary request carried no If-None-Match header
+
+  Rule: If a page requested by a stream or fetch-all helper is answered with a 5xx status while the ETag cache holds an entry for its URL, then the EsiClient shall not serve that entry in place of the page.
+    Stale-on-error belongs to the eager path. The helper's page is not the
+    combined array the entry holds, so the failure reaches the caller as an
+    EsiError.
+
+    Scenario: Streaming market types answered with HTTP 500 rejects despite the cached entry
+      Given a client with an empty cache
+      And the client has fetched the market types for The Forge
+      And ESI answers the streamed market types page with HTTP 500
+      When the client streams the market types for The Forge expecting a failure
+      Then the stream rejects with an EsiError carrying status 500
 
   # ── Serving from cache when ESI fails ───────────────────────────────
 
@@ -118,6 +200,20 @@ Feature: ETag Caching
         | status |
         | 500    |
         | 503    |
+
+  Rule: If a GET request is answered with a 5xx status while the ETag cache holds an unexpired entry for it, then the EsiClient shall not send the request again.
+    The stale entry is the answer, so nothing is thrown and the retry
+    strategy has nothing to retry, even for 502, 503 and 504, which it would
+    otherwise repeat. A caller who wants the current value despite a stale
+    answer checks meta.stale and asks again later.
+
+    Scenario: A 503 on the server status revalidation is not sent again
+      Given a client whose ETag cache holds the server status
+      And the 30 second spec cache TTL of the server status has elapsed
+      And ESI answers the server status request with HTTP 503 on every attempt
+      When the client requests the server status
+      Then the client resolves with the cached server status
+      And the client sent 2 requests
 
   Rule: If a GET request is answered with a 5xx status and the ETag cache holds no entry for it, then the EsiClient shall reject with an EsiError carrying that status.
     With nothing cached there is no fallback, so the failure reaches the caller

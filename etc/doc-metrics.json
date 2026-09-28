@@ -16,9 +16,9 @@
   "featureFilesIntegration": 1,
   "featureFilesPerformance": 1,
   "featureFilesSde": 23,
-  "requirements": 545,
-  "scenarios": 703,
-  "plainScenarios": 698,
+  "requirements": 566,
+  "scenarios": 726,
+  "plainScenarios": 721,
   "scenarioOutlines": 5,
   "testFiles": 330,
   "unitSuites": 207,
@@ -32,8 +32,8 @@
   "contractSuites": 2,
   "integrationSuites": 6,
   "charterRequirements": 62,
-  "charterEnforced": 43,
+  "charterEnforced": 44,
   "charterPractised": 6,
-  "charterPartial": 11,
+  "charterPartial": 10,
   "charterGap": 2
 }

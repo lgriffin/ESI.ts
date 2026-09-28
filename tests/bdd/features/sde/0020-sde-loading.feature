@@ -34,6 +34,31 @@ Feature: Loading the Static Data Export
       And the user queries the SDE version
       Then the version shall be "unknown" built on "unknown" and imported at "2026-09-28T12:00:00.000Z"
 
+  # ── What loading passes over ─────────────────────────────────────────
+
+  Rule: If a file the registry names is absent from the directory, then the SdeDataProvider shall not refuse to open the directory.
+    The registry lists every table the provider knows. A partial extract, or
+    a build from before CCP added a file, loads the tables it has; a lookup
+    in a missing table answers null or an empty list like any other miss.
+
+    Scenario: A directory holding only the types file opens and serves Tritanium
+      Given an SDE directory holding only the types file
+      When I open the SDE from the directory
+      And the user looks up type ID 34
+      Then the returned record shall be named "Tritanium"
+
+  Rule: If the directory holds a YAML file the registry does not name, then the SdeDataProvider shall not read that file.
+    Loading walks the registry, not the directory, so a file CCP ships
+    before the registry learns of it is passed over rather than guessed at.
+    The scenario's extra file is not even valid YAML: reading it would fail
+    the load.
+
+    Scenario: An unregistered file that is not YAML leaves the load unaffected
+      Given an SDE directory holding the raw export files and an unregistered file that is not valid YAML
+      When I open the SDE from the directory
+      And the user looks up type ID 34
+      Then the returned record shall be named "Tritanium"
+
   # ── Reshaping records ────────────────────────────────────────────────
 
   Rule: When a record whose name is a locale map is loaded, the SdeDataProvider shall serve the record with the English text as its name.

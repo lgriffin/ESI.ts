@@ -1,5 +1,8 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
+import { ApiClient } from '../../../../src/core/ApiClient';
+import { configureApiClient } from '../../../../src/core/configureApiClient';
+import { MarketClient } from '../../../../src/clients/MarketClient';
 import { EsiError } from '../../../../src/core/util/error';
 import type { EsiResponse } from '../../../../src/types/api-responses';
 import fetchMock from 'jest-fetch-mock';
@@ -92,6 +95,93 @@ async function cacheServerStatus(client: EsiClient): Promise<void> {
   });
   await client.status.getStatus();
   expect(client.getCacheStats()!.totalEntries).toBe(1);
+}
+
+/** Cache the server status from a response carrying the given Expires header. */
+async function cacheServerStatusExpiring(
+  client: EsiClient,
+  expires: string,
+): Promise<void> {
+  fetchMock.mockResponseOnce(JSON.stringify(SERVER_STATUS), {
+    headers: {
+      ETag: SERVER_STATUS_ETAG,
+      Expires: expires,
+      'Content-Type': 'application/json',
+    },
+  });
+  await client.status.getStatus();
+  expect(client.getCacheStats()!.totalEntries).toBe(1);
+}
+
+/** An HTTP date `ms` milliseconds from the cache's own clock. */
+const httpDateFromNow = (ms: number): string =>
+  new Date(Date.now() + ms).toUTCString();
+
+const ONE_DAY_MS = 24 * ONE_HOUR_MS;
+
+// ---------------------------------------------------------------------------
+// Stream fixtures: GET markets/{region_id}/types has a 600 second spec TTL and
+// is paginated, so an ordinary call caches it and the stream helpers read it.
+// ---------------------------------------------------------------------------
+
+const THE_FORGE = 10000002;
+const MARKET_TYPE_IDS = [34, 35, 36];
+
+function queueMarketTypes(): void {
+  fetchMock.mockResponseOnce(JSON.stringify(MARKET_TYPE_IDS), {
+    headers: {
+      ETag: '"market-types-v1"',
+      'X-Pages': '1',
+      'Content-Type': 'application/json',
+    },
+  });
+}
+
+/** Two pages of market types, each with its own ETag, announcing 2 pages. */
+const MARKET_TYPE_PAGES = [[34, 35], [36]];
+
+function queueMarketTypePages(): void {
+  MARKET_TYPE_PAGES.forEach((page, i) => {
+    fetchMock.mockResponseOnce(JSON.stringify(page), {
+      headers: {
+        ETag: `"market-types-page-${i + 1}"`,
+        'X-Pages': String(MARKET_TYPE_PAGES.length),
+        'Content-Type': 'application/json',
+      },
+    });
+  });
+}
+
+/**
+ * A market client over a bare ApiClient, whose cache a step can seed: no
+ * call of the client stores an entry under a page's own URL.
+ */
+function createSeededMarketClient(): { market: MarketClient; api: ApiClient } {
+  const api = new ApiClient('bdd-page-etag', 'https://esi.evetech.net');
+  configureApiClient(api, {
+    retryConfig: FAST_RETRY,
+    rateLimiterConfig: { minDelayMs: 0 },
+    logLevel: 'error',
+  });
+  return { market: new MarketClient(api), api };
+}
+
+function createStreamClient(): EsiClient {
+  return new EsiClient({
+    clientId: 'bdd-stream-etag',
+    baseUrl: 'https://esi.evetech.net',
+    retryConfig: FAST_RETRY,
+    rateLimiterConfig: { minDelayMs: 0 },
+    logLevel: 'error',
+  });
+}
+
+async function streamMarketTypes(client: EsiClient): Promise<number[]> {
+  const streamed: number[] = [];
+  for await (const page of client.market.streamMarketTypes(THE_FORGE)) {
+    streamed.push(...page.data);
+  }
+  return streamed;
 }
 
 /** A 304 has a null body; the Response constructor rejects even ''. */
@@ -907,47 +997,26 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
-    const theForge = 10000002;
-    const typeIds = [34, 35, 36];
-    const streamed: number[] = [];
     let streamClient: EsiClient;
-
-    const queueMarketTypes = () =>
-      fetchMock.mockResponseOnce(JSON.stringify(typeIds), {
-        headers: {
-          ETag: '"market-types-v1"',
-          'X-Pages': '1',
-          'Content-Type': 'application/json',
-        },
-      });
+    let streamed: number[] = [];
 
     given('a client with an empty cache', () => {
-      streamClient = new EsiClient({
-        clientId: 'bdd-stream-etag',
-        baseUrl: 'https://esi.evetech.net',
-        retryConfig: FAST_RETRY,
-        rateLimiterConfig: { minDelayMs: 0 },
-        logLevel: 'error',
-      });
+      streamClient = createStreamClient();
     });
 
     and('the client has fetched the market types for The Forge', async () => {
       queueMarketTypes();
-      await streamClient.market.getMarketTypes(theForge);
+      await streamClient.market.getMarketTypes(THE_FORGE);
       expect(requestHeader(0, 'If-None-Match')).toBeUndefined();
     });
 
     when('the client streams the market types for The Forge', async () => {
       queueMarketTypes();
-      for await (const page of streamClient.market.streamMarketTypes(
-        theForge,
-      )) {
-        streamed.push(...page.data);
-      }
+      streamed = await streamMarketTypes(streamClient);
     });
 
     then('the stream yields every market type', () => {
-      expect(streamed).toEqual(typeIds);
+      expect(streamed).toEqual(MARKET_TYPE_IDS);
     });
 
     and('the streamed request carried no If-None-Match header', () => {
@@ -1313,6 +1382,315 @@ defineFeature(feature, (test) => {
       expect(fetchMock.mock.calls).toHaveLength(Number(count));
       expect(requestHeader(1, 'If-None-Match')).toBe(STRUCTURE_ORDERS_ETAG);
       identityClient.shutdown();
+    });
+  });
+  // ── Exclusions: Expires, stale-on-error retries, the stream path ──────
+
+  test('A server status whose Expires has passed is still served inside its spec TTL', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let staleClient: EsiClient;
+    let result: unknown;
+
+    given(
+      'a client whose ETag cache holds the server status from a response whose Expires header had already passed',
+      async () => {
+        staleClient = createStaleOnErrorClient();
+        await cacheServerStatusExpiring(
+          staleClient,
+          httpDateFromNow(-ONE_HOUR_MS),
+        );
+      },
+    );
+
+    when('the client requests the server status 10 seconds later', async () => {
+      advanceClock(10_000);
+      result = await staleClient.status.getStatus();
+    });
+
+    then('the client resolves with the cached server status', () => {
+      expect(result).toEqual(SERVER_STATUS);
+    });
+
+    and(/^the client sent (\d+) request$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      staleClient.shutdown();
+    });
+  });
+
+  test('A server status whose Expires lies a day ahead is revalidated after its spec TTL', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let staleClient: EsiClient;
+    let result: unknown;
+
+    given(
+      'a client whose ETag cache holds the server status from a response whose Expires header lies a day ahead',
+      async () => {
+        staleClient = createStaleOnErrorClient();
+        await cacheServerStatusExpiring(
+          staleClient,
+          httpDateFromNow(ONE_DAY_MS),
+        );
+      },
+    );
+
+    and('the 30 second spec cache TTL of the server status has elapsed', () => {
+      advanceClock(SERVER_STATUS_TTL_MS + 1_000);
+    });
+
+    and(
+      'ESI answers the revalidation of the server status with HTTP 304',
+      () => {
+        queueNotModified(SERVER_STATUS_ETAG);
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      result = await staleClient.status.getStatus();
+    });
+
+    then('the client resolves with the cached server status', () => {
+      expect(result).toEqual(SERVER_STATUS);
+    });
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      expect(requestHeader(1, 'If-None-Match')).toBe(SERVER_STATUS_ETAG);
+      staleClient.shutdown();
+    });
+  });
+
+  test('A 503 on the server status revalidation is not sent again', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let staleClient: EsiClient;
+    let result: unknown;
+
+    given('a client whose ETag cache holds the server status', async () => {
+      staleClient = createStaleOnErrorClient();
+      await cacheServerStatus(staleClient);
+    });
+
+    and('the 30 second spec cache TTL of the server status has elapsed', () => {
+      advanceClock(SERVER_STATUS_TTL_MS + 1_000);
+    });
+
+    and(
+      'ESI answers the server status request with HTTP 503 on every attempt',
+      () => {
+        queueErrorResponse(503, FAST_RETRY.maxRetries + 1);
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      result = await staleClient.status.getStatus();
+    });
+
+    then('the client resolves with the cached server status', () => {
+      expect(result).toEqual(SERVER_STATUS);
+    });
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      staleClient.shutdown();
+    });
+  });
+
+  test('Streaming market types inside their 600 second spec TTL sends a request', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let streamClient: EsiClient;
+    let streamed: number[] = [];
+
+    given('a client with an empty cache', () => {
+      streamClient = createStreamClient();
+    });
+
+    and('the client has fetched the market types for The Forge', async () => {
+      queueMarketTypes();
+      await streamClient.market.getMarketTypes(THE_FORGE);
+    });
+
+    when('the client streams the market types for The Forge', async () => {
+      queueMarketTypes();
+      streamed = await streamMarketTypes(streamClient);
+    });
+
+    then('the stream yields every market type', () => {
+      expect(streamed).toEqual(MARKET_TYPE_IDS);
+    });
+
+    and('the client sent a request for the streamed page', () => {
+      expect(fetchMock.mock.calls).toHaveLength(2);
+      expect(String(fetchMock.mock.calls[1]![0])).toContain(
+        `markets/${THE_FORGE}/types`,
+      );
+      streamClient.shutdown();
+    });
+  });
+
+  test('An ordinary market types call after streaming them fetches afresh', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let streamClient: EsiClient;
+    let result: unknown;
+
+    given('a client with an empty cache', () => {
+      streamClient = createStreamClient();
+    });
+
+    and('the client has streamed the market types for The Forge', async () => {
+      queueMarketTypes();
+      expect(await streamMarketTypes(streamClient)).toEqual(MARKET_TYPE_IDS);
+    });
+
+    when('the client requests the market types for The Forge', async () => {
+      queueMarketTypes();
+      result = await streamClient.market.getMarketTypes(THE_FORGE);
+    });
+
+    then('the client resolves with every market type', () => {
+      expect(result).toEqual(MARKET_TYPE_IDS);
+    });
+
+    and('the ordinary request carried no If-None-Match header', () => {
+      expect(fetchMock.mock.calls).toHaveLength(2);
+      expect(requestHeader(1, 'If-None-Match')).toBeUndefined();
+      streamClient.shutdown();
+    });
+  });
+
+  test('Streaming market types answered with HTTP 500 rejects despite the cached entry', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let streamClient: EsiClient;
+    let error: unknown;
+
+    given('a client with an empty cache', () => {
+      streamClient = createStreamClient();
+    });
+
+    and('the client has fetched the market types for The Forge', async () => {
+      queueMarketTypes();
+      await streamClient.market.getMarketTypes(THE_FORGE);
+      expect(streamClient.getCacheStats()!.totalEntries).toBe(1);
+    });
+
+    and('ESI answers the streamed market types page with HTTP 500', () => {
+      queueErrorResponse(500);
+    });
+
+    when(
+      'the client streams the market types for The Forge expecting a failure',
+      async () => {
+        error = await captureRejection(streamMarketTypes(streamClient));
+      },
+    );
+
+    then(
+      /^the stream rejects with an EsiError carrying status (\d+)$/,
+      (status: string) => {
+        expectEsiError(error, Number(status));
+        expect(fetchMock.mock.calls).toHaveLength(2);
+        streamClient.shutdown();
+      },
+    );
+  });
+  test('Page 2 of the market types is asked unconditionally despite an entry for its URL', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let seeded: { market: MarketClient; api: ApiClient };
+    let result: unknown;
+
+    given(
+      'a client whose ETag cache holds an entry for page 2 of the market types',
+      () => {
+        seeded = createSeededMarketClient();
+        seeded.api
+          .getCache()!
+          .set(
+            `${seeded.api.getLink()}/markets/${THE_FORGE}/types/?page=2`,
+            '"seeded-page-2"',
+            [99],
+            {},
+            ONE_HOUR_MS,
+          );
+      },
+    );
+
+    and('ESI answers the market types with 2 pages', () => {
+      queueMarketTypePages();
+    });
+
+    when('the client requests the market types for The Forge', async () => {
+      result = await seeded.market.getMarketTypes(THE_FORGE);
+    });
+
+    then('the client resolves with the market types of both pages', () => {
+      expect(result).toEqual(MARKET_TYPE_PAGES.flat());
+    });
+
+    and('the page 2 request carried no If-None-Match header', () => {
+      expect(fetchMock.mock.calls).toHaveLength(2);
+      expect(String(fetchMock.mock.calls[1]![0])).toBe(
+        `${seeded.api.getLink()}/markets/${THE_FORGE}/types/?page=2`,
+      );
+      expect(requestHeader(1, 'If-None-Match')).toBeUndefined();
+      (seeded.api.getCache() as { shutdown(): void }).shutdown();
+    });
+  });
+
+  test('A two-page market types call leaves one cache entry', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let pageClient: EsiClient;
+    let result: unknown;
+
+    given('a client with an empty cache', () => {
+      pageClient = createStreamClient();
+    });
+
+    and('ESI answers the market types with 2 pages', () => {
+      queueMarketTypePages();
+    });
+
+    when('the client requests the market types for The Forge', async () => {
+      result = await pageClient.market.getMarketTypes(THE_FORGE);
+    });
+
+    then('the client resolves with the market types of both pages', () => {
+      expect(result).toEqual(MARKET_TYPE_PAGES.flat());
+    });
+
+    and(/^the ETag cache holds (\d+) entry$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(2);
+      expect(pageClient.getCacheStats()!.totalEntries).toBe(Number(count));
+      pageClient.shutdown();
     });
   });
 });

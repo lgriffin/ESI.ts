@@ -358,6 +358,9 @@ export const SEAM_RETRY = { maxRetries: 3, baseDelayMs: 1, maxDelayMs: 2 };
 /** Requests a retryable failure (5xx) consumes before the client gives up. */
 export const RETRYABLE_ATTEMPTS = SEAM_RETRY.maxRetries + 1;
 
+/** The access token every seam client holds, so a step can look for it. */
+export const SEAM_ACCESS_TOKEN = 'bdd-access-token';
+
 /**
  * A real `EsiClient` wired for the seam: default pipeline, a test access token
  * so authenticated endpoints send a bearer header, no inter-request delay, and
@@ -367,7 +370,7 @@ export function createSeamClient(config: EsiClientConfig = {}): EsiClient {
   return new EsiClient({
     clientId: 'bdd-seam-client',
     baseUrl: 'https://esi.evetech.net',
-    accessToken: 'bdd-access-token',
+    accessToken: SEAM_ACCESS_TOKEN,
     timeout: 5000,
     retryConfig: SEAM_RETRY,
     logLevel: 'error',

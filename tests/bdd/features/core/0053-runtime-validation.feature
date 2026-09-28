@@ -62,6 +62,29 @@ Feature: Runtime Response Validation
       Then the first call shall reject with an EsiValidationError
       And the second call shall send an unconditional request and return the valid alliance
 
+  Rule: If a response fails schema validation, then the EsiClient shall not send the request again within that call.
+    Validation runs in createClient after the retry loop has returned, so the
+    failure is not a transient one the retry strategy may repeat: ESI would
+    send the same body. The next call refetches it without If-None-Match
+    (above).
+
+    Scenario: A mistyped alliance body is fetched once
+      Given ESI answers the alliance request with a mistyped body
+      When the client requests the alliance and validation fails
+      Then the client sent exactly one alliance request
+
+  Rule: If a response field holds a value its schema type accepts but the game cannot produce, then the EsiClient shall not reject the response or change the value.
+    Schemas check shape, and ESI is the source of truth for values. A
+    negative volume_remain is a number like any other to the schema, so it
+    reaches the caller as ESI sent it, with nothing logged. Guessing at
+    plausible ranges would reject a value the next game patch makes legal.
+
+    Scenario: A market order with a negative volume_remain is returned as ESI sent it
+      Given ESI answers the region market orders with an order whose volume_remain is -5
+      When the client requests the region market orders
+      Then the client resolves with that order's volume_remain of -5
+      And nothing was logged at warn level or above
+
   Rule: The EsiValidationError shall be an instance of EsiError that satisfies the isValidationError type guard.
     Callers already wrap ESI calls in a catch for EsiError; a validation
     failure that sat outside that hierarchy would escape those handlers. The
@@ -117,7 +140,7 @@ Feature: Runtime Response Validation
       When I validate data with valid nested objects
       Then schema validation shall succeed for the entire structure
 
-  Rule: When an enum-typed field holds a value outside the declared set, the schema shall parse the object successfully and preserve the received value.
+  Rule: If an enum-typed field holds a value outside the declared set, then the schema shall not reject the object or replace the received value.
     CCP introduces new contact types, order states and job statuses without
     warning. Rejecting an unrecognised value would break every caller on the
     day of the change, so esiEnum widens to the raw string and passes it

@@ -492,7 +492,7 @@ export const FAULTS: readonly Fault[] = [
     title: '500 with ESI error JSON',
     rule: {
       feature: 'core/0051-resilience.feature',
-      rule: 'If a GET request is answered with HTTP 400, 401, 403, 404, or 500, then the EsiClient shall reject with an EsiError carrying that status after a single request.',
+      rule: 'If a GET request is answered with HTTP 400, 401, 403, 404, or 500, then the EsiClient shall not send the request again.',
     },
     exchange: () => [
       errorResponse(500, {
@@ -562,7 +562,7 @@ export const FAULTS: readonly Fault[] = [
     appliesTo: (t) => !isGet(t),
     rule: {
       feature: 'core/0051-resilience.feature',
-      rule: 'If a non-GET request is answered with HTTP 503, then the EsiClient shall reject after a single request.',
+      rule: 'If a non-GET request is answered with HTTP 503, then the EsiClient shall not send the request again.',
     },
     exchange: () => [html(503)],
     expected: () => ({
