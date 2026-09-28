@@ -239,6 +239,7 @@ If a gate cannot be made green in one night, ship the partial with a shrink-only
 - **Brief.** Model on `scripts/spec/spec-coverage.ts` and `scripts/package/export-coverage.ts`. A method counts as covered when a Rule's text or a bound step body calls it by name on the provider. Print the uncovered list grouped by entity family in the section order of `src/sde/README.md` (Types, Universe, Market, Dogma, Industry, Character/Lore, NPC, Agents, Certificates, Skins, Stations, Extensions, Missions, Notifications, Generic, Lifecycle); this list is the input to Runs 5 and 6. Commit the baseline exactly as measured. Write no new scenarios in this run.
 - **PR.** `chore(spec): gate IStaticDataProvider method coverage against the EARS specification`
 - **Marker.** `scripts/sde/sde-spec-coverage.ts` exists.
+- **Landed 2026-09-28.** `npm run spec:coverage:sde` reports 23 of 101 provider methods (the interface has grown two since this run was written) named by a Rule or reached by a bound step, directly or through any `tests/bdd` function, the type checker deciding what a call's receiver is; the 78 uncovered are committed by family in `scripts/sde/sde-spec-coverage-baseline.json`, and `spec:coverage:sde:ci` fails an addition, a stale entry, or an unlisted uncovered method, in `check:all`, `verify-local` and the `spec-audit` job. CHARTER TEST-10 is Partial. The baseline is the input to Runs 5 and 6.
 
 #### Run 5 · EARS requirements, entity families I · 1 to 2 nights · `test`
 
