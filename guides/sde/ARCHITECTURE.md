@@ -365,9 +365,6 @@ src/sde/
     SdeExtractor.ts         # ZIP extraction and YAML parsing
     transforms.ts           # Field normalization, locale extraction
     index.ts                # Barrel exports
-  docs/
-    ARCHITECTURE.md         # This file
-    API_CONTRACTS.md        # Complete API method reference
-    DEVELOPER_GUIDE.md      # Developer guide for contributors
-    USAGE.md                # End-user usage guide
 ```
+
+The guides (this file, [API_CONTRACTS.md](API_CONTRACTS.md), [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md), [USAGE.md](USAGE.md)) live in `guides/sde/`, with [guides/SDE.md](../SDE.md) as the front door.

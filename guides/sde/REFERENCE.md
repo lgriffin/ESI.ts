@@ -117,11 +117,9 @@ src/sde/
     transforms.ts             Field normalization + locale extraction
     SdeDownloader.ts          HTTP download with progress callback
     SdeExtractor.ts           ZIP parsing (adm-zip + js-yaml)
-  docs/
-    ARCHITECTURE.md
-    DEVELOPER_GUIDE.md
-    USAGE.md
 ```
+
+The guides live outside the source tree, in `guides/sde/` (this reference, [USAGE.md](USAGE.md), [ARCHITECTURE.md](ARCHITECTURE.md), [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md), [API_CONTRACTS.md](API_CONTRACTS.md)), with [guides/SDE.md](../SDE.md) as the front door.
 
 ## API Reference
 

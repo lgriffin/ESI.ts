@@ -36,7 +36,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Live contract tests                        |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |       ● (3)        |    ·     |
 | Recorded payload replay                    |   ·    |            ·             |        ●         | ◐ opens a PR  |         ●          |    ·     |
 | Fuzz, integration (mocked), type tests     |   ·    |            ·             |        ●         |       ·       |         ●          |    ●     |
-| Properties at 10,000 runs                  |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ●     |
+| Properties at 10,000 runs                  |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ◐     |
 | Fault catalogue (transport faults)         |   ·    |            ·             |        ●         | ◐ files issue |         ●          |    ·     |
 | API surface diff (api-extractor)           |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | Breaking API change declared (SemVer gate) |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
@@ -62,7 +62,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Missing-endpoint spec drift                |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ·     |
 | OpenSSF Scorecard                          |   ·    |            ·             |        ·         |   ◐ weekly    |         ·          |    ·     |
 | Post-publish canary (registry install)     |   ·    |            ·             |        ·         |       ·       | ◐ files issue (11) |    ·     |
-| Real SDE export (`nightly-sde.yml`)        |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ●     |
+| Real SDE export (`nightly-sde.yml`)        |   ·    |            ·             |        ·         | ◐ files issue |         ·          |    ◐     |
 
 1. The release job runs lint, format check and build. It has no separate `typecheck` step; `npm run build` runs `tsc --emitDeclarationOnly`, which type-checks `src/`.
 2. `npm test` uses `config/jest/unit.config.cjs`, whose `testMatch` includes `tests/tdd/**/*.test.ts` (composition among them), `tests/bdd/step-definitions/**/*.steps.ts` and `tests/bdd/specs/**/*.spec.ts`. Every push therefore runs the BDD scenarios as part of the unit suite; `npm run bdd` runs the same two BDD globs alone.
