@@ -33,3 +33,17 @@ Feature: Optional Peer Dependencies
       When I open the SDE from the ZIP archive
       Then the call shall fail with an SDE error naming "adm-zip is required to read SDE ZIP archives"
       And the call shall fail with an SDE error naming "npm install adm-zip"
+
+  # ── Neither peer needed ──────────────────────────────────────────────
+
+  Rule: If neither js-yaml nor adm-zip is installed, then the ./sde entry point shall not require either package to load or to serve a MemorySdeProvider.
+    The peers are loaded on the first read of a YAML file or an archive,
+    never at import. An application that builds its provider from records it
+    already holds, as tests and browser bundles do, installs neither.
+
+    Scenario: A memory provider is built and queried with both peers missing
+      Given the js-yaml package is not installed
+      And the adm-zip package is not installed
+      When a MemorySdeProvider holding Tritanium is built from a fresh load of the SDE entry point
+      And the user looks up type ID 34
+      Then the returned record shall be named "Tritanium"

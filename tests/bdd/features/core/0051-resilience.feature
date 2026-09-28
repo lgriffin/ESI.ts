@@ -92,6 +92,18 @@ Feature: Resilience and Error Recovery
       When the client makes an authenticated request
       Then the client shall return the response after token refresh
 
+  Rule: If a request answered with 401 is replayed after a token refresh, then the retry strategy shall not count the replay against maxRetries.
+    The refresh is a separate budget of one per call (ERRORS.md, "The 401
+    refresh path"). Counting the replay would leave a client configured with
+    no retries unable to recover from an expired token at all.
+
+    Scenario: A strategy allowed no retries still replays a request after a refresh
+      Given a retry strategy allowed no retries, with a token refresh callback
+      And the endpoint returns 401 then succeeds after token refresh
+      When the client makes an authenticated request
+      Then the client shall return the response after token refresh
+      And the operation ran twice with one refresh between the attempts
+
   Rule: If the refreshToken callback rejects, then the retry strategy shall throw an EsiTokenRefreshError whose cause is the rejection.
     A refresh failure is a credential problem, not a transport problem, and the
     caller needs to be able to tell the two apart to decide whether to
@@ -206,6 +218,17 @@ Feature: Resilience and Error Recovery
       Then the client rejects with an EsiParseError that is not retryable
       And the client sent 1 request
 
+  Rule: If ESI answers a GET request with a body that is not valid JSON, then the EsiClient shall not send the request again.
+    A body that does not parse is a broken response, and ESI's edge serves
+    the same HTML error page on the next attempt. The call rejects with the
+    EsiParseError above instead of spending the retry budget.
+
+    Scenario: A server status answered with an HTML page is requested once
+      Given a client configured for the status endpoint
+      And ESI answers the server status request with HTTP 200 and an HTML page
+      When the client requests the server status
+      Then the client sent 1 request
+
   Rule: While the circuit for an endpoint is open, the EsiClient shall resolve a safe-mode call to that endpoint with a failed result whose error is the CircuitOpenError.
     Safe mode delivers every failure as a value typed EsiError. CircuitOpenError
     extends EsiError, so the breaker's own error, with retryAfterMs, reaches the
@@ -298,10 +321,10 @@ Feature: Resilience and Error Recovery
       Then the client resolves with the payload from the retry
       And the client sent 2 requests
 
-  Rule: If a GET request is answered with HTTP 400, 401, 403, 404, or 500, then the EsiClient shall reject with an EsiError carrying that status after a single request.
+  Rule: If a GET request is answered with HTTP 400, 401, 403, 404, or 500, then the EsiClient shall not send the request again.
     These statuses describe the request or a fault the retry strategy does not
     classify as transient, and repeating the call spends the ESI error budget
-    for the same answer. The retryable classes are exactly 0 (timeout), 420,
+    for the same answer. The call rejects with an EsiError carrying the status. The retryable classes are exactly 0 (timeout), 420,
     429, 502, 503 and 504. A 401 is replayed once after a token refresh, and
     only where a refresh callback is configured; this client has none.
 
@@ -320,10 +343,10 @@ Feature: Resilience and Error Recovery
         | 404    |
         | 500    |
 
-  Rule: If a non-GET request is answered with HTTP 503, then the EsiClient shall reject after a single request.
+  Rule: If a non-GET request is answered with HTTP 503, then the EsiClient shall not send the request again.
     A POST, PUT or DELETE may already have taken effect when the error comes
-    back, and repeating it could apply it twice. Mutations are therefore not
-    retried unless retryMutations is set.
+    back, and repeating it could apply it twice. The call rejects with the
+    503's EsiError unless retryMutations is set, below.
 
     Scenario: A name resolution POST answered with 503 is not retried
       Given a client with retries enabled
@@ -343,7 +366,7 @@ Feature: Resilience and Error Recovery
       Then the client resolves with the names from the retry
       And the client sent 2 requests
 
-  Rule: If a non-GET request issued by a stream or fetch-all helper is answered with HTTP 503, then the EsiClient shall reject after a single request.
+  Rule: If a non-GET request issued by a stream or fetch-all helper is answered with HTTP 503, then the EsiClient shall not send the request again.
     The stream and fetch-all helpers take the endpoint's method from its
     definition. The retry decision must see that method too, or a mutation
     requested through a helper is retried as if it were a GET.

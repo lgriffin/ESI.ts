@@ -19,6 +19,7 @@ import {
   sentRequests,
   useHttpTransport,
 } from '../../support/transport';
+import { recordingLogger } from '../../support/logging';
 
 const feature = loadFeature(
   'tests/bdd/features/core/0053-runtime-validation.feature',
@@ -236,6 +237,66 @@ defineFeature(feature, (test) => {
         expect(second).toEqual(corrected);
       },
     );
+  });
+
+  test('A mistyped alliance body is fetched once', ({ given, when, then }) => {
+    let error: unknown;
+
+    given('ESI answers the alliance request with a mistyped body', () => {
+      queueResponse({ match: alliancePath, body: mistypedAlliance });
+    });
+
+    when('the client requests the alliance and validation fails', async () => {
+      error = await client.alliance.getAllianceById(allianceId).catch((e) => e);
+      expect(error).toBeInstanceOf(EsiValidationError);
+    });
+
+    then('the client sent exactly one alliance request', () => {
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().url.pathname).toContain(alliancePath);
+    });
+  });
+
+  test('A market order with a negative volume_remain is returned as ESI sent it', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    const theForge = 10000002;
+    const order = TestDataFactory.createMarketOrder({ volume_remain: -5 });
+    const logger = recordingLogger();
+    let result: any;
+
+    given(
+      'ESI answers the region market orders with an order whose volume_remain is -5',
+      () => {
+        client = createSeamClient({ logger, logLevel: 'trace' });
+        queueResponse({
+          match: `/markets/${theForge}/orders`,
+          headers: { 'x-pages': '1' },
+          body: [order],
+        });
+      },
+    );
+
+    when('the client requests the region market orders', async () => {
+      result = await client.market.getMarketOrders(theForge);
+    });
+
+    then("the client resolves with that order's volume_remain of -5", () => {
+      expect(result).toEqual([order]);
+      expect(result[0].volume_remain).toBe(-5);
+    });
+
+    and('nothing was logged at warn level or above', () => {
+      expect(logger.lines.length).toBeGreaterThan(0);
+      expect(
+        logger.lines.filter((line) =>
+          ['warn', 'error', 'fatal'].includes(line.level),
+        ),
+      ).toEqual([]);
+    });
   });
 
   test('Validation error is catchable as EsiError and narrowed by the guard', ({

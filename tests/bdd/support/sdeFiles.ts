@@ -16,6 +16,7 @@ import * as sdeEntry from '../../../src/sde/index';
 import * as memoryEntry from '../../../src/sde/memory';
 import { SdeDataProvider } from '../../../src/sde/providers/yaml/SdeDataProvider';
 import { SdeError } from '../../../src/sde/errors';
+import { SdeTestDataFactory } from '../../../src/sde/testing/SdeTestDataFactory';
 import { SdeDatabaseBuilder } from '../../../src/sde/ingestion/SdeDatabaseBuilder';
 import { SdeDownloader } from '../../../src/sde/ingestion/SdeDownloader';
 import { SdeExtractor } from '../../../src/sde/ingestion/SdeExtractor';
@@ -80,6 +81,14 @@ export const RAW_SDE_FILES: Record<string, unknown> = {
       useBasePrice: true,
     },
   },
+};
+
+/**
+ * A file CCP might ship before the registry names it, whose text js-yaml
+ * refuses (an unclosed flow sequence), so reading it would fail the load.
+ */
+export const UNREGISTERED_INVALID_YAML: Record<string, string> = {
+  'futureTable.yaml': 'records: [unclosed\n',
 };
 
 /** The YAML files a `listFiles` over `RAW_SDE_FILES` reports, in archive order. */
@@ -185,22 +194,68 @@ export function sdeErrorOf(world: World): SdeError {
 
 export type OptionalPeer = 'js-yaml' | 'adm-zip';
 
+function moduleNotFound(peer: string): Error {
+  return Object.assign(new Error(`Cannot find module '${peer}'`), {
+    code: 'MODULE_NOT_FOUND',
+  });
+}
+
 /**
  * Make a peer unresolvable for the rest of the scenario, the way an install
  * without it behaves: requiring it raises Node's module-not-found error.
+ *
+ * Both routes a module can take to the peer are closed. Jest's registry
+ * answers a plain `require` or `import`; `createRequire`, which
+ * `src/sde/optionalPeers.ts` loads the peers through, is replaced for any
+ * module loaded afresh after this step, with a require that refuses every
+ * uninstalled peer and resolves everything else as Node would.
  */
 export function uninstallPeer(world: World, peer: OptionalPeer): void {
+  const missing: Set<string> = (world.values.uninstalledPeers ??= new Set());
+  missing.add(peer);
   jest.doMock(peer, () => {
-    throw Object.assign(new Error(`Cannot find module '${peer}'`), {
-      code: 'MODULE_NOT_FOUND',
-    });
+    throw moduleNotFound(peer);
   });
-  world.cleanups.push(() => jest.dontMock(peer));
+  jest.doMock('node:module', () => {
+    const actual =
+      jest.requireActual<typeof import('node:module')>('node:module');
+    return {
+      ...actual,
+      createRequire: (from: string | URL) => {
+        const real = actual.createRequire(from);
+        return Object.assign((id: string): unknown => {
+          if (missing.has(id)) throw moduleNotFound(id);
+          return real(id);
+        }, real);
+      },
+    };
+  });
+  world.cleanups.push(() => {
+    jest.dontMock(peer);
+    jest.dontMock('node:module');
+  });
 }
 
 // ---------------------------------------------------------------------------
 // Entry points
 // ---------------------------------------------------------------------------
+
+/**
+ * Load `./sde` afresh, so its modules, `optionalPeers.ts` included, run
+ * against the peers a Given step uninstalled, and build a MemorySdeProvider
+ * holding Tritanium from it. A peer loaded at import time throws here.
+ */
+export function openMemoryProviderFromFreshSdeEntry(world: World): void {
+  let entry: typeof sdeEntry | undefined;
+  jest.isolateModules(() => {
+    entry = jest.requireActual<typeof sdeEntry>('../../../src/sde/index');
+  });
+  world.sde = new entry!.MemorySdeProvider({
+    types: [
+      SdeTestDataFactory.createEveType({ typeId: 34, name: 'Tritanium' }),
+    ],
+  });
+}
 
 export interface EntryPointComparison {
   /** Runtime exports of `./sde` that `./sde/memory` lacks, `SdeDataProvider` aside. */

@@ -192,7 +192,6 @@
       "getMarketGroups",
       "getMarketGroupInformation",
       "fetchAllMarketOrders",
-      "fetchAllMarketTypes",
       "fetchAllCharacterOrderHistory",
       "fetchAllCorporationOrders",
       "fetchAllCorporationOrderHistory",

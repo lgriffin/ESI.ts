@@ -375,6 +375,59 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('A strategy allowed no retries still replays a request after a refresh', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let strategy: RetryStrategy;
+    let operation: jest.Mock;
+    let refreshToken: jest.Mock;
+    let result: unknown;
+
+    given(
+      'a retry strategy allowed no retries, with a token refresh callback',
+      () => {
+        strategy = new RetryStrategy(NO_RETRIES);
+        refreshToken = jest.fn().mockResolvedValue(undefined);
+      },
+    );
+
+    and('the endpoint returns 401 then succeeds after token refresh', () => {
+      operation = jest
+        .fn()
+        .mockRejectedValueOnce(
+          new EsiError(401, 'Unauthorized', 'test/endpoint'),
+        )
+        .mockResolvedValueOnce({ data: 'authed' });
+    });
+
+    when('the client makes an authenticated request', async () => {
+      result = await strategy.execute(operation, {
+        endpoint: 'test/endpoint',
+        method: 'GET',
+        requiresAuth: true,
+        refreshToken,
+      });
+    });
+
+    then('the client shall return the response after token refresh', () => {
+      expect(result).toEqual({ data: 'authed' });
+    });
+
+    and('the operation ran twice with one refresh between the attempts', () => {
+      expect(operation).toHaveBeenCalledTimes(2);
+      expect(refreshToken).toHaveBeenCalledTimes(1);
+      expect(refreshToken.mock.invocationCallOrder[0]).toBeGreaterThan(
+        operation.mock.invocationCallOrder[0]!,
+      );
+      expect(refreshToken.mock.invocationCallOrder[0]).toBeLessThan(
+        operation.mock.invocationCallOrder[1]!,
+      );
+    });
+  });
+
   test('Rejecting refresh callback surfaces a token refresh failure', ({
     given,
     and,
@@ -2096,6 +2149,40 @@ defineFeature(feature, (test) => {
     );
 
     and(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
+  test('A server status answered with an HTML page is requested once', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client configured for the status endpoint', () => {
+      client = createSeamClient();
+    });
+
+    and(
+      'ESI answers the server status request with HTTP 200 and an HTML page',
+      () => {
+        queueResponse({
+          match: STATUS_PATH,
+          headers: { 'content-type': 'text/html' },
+          body: HTML_ERROR_PAGE,
+        });
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      outcome = await settle(client.status.getStatus());
+    });
+
+    then(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(outcome.status).toBe('rejected');
       expect(requestsSent()).toBe(Number(count));
     });
   });

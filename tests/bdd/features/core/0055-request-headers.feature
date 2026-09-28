@@ -32,7 +32,7 @@ Feature: Per-client tenant and user agent
       When the client requests the OpenAPI YAML specification
       Then the request shall carry the header "X-Tenant" with the value "singularity"
 
-  Rule: If no tenant is configured, then the client shall send no X-Tenant header.
+  Rule: If no tenant is configured, then the client shall not send an X-Tenant header.
     ESI's own default applies, so an existing client keeps talking to
     Tranquility without sending anything new.
 
@@ -65,3 +65,27 @@ Feature: Per-client tenant and user agent
     Scenario: A user agent holding a control character is refused at construction
       When a client is created with a user agent holding a NUL character
       Then the client constructor shall throw a VALIDATION_ERROR naming the option
+
+  # ── What the client does not send ────────────────────────────────────
+
+  Rule: If a client holding an access token calls an endpoint that declares no scope, then the client shall not send an Authorization header.
+    The bearer token goes only where the endpoint definition sets requiresAuth.
+    A public route has no use for it, and sending it anyway would hand the
+    token to every public call and every proxy log along the way (SECURITY.md,
+    "Tokens").
+
+    Scenario: The server status is asked without the token the client holds
+      Given ESI reports the server status
+      When the client requests the server status
+      Then the request shall not carry the header "Authorization"
+
+  Rule: If an endpoint that declares a scope is called, then the client shall not put the access token in the request URL.
+    ESI accepts a token as a query parameter, but a URL is logged by proxies,
+    servers and error reports where a header is not. The token travels only in
+    the Authorization header.
+
+    Scenario: The wallet balance carries its token in the header alone
+      Given an authenticated character for wallet
+      When the client requests their wallet balance
+      Then the request URL shall not contain the access token
+      And the request shall carry the header "Authorization" with the value "Bearer bdd-access-token"

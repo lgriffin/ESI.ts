@@ -45,6 +45,12 @@ export function makeJwt(claims: FakeJwtClaims = {}): string {
   ].join('.');
 }
 
+/** The same JWT with its signature segment replaced by bytes no key signed. */
+export function withForeignSignature(jwt: string): string {
+  const [header, payload] = jwt.split('.');
+  return [header, payload, base64url('not-signed-by-eve-sso')].join('.');
+}
+
 export interface SsoTokenBodyOptions extends FakeJwtClaims {
   accessToken?: string;
   refreshToken?: string;

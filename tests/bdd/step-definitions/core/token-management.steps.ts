@@ -30,6 +30,7 @@ import {
   ssoCallCount,
   ssoErrorBody,
   ssoTokenBody,
+  withForeignSignature,
 } from '../shared/sso-helpers';
 
 const feature = loadFeature(
@@ -234,6 +235,57 @@ defineFeature(feature, (test) => {
   });
 
   // ── Token manager: registration ─────────────────────────────────────
+
+  test('A token whose signature SSO never made is stored under its character', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let storage: MemoryTokenStorage;
+    let manager: EsiTokenManager;
+
+    given('a token manager backed by in-memory storage', () => {
+      storage = new MemoryTokenStorage();
+      manager = new EsiTokenManager({
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+        storage,
+      });
+    });
+
+    and(
+      /^the SSO token endpoint returns a token for character (\d+) "([^"]+)" whose signature SSO never made$/,
+      (id: string, name: string) => {
+        queueSsoTokenResponse({
+          accessToken: withForeignSignature(
+            makeJwt({ characterId: Number(id), characterName: name }),
+          ),
+        });
+      },
+    );
+
+    when(
+      /^the character is added from the authorization code "([^"]+)"$/,
+      async (code: string) => {
+        await manager.addCharacter(code);
+      },
+    );
+
+    then(
+      /^the storage shall hold a token for character (\d+) named "([^"]+)"$/,
+      async (id: string, name: string) => {
+        const stored = await storage.get(Number(id));
+        expect(stored).not.toBeNull();
+        expect(stored!.characterName).toBe(name);
+      },
+    );
+
+    and('the token manager sent the token exchange request alone', () => {
+      expect(fetchMock.mock.calls).toHaveLength(1);
+      expect(ssoCallCount()).toBe(1);
+    });
+  });
 
   test('Adding a character stores its decoded identity and scopes', ({
     given,
