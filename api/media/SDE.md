@@ -6,16 +6,17 @@ EVE Online has two sources of truth about the game. The **ESI API** says what is
 
 Topics with their own document are summarised here and linked:
 
-| Topic                                                                    | Canonical document                                                    |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| The HTTP client's layers, request path and middleware                    | [ARCHITECTURE.md](ARCHITECTURE.md)                                    |
-| The SDE module's internals: load pipeline, storage, entity relationships | [src/sde/docs/ARCHITECTURE.md](../src/sde/docs/ARCHITECTURE.md)       |
-| Every `IStaticDataProvider` method, by family                            | [src/sde/README.md](../src/sde/README.md#api-reference)               |
-| Provider patterns and query examples                                     | [src/sde/docs/USAGE.md](../src/sde/docs/USAGE.md)                     |
-| Adding an entity type or a YAML file to the registry                     | [src/sde/docs/DEVELOPER_GUIDE.md](../src/sde/docs/DEVELOPER_GUIDE.md) |
-| Error classes on both sides and where to import the guards               | [ERRORS.md](ERRORS.md)                                                |
-| The rule that keeps the two apart and the tests that hold it             | [CHARTER.md](CHARTER.md#arch-10--ubiquitous--enforced), ARCH-10       |
-| The eleven overnight runs that bring the SDE up to the core's standard   | [ROADMAP.md](ROADMAP.md#track-s--the-sde-programme)                   |
+| Topic                                                                    | Canonical document                                              |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| The HTTP client's layers, request path and middleware                    | [ARCHITECTURE.md](ARCHITECTURE.md)                              |
+| The SDE module's internals: load pipeline, storage, entity relationships | [sde/ARCHITECTURE.md](sde/ARCHITECTURE.md)                      |
+| Every `IStaticDataProvider` method, by family                            | [sde/REFERENCE.md](sde/REFERENCE.md#api-reference)              |
+| Provider patterns and query examples                                     | [sde/USAGE.md](sde/USAGE.md)                                    |
+| Adding an entity type or a YAML file to the registry                     | [sde/DEVELOPER_GUIDE.md](sde/DEVELOPER_GUIDE.md)                |
+| Error classes on both sides and where to import the guards               | [ERRORS.md](ERRORS.md)                                          |
+| The rule that keeps the two apart and the tests that hold it             | [CHARTER.md](CHARTER.md#arch-10--ubiquitous--enforced), ARCH-10 |
+| The eleven overnight runs that bring the SDE up to the core's standard   | [ROADMAP.md](ROADMAP.md#track-s--the-sde-programme)             |
+| What protects the module: suites, coverage, mutation scores and floors   | [sde/TESTING.md](sde/TESTING.md)                                |
 
 ---
 
@@ -153,17 +154,17 @@ There is no arrow between `client` and `sde`. The consumer holds both and joins 
 
 One package, two containers that share nothing but the `zod` dependency and the ports directory. The client's own containers are in [ARCHITECTURE.md](ARCHITECTURE.md#c4-level-2--container-diagram); here they are collapsed to show the boundary.
 
-| Container             | Where                                    | Purpose                                                                                                                                                                        |
-| --------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Entry points**      | `src/sde/index.ts`, `src/sde/memory.ts`  | `./sde` exports everything; `./sde/memory` exports the same types, errors, factory and `MemorySdeProvider`, but not `SdeDataProvider`, so it bundles none of the file code     |
-| **Port**              | `src/sde/IStaticDataProvider.ts`         | The 99-method contract every provider implements. Consumers type against it, not against a class                                                                               |
-| **File adapter**      | `src/sde/SdeDataProvider.ts`             | `fromDirectory(path)` and `fromZip(path)`. Reads CCP's YAML through the optional peers, normalises each record, stores it in `Map`s, builds foreign-key indexes on first use   |
-| **Memory adapter**    | `src/sde/MemorySdeProvider.ts`           | Takes typed arrays (`MemorySdeData`), implements the full port with no I/O. The test double, and the provider for consumers who bring their own data                           |
-| **Types and schemas** | `src/sde/types.ts`, `src/sde/schemas.ts` | 109 entity interfaces and 110 `z.looseObject` schemas. Extra fields from a newer export survive validation                                                                     |
-| **Ingestion**         | `src/sde/ingestion/`                     | `SdeDownloader` (fetch the ZIP, check the latest build), `SdeExtractor` (ZIP to YAML), `transforms` (field and locale normalisation), `SDE_FILE_REGISTRY` (the 102 file specs) |
-| **Optional peers**    | `src/sde/optionalPeers.ts`               | Loads `js-yaml` and `adm-zip` on first use, not at import, and turns a missing one into an `SdeError` naming the install command                                               |
-| **Errors**            | `src/sde/errors.ts`                      | `SdeError`, `SdeDatabaseError`, `SdeValidationError`, `SdeVersionMismatchError` and their guards. Extends `Error`, not `EsiError`: these are local data faults, not HTTP ones  |
-| **Test data**         | `src/sde/SdeTestDataFactory.ts`          | One `create*` method per entity with realistic defaults; `createHierarchicalTestData()` builds a connected universe                                                            |
+| Container          | Where                                           | Purpose                                                                                                                                                                                                                                                                  |
+| ------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Entry points**   | `src/sde/index.ts`, `src/sde/memory.ts`         | `./sde` exports everything; `./sde/memory` exports the same types, errors, factory and `MemorySdeProvider`, but not `SdeDataProvider`, so it bundles none of the file code                                                                                               |
+| **Port**           | `src/sde/ports/IStaticDataProvider.ts`          | The 99-method contract every provider implements. Consumers type against it, not against a class                                                                                                                                                                         |
+| **File adapter**   | `src/sde/providers/yaml/SdeDataProvider.ts`     | `fromDirectory(path)` and `fromZip(path)`. Reads CCP's YAML through the optional peers, normalises each record, stores it in `Map`s, builds foreign-key indexes on first use                                                                                             |
+| **Memory adapter** | `src/sde/providers/memory/MemorySdeProvider.ts` | Takes typed arrays (`MemorySdeData`), implements the full port with no I/O. The test double, and the provider for consumers who bring their own data                                                                                                                     |
+| **Domain**         | `src/sde/domain/<domain>/{types,schemas}.ts`    | 109 entity interfaces and 110 `z.looseObject` schemas, one folder per SDE domain (universe, types, dogma, industry, market, characters, corporations, skins, content, ui), each schema beside the type it validates. Extra fields from a newer export survive validation |
+| **Ingestion**      | `src/sde/ingestion/`                            | `SdeDownloader` (fetch the ZIP, check the latest build), `SdeExtractor` (ZIP to YAML), `transforms` (field and locale normalisation), `SDE_FILE_REGISTRY` (the 102 file specs)                                                                                           |
+| **Optional peers** | `src/sde/optionalPeers.ts`                      | Loads `js-yaml` and `adm-zip` on first use, not at import, and turns a missing one into an `SdeError` naming the install command                                                                                                                                         |
+| **Errors**         | `src/sde/errors.ts`                             | `SdeError`, `SdeDatabaseError`, `SdeValidationError`, `SdeVersionMismatchError` and their guards. Extends `Error`, not `EsiError`: these are local data faults, not HTTP ones                                                                                            |
+| **Test data**      | `src/sde/testing/SdeTestDataFactory.ts`         | One `create*` method per entity with realistic defaults; `createHierarchicalTestData()` builds a connected universe                                                                                                                                                      |
 
 ```mermaid
 flowchart TB
@@ -236,18 +237,18 @@ Again, no edge crosses from `clientBox` to `sdeBox` or back. `npm run lint:layer
 
 ### C4 Level 3 — Component: the SDE module
 
-What happens between `fromDirectory()` and `getType()`. The full component diagram, the load pipeline and the entity relationship diagram are in [src/sde/docs/ARCHITECTURE.md](../src/sde/docs/ARCHITECTURE.md); this is the shape.
+What happens between `fromDirectory()` and `getType()`. The full component diagram, the load pipeline and the entity relationship diagram are in [sde/ARCHITECTURE.md](sde/ARCHITECTURE.md); this is the shape.
 
-| Component                 | File                                         | Responsibility                                                                                                                                                                   |
-| ------------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **fromDirectory**         | `SdeDataProvider.ts`                         | Reads `_sde.yaml` for the build's version info, then walks `SDE_FILE_REGISTRY`; a file the directory lacks is skipped, so a partial extract loads                                |
-| **fromZip**               | `SdeDataProvider.ts`                         | The same walk over the entries of the ZIP, through `SdeExtractor`, with no extraction to disk                                                                                    |
-| **loadRecords**           | `SdeDataProvider.ts`                         | For one file: `yaml.load`, then for each `[key, record]` pair `transformRecordNative`, then `entities.set(tableName, Map<id, record>)`                                           |
-| **transformRecordNative** | `ingestion/transforms.ts`                    | `groupID` to `groupId` (recursively, into nested objects and arrays), `{en: "Jita"}` to `"Jita"`, the YAML key injected as the primary key where the registry says so            |
-| **entities**              | `SdeDataProvider.ts`                         | `Map<tableName, Map<id, record>>`. Every `getX(id)` is one `get` on the inner map                                                                                                |
-| **fkIndexes**             | `SdeDataProvider.ts`                         | `Map<"table:field", Map<fkValue, record[]>>`, built on the first `getXByY` that needs it and cached. Tables never filtered by a foreign key never pay for its index              |
-| **99 typed methods**      | `SdeDataProvider.ts`, `MemorySdeProvider.ts` | Each is a one-line call to `getById`, `getByFk`, `getAllRecords`, `search` or `filterBy` with the table name and the entity type fixed                                           |
-| **requireOptionalPeer**   | `optionalPeers.ts`                           | `createRequire(__filename)` so the peer resolves from wherever the package is installed; a `MODULE_NOT_FOUND` for the peer itself becomes an `SdeError` with the install command |
+| Component                 | File                                                                         | Responsibility                                                                                                                                                                   |
+| ------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **fromDirectory**         | `providers/yaml/SdeDataProvider.ts`                                          | Reads `_sde.yaml` for the build's version info, then walks `SDE_FILE_REGISTRY`; a file the directory lacks is skipped, so a partial extract loads                                |
+| **fromZip**               | `providers/yaml/SdeDataProvider.ts`                                          | The same walk over the entries of the ZIP, through `SdeExtractor`, with no extraction to disk                                                                                    |
+| **loadRecords**           | `providers/yaml/SdeDataProvider.ts`                                          | For one file: `yaml.load`, then for each `[key, record]` pair `transformRecordNative`, then `entities.set(tableName, Map<id, record>)`                                           |
+| **transformRecordNative** | `ingestion/transforms.ts`                                                    | `groupID` to `groupId` (recursively, into nested objects and arrays), `{en: "Jita"}` to `"Jita"`, the YAML key injected as the primary key where the registry says so            |
+| **entities**              | `providers/yaml/SdeDataProvider.ts`                                          | `Map<tableName, Map<id, record>>`. Every `getX(id)` is one `get` on the inner map                                                                                                |
+| **fkIndexes**             | `providers/yaml/SdeDataProvider.ts`                                          | `Map<"table:field", Map<fkValue, record[]>>`, built on the first `getXByY` that needs it and cached. Tables never filtered by a foreign key never pay for its index              |
+| **99 typed methods**      | `providers/yaml/SdeDataProvider.ts`, `providers/memory/MemorySdeProvider.ts` | Each is a one-line call to `getById`, `getByFk`, `getAllRecords`, `search` or `filterBy` with the table name and the entity type fixed                                           |
+| **requireOptionalPeer**   | `optionalPeers.ts`                                                           | `createRequire(__filename)` so the peer resolves from wherever the package is installed; a `MODULE_NOT_FOUND` for the peer itself becomes an `SdeError` with the install command |
 
 ```mermaid
 flowchart LR
@@ -293,7 +294,7 @@ flowchart LR
     style query fill:#e8e8e8,stroke:#aaa
 ```
 
-`SDE_FILE_REGISTRY` is shown in the generated colour although it is hand-written today: it is the one table that says which of CCP's files exist and what their keys are, and Track S Run 9 adds a nightly check of it against the real ZIP.
+`SDE_FILE_REGISTRY` is shown in the generated colour although it is hand-written today: it is the one table that says which of CCP's files exist and what their keys are, and `nightly-sde.yml` checks it against the real export every night (`npm run sde:drift`).
 
 ---
 
@@ -346,7 +347,7 @@ The 99 methods fall into families; each single-entity lookup returns `T | null`,
 | Industry              | `getBlueprint`, `getIndustryActivity`, `getPlanetSchematic`                                  | `blueprint_type_id`, `activity_id` on industry jobs      |
 | Version and lifecycle | `getVersion`, `close`                                                                        | See [Freshness](#freshness-and-versions)                 |
 
-The complete list, family by family, is in [src/sde/README.md](../src/sde/README.md#api-reference).
+The complete list, family by family, is in [sde/REFERENCE.md](sde/REFERENCE.md#api-reference).
 
 ---
 
@@ -417,7 +418,7 @@ console.log(sde.getTypesByGroup(18).map((t) => t.name)); // ["Tritanium", "Pyeri
 
 The ESI side is stubbed at the transport seam the same way it is in the library's own tests (`createMockTransport()` from `./testing`, see [TESTING.md](TESTING.md#testing-your-application)). A test of a join therefore has two doubles that know nothing of each other, mirroring production, and no third thing to mock.
 
-The library's own SDE tests run at three tiers: unit tests against `MemorySdeProvider`, BDD scenarios under `tests/bdd/features/sde/`, and integration tests that load a real export from `sde-data/` when it is present. Track S adds the mutation, fuzz, type-test, benchmark and nightly-drift tiers the core already has; the plan and the current state of each are in [ROADMAP.md](ROADMAP.md#track-s--the-sde-programme).
+The library's own SDE tests run at three tiers: unit tests against `MemorySdeProvider`, BDD scenarios under `tests/bdd/features/sde/`, and integration tests that load a real export from `sde-data/` when it is present. Track S added the mutation, fuzz, type-test, benchmark and nightly-drift tiers the core already has; the plan is in [ROADMAP.md](ROADMAP.md#track-s--the-sde-programme) and the measured state of every tier, with its floors, in [sde/TESTING.md](sde/TESTING.md).
 
 ---
 
@@ -431,9 +432,39 @@ The library's own SDE tests run at three tiers: unit tests against `MemorySdePro
 | No file under `src/` outside `src/sde` imports it, by relative path, by the package's own name or through any `sde/` segment                                     | `npm run lint:layers`, the `sideModule` message                                                         | `tests/tdd/layers/layers-lint.test.ts`             |
 | The `./sde/memory` bundle contains no file-system, YAML, ZIP or SQLite code, in the esbuild graph and in the shipped `dist/sde/memory.{mjs,js}` and their chunks | `tests/tdd/sde/memory-entry-bundle.test.ts`                                                             | The same test checks itself against a known string |
 
-`src/core/ports` is allowed but unused: the SDE imports nothing from `src/` today. The allowance exists so that if the SDE ever needs a shared interface (a clock, a logger port) it can take it from the one directory that imports nothing itself, rather than from the pipeline.
+`src/core/ports` is the one directory of `src/` the SDE reaches, and only for `Clock` (Track S Run 2): a port imports nothing itself, so taking one from there shares an interface without sharing the pipeline.
 
 What the rule forbids in practice: a domain client that calls `sde.getType()` to name its results, an `EsiClient` option that accepts a provider, an SDE method that fetches from ESI to fill a gap in the export, and a shared error base class. Each was possible before 2026-09-27 and each is a lint failure now.
+
+## Layers inside the module
+
+Since Track S Run 12 the module has the shape the core has: a reader finds a port, a domain, a provider or an ingestion step by its folder, and the same ESLint rule (`sdeLayer` message of `layers/inward-imports`) keeps the folders pointing inward. The entry points `index.ts` and `memory.ts` import anything below and are imported by nothing inside the module.
+
+```
+src/sde/
+  index.ts, memory.ts       Entry points (./sde, ./sde/memory)
+  errors.ts, version.ts,    Root support files: import one another only
+  clock.ts, optionalPeers.ts
+  ports/                    IStaticDataProvider: imports domain/ and version
+  domain/<domain>/          types.ts and schemas.ts per SDE domain: import domain/ and zod only
+  providers/yaml/           SdeDataProvider: imports ports/, domain/, ingestion/ and the root files
+  providers/memory/         MemorySdeProvider: the same allowance, uses none of ingestion/
+  providers/order.ts        ID ordering shared by both providers
+  ingestion/                Download, extract, transform: imports the root files, never a port or a provider
+  testing/                  SdeTestDataFactory: imported by the entry points only
+```
+
+| Layer            | May import                                                      |
+| ---------------- | --------------------------------------------------------------- |
+| `domain/`        | `domain/`, `zod`                                                |
+| `ports/`         | `domain/`, the root files                                       |
+| `ingestion/`     | `ingestion/`, the root files                                    |
+| `providers/`     | `ports/`, `domain/`, `ingestion/`, `providers/`, the root files |
+| `testing/`       | `ports/`, `domain/`, `providers/`, the root files               |
+| the root files   | the root files                                                  |
+| the entry points | everything but each other                                       |
+
+`tests/tdd/layers/layers-lint.test.ts` has a failing case for each row. The provider folder is `providers/yaml/`, not the roadmap's `providers/sqlite/`: the provider reads CCP's YAML and holds `Map`s, and nothing in it is SQLite.
 
 ---
 
@@ -452,10 +483,10 @@ console.log(
 
 Nothing ties the two together, because nothing in CCP's data does: an ESI response from today can name a type that entered the game after your export was built, which is exactly the case the `T | null` returns exist for. Log the SDE build at start-up, refresh the export when CCP publishes a new one, and treat a `null` from the SDE for an ID ESI just returned as "newer than my export", not as an error.
 
-Track S Run 9 adds `nightly-sde.yml`, which downloads the current build every night, loads it, runs the integration tests, and compares the ZIP's file list and each file's keys with `SDE_FILE_REGISTRY` and the Zod schemas, opening one issue on drift. Until it lands, the registry is checked against a real export whenever someone runs the integration tests locally.
+`nightly-sde.yml` (Track S Run 9) downloads the current build every night, loads it, runs the integration tests and the SDE examples, and compares the export's file list and each file's keys with `SDE_FILE_REGISTRY` and the Zod schemas (`npm run sde:drift`), keeping one issue open while they disagree.
 
 ---
 
 ## Where this is going
 
-Track S is twelve overnight runs, each a PR, that bring the SDE to the standard of the core: layer lint (done, Run 1), coverage ratchet, step-library BDD, per-method spec coverage, error contracts, property tests, type tests, real-data nightly, benchmarks and soak, security review, the documentation move, and last the restructuring. Run 11 moves `src/sde/docs/` under `guides/sde/` with this file as the index, reduces `src/sde/README.md` to a pointer, and publishes the set on the documentation site. Until then this guide is the front door and the module's own docs are the reference behind it. Run 12, after every other run, splits `src/sde/` into `ports/`, `domain/`, `providers/`, `ingestion/` and `testing/` with layer rules inside the module, keeping the `./sde` and `./sde/memory` exports as they are; the level 3 diagram above is redrawn then.
+Track S is twelve overnight runs, each a PR, that bring the SDE to the standard of the core: layer lint (done, Run 1), coverage ratchet, step-library BDD, per-method spec coverage, error contracts, property tests, type tests, real-data nightly, benchmarks and soak, security review, the documentation move, and last the restructuring. Run 11 (landed 2026-09-28) moved the module's doc set under `guides/sde/` with this file as the index and `src/sde/README.md` as a pointer, so the whole set is published on the documentation site. Run 12, after every other run, splits `src/sde/` into `ports/`, `domain/`, `providers/`, `ingestion/` and `testing/` with layer rules inside the module, keeping the `./sde` and `./sde/memory` exports as they are; the level 3 diagram above is redrawn then.

@@ -2,7 +2,7 @@
 
 **Implements:** `TEST-01`, `TEST-02`, `TEST-03`, `TEST-04`, `TEST-05`, `TEST-06`, `TEST-07`, `TEST-08`, `TEST-09` — see [CHARTER.md](CHARTER.md) Part 4 for the requirements and their status.
 
-How ESI.ts is tested: what each tier owns, where it lives, how to run it, where CI runs it, and the signal that proves it can fail. This is the canonical testing guide. What blocks a merge, what runs nightly and what files an issue is in [QUALITY-GATES.md](QUALITY-GATES.md). Mutation testing has its own deep-dive, [MUTATION-TESTING.md](MUTATION-TESTING.md), which this guide's [Mutation](#mutation) section summarises. How to write a Rule is in [`tests/bdd/README.md`](../tests/bdd/README.md) (the rules) and [`tests/bdd/GUIDE.md`](../tests/bdd/GUIDE.md) (the walkthrough).
+How ESI.ts is tested: what each tier owns, where it lives, how to run it, where CI runs it, and the signal that proves it can fail. This is the canonical testing guide. What blocks a merge, what runs nightly and what files an issue is in [QUALITY-GATES.md](QUALITY-GATES.md). Mutation testing, including the ratchet, the shards and how to kill a survivor, is in [Mutation testing](#mutation-testing). How to write a Rule is in [`tests/bdd/README.md`](../tests/bdd/README.md) (the rules) and [`tests/bdd/GUIDE.md`](../tests/bdd/GUIDE.md) (the walkthrough).
 
 ## The stance
 
@@ -14,37 +14,37 @@ Three positions explain every choice below.
 
 ## Where the suite stands
 
-Measured on 2026-09-27 on `master` at `3d57e80` (v10.2.3; 11.0.0 in progress), on a 4-core machine. The command in the first column reproduces each row.
+Measured on 2026-09-28 on `master` at `9486fe2c` (v10.2.3; 11.0.0 in progress), on a 4-core machine. The command in the first column reproduces each row.
 
-| Command                                       | Config                                   | Suites | Tests | Result                                                                                         |
-| --------------------------------------------- | ---------------------------------------- | -----: | ----: | ---------------------------------------------------------------------------------------------- |
-| `npm test`                                    | `config/jest/unit.config.cjs`            |    244 | 7,198 | All pass, about 145 s                                                                          |
-| of which unit, `tests/tdd` (not composition)  | same                                     |    182 | 6,648 |                                                                                                |
-| of which specification, `tests/bdd`           | same                                     |     55 |   508 | 38 legacy `*.steps.ts` files and 17 `*.spec.ts` entries                                        |
-| of which composition, `tests/tdd/composition` | same                                     |      7 |    42 |                                                                                                |
-| `npm run fuzz`                                | `config/jest/fuzz.config.cjs`            |     15 | 1,240 | All pass, about 22 s with four workers                                                         |
-| `npm run faults`                              | `config/jest/faults.config.cjs`          |      2 |   148 | All pass                                                                                       |
-| `npm run contract:replay`                     | `config/jest/contract.replay.config.cjs` |      5 |   121 | All pass, over 86 recorded fixtures                                                            |
-| `npm run test:integration`                    | `config/jest/integration.config.cjs`     |      6 |   177 | 20 mocked pass; 157 live tests skip without `ESI_LIVE_TESTS`, `ESI_GATED_TESTS` or `sde-data/` |
-| **Offline total**                             |                                          |    272 | 8,884 | 8,727 run, 0 failures                                                                          |
+| Command                                       | Config                                   | Suites |  Tests | Result                                                                                         |
+| --------------------------------------------- | ---------------------------------------- | -----: | -----: | ---------------------------------------------------------------------------------------------- |
+| `npm test`                                    | `config/jest/unit.config.cjs`            |    291 |  8,308 | All pass, about 141 s                                                                          |
+| of which unit, `tests/tdd` (not composition)  | same                                     |    210 |  7,524 |                                                                                                |
+| of which specification, `tests/bdd`           | same                                     |     74 |    742 | 31 legacy `*.steps.ts` files and 43 `*.spec.ts` entries                                        |
+| of which composition, `tests/tdd/composition` | same                                     |      7 |     42 |                                                                                                |
+| `npm run fuzz`                                | `config/jest/fuzz.config.cjs`            |     15 |  1,240 | All pass, about 22 s with four workers                                                         |
+| `npm run faults`                              | `config/jest/faults.config.cjs`          |      2 |    148 | All pass                                                                                       |
+| `npm run contract:replay`                     | `config/jest/contract.replay.config.cjs` |      5 |    121 | All pass, over 86 recorded fixtures                                                            |
+| `npm run test:integration`                    | `config/jest/integration.config.cjs`     |      6 |    228 | 20 mocked pass; 208 live tests skip without `ESI_LIVE_TESTS`, `ESI_GATED_TESTS` or `sde-data/` |
+| **Offline total**                             |                                          |    319 | 10,045 | 9,837 run, 0 failures                                                                          |
 
 | Coverage (`npm run coverage`) | Measured | Floor (`config/jest/unit.config.cjs`) |
 | ----------------------------- | -------: | ------------------------------------: |
-| Statements                    |   97.18% |                                   90% |
-| Branches                      |   95.53% |                                   80% |
-| Functions                     |   91.25% |                                   75% |
-| Lines                         |   97.32% |                                   90% |
+| Statements                    |   97.79% |                                   90% |
+| Branches                      |   95.88% |                                   80% |
+| Functions                     |   93.57% |                                   75% |
+| Lines                         |   97.85% |                                   90% |
 
 Coverage is collected from `src/**/*.ts`, excluding `.d.ts`, `src/types/`, `*.generated.ts` and `src/clients/generated/`. The floors sit well below the measured values on purpose (`TEST-04`): they catch an untested module without turning one bad week into a broken gate. Mutation, not coverage, is what says the tests assert anything.
 
 | Specification (`npm run spec:audit:verbose`) | Count                                                                                                                                                                                                                                                                                                                   |
 | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Feature files                                | <!-- metric:featureFiles -->73<!-- /metric --> (`core/` <!-- metric:featureFilesCore -->48<!-- /metric -->, `integration/` <!-- metric:featureFilesIntegration -->1<!-- /metric -->, `performance/` <!-- metric:featureFilesPerformance -->1<!-- /metric -->, `sde/` <!-- metric:featureFilesSde -->23<!-- /metric -->) |
-| `Rule:` requirements                         | <!-- metric:requirements -->545<!-- /metric -->                                                                                                                                                                                                                                                                         |
-| Scenarios                                    | <!-- metric:scenarios -->703<!-- /metric --> (<!-- metric:plainScenarios -->698<!-- /metric --> `Scenario`, <!-- metric:scenarioOutlines -->5<!-- /metric --> `Scenario Outline`)                                                                                                                                       |
+| `Rule:` requirements                         | <!-- metric:requirements -->566<!-- /metric -->                                                                                                                                                                                                                                                                         |
+| Scenarios                                    | <!-- metric:scenarios -->726<!-- /metric --> (<!-- metric:plainScenarios -->717<!-- /metric --> `Scenario`, <!-- metric:scenarioOutlines -->9<!-- /metric --> `Scenario Outline`)                                                                                                                                       |
 | Audit result                                 | <!-- metric:featureFiles -->73<!-- /metric --> of <!-- metric:featureFiles -->73<!-- /metric --> pass                                                                                                                                                                                                                   |
 
-Other counts, each reproducible with `ls` or `find`: <!-- metric:typeTestFiles -->9<!-- /metric --> tsd files in `tests/typetests/`, 9 Jest configs (`ls config/jest/*.config.cjs`), and 26 workflows in `.github/workflows/` (27 files including its `README.md`).
+Other counts, each reproducible with `ls` or `find`: <!-- metric:typeTestFiles -->11<!-- /metric --> tsd files in `tests/typetests/`, 9 Jest configs (`ls config/jest/*.config.cjs`), and 28 workflows in `.github/workflows/` (29 files including its `README.md`).
 
 ## The tiers
 
@@ -53,16 +53,16 @@ This is the canonical tier table. Every other file names tiers by these names; n
 | Tier                        | Location                                                                            | Files                                                                                                                 | Config · command                                                                                | Where CI runs it                                                                                     | Signal that it can fail                                                                              |
 | --------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Static analysis             | `config/eslint/*.config.mjs`, `scripts/*/*-lint.ts`                                 | 4 lints and export coverage                                                                                           | `lint:suite-health`, `lint:bdd-seam`, `lint:determinism`, `lint:layers`, `test:export-coverage` | Push (`ci-fast`: seam, suite health, layers); PR (`lint-and-build`, `spec-audit`, `static-analysis`) | One negative fixture per rule, linted at its real path by a suite in `tests/tdd/`                    |
-| Unit                        | `tests/tdd/`                                                                        | <!-- metric:unitSuites -->205<!-- /metric --> suites                                                                  | `config/jest/unit.config.cjs` · `npm test`                                                      | Push, Node 22 (`ci-fast`); PR, Node 22/24 (`unit-tests`), `coverage`, `full-test-suite`              | Stryker mutation, per-directory floors                                                               |
+| Unit                        | `tests/tdd/`                                                                        | <!-- metric:unitSuites -->211<!-- /metric --> suites                                                                  | `config/jest/unit.config.cjs` · `npm test`                                                      | Push, Node 22 (`ci-fast`); PR, Node 22/24 (`unit-tests`), `coverage`, `full-test-suite`              | Stryker mutation, per-directory floors                                                               |
 | Composition and concurrency | `tests/tdd/composition/`                                                            | <!-- metric:compositionSuites -->7<!-- /metric --> suites                                                             | `config/jest/unit.config.cjs` · `npm test`                                                      | Push; PR; `nightly-interleave.yml` (four calls, seeded random schedules)                             | Pinned schedule counts; `interleave.test.ts` finds and replays a planted race                        |
 | Specification (EARS/BDD)    | `tests/bdd/`                                                                        | <!-- metric:featureFiles -->73<!-- /metric --> features, <!-- metric:bddSuites -->74<!-- /metric --> suites           | `config/jest/unit.config.cjs` · `npm run bdd`                                                   | Push (inside `npm test`); PR (`bdd-tests`, `spec-audit`); `ears.yml`, advisory                       | `bdd:report` fails on a scenario that did not execute; BDD-only mutation floors                      |
-| Type tests                  | `tests/typetests/`                                                                  | <!-- metric:typeTestFiles -->9<!-- /metric -->                                                                        | tsd · `npm run test:types`                                                                      | PR (`full-test-suite`, through `test:all`)                                                           | Type mutation, nightly, per-entry-point floors                                                       |
+| Type tests                  | `tests/typetests/`                                                                  | <!-- metric:typeTestFiles -->11<!-- /metric -->                                                                       | tsd · `npm run test:types`                                                                      | PR (`full-test-suite`, through `test:all`)                                                           | Type mutation, nightly, per-entry-point floors                                                       |
 | Properties and fuzz         | `tests/fuzz/`                                                                       | <!-- metric:fuzzSuites -->15<!-- /metric --> suites                                                                   | `config/jest/fuzz.config.cjs` · `npm run fuzz`                                                  | PR (`fuzz-tests`, 100 runs per property); `nightly-properties.yml` (10,000)                          | Each model-based property must fail against registered known-bad implementations                     |
 | Fault injection             | `tests/faults/`                                                                     | <!-- metric:faultSuites -->2<!-- /metric --> suites, plus <!-- metric:faultNightlySuites -->1<!-- /metric --> nightly | `config/jest/faults.config.cjs` · `npm run faults`; `npm run faults:nightly`                    | PR (`fault-catalogue`); `nightly-faults.yml`                                                         | `fixtures/weak-fault.ts` must be rejected on every count                                             |
 | Recorded replay             | `tests/contract/replay/`                                                            | <!-- metric:replaySuites -->5<!-- /metric --> suites, 86 fixtures                                                     | `config/jest/contract.replay.config.cjs` · `npm run contract:replay`                            | PR (`contract-replay`); `nightly-recorded-payloads.yml` re-records                                   | A recording edited to violate its schema must be rejected                                            |
 | Live contract               | `tests/contract/`                                                                   | <!-- metric:contractSuites -->2<!-- /metric --> suites                                                                | `config/jest/contract.live.config.cjs` · `npm run contract:live`                                | PR (`contract-tests`, soft-skips on HTTP 503); weekly in `maintenance.yml`                           | An unknown spec mismatch hard-fails; known ones sit in named exception sets                          |
 | Integration, mocked         | `tests/integration/full-stack.test.ts`                                              | 1                                                                                                                     | `config/jest/integration.config.cjs` · `npm run test:integration`                               | PR (`full-test-suite`, through `test:all`)                                                           | None of its own; it overlaps the unit and specification tiers, which are mutation-scored             |
-| Integration, live           | `tests/integration/`: `live-esi`, `client-integration`, `esi-spec-contract`, `sde/` | 4                                                                                                                     | `ESI_LIVE_TESTS=true npm run test:integration`; `npm run test:integration:live`                 | Not run by any workflow                                                                              | A live response of the wrong shape fails; `test:integration:live` fails when its variable is missing |
+| Integration, live           | `tests/integration/`: `live-esi`, `client-integration`, `esi-spec-contract`, `sde/` | 4                                                                                                                     | `ESI_LIVE_TESTS=true npm run test:integration`; `npm run test:integration:live`                 | `sde/` nightly in `nightly-sde.yml`; the other three by no workflow                                  | A live response of the wrong shape fails; `test:integration:live` fails when its variable is missing |
 | Integration, gated auth     | `tests/integration/gated-auth.test.ts`                                              | 1                                                                                                                     | `npm run test:integration:gated` (reads `.env`)                                                 | Not run by any workflow                                                                              | Fails when `ESI_GATED_TESTS=true` and no token is set                                                |
 | Consumer contract           | `tests/consumer/`                                                                   | 1 package                                                                                                             | `npm run test:consumer`                                                                         | PR (`consumer-contract`, four rows); `consumer-matrix-nightly.yml`; `release.yml`                    | Five broken packages must fail the matrix; a clean control must pass                                 |
 | Documentation examples      | `tests/doc-examples/`                                                               | every `ts` block in the docs                                                                                          | `npm run test:docs-examples`                                                                    | PR (`doc-examples`)                                                                                  | Negative fixtures in `tests/tdd/doc-examples/`                                                       |
@@ -237,9 +237,9 @@ tests/
     helpers/           describeClientErrors and shared test utilities
   bdd/
     features/          the .feature files: core/, integration/, performance/, sde/
-    specs/             17 spec entries: 16 converted domains, plus step-library.spec.ts (the dry run)
+    specs/             43 spec entries: 42 converted domains, plus step-library.spec.ts (the dry run)
     steps/             given/ when/ then/, one step per file
-    step-definitions/  38 legacy defineFeature files, shrink-only (legacyStepFiles)
+    step-definitions/  31 legacy defineFeature files, shrink-only (legacyStepFiles)
     support/           binder, transport seam, World, per-domain fixtures
   fuzz/                15 fast-check suites; 7 model-based *.property.test.ts (two for the SDE)
   faults/              fault catalogue, its self-test, nightly payload fuzz
@@ -317,7 +317,7 @@ The rule tables and reasoning are in [QUALITY-GATES.md](QUALITY-GATES.md#suite-h
 
 An assertion about `Expires`, retry backoff or circuit half-open timing is only deterministic if the code under test takes its time from something the test controls. `npm run lint:determinism` (`config/eslint/determinism.rules.cjs`, driven by `scripts/quality/determinism-lint.ts`) restricts these in `src/`: `Date.now()`, `new Date()` and `Date()` with no arguments, `performance.now()`, `process.hrtime`, `Math.random()`, `setTimeout`, `setInterval`, `setImmediate`, `queueMicrotask` (bare or through `globalThis`, `global`, `window`, `self`) and imports of `timers` / `timers/promises`. Parsing a date (`new Date(header)`, `Date.parse`) is allowed. The one allow-listed path is the clock module, `src/core/clock.ts`; inline `eslint-disable` comments are ignored.
 
-The sites that exist today are counted per file and construct in `scripts/quality/determinism-baseline.json`. The baseline only shrinks: a count above its entry fails (a new site), a count below its entry fails until the entry is lowered (`npm run lint:determinism -- --update`, which never raises one), and an entry above `origin/master`'s fails. With no base ref resolvable (set `DETERMINISM_BASE_REF`, or fetch master) the check fails closed. Until call sites move to an injected clock, tests of existing timing code keep using `jest.useFakeTimers()`. They assert the exact delay or boundary (fresh at the TTL, expired one millisecond later) rather than sleeping for real and bounding `Date.now()`: a test that waits on the wall clock kills a boundary mutant on one runner and not another, which is how 43 mutants came to flip between nightlies ([#382](https://github.com/lgriffin/ESI.ts/issues/382), [MUTATION-TESTING.md](MUTATION-TESTING.md)). A test that drives the whole request pipeline and needs only `Date` frozen uses `useFakeDate()` from `tests/tdd/helpers/fakeDate.ts`.
+The sites that exist today are counted per file and construct in `scripts/quality/determinism-baseline.json`. The baseline only shrinks: a count above its entry fails (a new site), a count below its entry fails until the entry is lowered (`npm run lint:determinism -- --update`, which never raises one), and an entry above `origin/master`'s fails. With no base ref resolvable (set `DETERMINISM_BASE_REF`, or fetch master) the check fails closed. Until call sites move to an injected clock, tests of existing timing code keep using `jest.useFakeTimers()`. They assert the exact delay or boundary (fresh at the TTL, expired one millisecond later) rather than sleeping for real and bounding `Date.now()`: a test that waits on the wall clock kills a boundary mutant on one runner and not another, which is how 43 mutants came to flip between nightlies ([#382](https://github.com/lgriffin/ESI.ts/issues/382), "Timing tests made deterministic" under [The ratchet](#the-ratchet)). A test that drives the whole request pipeline and needs only `Date` frozen uses `useFakeDate()` from `tests/tdd/helpers/fakeDate.ts`.
 
 Each restricted construct has a negative fixture in `tests/tdd/determinism-lint/fixtures/violations/`, linted through ESLint's Node API by `tests/tdd/determinism-lint/determinism-lint.test.ts`, alongside compliant fixtures that must produce no findings and the ratchet's added, stale and no-base-ref cases.
 
@@ -433,12 +433,12 @@ On every PR each scenario runs every schedule of two and three calls; the schedu
 **Config:** `config/jest/unit.config.cjs` (its `testMatch` includes `tests/bdd/step-definitions/**/*.steps.ts` and `tests/bdd/specs/**/*.spec.ts`)
 **Run:** `npm run bdd`, or `npm test`, which includes it
 
-The <!-- metric:featureFiles -->73<!-- /metric --> feature files state <!-- metric:requirements -->545<!-- /metric --> requirements, one per `Rule:`, verified by <!-- metric:scenarios -->703<!-- /metric --> scenarios (`npm run spec:audit:verbose`). Every scenario mocks at the transport seam (`TEST-03`), so the rate limiter, retry, deduplication, ETag cache, JSON parsing and Zod validation all execute. Coverage by area:
+The <!-- metric:featureFiles -->73<!-- /metric --> feature files state <!-- metric:requirements -->566<!-- /metric --> requirements, one per `Rule:`, verified by <!-- metric:scenarios -->726<!-- /metric --> scenarios (`npm run spec:audit:verbose`). Every scenario mocks at the transport seam (`TEST-03`), so the rate limiter, retry, deduplication, ETag cache, JSON parsing and Zod validation all execute. Coverage by area:
 
 - **Core** (`features/core/`, 45 files): one feature per domain client, plus the cross-cutting ones numbered from 0050: ETag caching, resilience, response headers, runtime validation, token management and request headers.
 - **Integration** (`features/integration/`): cross-domain workflows such as character profile assembly and fleet operations.
 - **Performance** (`features/performance/`): smoke checks that responses are waited for, concurrent calls overlap rather than queue, and large or repeated payloads come back complete and in order. These scenarios state no latency or throughput budget. The only time bounds they keep separate overlapping requests from serial dispatch; how fast a path is, and whether a change slowed it, is the [benchmark tier's](#benchmarks-and-the-heap-soak) job.
-- **SDE** (`features/sde/`, 7 files): the Static Data Export provider.
+- **SDE** (`features/sde/`, <!-- metric:featureFilesSde -->23<!-- /metric --> files): the Static Data Export module, every family of the provider port, loading, the optional peers, the memory entry and ingestion. [sde/TESTING.md](sde/TESTING.md) is the module's scorecard.
 
 ### Three gates decide whether a Rule protects anything
 
@@ -446,7 +446,7 @@ A Rule is protection only when all three hold (`tests/bdd/README.md`, "When a Ru
 
 - **Well-formed:** `npm run spec:audit` holds every Rule to one `shall`, one of the five EARS patterns, a named system, no vague language, at least one Scenario under it, no Scenario outside a Rule, and a tracker tag (`@esi-<bead>` or `@gh-<issue>`) beside every `@bug` (`TEST-02`).
 - **Executed:** `mkdir -p reports/bdd`, `npm run bdd -- --json --outputFile=reports/bdd/jest-results.json`, then `npm run bdd:report` joins the run to the feature files. It fails when any scenario did not execute (`feature-not-run`, `scenario-not-executed`), and writes `reports/bdd/junit.xml` with each test case named `Feature › Rule › Scenario`. The `bdd-tests` job in `ci.yml` runs both and uploads the `bdd-junit` artifact.
-- **Able to fail:** `npm run mutation:bdd:ratchet` floors the BDD-only mutation score per source directory in `config/mutation/bdd-thresholds.json`: 15 floors, from 0% (`src/schemas`) and 10.6% (`src/sde`) to 42.8% (`src/core/util`). Every scored directory has one, and a directory without one fails the ratchet. See [MUTATION-TESTING.md](MUTATION-TESTING.md#where-the-scores-stand).
+- **Able to fail:** `npm run mutation:bdd:ratchet` floors the BDD-only mutation score per source directory in `config/mutation/bdd-thresholds.json`: 16 floors, from 0% (`src/schemas`, `src/sde/ingestion`) to 42.8% (`src/core/util`). Every scored directory has one, and a directory without one fails the ratchet. See [Where the scores stand](#where-the-scores-stand).
 
 `npm run validate:spec-consistency` (`scripts/spec/rule-schema-check.ts`) adds a fourth, narrower check in the `spec-audit` job: a Rule that names a response field the schema marks optional must say so.
 
@@ -596,7 +596,7 @@ Every fault cites the `Rule:` (or guide section) that specifies the answer and a
 
 **Nightly payload fuzz** (`payload-fuzz.nightly.test.ts`) covers every endpoint definition with a `responseSchema`. `zodArbitrary.ts` derives fast-check arbitraries from the Zod schema; each generated body must come back unchanged, and each single-point mutation must either reject with an `EsiValidationError` carrying one Zod issue at the mutated path (a dropped required field, a wrong type, a `null`) or, for an unknown field, resolve with the field preserved. The seed is printed; `FAULTS_SEED` replays it and `FAULTS_RUNS` sets cases per endpoint (default 100). `nightly-faults.yml` runs it with the catalogue and keeps one issue, "Nightly fault tier failing", open while it fails.
 
-Decisions the tier pins, so a change to them is deliberate: Content-Type is not trusted (the body decides); Expires is ignored for freshness; page 1's X-Pages is authoritative; and schema-valid but absurd values (a negative `volume_remain`) pass through unchanged and unlogged, because schemas check shape and ESI is the source of truth.
+Decisions the tier pins, so a change to them is deliberate: Content-Type is not trusted (the body decides); Expires is ignored for freshness; page 1's X-Pages is authoritative; and schema-valid but absurd values (a negative `volume_remain`) pass through unchanged and unlogged, because schemas check shape and ESI is the source of truth. Each is also an exclusion Rule in the register (`0052-response-headers`, `0050-etag-caching`, `0053-runtime-validation`).
 
 ## Recorded replay
 
@@ -656,7 +656,7 @@ Known deviations sit in three named exception sets at the top of the file, each 
 | ------------ | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | oasdiff      | `npm run contract:diff` (Docker)                                 | Breaking changes between the committed snapshot and the live spec                                                                | Weekly, `maintenance.yml`                     |
 | Snapshot     | `npm run contract:snapshot` (`scripts/spec/snapshot-openapi.ts`) | Refreshes the committed spec baseline                                                                                            | Weekly, `maintenance.yml`, before oasdiff     |
-| Prism        | `npm run mock:esi`                                               | A spec-conformant ESI mock on port 4010                                                                                          | Locally, and under Schemathesis               |
+| Prism        | `npm run mock:esi` (Docker)                                      | A spec-conformant ESI mock on port 4010                                                                                          | Locally, and under Schemathesis               |
 | Schemathesis | `npm run fuzz:api` (`scripts/spec/run-schemathesis.sh`, Docker)  | Downloads the spec, strips security requirements, serves it with Prism and fuzzes it; fails only on failures in its JUnit report | Nightly 01:00 UTC, `nightly-schemathesis.yml` |
 
 Schemathesis is the API fuzz tier. It fuzzes a mock generated from the spec, so it finds contradictions inside the spec, not bugs in this client, and it has no negative fixture proving it can fail. It uploads `schemathesis-report`, and a failed night opens or comments on the issue titled "api-fuzz: nightly Schemathesis run failed", which the next green night closes. Missing endpoints, stale generated types and schema drift are checked nightly by `nightly-spec-drift.yml`, described in [QUALITY-GATES.md](QUALITY-GATES.md#nightly-spec-drift).
@@ -672,7 +672,7 @@ Integration tests live in `tests/integration/` and run with `config/jest/integra
 | `client-integration.test.ts` |    11 | `ESI_LIVE_TESTS=true`              | The real `EsiClient` against live ESI: ETag round trip, rate-limit tracking, multi-page assembly of `universe/types`, a 404, route calculation, diagnostics                                                                                            |
 | `esi-spec-contract.test.ts`  |    10 | `ESI_LIVE_TESTS=true`              | Surface drift against the live spec. Phantom endpoints, method mismatches and type drift warn; cache TTL and scope drift hard-fail, because they mean the generated files need `npm run generate:types`                                                |
 | `gated-auth.test.ts`         |    33 | `ESI_GATED_TESTS=true` and a token | Authenticated endpoints with a real OAuth token: location, skills, wallet, assets, characters, clones, contacts, killmails, mail, fittings, industry, market, loyalty, contracts, calendar, search, faction warfare                                    |
-| `sde/sde-real-data.test.ts`  |    63 | `sde-data/` on disk                | The SDE provider against a real extracted Static Data Export                                                                                                                                                                                           |
+| `sde/sde-real-data.test.ts`  |   114 | `sde-data/` on disk                | The SDE provider against a real extracted Static Data Export; `nightly-sde.yml` runs it against CCP's current build                                                                                                                                    |
 
 ```bash
 npm run test:integration                                  # mocked passes, live skips
@@ -738,7 +738,7 @@ Defects the contract finds are recorded as known issues against their beads: eac
 **Run:** `npm run test:docs-examples` (`-- --skip-build` packs the existing `dist/`, `-- --keep` keeps the workspace)
 **CI:** `doc-examples` in `ci.yml`, Node 22, inside `ci-success`. Not part of `npm test`; the unit suite checks the annotations, the baseline and the fixtures against a stub package.
 
-Packs the library as the consumer contract does and type-checks every fenced `ts`/`typescript` block in `README.md`, `guides/*.md`, `src/sde/README.md` and `src/sde/docs/*.md` as its own module under nodenext and bundler resolution, then runs the blocks marked `runnable` against a stubbed `fetch`. A contributor snippet that imports from `src/` or `tests/`, like the ones in this guide, carries `<!-- doc-example: no-check <reason> -->` on the line above its fence. The convention, the prelude and the shrink-only known-broken baseline (`scripts/docs/doc-examples-baseline.json`, empty) are in [DOCUMENTATION.md](DOCUMENTATION.md#documentation-examples-are-checked).
+Packs the library as the consumer contract does and type-checks every fenced `ts`/`typescript` block in `README.md`, `guides/*.md`, `guides/sde/*.md` and `src/sde/README.md` as its own module under nodenext and bundler resolution, then runs the blocks marked `runnable` against a stubbed `fetch`. A contributor snippet that imports from `src/` or `tests/`, like the ones in this guide, carries `<!-- doc-example: no-check <reason> -->` on the line above its fence. The convention, the prelude and the shrink-only known-broken baseline (`scripts/docs/doc-examples-baseline.json`, empty) are in [DOCUMENTATION.md](DOCUMENTATION.md#documentation-examples-are-checked).
 
 ## Benchmarks and the heap soak
 
@@ -750,25 +750,305 @@ This tier owns one failure class: the client got slower, or started holding memo
 
 The Jest benchmark suites that used to live here asserted raw wall-clock upper bounds (`expect(elapsed).toBeLessThan(500)`) that sat 10 to 100 times above the real cost. A bound that loose cannot see a 30% regression, and a tighter one flakes on a shared runner, so they were retired rather than converted. No test asserts a latency budget. The specification's performance feature keeps only the time bounds that separate overlapping requests from serial dispatch, each at or above half the serial figure.
 
-**Micro-benchmarks.** `tests/benchmark/tasks.ts` holds 18 tasks over the paths a client pays for on every call: parse and Zod-validate a small object, a 1000-order market page and a nested colony layout; ETag cache hit, miss, write and write-at-capacity; cache-key derivation; the spec TTL lookup; response-header parsing (`ETag`, `Expires`, `X-Pages`, rate-limit headers); the rate limiter's acquire; the circuit breaker's check; `batchFetch`; and two whole-pipeline requests against an instant transport. `harness.ts` runs them with [mitata](https://github.com/evanwashere/mitata), which batches fast operations so a 50 ns call is not lost in timer resolution, forces a collection before each task, and reports per-sample nanoseconds.
+**Micro-benchmarks.** `tests/benchmark/tasks.ts` holds 24 tasks: 18 over the paths a client pays for on every call, and six SDE tasks from `tests/benchmark/sde.bench.ts` (below). The client tasks: parse and Zod-validate a small object, a 1000-order market page and a nested colony layout; ETag cache hit, miss, write and write-at-capacity; cache-key derivation; the spec TTL lookup; response-header parsing (`ETag`, `Expires`, `X-Pages`, rate-limit headers); the rate limiter's acquire; the circuit breaker's check; `batchFetch`; and two whole-pipeline requests against an instant transport. `harness.ts` runs them with [mitata](https://github.com/evanwashere/mitata), which batches fast operations so a 50 ns call is not lost in timer resolution, forces a collection before each task, and reports per-sample nanoseconds.
 
 **Comparison.** A benchmark number alone means nothing; the question is "slower than what". `npm run bench:ab` bundles the harness for two trees, typically a pull request's base tip and its head, and runs them in alternating processes on one machine, so runner-to-runner noise cancels. The observation per task is one per-process median; `npm run bench:compare` applies a one-sided Mann-Whitney U test per task, Holm-adjusted across tasks at alpha = 0.05, and calls a task regressed only if the ratio of medians is also at least 1.10 and the absolute difference at least 2 ns/op. Improvements are reported. A missing baseline, too few rounds or a dropped task fails closed. The decision logic is unit-tested against synthetic distributions in `tests/tdd/benchmark/`.
 
+**SDE tasks.** `tests/benchmark/sde.bench.ts` writes a seeded export of 50,000 types (`SDE_BENCH_TYPES` changes the count; `SDE_BENCH_DIR` points at a real export instead) as CCP-shaped YAML once per process and times `SdeDataProvider.fromDirectory`, `getType` by ID, `getTypesByGroup` with the foreign-key index built and cold (the index cleared before each call), and `searchTypesByName` with a fragment many names share (stops at the limit) and with one whole name (scans the table). Task names carry the data set's label, so the synthetic series and the real export never share a name in a comparison.
+
 **Heap soak.** `tests/benchmark/soak.ts` drives 100,000 requests through a real `EsiClient` against an in-process transport, with a bounded ETag cache and a distinct key per request. Under `--expose-gc` it forces a full collection at 50 sample points and fails when a least-squares fit over the second half projects growth beyond the threshold, when the cache exceeds its bound, or when timers or process listeners survive `shutdown()`. `npm run soak -- --inject-leak --expect-fail` runs the same soak with a response interceptor that retains every response and passes only if the leak is flagged; the unit suite runs that fixture too, so the detector is checked on every pull request.
 
-**Where it runs.** The `benchmarks` job in `ci.yml` runs the A/B comparison (10 rounds) only when `src/core/`, `src/schemas/`, the harness, the bench scripts or the lockfile change, and otherwise reports success with a summary line. `nightly-benchmarks.yml` compares master with a pinned reference commit (15 rounds), runs the soak, publishes the trend to the `bench-data` branch, and keeps one `performance-nightly` issue open while either fails.
+**SDE soak.** `tests/benchmark/sde-soak.ts` (`npm run soak -- --sde`) loads the export, answers 100,000 lookups in a fixed mix (eight in ten `getType`, one in ten a group or category, one in ten a foreign-key list, one in a hundred a name search), closes the provider and repeats, three cycles by default. After each `close()` and two full collections the heap must be back within the larger of 8 MiB and 5% of the loaded heap of the baseline measured before the first load, and the last cycle's loaded heap must not sit above the first's by more than that, so a provider that keeps a previous export alive across reloads fails. The table records load time, heap and RSS after load, peak heap during the lookups and heap after close per cycle; the verdict is unit-tested on synthetic runs and the driver on a small generated set in `tests/tdd/benchmark/sde-bench.test.ts`.
 
-## Mutation
+**Where it runs.** The `benchmarks` job in `ci.yml` runs the A/B comparison (10 rounds) only when `src/core/`, `src/schemas/`, the harness, the bench scripts or the lockfile change, and otherwise reports success with a summary line. `nightly-benchmarks.yml` compares master with a pinned reference commit (15 rounds), runs the soak, publishes the trend to the `bench-data` branch, and keeps one `performance-nightly` issue open while either fails. The SDE tasks ride both, on the generated set; `nightly-sde.yml`'s `performance` job runs them and the SDE soak against CCP's current export (two rounds) and publishes both tables to the step summary, without a comparison, because those numbers describe a build rather than a commit.
 
-Coverage says a line ran. Mutation says a test would notice if the line were wrong. Three runs, each ratcheted (`TEST-07`):
+## Mutation testing
 
-| Run      | Command                                                  | Scope                                             | Floors                                                 | Where                                               |
-| -------- | -------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------- |
-| Unit     | `npm run mutation:pr` (PR), `npm run mutation` (nightly) | `src/core/**`, minus endpoints and interfaces     | `config/mutation/unit-thresholds.json`, 9 directories  | PR `mutation-pr` (changed files); nightly, 5 shards |
-| BDD-only | `npm run mutation:bdd`                                   | all of `src/`, step definitions as the only tests | `config/mutation/bdd-thresholds.json`, 15 directories  | Nightly, 9 shards                                   |
-| Type     | `npm run test:type-mutation -- --ratchet`                | the built `dist/**/*.d.ts`                        | `config/mutation/type-thresholds.json`, 6 entry points | Nightly                                             |
+Coverage says a line ran. Mutation says a test would notice if the line were wrong. [Stryker](https://stryker-mutator.io/) makes small changes ("mutants") to the source and checks whether any test fails. A test that fails kills the mutant. A mutant every test passes survived: a bug the suite would ship. A suite can reach 100% line coverage without asserting anything; mutation is the signal that it asserts, and the tier that proves the others can fail. Three runs, each held by a one-way ratchet:
 
-Every pull request first runs `npm run mutation:fixture`, which must see the known-weak fixture in `tests/mutation-fixture/` leave survivors and lose at least one mutant, so the gate can still go red on a run that measures nothing. A floor may only rise; lowering one fails `mutation-pr` in the pull request that tries. How the pull request run picks its files and baseline, why the nightly is sharded, how the floors were seeded, and today's scores are in **[MUTATION-TESTING.md](MUTATION-TESTING.md)**, the canonical mutation guide.
+| Run      | Command                                                  | Scope                                                                         | Floors                                                 | Where                                               |
+| -------- | -------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------- |
+| Unit     | `npm run mutation:pr` (PR), `npm run mutation` (nightly) | `src/core/**` and `src/sde/**`, minus endpoints, interfaces and test fixtures | `config/mutation/unit-thresholds.json`, 11 directories | PR `mutation-pr` (changed files); nightly, 6 shards |
+| BDD-only | `npm run mutation:bdd`                                   | all of `src/`, step definitions as the only tests                             | `config/mutation/bdd-thresholds.json`, 16 directories  | Nightly, 10 shards                                  |
+| Type     | `npm run test:type-mutation -- --ratchet`                | the built `dist/**/*.d.ts`                                                    | `config/mutation/type-thresholds.json`, 6 entry points | Nightly                                             |
+
+Every pull request first runs `npm run mutation:fixture`, which must see the known-weak fixture in `tests/mutation-fixture/` leave survivors and lose at least one mutant, so the gate can still go red on a run that measures nothing. A floor may only rise; lowering one fails `mutation-pr` in the pull request that tries. [Type mutation](#type-mutation) is described at the end of this section; the rest covers the two Stryker runs: how the pull request run picks its files and baseline, why the nightly is sharded, how the floors were seeded, where the scores stand, and how to kill a survivor.
+
+### Running it
+
+```bash
+npm run mutation             # Full unit-suite run over the mutate scope
+npm run mutation:ratchet     # Score reports/mutation/mutation.json per directory
+npm run mutation:pr          # What CI runs on a pull request: only your changed src/ files
+npm run mutation:fixture     # The tier's self-test on a known-weak fixture
+npm run mutation:bdd         # BDD-only run (see below); one shard with BDD_MUTATION_SHARD=<name>
+npm run mutation:bdd:merge   # Put the shard reports back together for the ratchet
+npm run mutation:bdd:ratchet # Score the BDD-only report per directory
+```
+
+Reports are written to `reports/mutation/` (`mutation.html`, `mutation.json` and, with `--incremental`, `stryker-incremental.json`).
+
+### Where mutation testing runs
+
+| Where                            | What                                                                                                   | Gate                                                                                                                                                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pull request (`mutation-pr.yml`) | Known-weak fixture, then the changed `src/` files in scope, incrementally                              | Advisory since 2026-09-27 (its own check, outside `ci-success`, until the target floors hold, after 11.0.0; ROADMAP.md): touched directories vs their floors, and the fixture. A cold run that times out warns |
+| Nightly (`nightly-mutation.yml`) | Every file in scope (`--incremental --force`), one job per shard in `config/mutation/unit-shards.json` | Fails the run: every directory vs its floor, scored on the merged report                                                                                                                                       |
+| Nightly, BDD-only matrix         | All of `src/`, BDD step definitions only, one job per shard in `config/mutation/bdd-shards.json`       | Fails the run: every scored directory vs its floor in `config/mutation/bdd-thresholds.json`                                                                                                                    |
+
+The pull request job owns "this change weakened the tests of the code it touched". The nightly owns everything a pull request cannot see: test-only changes, merges that interact, and directories no pull request touched.
+
+### Pull requests
+
+`npm run mutation:pr` (`scripts/mutation/mutation-pr.ts`) does, in order:
+
+1. **Base.** `MUTATION_BASE_REF` (CI sets `HEAD^1`, the base tip of the pull request merge commit, with `fetch-depth: 2`), otherwise the merge base with `origin/master` or `master`. If none resolves, it fails closed (exit 2).
+2. **Ratchet direction.** `config/mutation/unit-thresholds.json` is compared with the base copy. Raising or adding a floor passes; lowering or removing one fails (exit 1). A missing or unparsable head file, or an unparsable base copy, fails closed. The only case with nothing to compare is a base commit that predates the file.
+3. **Plan.** `git diff --name-only --diff-filter=d <base> -- src/`, intersected with the `mutate` patterns in `config/mutation/stryker.config.mjs`. If nothing is left, the job summary says "Skipped" with the reason (no `src/` change, or only files outside the scope) and the step exits 0. The job still ran the thresholds check and the fixture, so it reports `success` honestly rather than being `skipped`, which `ci-success` counted as a failure while the job was inside it and will again once the release gate moves it back.
+4. **Run.** `stryker run config/mutation/stryker.config.mjs --incremental --mutate <files>`. The files are the changed ones plus any file in the same score directories that the restored nightly report cannot vouch for: absent from it, or with a source that has changed since. Stryker drops (rather than re-runs) stale mutants in files outside `--mutate`, so without this a directory score would silently shrink. With no restored report, every file in the touched directories is mutated from scratch: slower, never wrong. When the pull request changes or deletes a file under `tests/`, every reused file whose mutants that test covered in the restored report is mutated again and the run passes `--force`, because a score can only fall through a test that killed one of the file's mutants last night, and Stryker would otherwise reuse the old verdict as long as the test keeps its name ([#380](https://github.com/lgriffin/ESI.ts/issues/380)). A test the report does not know (a new file, or coverage it newly gained) can only raise a score, and the next nightly records that; re-mutating whole directories for it does not fit the job's time budget. A report without per-test coverage retests every reused file of the touched directories. A test-only pull request mutates the directories its tests reach: those the restored report shows the test covering, and for a test under `tests/tdd/` the directory its path mirrors; one the run can tie to no directory, or whose tests covered nothing in the report, is reported and skipped.
+5. **Gate.** Each touched directory is scored from the merged report (fresh results for changed code, nightly results for the rest) and fails if it is below its floor, or has no floor at all. The job summary lists the directory table, per-file scores for the changed files, and every surviving or uncovered mutant in them with its line, mutator and replacement. The HTML and JSON reports are uploaded as `mutation-pr-report`.
+
+Run it locally the same way; it diffs your working tree (committed or not) against the merge base with master:
+
+```bash
+npm run mutation:pr -- --concurrency 4
+```
+
+To reuse a nightly baseline locally, download the `mutation-report` artifact from the latest nightly and put its `stryker-incremental.json` in `reports/mutation/`. Stryker's incremental mode keys a mutant's result on the source and the covering tests' names, so a test you strengthen under the same name would reuse the old Survived verdict on a plain `--incremental` run; `mutation:pr` passes `--force` for you when the diff touches `tests/`, and a direct `npm run mutation -- --incremental --force --mutate <file>` does the same by hand.
+
+#### When there is no baseline
+
+`npm run mutation:pr:gate` runs the check under a deadline and decides what the outcome means, because two very different things look alike from outside: a run that measured a regression, and a run that measured nothing.
+
+| Outcome                                          | With the nightly baseline | Without it |
+| :----------------------------------------------- | :------------------------ | :--------- |
+| A directory below its floor                      | blocks                    | blocks     |
+| The check cannot read its thresholds or base ref | blocks                    | blocks     |
+| The run does not finish in time                  | blocks                    | **warns**  |
+
+A cold run mutates every file in the touched directories, not just the changed ones. #355 hit an eight-minute wall at 48% of 589 mutants, having killed every one it reached. Nothing was wrong with the change, and failing the pull request for it teaches people to read a red mutation job as noise. A timeout _with_ the baseline restored still blocks: that run should only have had the changed files to mutate, so it is broken rather than slow.
+
+The tier keeps a hard signal either way. `npm run mutation:fixture` runs first in the same job and fails when the known-weak fixture stops leaving survivors, so the gate can still fail even on a run that measures nothing. The policy is `classifyPrMutationRun` in `scripts/mutation/mutation-ratchet-core.ts`, pinned by `tests/tdd/mutation-ratchet/mutation-pr.test.ts`; `esi-23g.52` covers why a baseline can be missing in the first place.
+
+#### When a runner is reclaimed
+
+GitHub-hosted runners intermittently drop a long job with `The runner has received a shutdown signal` and exit 143. On this repository: the unsharded BDD run at 30 minutes, the `core-pipeline` shard at 36, the `core-rest` shard at 45, while `core-rest` had itself finished at 59 minutes earlier the same day. (`core-pipeline` and `core-rest` are the names of BDD shards on 17 and 18 September 2026; they have since been split into the shards `config/mutation/bdd-shards.json` lists today.) It is random rather than a length limit, and nothing inside the job can defend against it: the runner goes, not the process.
+
+Because the merge refuses an incomplete set, one reclaim costs every shard's score. Two things blunt that:
+
+- **Shorter shards.** A reclaim is roughly proportional to how long a job runs, so splitting the longest ones makes each loss smaller and each re-run cheaper. It does not make reclaims rarer.
+- **`nightly-mutation-retry.yml`.** On `workflow_run`, if the nightly finished as a failure on its first attempt, it re-runs the failed jobs once. `gh run rerun --failed` re-runs their dependents too, so the merge and the ratchet run again with the artifacts the surviving shards already uploaded, which persist across attempts of one run.
+
+It has to be a separate workflow: a job inside a run cannot re-run its own run. It is bounded to one extra attempt, because a shard that fails twice is not a reclaimed runner and the second failure should be read.
+
+#### Why the unit run is sharded
+
+A single job over all of `src/core` took almost exactly two hours on 14, 15 and 16 September 2026 (119m40s, 120m08s, 119m26s) and then stopped finishing inside its 240-minute timeout. Nothing about the mutants changed: the unit suite grew from ~4,957 tests to 6,468, and with `coverageAnalysis: perTest` every added test slows every mutant. A nightly that never completes scores nothing and publishes no baseline, which is how the pull request gate came to mutate from scratch and time out as well (`esi-23g.52`).
+
+`config/mutation/unit-shards.json` splits `src/core` five ways, balanced by mutant count, and gives `src/sde` a shard of its own (Track S Run 2), so the SDE is scored, ratcheted and restored on its own. Counts are a property of the source and the mutator config rather than of the test suite, so these are the same numbers the BDD shards use:
+
+| Shard                   | Directories                                                   | Mutants |
+| :---------------------- | :------------------------------------------------------------ | ------: |
+| `core-backoff`          | rateLimiter, circuitBreaker                                   |     594 |
+| `core-request-pipeline` | requestPipeline                                               |     503 |
+| `core-root`             | `src/core` itself, and endpoints, which the globs exclude     |     453 |
+| `core-cache`            | cache, pagination, middleware                                 |     448 |
+| `core-support`          | logger, util                                                  |     387 |
+| `sde`                   | `src/sde`, ingestion included; the test-data factory excluded |   1,317 |
+
+The core shards sum to 2,385, which is what the unsharded run over `src/core` instrumented when they were balanced; with `sde` the unsharded run instruments 3,702. The arithmetic is the check that nothing fell between them.
+
+`UNIT_MUTATION_SHARD=<name> npm run mutation` runs one, writing to `reports/mutation/shards/<name>/`. `npm run mutation:unit:merge` puts them back together for the ratchet and refuses a run with a shard missing, empty or overlapping another. `tests/tdd/mutation-ratchet/unitShards.test.ts` asserts the shards partition `src/core`, so a regrouping cannot drop a directory: orphaning `src/core/endpoints` fails 46 of its cases.
+
+Each shard saves its own incremental file under `stryker-unit-shard-<name>-…`. A shard's file is a whole baseline for its own directories and knows nothing about the others, so the pull request job restores one only when it covers every file the run may mutate: `npm run mutation:pr:shard` plans the run before any baseline exists, names the one shard that claims all of those files (`baselineShardFor` in `scripts/mutation/mutation-merge-core.ts`), and `mutation-pr.yml` restores that shard's cache and copies it to `reports/mutation/stryker-incremental.json`. The common pull request touches one directory and gets a warm run whose timeout fails the job. A change that spans shards (say `src/core/RetryStrategy.ts` and `src/core/cache/`) restores nothing and runs cold, which warns rather than blocks on a timeout: restoring one shard there would claim a baseline the run only half has (`esi-23g.55`).
+
+#### The incremental baseline
+
+Each nightly shard runs `npm run mutation -- --incremental --force`: every mutant runs, and Stryker also writes an incremental file, which the job saves with `actions/cache/save` under `stryker-unit-shard-<name>-<sha>-<run id>`.
+
+`mutation-pr` restores the one shard's file that covers every file it will mutate, preferring the entry saved for the pull request's base commit, then the newest for that shard (see [Why the unit run is sharded](#why-the-unit-run-is-sharded) for how the shard is chosen). When no single shard covers the run, nothing is restored and the run is cold.
+
+Caches written on `master` are readable by pull requests into `master`. Pull requests never save one.
+
+Stryker reuses a result only when the mutant's code is unchanged and, for a killed mutant, its killing test is unchanged, or, for a survivor, no test was added. The older the baseline, the more mutants re-run: a one-day-old baseline on an active branch reused 51 of 169 mutants in `ETagCacheManager.ts`.
+
+That rule has a blind spot in the local loop. Stryker treats a test as new only by its name, so strengthening an existing test (same name, a sharper assertion) does not invalidate a survivor it now kills: the next `--incremental` run still reports the mutant as Survived. In #375, `AsyncPaginationIterator.ts:17` (`body !== undefined` becoming `true`) stayed Survived after `toEqual([])` became `toHaveLength(0)`, although applying the mutant by hand showed the edited test killed it. It fails safe (the score reads low, never high), but it sends people after mutants that are already dead. Before you chase a survivor you believe a strengthened test kills, re-run that file with `--force`, which runs every mutant in the `--mutate` files and ignores the incremental results for them ([#380](https://github.com/lgriffin/ESI.ts/issues/380)):
+
+```bash
+npm run mutation -- --incremental --force --mutate src/core/pagination/AsyncPaginationIterator.ts
+```
+
+The nightly always runs with `--force`, so it clears such stale survivors every night. A pull request that only strengthens tests can still see its directory score read low until then, the same fail-safe way.
+
+#### The ratchet
+
+The unit floors live in `config/mutation/unit-thresholds.json`, one per score directory: `src/core` for files directly in core, `src/core/<sub>` below it (the same `directoryOf` as the BDD ratchet in `scripts/mutation/mutation-ratchet-core.ts`). Values are Stryker's mutation score (detected / (detected + undetected)), rounded down to one decimal.
+
+- A pull request that raises a directory's score leaves its floor alone; a follow-up raises it once two nightlies have measured the new tests (`npm run mutation:ratchet -- --update --also <earlier report>`, see "Re-seeding" below). The pull request gate cannot prove the raise itself: it re-mutates only the changed `src/` files and keeps the nightly's results for the rest, so a directory improved by new tests alone is still scored on the survivors those tests kill. Re-mutating the whole directory instead does not fit the pull request budget for code that everything imports: on #374, `src/core/logger`'s mutants are each covered by thousands of tests and the run timed out. State the new score in the follow-up's body in one line; ratchet bumps without a reason are how ratchet fatigue starts.
+- A floor never goes down. If a change truly has to lower one (for example, deleting dead code that only had killed mutants), that is a reviewed exception in its own pull request, and it fails `mutation-pr` there on purpose.
+- A new directory in scope must arrive with its floor; the failure message says which value to add.
+- `npm run mutation:ratchet -- --update` (after a full `npm run mutation`) raises every floor to today's score and adds missing ones. It never lowers a floor.
+
+**Seeding.** Each floor is the lower of two real runs: a full local run of this branch's base (`npm run mutation -- --incremental --force`, concurrency 4, 54 minutes) and the last nightly that produced a report (16 September 2026, `bc563d4d`, run 35067980626). They agree within two points for most directories but not all: `src/core/logger` scored 55.5% on the nightly and 33.3% locally, and `src/core/rateLimiter` 73% against 70.9%, mostly because a mutant that times out counts as detected, and how many time out depends on the machine. Taking the lower value means the first pull request to touch a directory is not failed by that spread. The nightly raises nothing on its own; floors move up only in reviewed pull requests.
+
+**Re-seeding, 19 September 2026.** The floors were raised from the first two complete sharded nightlies (runs 35352679266 and 35428381994), which differ only in a two-line change to `src/core/constants.ts`. Taking the lower of the two scores was not enough: 43 mutants changed status between the runs on the same code, 14 of them in `src/core/cache`, mostly a mutant that timed out on one runner and survived on the other. So each floor is the score of a report in which a mutant counts as detected only if _both_ runs detected it. That is below either run's own score, which is the point: a third run on the same code cannot score below it unless a mutant neither run left alive survives. No floor was lowered; `src/core` stays at 81.8% where that rule gave 81.7%.
+
+**Timing tests made deterministic ([#382](https://github.com/lgriffin/ESI.ts/issues/382)).** The flips traced back to unit tests that measured real time: `setTimeout` sleeps before checking a cache entry had expired, circuit breaker cleanup that passed or not depending on whether a millisecond ticked between two calls, and retry and rate-limit waits that were slept through for real and then bounded loosely (`toBeGreaterThanOrEqual(40)` for a 50ms delay). Those tests in `tests/tdd/core` now run on Jest's fake clock (`jest.useFakeTimers()`, or `useFakeDate()` from `tests/tdd/helpers/fakeDate.ts` where the whole request pipeline runs and only `Date` should be frozen) or record `sleep()` calls with `Math.random` pinned, and each asserts the exact delay or boundary: an entry is fresh at its TTL and expired one millisecond later, a circuit is open at `resetTimeoutMs - 1` and half-open at `resetTimeoutMs`, a back-off is `[10, 20, 40]`, not "positive". A mutant of one of those comparisons or delays is now killed by an assertion on every machine rather than by a timeout on a slow one. New tests of timing code follow the same rule (see [Time and randomness](#time-and-randomness)): no real sleeps, no `Date.now()` bounds.
+
+**Re-seeding once the timing tests have landed.** This step needs real nightlies and has not been done yet; the floors above are still the 19 September both-runs values. With the time-dependent mutants deterministic, two nightlies on the same `src/core` should agree mutant for mutant, and then `detectedByEveryRun` stops being what holds a floor down: seeding from one run with `npm run mutation:ratchet -- --update` gives the same floor as seeding from two with `--also`. To confirm that before relying on it:
+
+1. Wait for two complete sharded unit nightlies after the change, with no `src/core` change between them. Download each run's shard reports and merge them (`npm run mutation:unit:merge`) into two `mutation.json` files.
+2. Run `npm run mutation:ratchet -- --update --also <earlier report>` against the later report, as on 19 September. Count the mutants whose status differs between the two reports; the issue's 43 is the number to beat, per directory as in the table below.
+3. If the gap between each directory's score and its new floor is near zero, record the new floors and the flip count here in one line, and later re-seeds may use a single complete nightly without `--also`. Directories that still flip keep the two-run rule, and their flipping mutants are the next tests to make deterministic.
+
+#### Where the scores stand
+
+The SDE directories were seeded from local runs rather than a nightly. Track S Run 2 (2026-09-27) measured `src/sde` 87.6% and `src/sde/ingestion` 73.8% on the unit suite (1,317 mutants) and 22.6% / 0% BDD-only. Run 12 (2026-09-28) moved the files into `ports/`, `domain/`, `providers/`, `ingestion/` and `testing/`, and re-measured: unit `src/sde` 93.7% (15/16), `src/sde/ingestion` 73.8% (161/218) and `src/sde/providers` 89.5% (86/96) over 838 mutants; BDD-only, once #523 let the dry run find the step-library scenarios, `src/sde` 31.2% (5/16), `src/sde/ingestion` 58.0% (133/229) and `src/sde/providers` 58.5% (58/99) over 1,007 mutants. `src/sde/domain` holds only type declarations and schemas and yields no valid mutants; `src/sde/testing` is excluded from both runs like `src/testing`. The floors sit two points under the measured scores where the score rose and stay where it did not: unit 85.6 / 71.8 / 87.5, BDD 29.2 / 56.0 / 56.5. The nightly matrix re-seeds them on its next complete run; until then those floors are provisional and the table below, which lists the nightly-measured core, does not carry them.
+
+The first two complete runs of the sharded unit matrix: 18 September 2026 (run 35352679266) and 19 September 2026 (run 35428381994). Five shards, 38 to 82 minutes each, merged into one report of 37 mutated files. The 18 September run was the first time `src/core` had been scored since 16 September: the unsharded job stopped finishing inside its 240-minute timeout as the suite grew.
+
+| Directory                  | 18 Sept | 19 Sept | Detected / valid (19 Sept) | Floor | Floor before |
+| :------------------------- | ------: | ------: | -------------------------: | ----: | -----------: |
+| `src/core`                 |   83.3% |   83.3% |                    215/258 | 81.8% |        81.8% |
+| `src/core/cache`           |   73.3% |   70.1% |                     87/124 | 65.3% |        53.3% |
+| `src/core/circuitBreaker`  |   77.7% |   79.3% |                    100/126 | 77.7% |        75.2% |
+| `src/core/logger`          |   59.2% |   62.9% |                      17/27 | 55.5% |        33.3% |
+| `src/core/middleware`      |    100% |    100% |                      26/26 |  100% |        92.3% |
+| `src/core/pagination`      |   73.9% |   73.9% |                     88/119 | 73.9% |        72.2% |
+| `src/core/rateLimiter`     |   78.3% |   79.4% |                    213/268 | 77.9% |        70.9% |
+| `src/core/requestPipeline` |   77.6% |   76.0% |                    184/242 | 75.2% |        67.5% |
+| `src/core/util`            |   96.1% |   95.4% |                    148/155 | 95.4% |        95.3% |
+
+A snapshot, not a source of truth: the live numbers are whatever the last nightly published, and this table is here to say where the floors sat relative to reality when the matrix first worked.
+
+**The gap between a directory's score and its floor is now the flakiness of its mutants, not slack.** Before the re-seeding, four directories sat 7 to 26 points above their floors, a measurement the ratchet was not holding: a change could have given back twenty points of `src/core/cache` and no gate would have noticed. What is left between score and floor is the mutants that are detected on one runner and not another. Killing those deterministically (fake timers and an exact assertion, rather than a timeout that depends on machine speed) is what lets a floor rise to the score. The timing tests named in #382 have moved to fake timers (see "Timing tests made deterministic" above); the re-seed that measures the effect is still to run.
+
+Two caveats on comparing this table with an earlier one. A mutant that times out counts as detected, and how many time out depends on the machine, so a local run and a nightly disagree by a point or two on the same code (the seeding note above records `src/core/logger` at 55.5% nightly against 33.3% locally for exactly that reason), and two nightlies disagree too. And these are five separate shards merged, so each directory's score comes from the one shard that owns it rather than from a single process.
+
+The BDD-only floors in `config/mutation/bdd-thresholds.json` come from the same two nights by the same rule. 19 September was the first run in which every BDD shard finished; on 18 September the `core-rest` shard (since split into `core-support` and `core-root`) lost a runner and the merge refused the incomplete set, but the seven shards that did finish still count, so a mutant any of them left alive counts as undetected. Most directories were therefore measured once, and BDD-only scores are low by design: the scenarios exercise behaviour through the transport seam, not every branch. The 17 floors today run from 0% (`src/schemas`, where a schema declaration has little for a scenario to kill) and 11.7% (`src/core/rateLimiter`) to 42.8% (`src/core/util`) on the core and 56.5% (`src/sde/providers`) on the SDE, whose scenarios drive the providers directly rather than through a transport; `cat config/mutation/bdd-thresholds.json` lists them.
+
+#### The known-weak fixture
+
+`tests/mutation-fixture/weakClamp.ts` is a `clamp` function whose fixture test only checks an in-range value. `npm run mutation:fixture` mutates it with `config/mutation/stryker.fixture.config.mjs` and fails unless the report shows at least one killed mutant (the run can detect a fault), at least one survivor (a weak test is visible), and a ratchet failure for it against a 100% floor. `mutation-pr` runs it before the real run, so every pull request proves the pipeline can still go red. Do not strengthen that test. The last local run: 5 killed, 4 survived, 2 without coverage, score 45.4%, 15 seconds. Pointing the fixture's Jest `roots` at the original tree instead of the sandbox, the same mistake the module mapper used to make, turns that into 0 killed and 11 survived, and the check exits 1 with "no fixture mutant was killed".
+
+`tests/tdd/mutation-ratchet/` holds the unit tests for the ratchet itself: a directory below its floor fails, a missing or unreadable thresholds file or base ref fails closed, a lowered or removed floor is rejected, a pull request with no in-scope `src/` change skips, and the plan widens to whole directories when the baseline cannot vouch for a file.
+
+#### Sharding the BDD-only run
+
+One job mutating all of `src/` against the BDD suite alone does not finish: 4,495 mutants, and the only attempt was killed at 30 minutes, which is why `config/mutation/bdd-thresholds.json` was empty for as long as it was. `nightly-mutation.yml` therefore runs one job per shard in `config/mutation/bdd-shards.json`; `BDD_MUTATION_SHARD=<name> npm run mutation:bdd` mutates that shard alone and writes `reports/mutation-bdd/shards/<name>/`.
+
+A split run only means the same thing as the single run it replaces if nothing falls between the shards, so two checks hold it together:
+
+- `tests/tdd/mutation-ratchet/bddShards.test.ts` asserts the shards partition `src/`: every TypeScript file belongs to exactly one. `src/sde` has a shard of its own since Track S Run 2 (1,536 mutants), so the SDE's BDD scenarios are scored, ratcheted and restored apart from `rest`. A file claimed by none is never mutated and its directory's score quietly improves; a file claimed by two is counted twice. The exclusions in `config/mutation/stryker.bdd.config.mjs` are shared by every shard, so the union of the shards mutates exactly what the unsharded glob did.
+- `npm run mutation:bdd:merge` (`scripts/mutation/mutation-merge-core.ts`) refuses to merge a run with a shard missing, a shard that mutated nothing, or two shards reporting one file. Without that, a shard whose job died would leave its directories scored on whatever else ran, which reads as a pass.
+
+Seed the floors from a completed run: dispatch the workflow with `seed_bdd_thresholds`, which prints and uploads `config/mutation/bdd-thresholds.json` raised to that run's scores. Nothing commits it; `--update` never lowers a floor.
+
+#### Why the BDD-only run is not on pull requests
+
+Running the step definitions as the dry run for a `src/core/requestPipeline` change would take most of the 12-minute pull request budget on its own, and there is no incremental baseline to restore until the nightly matrix has published one. Once it has, a pull request run scoped to `src/core/requestPipeline` is the natural next step.
+
+### How it works
+
+1. **Instrumentation**: Stryker parses all files matching the `mutate` glob and identifies possible mutations (2,385 in the unit scope when the shards were balanced on 18 September 2026; see [Why the unit run is sharded](#why-the-unit-run-is-sharded)).
+2. **Dry run**: Stryker runs the tests once to establish a baseline and map which tests cover which code. The unit run narrows the dry run to the tests Jest's module graph relates to the mutated files (`enableFindRelatedTests`); the BDD run cannot, because the step-library specs bind their steps at run time through `bindFeature(__filename)` and relate to nothing statically (the `sde` shard found no tests at all once Run 3 converted the SDE steps), so it runs every BDD spec and lets per-test coverage do the narrowing.
+3. **Mutation**: For each mutant, Stryker modifies the source and runs only the tests that cover the changed code (`perTest` coverage analysis). The TypeScript checker discards mutants that do not compile first.
+4. **Scoring**: Each mutant is classified:
+
+| Status           | Meaning                                                        |
+| ---------------- | -------------------------------------------------------------- |
+| **Killed**       | A test failed: the mutation was detected                       |
+| **Survived**     | All tests passed: a potential blind spot                       |
+| **Timeout**      | A test timed out, likely an infinite loop; counts as detected  |
+| **NoCoverage**   | No test executes this code path                                |
+| **CompileError** | The TypeScript checker rejected it; not counted                |
+| **Ignored**      | Excluded mutator (`StringLiteral`) or static code; not counted |
+
+### Configuration
+
+Config files: `config/mutation/stryker.config.mjs` (unit suite, nightly and pull requests), `config/mutation/stryker.bdd.config.mjs` (BDD-only), `config/mutation/stryker.fixture.config.mjs` (known-weak fixture).
+
+#### Scope
+
+The unit run mutates `src/core/**/*.ts` and `src/sde/**/*.ts` with these exclusions:
+
+- `src/core/endpoints/**`: endpoint definitions are data declarations, not logic
+- Interface-only files (`ILogger.ts`, `ICache.ts`, `IRateLimiter.ts`, `IRetryStrategy.ts`, `ICircuitBreaker.ts`, `IDeduplicator.ts`) and the `requestPipeline` barrel and dependency wiring
+- `src/sde/testing/**`: `SdeTestDataFactory`, a test fixture shipped for consumers' tests; mutating it would score the fixture, not the module
+
+Files NOT in scope (and why):
+
+| Excluded                                      | Reason                                                |
+| --------------------------------------------- | ----------------------------------------------------- |
+| `src/clients/**`                              | Thin delegation layers tested via BDD scenarios       |
+| `src/schemas/**`                              | Zod schema declarations, no branching logic           |
+| `src/types/**`                                | Type-only files, no runtime code                      |
+| `src/config/**`                               | Configuration setup, not core logic                   |
+| `src/EsiClient.ts`, `src/EsiClientBuilder.ts` | High-level orchestration tested via integration tests |
+| `*.generated.ts`                              | Auto-generated from OpenAPI spec                      |
+
+A pull request that changes only out-of-scope `src/` files skips the mutation step and names those files in the summary.
+
+#### Thresholds
+
+The unit config has no global `break`; the per-directory floors in `config/mutation/unit-thresholds.json` are the gate. `high: 80` and `low: 60` only colour the HTML report.
+
+A directory is `src/<area>` for most of the tree and `src/core/<sub>` or `src/sde/<sub>` inside the core and the SDE, whose parts differ enough that one number would hide a weak one (`directoryOf` in `scripts/mutation/mutation-ratchet-core.ts`). The SDE floors are provisional: `src/sde` and `src/sde/ingestion` were seeded on 2026-09-27 from a local unit run (87.6% and 73.8%, 1,317 mutants, 4 minutes) minus two points, and the BDD-only pair from a local run of the `sde` BDD shard the same way (`src/sde` 22.6% so 20.6, up from the 10.6 the whole tree scored before its subdirectories were split out; `src/sde/ingestion` 0, because no scenario reaches ingestion until Track S Run 6 specifies it), until the nightly matrix re-seeds them; floors come from the nightly, never from a laptop. Fifteen SDE mutants crash the test runner rather than fail a test (a missing-file check removed, a transform recursing on itself) and count as `RuntimeError`, which no score counts.
+
+#### Sandbox and module resolution
+
+Stryker runs tests in an isolated sandbox (`.stryker-tmp/sandbox-XXX/`) containing mutated source files. Since tests live outside the sandbox at `tests/`, a `moduleNameMapper` redirects relative imports like `../../../src/core/...`, and a bare `../../../src` (the package root), to the sandbox's mutated source:
+
+```js
+moduleNameMapper: {
+  '^(?:\\.\\./)+src(/.*)?$': '<rootDir>/src$1',
+}
+```
+
+Without this, tests would import the original (un-mutated) source and every mutant would survive or show as "NoCoverage". Before the root import was mapped, `tests/tdd/auth/index.test.ts` compared classes loaded from the sandbox with classes loaded from the original tree, and the nightly's dry run failed on it (17 September 2026).
+
+Stryker links the project's `node_modules` into the sandbox only when it is a real directory: in a git worktree whose `node_modules` is a symlink to the main checkout's, the sandbox gets none, and every test file fails to compile with `Cannot find name 'jest'`. Make the worktree's `node_modules` a directory of per-package symlinks instead (Track S Run 12, 28 September 2026).
+
+#### Static mutants
+
+`ignoreStatic: true` is enabled. Static mutants are mutations in module-level code (e.g., default values, constant expressions) that are only executed once during module initialization. These are expensive to test (they require re-running ALL tests since every test loads the module) and represent only ~1% of mutants. They are reported as "Ignored" in the output.
+
+### Reading the report
+
+The HTML report at `reports/mutation/mutation.html` shows:
+
+- **Per-file scores** with color coding (green ≥ 80%, yellow ≥ 60%, red < 60%)
+- **Individual mutants** with their status, the original code, and the mutation applied
+- **Covering tests** for each mutant (which tests would need to kill it)
+
+Current per-directory floors are in `config/mutation/unit-thresholds.json`; `npm run mutation:ratchet` prints today's scores next to them.
+
+### Killing a survivor
+
+When a mutant survives, it means changing that line doesn't break any test. To kill it:
+
+1. Open the HTML report (or the `mutation-pr` job summary) and find the survived mutant
+2. Read what the mutation does (e.g., `a > b` changed to `a >= b`)
+3. Write a test case where the original behavior and mutated behavior produce different results
+4. Re-run the file with `--force` to confirm the mutant is killed (an `--incremental` run can keep reporting it as Survived when you strengthened an existing test rather than adding one; see [The incremental baseline](#the-incremental-baseline))
+5. Raise the directory's floor in `config/mutation/unit-thresholds.json` to the new score, with a one-line reason in the pull request
+
+The weakest directories at seeding were `src/core/cache` (`ETagCacheManager.ts`), `src/core/logger` and `src/core/requestPipeline` (`statusHandling.ts`, `cachePolicy.ts`).
+
+### Runtime
+
+| Run                                                                                                        | Wall time                                                      |
+| ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Pull request, one-function change to `ETagCacheManager.ts`, local, concurrency 4, same-day baseline        | 1 min 9 s (169 mutants instrumented, 1 of 1,845 files mutated) |
+| The same change against a one-day-old baseline (51 of 169 mutants reused)                                  | 2 min 22 s                                                     |
+| Known-weak fixture, local                                                                                  | 15 s                                                           |
+| Known-weak fixture, GitHub runner                                                                          | 9 s                                                            |
+| Pull request job on a GitHub runner with no cached baseline (the whole `src/core/cache` directory mutated) | 5 min 12 s for the job, 4 min 41 s for the mutation step       |
+| Full unit run, local, concurrency 4 (1,907 mutants, the seeding run of 16 September 2026)                  | 54 min                                                         |
+| Full unit run, nightly, unsharded (GitHub runner, concurrency 6), until 16 September 2026                  | about 2 h, then no longer finished inside 240 min              |
+| Full unit run, nightly, five shards (18 and 19 September 2026)                                             | 38 to 82 min per shard                                         |
+
+The pull request step has a 30-minute deadline inside a 37-minute job. It was 8 minutes until #434: `src/core/ApiRequestHandler.ts` has 110 mutants, and a change to it re-tests about 70 of them even with a fresh baseline, because every test that covers a changed line invalidates the mutants it reaches. At about 7 s a mutant on two test runners, plus 30 s per timeout, one such run reached 54 of 69 at a 15-minute deadline and 59 of 69 at 20, slowed further by test runners running out of memory and restarting. A change that invalidates most of a large directory (for example, a rewrite of `RateLimiter.ts` with no baseline) can still exceed 30; that fails the job rather than passing it.
 
 ### Type mutation
 
@@ -789,7 +1069,7 @@ The tsd suite is only as good as the promises it pins. Type mutation checks that
 | `remove-overload`      | One signature of an overload group is removed                                        |
 | `constraint-unknown`   | `T extends X` becomes `T extends unknown`                                            |
 
-A mutant is **killed** when tsd reports a failure in a type test, **invalid** when the mutated declarations themselves no longer compile (excluded from the score), and **survives** when tsd passes. A survivor is a missing tsd case. The score per entry point is killed / (killed + survived); the floors in `config/mutation/type-thresholds.json` run from 0 (`./testing`, `./sde`, `./sde/memory`) to 24 (`./errors`), which is the honest measure of how much of the type surface the tsd suite pins today.
+A mutant is **killed** when tsd reports a failure in a type test, **invalid** when the mutated declarations themselves no longer compile (excluded from the score), and **survives** when tsd passes. A survivor is a missing tsd case. The score per entry point is killed / (killed + survived); the floors in `config/mutation/type-thresholds.json` run from 0 (`./testing`) to 32 (`./sde`), with `./errors` at 24 and `./sde/memory` at 25, which is the honest measure of how much of the type surface the tsd suite pins today.
 
 About eight thousand candidates exist, so at most 500 run. Entry points take turns picking their next mutant in order of a seeded hash of the mutant's id (built from file, symbol, operator and the mutated text, not offsets), so the same seed and surface always give the same sample, and each mutant a change adds displaces at most one sampled mutant instead of reshuffling the rest. `--ratchet` refuses a non-default `--seed` or `--max`, because the floors were measured on the default sample. The report is `reports/type-mutation/type-mutation.{json,md}`.
 
@@ -1012,7 +1292,7 @@ Every pull request to `master` runs `ci.yml`, whose single required check is `ci
 | `ci.yml`                        | Every pull request                                         | Every tier marked PR in [the tier table](#the-tiers); `ci-success` fans in all of its jobs                                                                           | Blocks the merge                                                           |
 | `ears.yml`                      | Pull requests touching the specification or `src/`; manual | `npm run ears`                                                                                                                                                       | Status; advisory                                                           |
 | `nightly-schemathesis.yml`      | Daily 01:00                                                | `npm run fuzz:api` equivalent against a Prism mock                                                                                                                   | Artifact; issue "api-fuzz: nightly Schemathesis run failed"                |
-| `nightly-mutation.yml`          | Daily 02:00                                                | Unit mutation (5 shards), BDD-only mutation (9 shards), type mutation; each ratcheted                                                                                | Fails the run; issue "mutation: nightly run failed"                        |
+| `nightly-mutation.yml`          | Daily 02:00                                                | Unit mutation (6 shards), BDD-only mutation (10 shards), type mutation; each ratcheted                                                                               | Fails the run; issue "mutation: nightly run failed"                        |
 | `nightly-mutation-retry.yml`    | When `nightly-mutation.yml` fails on its first attempt     | Re-runs the failed shards once                                                                                                                                       | Status only                                                                |
 | `nightly-no-retry.yml`          | Daily 03:00                                                | `npm test` in random order with a fresh seed; fails if any test ran more than once                                                                                   | Fails the run; `no-retry-report` artifact                                  |
 | `nightly-properties.yml`        | Daily 03:30                                                | `npm run fuzz:properties` with `FC_NUM_RUNS=10000` and a seed per night                                                                                              | Issue "Nightly property run failed"                                        |
@@ -1022,12 +1302,14 @@ Every pull request to `master` runs `ci.yml`, whose single required check is `ci
 | `nightly-benchmarks.yml`        | Daily 04:30                                                | Benchmarks against a pinned reference; the heap soak and its injected leak                                                                                           | `performance-nightly` issue                                                |
 | `consumer-matrix-nightly.yml`   | Daily 04:45                                                | The consumer contract on TypeScript `next`/`latest` and current Node                                                                                                 | Fails the run                                                              |
 | `nightly-audit.yml`             | Daily 05:00                                                | `npm audit` against the accepted-advisory list                                                                                                                       | `security-audit` issue                                                     |
+| `nightly-live-health.yml`       | Daily 05:45                                                | `npm run health:live`: refresh the maintained SSO token, call `/status` and `/characters/{id}/online` through the real client                                        | Issue "Live health: the Tranquility smoke failed"; an outage only warns    |
+| `nightly-sde.yml`               | Daily 05:15                                                | CCP's current SDE export: `tests/integration/sde` with `SDE_REQUIRE_DATA=1`, `sde:drift`, the `sde` examples, the `sde/` benchmarks and the SDE soak                 | Issue "sde: nightly real-data run failed or the export drifted"            |
 | `nightly-spec-drift.yml`        | Daily 06:00                                                | Missing endpoints, generated-type freshness, schema drift, against the newest compatibility date                                                                     | `spec-drift` issue                                                         |
 | `nightly-recorded-payloads.yml` | Daily 06:30                                                | `contract:record`, `contract:shape-diff -- --revert-unchanged`, `contract:replay`                                                                                    | A pull request with the shape diff; `recorded-payloads-check-failed` issue |
 | `maintenance.yml`               | Mondays 09:00                                              | `contract:snapshot`, `contract:live`, `contract:diff` (oasdiff), outdated, audit, coverage                                                                           | Artifacts only                                                             |
 | `post-publish-canary.yml`       | A GitHub release is published                              | Installs the published version from the registry, verifies provenance, loads every sub-path, calls ESI once                                                          | `release-verification` issue                                               |
 
-Nothing runs the live smoke, client integration, spec contract, gated auth or real-SDE integration suites on a schedule. Every workflow, its jobs and what blocks where are in [QUALITY-GATES.md](QUALITY-GATES.md).
+Nothing runs the live smoke, client integration, spec contract or gated auth suites on a schedule; the real-SDE integration suite runs nightly in `nightly-sde.yml`. Every workflow, its jobs and what blocks where are in [QUALITY-GATES.md](QUALITY-GATES.md).
 
 ## Known gaps
 

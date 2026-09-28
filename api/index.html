@@ -1,5 +1,5 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@lgriffin/esi.ts - EVE Online ESI API Client - v10.2.3</title><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
-<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v10.2.3</a>
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@lgriffin/esi.ts - EVE Online ESI API Client - v11.0.0</title><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v11.0.0</a>
 <div id="tsd-toolbar-links"><a href="https://github.com/lgriffin/ESI.ts">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts">NPM</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
 <div id="tsd-search-status" aria-live="polite" aria-atomic="true">
@@ -7,19 +7,22 @@
 <div class="container container-main">
 <div class="col-content">
 <div class="tsd-page-title">
-<h1>@lgriffin/esi.ts - EVE Online ESI API Client - v10.2.3</h1></div>
+<h1>@lgriffin/esi.ts - EVE Online ESI API Client - v11.0.0</h1></div>
 <div class="tsd-panel tsd-typography"><h1 id="esits" class="tsd-anchor-link">ESI.ts<a href="#esits" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
 <p><a href="https://badge.fury.io/js/%40lgriffin%2Fesi.ts"><img src="https://badge.fury.io/js/%40lgriffin%2Fesi.ts.svg" alt="npm version"></a>
 <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
 <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.4%2B-blue" alt="TypeScript"></a>
 <a href="https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml"><img src="https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml/badge.svg" alt="CI/CD Pipeline"></a>
-<a href="guides/TESTING.md"><img src="https://img.shields.io/badge/coverage-97%25-brightgreen" alt="Coverage"></a>
+<a href="guides/TESTING.md#where-the-suite-stands"><img src="https://img.shields.io/badge/coverage-97.8%25-brightgreen" alt="Coverage"></a>
+<a href="guides/TESTING.md#where-the-scores-stand"><img src="https://img.shields.io/badge/mutation%20score-84%25%20core-brightgreen" alt="Mutation score"></a>
+<a href="guides/TESTING.md#where-the-suite-stands"><img src="https://img.shields.io/badge/tests-10%2C045%20offline-brightgreen" alt="Tests"></a>
+<a href="tests/bdd/README.md"><img src="https://img.shields.io/badge/EARS%20requirements-566-blue" alt="EARS requirements"></a>
 <a href="https://www.npmjs.com/package/@lgriffin/esi.ts"><img src="https://img.shields.io/npm/dm/%40lgriffin/esi.ts" alt="npm downloads"></a>
 <a href="https://scorecard.dev/viewer/?uri=github.com/lgriffin/ESI.ts"><img src="https://api.scorecard.dev/projects/github.com/lgriffin/ESI.ts/badge" alt="OpenSSF Scorecard"></a></p>
 <p>A TypeScript client for the <a href="https://esi.evetech.net/">EVE Online ESI API</a>, built as an engineered product rather than a generated wrapper. It covers every operation in the ESI OpenAPI specification. Every response is validated at runtime, and caching, rate limiting, retry and pagination follow the rules ESI actually enforces. The claims on this page are backed by a test suite that is itself tested.</p>
 <p><strong>Documentation site: <a href="https://lgriffin.github.io/ESI.ts/">lgriffin.github.io/ESI.ts</a></strong>, with these guides, a page for every runnable example, and the <a href="https://lgriffin.github.io/ESI.ts/api/">API reference</a> generated from the TSDoc.</p>
 <blockquote>
-<p><strong>Release line.</strong> Version <!-- metric:version -->10.2.3<!-- /metric --> <!-- x-release-please-version -->
+<p><strong>Release line.</strong> Version <!-- metric:version -->11.0.0<!-- /metric --> <!-- x-release-please-version -->
 is current on npm and supports Node 18 and later. <strong>11.0.0 is in progress.</strong> It raises the floor to Node 22 and adds a new client built on one shared runtime, with typed public and per-character views. Nothing documented here is removed in 11.0. <a href="media/USAGE.md#9-what-1100-changes">What 11.0 changes</a> · <a href="media/ROADMAP.md">Roadmap and release gate</a></p>
 </blockquote>
 <h2 id="install" class="tsd-anchor-link">Install<a href="#install" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
@@ -96,7 +99,7 @@ is current on npm and supports Node 18 and later. <strong>11.0.0 is in progress.
 </tbody>
 </table>
 <h2 id="the-engineering-stance" class="tsd-anchor-link">The engineering stance<a href="#the-engineering-stance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>The project is run to a written <a href="media/CHARTER.md">engineering charter</a>. It has <!-- metric:charterRequirements -->61<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->41<!-- /metric --> are <strong>Enforced</strong>, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->12<!-- /metric --> Partial and <!-- metric:charterGap -->2<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:</p>
+<p>The project is run to a written <a href="media/CHARTER.md">engineering charter</a>. It has <!-- metric:charterRequirements -->62<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->46<!-- /metric --> are <strong>Enforced</strong>, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->9<!-- /metric --> Partial and <!-- metric:charterGap -->1<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:</p>
 <ol>
 <li><strong>The OpenAPI spec is upstream.</strong> Types, cache TTLs, rate-limit groups, scopes and <!-- metric:operations -->233<!-- /metric --> typed operations are generated from it, and CI fails when they go stale.</li>
 <li><strong>Hand-write where judgement matters.</strong> Method names, argument shapes and validation strictness are product decisions. Drift reports keep them honest against the spec.</li>
@@ -107,7 +110,7 @@ is current on npm and supports Node 18 and later. <strong>11.0.0 is in progress.
 <li><strong>Verifiable supply chain.</strong> Every action is SHA-pinned and every token least-privilege. Releases carry npm provenance, a signed SBOM, cosign signatures and checksums.</li>
 </ol>
 <h3 id="by-the-numbers" class="tsd-anchor-link">By the numbers<a href="#by-the-numbers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>Measured on <code>master</code> on 2026-09-27 with the commands shown. <a href="media/TESTING.md">TESTING.md</a> has the full breakdown.</p>
+<p>Measured on <code>master</code> at <code>9486fe2c</code> on 2026-09-28 with the commands shown; the mutation and Scorecard rows cite the run that produced them. <a href="media/TESTING.md">TESTING.md</a> has the full breakdown.</p>
 <table>
 <thead>
 <tr>
@@ -119,27 +122,27 @@ is current on npm and supports Node 18 and later. <strong>11.0.0 is in progress.
 <tbody>
 <tr>
 <td>Tests run offline</td>
-<td>8,444 passing, 0 failing</td>
+<td>10,045 tests in 319 suites; 9,837 run, 0 failing (208 live tests skip without credentials or an SDE export)</td>
 <td><code>npm test</code>, <code>fuzz</code>, <code>faults</code>, <code>contract:replay</code>, <code>test:integration</code></td>
 </tr>
 <tr>
 <td>Unit, BDD and composition</td>
-<td>244 suites, 7,198 tests in about two and a half minutes</td>
+<td>291 suites, 8,308 tests in about two and a half minutes</td>
 <td><code>npm test</code></td>
 </tr>
 <tr>
 <td>Coverage</td>
-<td>97.2% statements, 95.5% branches, 91.3% functions, 97.3% lines</td>
+<td>97.8% statements, 95.9% branches, 93.6% functions, 97.9% lines</td>
 <td><code>npm run coverage</code> (floors 90 / 80 / 75 / 90)</td>
 </tr>
 <tr>
 <td>Executable specification</td>
-<td><!-- metric:requirements -->545<!-- /metric --> EARS requirements, <!-- metric:scenarios -->703<!-- /metric --> scenarios, <!-- metric:featureFiles -->73<!-- /metric --> feature files</td>
+<td><!-- metric:requirements -->566<!-- /metric --> EARS requirements, <!-- metric:scenarios -->726<!-- /metric --> scenarios, <!-- metric:featureFiles -->73<!-- /metric --> feature files</td>
 <td><code>npm run ears</code></td>
 </tr>
 <tr>
 <td>Property and fuzz tests</td>
-<td>957 tests; 10,000 runs a property nightly</td>
+<td>1,240 tests; 10,000 runs a property nightly</td>
 <td><code>npm run fuzz</code></td>
 </tr>
 <tr>
@@ -153,14 +156,19 @@ is current on npm and supports Node 18 and later. <strong>11.0.0 is in progress.
 <td><code>npm run contract:replay</code></td>
 </tr>
 <tr>
-<td>Mutation testing</td>
-<td>Per-directory floors, ratcheted nightly, changed files on every PR</td>
+<td>Mutation score</td>
+<td>84.1% of 1,355 mutants in <code>src/core</code> killed by the unit suite (<a href="https://github.com/lgriffin/ESI.ts/actions/runs/36307924185">nightly of 2026-09-27</a>); 100% in <code>middleware</code>, <code>pagination</code> and <code>util</code>; floors per directory, ratcheted nightly, changed files on every PR</td>
 <td><code>npm run mutation:ratchet</code></td>
 </tr>
 <tr>
 <td>CI</td>
-<td>One required check (<code>ci-success</code>) over the full matrix; 26 workflows, 15 of them scheduled</td>
+<td>One required check (<code>ci-success</code>) over the full matrix; 28 workflows, 17 of them scheduled</td>
 <td><a href="media/QUALITY-GATES.md">QUALITY-GATES.md</a></td>
+</tr>
+<tr>
+<td>OpenSSF Scorecard</td>
+<td>8.3 / 10 on 2026-09-28; the checks still open need settings only the maintainer can change</td>
+<td><a href="media/SECURITY.md#5-settings-only-the-maintainer-can-change">SECURITY.md</a></td>
 </tr>
 </tbody>
 </table>
@@ -284,7 +292,7 @@ is current on npm and supports Node 18 and later. <strong>11.0.0 is in progress.
 <td>Every test tier, what it proves, how to run it</td>
 </tr>
 <tr>
-<td><a href="media/MUTATION-TESTING.md">Mutation testing</a></td>
+<td><a href="media/TESTING.md#mutation-testing">Mutation testing</a></td>
 <td>Stryker shards, floors and the ratchet</td>
 </tr>
 <tr>
@@ -333,7 +341,7 @@ is current on npm and supports Node 18 and later. <strong>11.0.0 is in progress.
 
 <p>Read <a href="media/CONTRIBUTING.md">CONTRIBUTING.md</a> first. Every behaviour change starts with an EARS requirement and a failing scenario. Every commit is a conventional commit classified by <a href="media/SEMVER.md">SEMVER.md</a>. No floor is ever lowered. Work is tracked in GitHub issues labelled by release and phase, mirrored in <a href="media/BEADS.md">beads</a>.</p>
 <h2 id="license" class="tsd-anchor-link">License<a href="#license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>GPL-3.0-or-later. See <a href="media/LICENSE">LICENSE</a>.</p>
+<p>GPL-3.0-or-later. See <a href="media/LICENSE">LICENSE</a> for the licence text and <a href="media/NOTICE">NOTICE</a> for the copyright line and CCP's trademark notice; EVE Online is the property of CCP hf. and this project is not affiliated with or endorsed by them.</p>
 <hr>
 <p><strong>o7</strong></p>
 </div></div>
@@ -370,7 +378,7 @@ is current on npm and supports Node 18 and later. <strong>11.0.0 is in progress.
 <li><a href="#license"><span>License</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://esi.evetech.net/ui/">ESI Documentation</a><a href="https://www.eveonline.com/">EVE Online</a><a href="https://github.com/lgriffin/ESI.ts" class="tsd-nav-link">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts" class="tsd-nav-link">NPM</a></nav>
-<nav class="tsd-navigation"><a href="modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v10.2.3</a>
+<nav class="tsd-navigation"><a href="modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v11.0.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
 <li>Loading...</li></ul></nav></div></div></div><footer>
 <p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>

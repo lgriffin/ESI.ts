@@ -117,7 +117,7 @@ How a release is cut and how to verify its assets is covered in [RELEASE.md](REL
 
 ## 4. Local credentials
 
-`npm run token:create` runs `scripts/auth/create-token.ts`, which performs the EVE SSO PKCE flow against a local callback on `http://localhost:3000/sso_callback` and writes the resulting tokens to `.env`. `npm run token:refresh` renews them.
+`npm run token:create` runs `scripts/auth/create-token.ts`, which performs the EVE SSO PKCE flow against a local callback on `http://localhost:3000/sso_callback` (`ESI_SSO_CALLBACK_PATH` and `ESI_SSO_CALLBACK_PORT` change it to match an application registered with another localhost URL) and writes the resulting tokens to `.env`. `npm run token:refresh` renews them.
 
 - `.env` and `.env.test` are git-ignored. `.env.example` is the only environment file in git and holds no values.
 - Credentials never appear in committed fixtures, snapshots or examples. Tests that need a real token read it from `.env` and are gated behind `ESI_GATED_TESTS` (see [TESTING.md](TESTING.md)).
@@ -130,6 +130,21 @@ How a release is cut and how to verify its assets is covered in [RELEASE.md](REL
 Everything above lives in the repository and is checked by CI. What follows lives in GitHub and npm settings: nothing in a pull request can change it and nothing in the repository can see it, so each item says how to verify it once done. These are the OpenSSF Scorecard checks the repository cannot move on its own ([#239](https://github.com/lgriffin/ESI.ts/issues/239)), and the remaining half of SEC-07 ([#270](https://github.com/lgriffin/ESI.ts/issues/270), bead `esi-wze`).
 
 The repository side is done: every workflow declares read-only top-level permissions and `tests/tdd/workflows/workflow-permissions.test.ts` lists each job-level write scope (Token-Permissions); each release attaches cosign bundles, the CycloneDX SBOM and a `.intoto.jsonl` provenance file (Signed-Releases); `.github/CODEOWNERS` assigns every path to `@lgriffin`.
+
+### Where the score stands
+
+8.3 / 10 on 2026-09-28 ([run 36409177565](https://github.com/lgriffin/ESI.ts/actions/runs/36409177565) on master `9486fe2c`; 8.2 on 2026-09-21, 6.7 on 2026-08-24). Ten checks score 10 (Security-Policy, Dependency-Update-Tool, Maintained, Dangerous-Workflow, Token-Permissions, Binary-Artifacts, Packaging, Fuzzing, SAST, CI-Tests). What is left, and who moves it:
+
+| Check               | Score | What it needs                                                                                                                                                                                                           |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Branch-Protection   |    -1 | The `SCORECARD_TOKEN` secret below, so the check can read the rules at all; then administrators included and required approvals (SEC-07)                                                                                |
+| Code-Review         |     0 | Merges approved by someone other than the author; a second reviewer is the maintainer's call ([#243](https://github.com/lgriffin/ESI.ts/issues/243), closed as not planned)                                             |
+| CII-Best-Practices  |     0 | Registration at bestpractices.dev ([#246](https://github.com/lgriffin/ESI.ts/issues/246), closed as not planned)                                                                                                        |
+| Vulnerabilities     |     6 | Cleared in the repository on 2026-09-28: the four OSV advisories were vite and esbuild under `docs-site/`, pinned by vitepress 1.6; `docs-site/package.json` now overrides `vite` to 7.x and `npm audit` there is clean |
+| Contributors        |     6 | Contributions from more organisations; inherent to a one-maintainer project                                                                                                                                             |
+| License             |     9 | Cleared in the repository on 2026-09-28: `LICENSE` is now the full GPL-3.0 text and the copyright line and CCP's trademark notice moved to `NOTICE`, so the file is recognised as an OSI licence                        |
+| Pinned-Dependencies |     9 | `skill-eval.yml` installs Claude Code by version, not hash; npm cannot pin a global install by hash, so this stays                                                                                                      |
+| Signed-Releases     |     8 | The next release shipped through `sign-and-publish-assets`, which attaches the `.intoto.jsonl` provenance the check scores highest                                                                                      |
 
 ### Branch protection on `master` that includes administrators (SEC-07, Branch-Protection)
 
@@ -154,7 +169,7 @@ gh api repos/lgriffin/ESI.ts/rules/branches/master \
 gh api repos/lgriffin/ESI.ts/rulesets/<id> --jq '{name, enforcement, bypass: .bypass_actors}'
 ```
 
-Scorecard reads classic branch protection only through a token with administration read access. If the Branch-Protection check reports that it could not read the settings, add a fine-grained token with **Administration: read** on this repository as a secret and pass it to the scorecard step as `repo_token`; that edit to `scorecard.yml` is for the pull request that adds the secret, because an empty `repo_token` would break the run.
+Scorecard reads classic branch protection only through a token with administration read access, and every run so far reports that it could not read the settings (the check scores -1 and is left out of the total). `scorecard.yml` passes `repo_token: ${{ secrets.SCORECARD_TOKEN || github.token }}`, so the fix is one secret: create a fine-grained personal access token scoped to this repository with **Administration: read** (and **Metadata: read**, which GitHub adds), store it as the repository secret `SCORECARD_TOKEN`, and dispatch the workflow. Until the secret exists the run keeps the default token and nothing else changes.
 
 ### OpenSSF Best Practices badge (CII-Best-Practices)
 
@@ -166,4 +181,4 @@ Register the project at [bestpractices.dev](https://www.bestpractices.dev/) and 
 
 ### Signed releases need releases
 
-Scorecard's Signed-Releases check reads the assets of the last five GitHub releases. v10.2.0 carries cosign bundles; v10.2.2 and v10.2.3 carry no assets at all (checked 2026-09-27), so the check stays low until the releases in that window went through `sign-and-publish-assets`. Re-running `release.yml` on an old tag would also try to publish to npm again, so the fix is forward: make sure each new release's run finishes. After the next release, confirm its assets include the `.sigstore.json` bundles and the `.intoto.jsonl` file (`gh release view vX.Y.Z --json assets --jq '.assets[].name'`).
+Scorecard's Signed-Releases check reads the assets of the last five GitHub releases. v10.2.0 carries cosign bundles; v10.2.2 and v10.2.3 carry no assets at all (checked 2026-09-27), so the check stays at 8 ("2 out of the last 2 releases have signed artifacts", no provenance file yet) until the releases in that window went through `sign-and-publish-assets`. Re-running `release.yml` on an old tag would also try to publish to npm again, so the fix is forward: make sure each new release's run finishes. After the next release, confirm its assets include the `.sigstore.json` bundles and the `.intoto.jsonl` file (`gh release view vX.Y.Z --json assets --jq '.assets[].name'`).
