@@ -34,6 +34,19 @@ updates:
       - dependency-name: '*'
         update-types:
           - version-update:semver-patch
+      # TypeScript 7 (the native compiler) is outside ts-jest 29's peer range
+      # (>=4.3 <7), so npm ci fails on it and the whole major group goes red
+      # (#556). Tracked in #562: drop this once ts-jest, tsup, typedoc, tsd and
+      # typescript-eslint all accept 7.
+      - dependency-name: typescript
+        versions:
+          - '>=7.0.0'
+      # pino 10 pulls thread-stream 4, whose typings reference
+      # worker_threads.TransferListItem, which @types/node 26 no longer has, so
+      # the doc-examples consumer type-check fails (#560). Tracked in #561.
+      - dependency-name: pino
+        versions:
+          - '>=10.0.0'
     groups:
       # Catch-all groups also keep lockstep families together (size-limit
       # pins its plugins as exact peers; eslint and jest move as sets).
