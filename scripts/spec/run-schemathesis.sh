@@ -16,7 +16,7 @@ FUZZ_NETWORK="esi-fuzz-$$"
 PRISM_IMAGE="stoplight/prism:5@sha256:3f6d29e31bfe0b99587f0f6f79c423858dd6a2ea7e1e4658273ed930a78a9acf"
 
 cleanup() {
-  if docker ps -q --filter "name=^${PRISM_CONTAINER}$" | grep -q .; then
+  if docker ps -aq --filter "name=^${PRISM_CONTAINER}$" | grep -q .; then
     echo "Stopping Prism (container: $PRISM_CONTAINER)..."
     docker rm -f "$PRISM_CONTAINER" >/dev/null 2>&1 || true
   fi
@@ -98,20 +98,31 @@ PREPROCESS
 
 echo "Starting Prism mock server on port 4010..."
 docker network create "$FUZZ_NETWORK" >/dev/null
-docker run --rm -d --name "$PRISM_CONTAINER" \
+docker run -d --name "$PRISM_CONTAINER" \
   --network "$FUZZ_NETWORK" --network-alias prism -p 4010:4010 \
   -v "$MODIFIED_SPEC:/spec/esi-openapi-fuzz.json:ro" \
   "$PRISM_IMAGE" \
   mock -h 0.0.0.0 -p 4010 /spec/esi-openapi-fuzz.json >/dev/null
 
-echo "Waiting for Prism to be ready..."
-for i in $(seq 1 30); do
+# Prism validates and dereferences the whole ESI document before it listens,
+# which takes well over 30 seconds on a CI runner, so the probe waits up to
+# two minutes and gives up early only when the container itself has exited.
+# Either failure prints the container log, which is otherwise lost with it.
+PRISM_WAIT_SECONDS="${PRISM_WAIT_SECONDS:-120}"
+echo "Waiting for Prism to be ready (up to ${PRISM_WAIT_SECONDS}s)..."
+for i in $(seq 1 "$PRISM_WAIT_SECONDS"); do
   if curl -s -o /dev/null http://localhost:4010/status 2>/dev/null; then
-    echo "Prism is ready."
+    echo "Prism is ready after ${i}s."
     break
   fi
-  if [ "$i" -eq 30 ]; then
-    echo "Prism failed to start within 30 seconds."
+  if ! docker ps -q --filter "name=^${PRISM_CONTAINER}$" | grep -q .; then
+    echo "Prism exited before it was ready. Container log:"
+    docker logs "$PRISM_CONTAINER" 2>&1 | tail -n 50 || true
+    exit 1
+  fi
+  if [ "$i" -eq "$PRISM_WAIT_SECONDS" ]; then
+    echo "Prism failed to start within ${PRISM_WAIT_SECONDS} seconds. Container log:"
+    docker logs "$PRISM_CONTAINER" 2>&1 | tail -n 50 || true
     exit 1
   fi
   sleep 1
