@@ -13,5 +13,6 @@ After(function () {
     finishTransport();
   } finally {
     this.sde?.close();
+    for (const cleanup of this.cleanups.splice(0).reverse()) cleanup();
   }
 });

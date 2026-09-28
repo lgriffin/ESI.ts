@@ -50,4 +50,10 @@ export class World {
    * responses for, a duration a When step measured.
    */
   readonly values: Record<string, any> = {};
+
+  /**
+   * What a Given step must undo after the scenario: a temporary directory
+   * to remove, a module mock to lift. The After hook runs them last first.
+   */
+  readonly cleanups: Array<() => void> = [];
 }

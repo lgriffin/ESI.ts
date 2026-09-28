@@ -381,7 +381,7 @@ Test files:
 - `SdeExtractor.test.ts` -- ZIP parsing
 - `SdeDownloader.test.ts` -- HTTP mocking
 
-### BDD Tests (60 scenarios, ~2s)
+### BDD Tests (186 scenarios, ~3s)
 
 ```bash
 npm run bdd:sde
@@ -400,6 +400,17 @@ Feature files in `tests/bdd/features/sde/`, one EARS requirement per `Rule:`:
 - `0010-sde-celestial-bodies.feature` -- stars, planets, moons, asteroid belts by their own ID
 - `0011-sde-market-groups.feature` -- market group by ID, its types, group search
 - `0012-sde-dogma-definitions.feature` -- effects, attribute categories, units, attribute and effect search
+- `0013-sde-character-reference.feature` -- factions and races whole, bloodline and ancestry by ID, character attributes, clone grades, schools
+- `0014-sde-npc-organisations.feature` -- NPC corporations, stations by system and owner, NPC characters and their search, activities, divisions, agents
+- `0015-sde-presentation-tables.feature` -- meta groups, icons, graphics, skins and licences, notification types
+- `0016-sde-universe-reference.feature` -- landmarks, secondary suns, station operations and services
+- `0017-sde-industry-reference.feature` -- schematics whole, industry activities, certificates, type dogma, materials and bonuses
+- `0018-sde-mission-content.feature` -- missions, dungeons, epic arcs
+- `0019-sde-generic-access.feature` -- `getEntity` and `getAllEntities` by table name
+- `0020-sde-loading.feature` -- `fromDirectory` and `fromZip`: the version record, locale and ID-suffix reshaping, foreign-key lookups, missing paths, `close`
+- `0021-sde-optional-peers.feature` -- the `SdeError` raised when js-yaml or adm-zip is not installed
+- `0022-sde-memory-entry.feature` -- `./sde/memory` exports everything `./sde` does except `SdeDataProvider`
+- `0023-sde-ingestion.feature` -- downloader, extractor, database builder and the transforms, with the network answered at the transport seam
 
 `npm run spec:coverage:sde` lists the provider methods no Rule names and no
 bound step reaches; `scripts/sde/sde-spec-coverage-baseline.json` holds that
