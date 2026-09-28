@@ -1,0 +1,264 @@
+{
+  "$comment": "Public domain-client methods no Rule names and no bound step calls, by client. Shrink-only: CI fails on an uncovered method missing from this list, on an entry that is now covered or no longer a method, and on any entry not on master. Regenerate with npm run spec:coverage:clients -- --write-baseline.",
+  "uncovered": {
+    "AccessListsClient": [
+      "getCharacterAccessLists"
+    ],
+    "AllianceClient": [
+      "getContactLabels",
+      "getIcons",
+      "fetchAllAlliances",
+      "fetchAllCorporations",
+      "streamAlliances",
+      "streamCorporations"
+    ],
+    "AssetsClient": [
+      "postCorporationAssetLocations",
+      "postCorporationAssetNames",
+      "fetchAllCharacterAssets",
+      "fetchAllCorporationAssets",
+      "streamCharacterAssets",
+      "streamCorporationAssets"
+    ],
+    "CalendarClient": [
+      "fetchAllCalendarEvents",
+      "fetchAllEventAttendees",
+      "streamCalendarEvents",
+      "streamEventAttendees"
+    ],
+    "CharacterClient": [
+      "getCharacterAgentsResearch",
+      "postCspaChargeCost",
+      "getCharacterFatigue",
+      "getCharacterNotificationsContacts",
+      "getCharacterStandings",
+      "getCharacterTitles",
+      "postCharacterAffiliation",
+      "fetchAllCharacterAgentsResearch",
+      "fetchAllCharacterBlueprints",
+      "fetchAllCharacterCorporationHistory",
+      "fetchAllCharacterMedals",
+      "fetchAllCharacterNotifications",
+      "fetchAllCharacterNotificationsContacts",
+      "fetchAllCharacterStandings",
+      "fetchAllCharacterTitles",
+      "streamCharacterAgentsResearch",
+      "streamCharacterBlueprints",
+      "streamCharacterCorporationHistory",
+      "streamCharacterMedals",
+      "streamCharacterNotifications",
+      "streamCharacterNotificationsContacts",
+      "streamCharacterStandings",
+      "streamCharacterTitles"
+    ],
+    "CharacterSkillsClient": [
+      "fetchAllCharacterSkillQueue",
+      "streamCharacterSkillQueue"
+    ],
+    "ClonesClient": [
+      "fetchAllImplants",
+      "streamImplants"
+    ],
+    "ContactsClient": [
+      "getAllianceContacts",
+      "getAllianceContactLabels",
+      "putCharacterContacts",
+      "fetchAllAllianceContacts",
+      "fetchAllAllianceContactLabels",
+      "fetchAllCharacterContacts",
+      "fetchAllCharacterContactLabels",
+      "fetchAllCorporationContacts",
+      "fetchAllCorporationContactLabels",
+      "streamAllianceContacts",
+      "streamAllianceContactLabels",
+      "streamCharacterContacts",
+      "streamCharacterContactLabels",
+      "streamCorporationContacts",
+      "streamCorporationContactLabels"
+    ],
+    "ContractsClient": [
+      "getCorporationContractBids",
+      "getCorporationContractItems",
+      "fetchAllPublicContracts",
+      "fetchAllCharacterContracts",
+      "fetchAllCorporationContracts",
+      "streamPublicContracts",
+      "streamCharacterContracts",
+      "streamCorporationContracts"
+    ],
+    "CorporationsClient": [
+      "getCorporationAllianceHistory",
+      "getCorporationAlscLogs",
+      "getCorporationDivisions",
+      "getCorporationFacilities",
+      "getCorporationIcon",
+      "getCorporationMemberLimit",
+      "getCorporationMemberTitles",
+      "getCorporationMemberTracking",
+      "getCorporationShareholders",
+      "getCorporationStarbases",
+      "getCorporationTitles",
+      "getNpcCorporations",
+      "fetchAllCorporationAllianceHistory",
+      "fetchAllCorporationBlueprints",
+      "fetchAllCorporationAlscLogs",
+      "fetchAllCorporationFacilities",
+      "fetchAllCorporationMedals",
+      "fetchAllCorporationIssuedMedals",
+      "fetchAllCorporationMembers",
+      "fetchAllCorporationMemberTitles",
+      "fetchAllCorporationMemberTracking",
+      "fetchAllCorporationRoles",
+      "fetchAllCorporationRolesHistory",
+      "fetchAllCorporationShareholders",
+      "fetchAllCorporationStandings",
+      "fetchAllCorporationStarbases",
+      "fetchAllCorporationStructures",
+      "fetchAllCorporationTitles",
+      "fetchAllNpcCorporations",
+      "streamCorporationAllianceHistory",
+      "streamCorporationBlueprints",
+      "streamCorporationAlscLogs",
+      "streamCorporationFacilities",
+      "streamCorporationMedals",
+      "streamCorporationIssuedMedals",
+      "streamCorporationMembers",
+      "streamCorporationMemberTitles",
+      "streamCorporationMemberTracking",
+      "streamCorporationRoles",
+      "streamCorporationRolesHistory",
+      "streamCorporationShareholders",
+      "streamCorporationStandings",
+      "streamCorporationStarbases",
+      "streamCorporationStructures",
+      "streamCorporationTitles",
+      "streamNpcCorporations"
+    ],
+    "FittingsClient": [
+      "fetchAllFittings",
+      "streamFittings"
+    ],
+    "FleetClient": [
+      "createFleetInvitation",
+      "deleteFleetSquad",
+      "renameFleetSquad",
+      "deleteFleetWing",
+      "renameFleetWing",
+      "fetchAllFleetMembers",
+      "fetchAllFleetWings",
+      "streamFleetMembers",
+      "streamFleetWings"
+    ],
+    "IndustryClient": [
+      "getMoonExtractionTimers",
+      "fetchAllCharacterIndustryJobs",
+      "fetchAllCharacterMiningLedger",
+      "fetchAllCorporationIndustryJobs",
+      "fetchAllMoonExtractionTimers",
+      "fetchAllCorporationMiningObservers",
+      "fetchAllCorporationMiningObserver",
+      "fetchAllIndustryFacilities",
+      "fetchAllIndustrySystems",
+      "streamCharacterIndustryJobs",
+      "streamCharacterMiningLedger",
+      "streamCorporationIndustryJobs",
+      "streamMoonExtractionTimers",
+      "streamCorporationMiningObservers",
+      "streamCorporationMiningObserver",
+      "streamIndustryFacilities",
+      "streamIndustrySystems"
+    ],
+    "KillmailsClient": [
+      "fetchAllCharacterRecentKillmails",
+      "fetchAllCorporationRecentKillmails",
+      "streamCharacterRecentKillmails",
+      "streamCorporationRecentKillmails"
+    ],
+    "LoyaltyClient": [
+      "fetchAllLoyaltyPoints",
+      "fetchAllLoyaltyStoreOffers",
+      "streamLoyaltyPoints",
+      "streamLoyaltyStoreOffers"
+    ],
+    "MailClient": [
+      "fetchAllMailHeaders",
+      "fetchAllMailingLists",
+      "streamMailHeaders",
+      "streamMailingLists"
+    ],
+    "MarketClient": [
+      "getCorporationOrders",
+      "getCorporationOrderHistory",
+      "getMarketGroups",
+      "getMarketGroupInformation",
+      "fetchAllMarketOrders",
+      "fetchAllMarketTypes",
+      "fetchAllCharacterOrderHistory",
+      "fetchAllCorporationOrders",
+      "fetchAllCorporationOrderHistory",
+      "fetchAllMarketOrdersInStructure",
+      "streamMarketOrders",
+      "streamCharacterOrderHistory",
+      "streamCorporationOrders",
+      "streamCorporationOrderHistory",
+      "streamMarketOrdersInStructure"
+    ],
+    "MetaClient": [
+      "getCompatibilityDates",
+      "getName"
+    ],
+    "MilitaryCampaignsClient": [
+      "getMilitaryCampaignObjective",
+      "getCharacterMilitaryCampaignObjective"
+    ],
+    "ParagonHubClient": [
+      "getCharacterTargetedListings",
+      "getCorporationListings"
+    ],
+    "PiClient": [
+      "fetchAllColonies",
+      "fetchAllCorporationCustomsOffices",
+      "streamColonies",
+      "streamCorporationCustomsOffices"
+    ],
+    "UniverseClient": [
+      "getAncestries",
+      "getAsteroidBeltInfo",
+      "getBloodlines",
+      "getConstellationById",
+      "getConstellations",
+      "getFactions",
+      "getGraphicById",
+      "getGraphics",
+      "getItemCategories",
+      "getItemCategoryById",
+      "getMoonById",
+      "getRaces",
+      "getRegionById",
+      "getStargateById",
+      "getStructures",
+      "getSystemJumps",
+      "getSystemKills",
+      "getTypes",
+      "postBulkNamesToIds",
+      "getSchematicById",
+      "getRegions"
+    ],
+    "WalletClient": [
+      "fetchAllCharacterWalletJournal",
+      "fetchAllCorporationWalletJournal",
+      "fetchAllCharacterWalletTransactions",
+      "fetchAllCorporationWalletTransactions",
+      "streamCharacterWalletJournal",
+      "streamCorporationWalletJournal",
+      "streamCharacterWalletTransactions",
+      "streamCorporationWalletTransactions"
+    ],
+    "WarsClient": [
+      "fetchAllWars",
+      "fetchAllWarKillmails",
+      "streamWars",
+      "streamWarKillmails"
+    ]
+  }
+}
