@@ -24,9 +24,9 @@ import type {
   DogmaEffect,
   Blueprint,
   PlanetSchematic,
-} from './types';
-import type { SdeVersionInfo } from './version';
-import type { MemorySdeData } from './MemorySdeProvider';
+} from '../domain/types';
+import type { SdeVersionInfo } from '../version';
+import type { MemorySdeData } from '../providers/memory/MemorySdeProvider';
 
 export class SdeTestDataFactory {
   static createEveType(overrides: Partial<EveType> = {}): EveType {

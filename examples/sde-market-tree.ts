@@ -10,7 +10,7 @@
  * @nightly sde
  */
 import { SdeDataProvider } from '../src/sde';
-import type { MarketGroup } from '../src/sde/types';
+import type { MarketGroup } from '../src/sde/domain/types';
 
 function printTree(
   sde: ReturnType<typeof SdeDataProvider.fromDirectory>,

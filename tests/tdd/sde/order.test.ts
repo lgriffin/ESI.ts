@@ -1,4 +1,4 @@
-import { compareIds, sortedById } from '../../../src/sde/order';
+import { compareIds, sortedById } from '../../../src/sde/providers/order';
 
 describe('SDE table order', () => {
   describe('compareIds', () => {

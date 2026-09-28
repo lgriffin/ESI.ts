@@ -25,7 +25,7 @@ are plain fast-check tests and are not covered by the rules below.
 
 `sde-schema-fuzz.test.ts` is a plain fast-check suite beside them, run by
 `fuzz:properties` and the nightly as well: an
-arbitrary derived from each zod definition in `src/sde/schemas.ts` proves a
+arbitrary derived from each zod definition in `src/sde/domain/schemas.ts` proves a
 generated record round-trips through `parse` with an extra field kept and is
 rejected once a required key is removed. The SDE arbitraries, the oracle and
 the provider mutants live in [`support/sde.ts`](support/sde.ts); a data set

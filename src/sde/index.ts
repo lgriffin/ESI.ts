@@ -1,9 +1,9 @@
-export type { IStaticDataProvider } from './IStaticDataProvider';
+export type { IStaticDataProvider } from './ports/IStaticDataProvider';
 
-export { SdeDataProvider } from './SdeDataProvider';
-export type { SdeDataProviderOptions } from './SdeDataProvider';
-export { MemorySdeProvider } from './MemorySdeProvider';
-export type { MemorySdeData } from './MemorySdeProvider';
+export { SdeDataProvider } from './providers/yaml/SdeDataProvider';
+export type { SdeDataProviderOptions } from './providers/yaml/SdeDataProvider';
+export { MemorySdeProvider } from './providers/memory/MemorySdeProvider';
+export type { MemorySdeData } from './providers/memory/MemorySdeProvider';
 
 export type {
   Position3D,
@@ -115,7 +115,7 @@ export type {
   TypeList,
   TypeMaterial,
   EveType,
-} from './types';
+} from './domain/types';
 
 export type { SdeVersionInfo } from './version';
 
@@ -130,4 +130,4 @@ export {
   isSdeVersionMismatch,
 } from './errors';
 
-export { SdeTestDataFactory } from './SdeTestDataFactory';
+export { SdeTestDataFactory } from './testing/SdeTestDataFactory';

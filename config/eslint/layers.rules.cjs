@@ -15,6 +15,14 @@
  *   its own files, its peer packages and src/core/ports only, and nothing
  *   under src/ outside src/sde imports it. The rule holds in both directions,
  *   so the SDE can neither reach the pipeline nor be reached by it.
+ * - Inside src/sde the layers point inward as well (Track S Run 12):
+ *   domain/ (entity types and schemas) imports only itself and zod; ports/
+ *   imports domain/ and the root support files; ingestion/ imports itself and
+ *   the root support files, never a port or a provider; providers/ imports
+ *   the ports, the domain, the ingestion and the root files; testing/ is
+ *   imported by the entry points only; the root support files (errors,
+ *   version, clock, optionalPeers) import one another only; index.ts and
+ *   memory.ts, the entry points, are imported by nothing in the module.
  *
  * The rule resolves every module specifier against the importing file, so a
  * redundant segment (`.././clients`) or a detour (`./../ApiClient`) is judged
@@ -74,6 +82,35 @@ const selfSde = (specifier) =>
  */
 const SDE_PACKAGES = ['zod', 'js-yaml', 'adm-zip', 'better-sqlite3'];
 
+/** The SDE's entry points, the only files that may import src/sde/testing. */
+const SDE_ENTRIES = ['src/sde/index.ts', 'src/sde/memory.ts'];
+
+/**
+ * The layers inside src/sde and, for each, the layers it may import
+ * (`root` is the module's support files: errors, version, clock,
+ * optionalPeers; `entry` is index.ts and memory.ts).
+ */
+const SDE_LAYERS = {
+  entry: ['ports', 'domain', 'providers', 'ingestion', 'testing', 'root'],
+  testing: ['ports', 'domain', 'providers', 'root'],
+  providers: ['ports', 'domain', 'providers', 'ingestion', 'root'],
+  ingestion: ['ingestion', 'root'],
+  ports: ['domain', 'root'],
+  domain: ['domain'],
+  root: ['root'],
+};
+
+/** The package a domain file may import; a schema needs nothing else. */
+const SDE_DOMAIN_PACKAGES = ['zod'];
+
+/** The layer of a file under src/sde, as a key of SDE_LAYERS. */
+function sdeLayerOf(file) {
+  if (SDE_ENTRIES.includes(file)) return 'entry';
+  const [sub] = file.slice(`${SDE}/`.length).split('/');
+  const layer = sub.replace(/\.(?:[cm]?[jt]s|d\.ts)$/, '');
+  return layer in SDE_LAYERS && layer !== 'entry' ? layer : 'root';
+}
+
 const messages = {
   core:
     '[layers:core] src/core must not import {{target}}, a layer built on top of it. ' +
@@ -93,6 +130,9 @@ const messages = {
   sideModule:
     '[layers:sideModule] Nothing outside src/sde may import {{target}}: the SDE shares no code with ' +
     'the pipeline. A bridge belongs in a separate package. See guides/DESIGN-RULES.md#7--layers.',
+  sdeLayer:
+    '[layers:sdeLayer] Inside src/sde, {{layer}} imports {{allowed}} only, not {{target}}. ' +
+    'See guides/SDE.md#layers-inside-the-module.',
 };
 
 const within = (file, dir) => file === dir || file.startsWith(`${dir}/`);
@@ -131,7 +171,8 @@ function check(importer, specifier, baseline) {
     const allowed = relative
       ? within(target, SDE) || within(target, PORTS)
       : specifier.startsWith('node:') || SDE_PACKAGES.includes(specifier);
-    return allowed ? null : { messageId: 'sde', target: shown };
+    if (!allowed) return { messageId: 'sde', target: shown };
+    return checkSdeLayer(importer, specifier, target, relative);
   }
   if (!relative) {
     return selfSde(specifier)
@@ -145,6 +186,39 @@ function check(importer, specifier, baseline) {
   if (top === 'sde') return { messageId: 'sideModule', target };
   if (within(importer, 'src/client') || within(importer, 'src/adapters')) {
     return LEGACY.includes(top) ? { messageId: 'legacy', target } : null;
+  }
+  return null;
+}
+
+/**
+ * The violation, if any, of the layers inside src/sde for an import the
+ * side-module rule already allows.
+ */
+function checkSdeLayer(importer, specifier, target, relative) {
+  const layer = sdeLayerOf(importer);
+  const allowed = SDE_LAYERS[layer];
+  const data = (shown) => ({
+    messageId: 'sdeLayer',
+    target: shown,
+    layer: layer === 'entry' ? 'an entry point' : `src/sde/${layer}`,
+    allowed: allowed.map((l) => `src/sde/${l}`).join(', '),
+  });
+  if (!relative) {
+    return layer === 'domain' && !SDE_DOMAIN_PACKAGES.includes(specifier)
+      ? data(`the package ${specifier}`)
+      : null;
+  }
+  if (!within(target, SDE)) return null;
+  // `../../index.js` under bundler resolution is `index.ts`: strip any
+  // extension before naming the source file, so no spelling reaches an
+  // entry point unchecked.
+  const targetFile = `${target.replace(/\.(?:[cm]?[jt]s|d\.ts)$/, '')}.ts`;
+  const targetLayer =
+    target === SDE || SDE_ENTRIES.includes(targetFile)
+      ? 'entry'
+      : sdeLayerOf(targetFile);
+  if (targetLayer === 'entry' || !allowed.includes(targetLayer)) {
+    return data(target);
   }
   return null;
 }
@@ -185,7 +259,7 @@ const inwardImports = {
         context.report({
           node: source,
           messageId: violation.messageId,
-          data: { target: violation.target },
+          data: violation,
         });
       }
     }

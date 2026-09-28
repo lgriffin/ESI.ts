@@ -7,10 +7,10 @@
  * data set, so the IDs below are that data set's: Tritanium in The Forge,
  * with the version record the factory stamps on it.
  */
-import type { IStaticDataProvider } from '../../../src/sde/IStaticDataProvider';
-import { MemorySdeProvider } from '../../../src/sde/MemorySdeProvider';
-import type { MemorySdeData } from '../../../src/sde/MemorySdeProvider';
-import { SdeTestDataFactory } from '../../../src/sde/SdeTestDataFactory';
+import type { IStaticDataProvider } from '../../../src/sde/ports/IStaticDataProvider';
+import { MemorySdeProvider } from '../../../src/sde/providers/memory/MemorySdeProvider';
+import type { MemorySdeData } from '../../../src/sde/providers/memory/MemorySdeProvider';
+import { SdeTestDataFactory } from '../../../src/sde/testing/SdeTestDataFactory';
 import {
   SdeDatabaseError,
   SdeError,
@@ -21,7 +21,7 @@ import {
   isSdeValidationError,
   isSdeVersionMismatch,
 } from '../../../src/sde/errors';
-import { EveTypeSchema } from '../../../src/sde/schemas';
+import { EveTypeSchema } from '../../../src/sde/domain/schemas';
 import type {
   AgentInSpace,
   AgentType,
@@ -53,7 +53,7 @@ import type {
   TypeBonus,
   TypeDogma,
   TypeMaterial,
-} from '../../../src/sde/types';
+} from '../../../src/sde/domain/types';
 import type { World } from './world';
 
 export const TRITANIUM = { typeId: 34, name: 'Tritanium', groupId: 18 };

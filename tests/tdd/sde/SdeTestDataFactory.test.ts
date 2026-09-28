@@ -1,4 +1,4 @@
-import { SdeTestDataFactory } from '../../../src/sde/SdeTestDataFactory';
+import { SdeTestDataFactory } from '../../../src/sde/testing/SdeTestDataFactory';
 import {
   EveTypeSchema,
   EveGroupSchema,
@@ -26,7 +26,7 @@ import {
   BlueprintSchema,
   PlanetSchematicSchema,
   SdeVersionSchema,
-} from '../../../src/sde/schemas';
+} from '../../../src/sde/domain/schemas';
 
 describe('SdeTestDataFactory', () => {
   describe('createEveType', () => {

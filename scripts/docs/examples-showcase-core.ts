@@ -27,7 +27,7 @@ export const IMPORT_MAP: Readonly<Record<string, string>> = {
   '../src/client': '@lgriffin/esi.ts/client',
   '../src/core/util/error': '@lgriffin/esi.ts/errors',
   '../src/sde': '@lgriffin/esi.ts/sde',
-  '../src/sde/types': '@lgriffin/esi.ts/sde',
+  '../src/sde/domain/types': '@lgriffin/esi.ts/sde',
 };
 
 /** The showcase's sections, in page order. */

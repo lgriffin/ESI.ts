@@ -1,4 +1,4 @@
-import { type Stargate } from '../../../../src/sde/types';
+import { type Stargate } from '../../../../src/sde/domain/types';
 import { Then } from '../../support/steps';
 
 Then(

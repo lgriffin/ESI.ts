@@ -25,8 +25,8 @@ import {
   BlueprintSchema,
   PlanetSchematicSchema,
   SdeVersionSchema,
-} from '../../../src/sde/schemas';
-import { SdeTestDataFactory } from '../../../src/sde/SdeTestDataFactory';
+} from '../../../src/sde/domain/schemas';
+import { SdeTestDataFactory } from '../../../src/sde/testing/SdeTestDataFactory';
 
 describe('SDE Zod Schemas', () => {
   describe('EveTypeSchema', () => {

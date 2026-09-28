@@ -1,4 +1,4 @@
-import type { Race } from '../../../../src/sde/types';
+import type { Race } from '../../../../src/sde/domain/types';
 import { Then } from '../../support/steps';
 
 Then('the race name should be {string}', function (name: string) {

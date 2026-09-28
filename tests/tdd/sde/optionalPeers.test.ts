@@ -101,7 +101,7 @@ describe('optional peer dependencies of ./sde', () => {
     /** Loads the SDE modules against a createRequire that finds nothing. */
     function withoutPeers<T>(
       body: (modules: {
-        SdeDataProvider: typeof import('../../../src/sde/SdeDataProvider').SdeDataProvider;
+        SdeDataProvider: typeof import('../../../src/sde/providers/yaml/SdeDataProvider').SdeDataProvider;
         SdeExtractor: typeof import('../../../src/sde/ingestion/SdeExtractor').SdeExtractor;
         SdeErrorClass: typeof SdeError;
       }) => T,
@@ -117,8 +117,8 @@ describe('optional peer dependencies of ./sde', () => {
         result = body({
           SdeDataProvider: (
             jest.requireActual(
-              '../../../src/sde/SdeDataProvider',
-            ) as typeof import('../../../src/sde/SdeDataProvider')
+              '../../../src/sde/providers/yaml/SdeDataProvider',
+            ) as typeof import('../../../src/sde/providers/yaml/SdeDataProvider')
           ).SdeDataProvider,
           SdeExtractor: (
             jest.requireActual(

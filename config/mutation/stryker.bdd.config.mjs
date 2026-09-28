@@ -36,6 +36,7 @@ const COMMON_EXCLUSIONS = [
   '!src/**/*.d.ts',
   '!src/types/**',
   '!src/testing/**',
+  '!src/sde/testing/**',
   '!src/config/**',
   '!src/**/I[A-Z]*.ts',
   '!src/**/index.ts',

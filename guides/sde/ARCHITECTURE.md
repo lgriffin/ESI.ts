@@ -348,23 +348,38 @@ npx jest --config config/jest/integration.config.cjs -- tests/integration/sde/  
 
 ## 8. Module File Layout
 
+Since Track S Run 12 the module is laid out by role, and `npm run lint:layers` keeps each folder importing only the folders beneath it (the table is in [SDE.md](../SDE.md#layers-inside-the-module)).
+
 ```
 src/sde/
-  IStaticDataProvider.ts    # 97-method interface contract
-  SdeDataProvider.ts        # Core YAML-backed provider (fromDirectory, fromZip)
-  MemorySdeProvider.ts      # In-memory test double
-  SdeTestDataFactory.ts     # Test fixture factory
-  types.ts                  # 109 entity interfaces
-  schemas.ts                # 110 Zod validation schemas
+  index.ts                  # ./sde entry point
+  memory.ts                 # ./sde/memory entry point (no file code)
   version.ts                # SdeVersionInfo type
   errors.ts                 # SdeError hierarchy (4 error classes + type guards)
-  index.ts                  # Barrel exports
+  clock.ts                  # The module's clock (a Clock port)
+  optionalPeers.ts          # Lazy js-yaml / adm-zip loading
+  ports/
+    IStaticDataProvider.ts  # 99-method interface contract
+  domain/
+    types.ts                # Barrel: every entity interface
+    schemas.ts              # Barrel: every Zod schema
+    <domain>/types.ts       # Entity interfaces of one SDE domain (universe, types,
+    <domain>/schemas.ts     # dogma, industry, market, characters, corporations,
+                            # skins, content, ui) and the schemas that validate them
+    version/schemas.ts      # SdeVersionSchema
+  providers/
+    order.ts                # ID ordering shared by both providers
+    yaml/SdeDataProvider.ts # YAML-backed provider (fromDirectory, fromZip)
+    memory/MemorySdeProvider.ts  # In-memory provider
   ingestion/
     constants.ts            # SDE_FILE_REGISTRY (102 entries), CCP URLs
     SdeDownloader.ts        # HTTP download with progress callback
     SdeExtractor.ts         # ZIP extraction and YAML parsing
+    metadata.ts             # _sde.yaml parsing
     transforms.ts           # Field normalization, locale extraction
     index.ts                # Barrel exports
+  testing/
+    SdeTestDataFactory.ts   # Test fixture factory
 ```
 
 The guides (this file, [API_CONTRACTS.md](API_CONTRACTS.md), [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md), [USAGE.md](USAGE.md)) live in `guides/sde/`, with [guides/SDE.md](../SDE.md) as the front door.

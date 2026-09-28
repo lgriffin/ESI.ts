@@ -1,4 +1,4 @@
-import type { NpcStation } from '../../../../src/sde/types';
+import type { NpcStation } from '../../../../src/sde/domain/types';
 import { Then } from '../../support/steps';
 
 Then('the station should have an owner', function () {
