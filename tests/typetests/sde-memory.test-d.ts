@@ -352,6 +352,16 @@ expectError(provider.getDungeon('1'));
 expectType<EpicArc | null>(provider.getEpicArc(1));
 expectError(provider.getEpicArc('1'));
 expectType<EpicArc[]>(provider.getAllEpicArcs());
+expectType<Record<string, unknown> | null>(provider.getEntity('eve_types', 34));
+expectType<Record<string, unknown> | null>(
+  provider.getEntity('eve_landmarks', 'a'),
+);
+expectType<EveType | null>(provider.getEntity<EveType>('eve_types', 34));
+expectError(provider.getEntity('eve_types', true));
+expectError(provider.getEntity(34, 34));
+expectType<Record<string, unknown>[]>(provider.getAllEntities('eve_types'));
+expectType<EveType[]>(provider.getAllEntities<EveType>('eve_types'));
+expectError(provider.getAllEntities(34));
 expectType<SdeVersionInfo>(provider.getVersion());
 expectType<void>(provider.close());
 
@@ -541,6 +551,16 @@ expectError(memory.getDungeon('1'));
 expectType<EpicArc | null>(memory.getEpicArc(1));
 expectError(memory.getEpicArc('1'));
 expectType<EpicArc[]>(memory.getAllEpicArcs());
+expectType<Record<string, unknown> | null>(memory.getEntity('eve_types', 34));
+expectType<Record<string, unknown> | null>(
+  memory.getEntity('eve_landmarks', 'a'),
+);
+expectType<EveType | null>(memory.getEntity<EveType>('eve_types', 34));
+expectError(memory.getEntity('eve_types', true));
+expectError(memory.getEntity(34, 34));
+expectType<Record<string, unknown>[]>(memory.getAllEntities('eve_types'));
+expectType<EveType[]>(memory.getAllEntities<EveType>('eve_types'));
+expectError(memory.getAllEntities(34));
 expectType<SdeVersionInfo>(memory.getVersion());
 expectType<void>(memory.close());
 
@@ -738,6 +758,7 @@ expectType<number>(asteroidBeltRecord.asteroidBeltId);
 declare const bloodlineRecord: Bloodline;
 expectType<number>(bloodlineRecord.bloodlineId);
 declare const blueprintRecord: Blueprint;
+expectType<number>(blueprintRecord.blueprintTypeId);
 expectType<BlueprintActivities>(blueprintRecord.activities);
 declare const eveCategoryRecord: EveCategory;
 expectType<number>(eveCategoryRecord.categoryId);
@@ -868,6 +889,7 @@ expectType<number>(shipTreeGroupRecord.shipTreeGroupId);
 declare const skillPlanRecord: SkillPlan;
 expectType<number>(skillPlanRecord.skillPlanId);
 declare const skinLicenseRecord: SkinLicense;
+expectType<number>(skinLicenseRecord.licenseTypeId);
 expectType<number>(skinLicenseRecord.duration);
 declare const skinMaterialRecord: SkinMaterial;
 expectType<string>(skinMaterialRecord.displayName);
