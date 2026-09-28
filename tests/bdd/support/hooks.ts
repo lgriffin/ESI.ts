@@ -9,6 +9,9 @@ Before(function () {
 });
 
 After(function () {
-  finishTransport();
-  this.sde?.close();
+  try {
+    finishTransport();
+  } finally {
+    this.sde?.close();
+  }
 });
