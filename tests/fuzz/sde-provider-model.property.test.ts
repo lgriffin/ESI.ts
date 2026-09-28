@@ -17,17 +17,17 @@
  *   root groups    the market groups whose parent is null
  *   generic        the same by table name; an unknown table answers null or []
  *
- * The memory provider serves the arrays it was given, so its load order is
- * theirs. The SQLite route reads YAML maps keyed by ID, which enumerate in
- * ascending key order, so its oracle is the same arrays sorted by ID. Its
- * foreign-key indexes are built on first use; the sequences repeat and
- * interleave foreign-key queries so the lazily built index answers alongside
- * the fresh scan. Both providers are specified by the Rules under
- * tests/bdd/features/sde; this file checks them over every data shape.
+ * Both providers sort every table by ID at load time (feature 0008, "ordered
+ * by ID ascending"), so the oracle is the generated arrays sorted by ID
+ * whichever order they were given in, for the memory provider and for the
+ * SQLite route alike. The SQLite route's foreign-key indexes are built on
+ * first use; the sequences repeat and interleave foreign-key queries so the
+ * lazily built index answers alongside the fresh scan. Both providers are
+ * specified by the Rules under tests/bdd/features/sde; this file checks them
+ * over every data shape.
  *
- * Search limits below 1 and the ordering of whole-table answers are not
- * promised by any Rule yet, so the generator asks for limits of 1 or more
- * and the oracle states the order each provider has today.
+ * Search limits below 1 are not promised by any Rule yet, so the generator
+ * asks for limits of 1 or more.
  */
 import * as fc from 'fast-check';
 import * as fs from 'node:fs';
@@ -52,7 +52,7 @@ import {
 /** A provider over a data set, with what the oracle should read. */
 interface Loaded {
   provider: IStaticDataProvider;
-  /** The set in the order the provider holds it. */
+  /** The set in the order the provider holds it: sorted by ID. */
   expected: SdeDataSet;
   dispose: () => void;
 }
@@ -66,7 +66,11 @@ const fixedClock: Clock = {
 
 const loadMemory: Loader = (set) => {
   const provider = new MemorySdeProvider(set.data);
-  return { provider, expected: set, dispose: () => provider.close() };
+  return {
+    provider,
+    expected: sortedByIdSet(set),
+    dispose: () => provider.close(),
+  };
 };
 
 const loadDirectory: Loader = (set) => {

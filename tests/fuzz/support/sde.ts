@@ -13,8 +13,9 @@
  *   `oracle(data, query)` answers a query naively over the arrays: `find` for a
  *   lookup by ID, `filter` for a foreign-key list, `includes` on the
  *   lower-cased name and `slice` for a search, the array itself for a whole
- *   table. Both providers promise exactly this (tests/bdd/features/sde), so a
- *   provider that disagrees with the oracle on any sequence is wrong.
+ *   table; the arrays are handed to it sorted by ID (`sortedByIdSet`), the
+ *   order both providers promise (feature 0008). A provider that disagrees
+ *   with the oracle on any sequence is wrong.
  *
  * Mutants
  *   `mutate(provider, defect)` wraps a real provider in a known-bad proxy for
@@ -495,9 +496,9 @@ export const sdeDataArb: fc.Arbitrary<SdeDataSet> = planArb.map((plan) => {
 });
 
 /**
- * The same set in the order the SQLite route loads it: a YAML map keyed by
- * integer IDs enumerates in ascending key order, so a whole-table or a
- * foreign-key answer from `SdeDataProvider` comes back sorted by ID.
+ * The same set in the order both providers hold it: every table sorted by
+ * ID ascending at load time, so a whole-table or a foreign-key answer comes
+ * back in ID order whatever order the records were given in.
  */
 export function sortedByIdSet(set: SdeDataSet): SdeDataSet {
   const rows = {} as Record<Family, Row[]>;

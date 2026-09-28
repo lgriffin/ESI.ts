@@ -58,3 +58,22 @@ Feature: Type Classification
       When I look up every category
       Then the result should contain exactly 3 records
       And the result shall be the records named "Celestial, Material, Ship"
+
+  # ── Order of a collection ────────────────────────────────────────────
+
+  Rule: When a table or the records of a parent are read, the SDE provider shall return them ordered by ID ascending.
+    CCP's export lists records in no promised order, and the two providers
+    used to keep whichever order they loaded. A caller paging a table or
+    diffing two builds needs one order it can rely on, so both providers sort
+    each table by ID once at load time and every whole-table and foreign-key
+    answer reads in that order.
+
+    Scenario: Categories loaded in descending order come back ascending
+      Given a static data provider whose categories and types were loaded in descending ID order
+      When I look up every category
+      Then the returned records shall be ordered by "categoryId" ascending
+
+    Scenario: The types of a group loaded in descending order come back ascending
+      Given a static data provider whose categories and types were loaded in descending ID order
+      When I look up types in group 18
+      Then the returned records shall be ordered by "typeId" ascending

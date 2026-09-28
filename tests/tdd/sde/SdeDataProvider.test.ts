@@ -196,6 +196,33 @@ describe('SdeDataProvider', () => {
   // fromDirectory
   // ---------------------------------------------------------------
 
+  describe('table order', () => {
+    it('serves tables and foreign-key lists ordered by ID ascending whatever order the YAML listed them in', () => {
+      const dir = createTempDir();
+      writeYaml(dir, 'categories.yaml', {
+        6: { name: { en: 'Ship' }, published: true },
+        4: { name: { en: 'Material' }, published: true },
+      });
+      writeYaml(dir, 'types.yaml', {
+        36: { name: { en: 'Mexallon' }, groupID: 18, published: true },
+        34: { name: { en: 'Tritanium' }, groupID: 18, published: true },
+        35: { name: { en: 'Pyerite' }, groupID: 18, published: true },
+      });
+      const provider = SdeDataProvider.fromDirectory(dir);
+      try {
+        expect(provider.getAllCategories().map((c) => c.categoryId)).toEqual([
+          4, 6,
+        ]);
+        expect(provider.getTypesByGroup(18).map((t) => t.typeId)).toEqual([
+          34, 35, 36,
+        ]);
+      } finally {
+        provider.close();
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+  });
+
   describe('fromDirectory', () => {
     it('should throw SdeError for nonexistent directory', () => {
       expect(() => SdeDataProvider.fromDirectory('/nonexistent/path')).toThrow(

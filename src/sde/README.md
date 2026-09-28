@@ -395,7 +395,7 @@ fast-check properties in `tests/fuzz/`, 100 runs each on a pull request and 10,0
 
 Every model-based property fails against registered known-bad providers and transforms (a dropped record, an ignored limit, an off-by-one ID, a stale foreign-key index), so a property that could not catch a defect cannot load.
 
-### BDD Tests (186 scenarios, ~3s)
+### BDD Tests (188 scenarios, ~3s)
 
 ```bash
 npm run bdd:sde
