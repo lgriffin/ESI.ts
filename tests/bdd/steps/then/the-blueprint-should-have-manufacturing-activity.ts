@@ -1,6 +1,8 @@
+import type { Blueprint } from '../../../../src/sde/types';
 import { Then } from '../../support/steps';
 
 Then('the blueprint should have manufacturing activity', function () {
-  expect(this.result).not.toBeNull();
-  expect(this.result.activities.manufacturing).toBeDefined();
+  const blueprint: Blueprint | null = this.result;
+  expect(blueprint).not.toBeNull();
+  expect(blueprint!.activities.manufacturing).toBeDefined();
 });

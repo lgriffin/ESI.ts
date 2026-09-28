@@ -1,6 +1,8 @@
+import type { NpcStation } from '../../../../src/sde/types';
 import { Then } from '../../support/steps';
 
 Then('the station should have an owner', function () {
-  expect(this.result).not.toBeNull();
-  expect(this.result.ownerId).toBeGreaterThan(0);
+  const station: NpcStation | null = this.result;
+  expect(station).not.toBeNull();
+  expect(station!.ownerId).toBeGreaterThan(0);
 });

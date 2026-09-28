@@ -1,6 +1,8 @@
+import type { DogmaAttribute } from '../../../../src/sde/types';
 import { Then } from '../../support/steps';
 
 Then('the attribute name should be {string}', function (name: string) {
-  expect(this.result).not.toBeNull();
-  expect(this.result.name).toBe(name);
+  const attribute: DogmaAttribute | null = this.result;
+  expect(attribute).not.toBeNull();
+  expect(attribute!.name).toBe(name);
 });
