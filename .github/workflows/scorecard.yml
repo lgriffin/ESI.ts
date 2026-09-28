@@ -28,6 +28,11 @@ jobs:
           results_file: results.sarif
           results_format: sarif
           publish_results: true
+          # Branch-Protection needs a token that can read the classic rules
+          # (Administration: read). SCORECARD_TOKEN is the maintainer's
+          # fine-grained token; until it exists the run keeps the default token
+          # and that one check reports it could not read the settings.
+          repo_token: ${{ secrets.SCORECARD_TOKEN || github.token }}
 
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
