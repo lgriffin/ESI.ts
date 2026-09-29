@@ -10,6 +10,7 @@ import {
 } from '../../../src/core/logger/loggerUtil';
 import { createNoopLogger } from '../../../src/core/logger/NoopLogger';
 import type { ApiClient } from '../../../src/core/ApiClient';
+import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
 
 function gatedLogger(enabled: readonly LoggerLevel[]): {
   logger: ILogger;
@@ -114,5 +115,33 @@ describe('ILogger.isLevelEnabled', () => {
       trace: noop,
     });
     expect(logger.isLevelEnabled).toBeUndefined();
+  });
+});
+
+// #543: the cache's per-request debug lines are built only when debug is on.
+describe('ETagCacheManager debug lines', () => {
+  const url = 'https://esi.evetech.net/status/';
+
+  const exercise = (enabled: readonly LoggerLevel[]): string[] => {
+    const { logger, lines } = gatedLogger(enabled);
+    const cache = new ETagCacheManager({}, clientWith(logger));
+    try {
+      cache.set(url, '"etag-1"', { players: 1 }, {});
+      cache.get(url);
+    } finally {
+      cache.shutdown();
+    }
+    return lines.filter((line) => line.includes(url));
+  };
+
+  it('writes the set and hit lines when the client logger has debug on', () => {
+    expect(exercise(['info', 'debug'])).toEqual([
+      `Cached response for ${url} with ETag "etag-1"`,
+      `Cache hit for ${url} with ETag "etag-1"`,
+    ]);
+  });
+
+  it('writes neither line when the client logger has debug off', () => {
+    expect(exercise(['info'])).toEqual([]);
   });
 });
