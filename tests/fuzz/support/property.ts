@@ -112,6 +112,12 @@ export interface PropertySpec<S> {
   prRuns?: number;
   /** Runs allowed to find each mutant. Default 200. */
   vacuityRuns?: number;
+  /**
+   * Fixed inputs run before the random ones, in the `holds` check and in every
+   * vacuity check. Use one when a mutant needs a sequence the generator only
+   * draws on some seeds, so the vacuity check does not depend on the seed.
+   */
+  examples?: fc.Parameters<unknown>['examples'];
   /** Per-test timeout in ms. */
   timeoutMs?: number;
 }
@@ -175,6 +181,7 @@ export function describeProperty<S>(spec: PropertySpec<S>): void {
           numRuns: settings.numRuns ?? spec.prRuns,
           seed: settings.seed,
           path: settings.path,
+          examples: spec.examples,
         };
         const details = await fc.check(spec.property(spec.subject()), params);
         if (details.failed) {
@@ -203,6 +210,7 @@ export function describeProperty<S>(spec: PropertySpec<S>): void {
               numRuns: spec.vacuityRuns ?? 200,
               seed: settings.seed,
               endOnFailure: true,
+              examples: spec.examples,
             });
             const name = currentTestName(`${spec.name} ${mutantName}`);
             if (!details.failed) {

@@ -128,6 +128,8 @@ const REQUESTS: RequestKind[] = [
   })),
 ];
 
+const STATUS_REQUEST = REQUESTS.findIndex((r) => r.canonical === 'status');
+
 /** Which canonical request the fake ESI sees. */
 function canonicalOf(request: FakeRequest): string | undefined {
   const path = request.url.pathname;
@@ -672,5 +674,20 @@ describeProperty<Subject>({
     }),
   },
   property: cacheModelProperty(true),
+  // #530: some seeds never revalidate an entry and then read it again inside
+  // the restarted TTL, so the first mutant survived. This sequence always
+  // does: store the status (30s spec TTL), revalidate it with a 304 after
+  // 31s, then read it 29s later, which the restarted entry serves unsent.
+  examples: [
+    [
+      [
+        { kind: 'call', client: 2, request: STATUS_REQUEST, fault: 'none' },
+        { kind: 'advance', ms: 31_000 },
+        { kind: 'call', client: 2, request: STATUS_REQUEST, fault: 'none' },
+        { kind: 'advance', ms: 29_000 },
+        { kind: 'call', client: 2, request: STATUS_REQUEST, fault: 'none' },
+      ] satisfies Step[],
+    ],
+  ],
   timeoutMs: 120_000,
 });

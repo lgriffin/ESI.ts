@@ -104,6 +104,11 @@ Choose mutants that model real defects: an off-by-one threshold, a dropped
 page, a key that ignores the token, a 304 that does not refresh. When a
 property finds a bug, the pre-fix behaviour is a good mutant to keep.
 
+When a mutant is only killed by a sequence the generator draws on some seeds,
+pass that sequence as `examples` to `describeProperty`. Examples run before
+the random inputs in the `holds` check and in every vacuity check, so the
+check no longer depends on the seed (the ETag cache model does this, #530).
+
 **Ratchet: vacuous properties = 0.** Every mutant test is a hard failure in
 the PR run; there is no allow-list, and a property with no mutant does not
 load. Adding a property without a mutant that it kills is not possible.
