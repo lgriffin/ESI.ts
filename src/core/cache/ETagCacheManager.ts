@@ -1,5 +1,6 @@
 import { ApiClient } from '../ApiClient';
 import { logInfo, logDebug } from '../logger/clientLog';
+import { resolveLogger } from '../logger/resolveLogger';
 import { ICache, CacheEntry } from './ICache';
 
 export type { CacheEntry } from './ICache';
@@ -20,6 +21,14 @@ export class ETagCacheManager implements ICache {
 
   setClient(client: ApiClient | null): void {
     this.client = client;
+  }
+
+  /**
+   * Whether a debug line would be written. `get` and `set` run on every
+   * request, so they check this before building their per-URL message.
+   */
+  private debugEnabled(): boolean {
+    return resolveLogger(this.client).isLevelEnabled?.('debug') !== false;
   }
 
   private log(
@@ -73,7 +82,11 @@ export class ETagCacheManager implements ICache {
     }
 
     this.hits++;
-    this.log('debug', `Cache hit for ${url} with ETag ${entry.etag}`, { url });
+    if (this.debugEnabled()) {
+      this.log('debug', `Cache hit for ${url} with ETag ${entry.etag}`, {
+        url,
+      });
+    }
     return entry;
   }
 
@@ -110,7 +123,11 @@ export class ETagCacheManager implements ICache {
     };
 
     this.cache.set(url, entry);
-    this.log('debug', `Cached response for ${url} with ETag ${etag}`, { url });
+    if (this.debugEnabled()) {
+      this.log('debug', `Cached response for ${url} with ETag ${etag}`, {
+        url,
+      });
+    }
   }
 
   /**
