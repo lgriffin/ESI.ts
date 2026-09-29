@@ -131,7 +131,9 @@ describe('ETagCacheManager debug lines', () => {
     } finally {
       cache.shutdown();
     }
-    return lines.filter((line) => line.includes(url));
+    return lines.filter((line) =>
+      /^(Cached response|Cache hit) for /.test(line),
+    );
   };
 
   it('writes the set and hit lines when the client logger has debug on', () => {
