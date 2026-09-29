@@ -19,11 +19,10 @@
 /**
  * The sections that must read the same in both files.
  *
- * Only what this repository writes. `Beads Issue Tracker`, `Agent Context
- * Profiles` and `Session Completion` all sit inside the managed block that
- * `bd setup claude` and `bd setup codex` generate, and those two generators
- * legitimately differ — AGENTS.md's copy carries `bd dolt push` and a second
- * generated block that CLAUDE.md's does not. Holding generated text to a
+ * Only what this repository writes. `Beads Issue Tracker` sits inside the
+ * managed block that `bd setup claude` and `bd setup codex` regenerate; both
+ * files keep it as a pointer to `bd prime` and guides/BEADS.md (#276), and a
+ * re-run of either generator may rewrite it. Holding generated text to a
  * byte-identical mirror would fail on the generator, not on a drifting rule.
  *
  * `Semantic Versioning (enforced)` is the section worth pinning: it decides

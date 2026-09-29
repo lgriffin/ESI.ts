@@ -117,10 +117,28 @@ for the full model and anti-patterns.
 
 ## Agent integration
 
-`CLAUDE.md` and `AGENTS.md` instruct Claude Code / Codex to use `bd` for durable
-task tracking. The managed guidance uses a **conservative git policy**: agents do
-not commit, push, or sync without an explicit request, and repo/user instructions
-always override the beads block.
+`CLAUDE.md` and `AGENTS.md` only point here and at `bd prime`; this section is
+the one copy of the agent rules. They are task-tracking guidance and never
+override repository, user or orchestrator instructions.
+
+- Use `bd` for all durable task tracking, not markdown TODO lists; keep
+  persistent project knowledge in Beads via `bd remember`.
+- Run `bd prime` when the Beads context is missing or stale.
+- **Git policy (conservative, the default):** do not commit, push or run
+  `bd dolt push` unless explicitly asked. Only a repository that opts in to the
+  team-maintainer profile lets agents close beads, run the quality gates,
+  commit and push at session close, and a current "do not push" still wins.
+
+### Session completion
+
+1. File beads for any remaining follow-up work.
+2. If code changed, run the quality gates (tests, linters, build).
+3. Close finished beads and update in-progress ones.
+4. Sync by the active profile: by default report `git status` and the proposed
+   commands and wait; with the team-maintainer opt-in run `git pull --rebase`,
+   `bd dolt push`, `git push`, `git status`.
+5. Hand off: changes, validation, bead status, and any blocked sync or push
+   with its exact command and error.
 
 ## Gotchas
 
