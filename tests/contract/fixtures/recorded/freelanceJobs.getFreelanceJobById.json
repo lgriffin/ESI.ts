@@ -3,9 +3,9 @@
   "call": {
     "client": "freelanceJobs",
     "method": "getFreelanceJobById",
-    "args": ["4f676ef6-c28a-49fb-9c2e-7dc0888b01d1"]
+    "args": ["4a524568-4976-409f-b498-fc63d337ce06"]
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-09-29",
   "compatibilityDate": "2026-08-18",
   "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 60,
@@ -13,98 +13,94 @@
   "truncated": [
     {
       "page": 1,
+      "at": "$.details.description",
+      "kind": "string",
+      "original": 947,
+      "kept": 400
+    },
+    {
+      "page": 1,
       "at": "$.access_and_visibility.broadcast_locations",
       "kind": "array",
-      "original": 20,
+      "original": 5,
       "kept": 3
     }
   ],
   "pages": [
     {
-      "url": "freelance-jobs/4f676ef6-c28a-49fb-9c2e-7dc0888b01d1",
+      "url": "freelance-jobs/4a524568-4976-409f-b498-fc63d337ce06",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 12:23:22 GMT",
-        "last-modified": "Sun, 27 Sep 2026 12:20:32 GMT"
+        "expires": "Tue, 29 Sep 2026 13:16:28 GMT",
+        "last-modified": "Tue, 29 Sep 2026 13:14:53 GMT"
       },
       "body": {
-        "id": "4f676ef6-c28a-49fb-9c2e-7dc0888b01d1",
-        "name": "Compressed Bitumens 90%Jita",
+        "id": "4a524568-4976-409f-b498-fc63d337ce06",
+        "name": "Bonus NPC Bounty Payments (Read Description)",
         "state": "Active",
-        "last_modified": "2026-09-27T12:20:32.481Z",
+        "last_modified": "2026-09-29T13:14:53.494Z",
         "progress": {
-          "current": 10000,
-          "desired": 1300000
+          "current": 4826,
+          "desired": 400000
         },
         "reward": {
-          "initial": 942500000,
-          "remaining": 935250000
+          "initial": 1600000000,
+          "remaining": 1580696000
         },
         "details": {
-          "description": "This contract is priced at 90% of Jita market value.<br><br>We also offer regular buyback services for corporations. If your corporation is interested in setting up a buyback partnership, feel free to contact me directly.",
-          "career": "Industrialist",
-          "created": "2026-09-13T01:51:49.57Z",
-          "expires": "2026-10-13T01:45:00Z",
+          "description": "<font size=\"14\" color=\"#bfffffff\"></font><font size=\"14\" color=\"#ffffe400\"><a href=\"https://www.eveonline.com/signup?invc=709ef42e-2a58-4a2d-9b74-18015a2c1d5a\">Click here then click \"Log in to Become a Recruit\" for a 1 million skill point reward. Works for new and existing accounts and helps fund our freelance jobs. (www.eveonline.com)</a><br><br></font><font size=\"14\" color=\"#bfffffff\">This job i",
+          "career": "Enforcer",
+          "created": "2026-09-27T17:55:32.587Z",
+          "expires": "2026-10-28T17:45:00Z",
           "creator": {
             "character": {
-              "id": 2123656257,
-              "name": "Tisto II"
+              "id": 546973795,
+              "name": "Kristian Pistian"
             },
             "corporation": {
-              "id": 98776045,
-              "name": "Tilean Silver Lion Company"
+              "id": 547826985,
+              "name": "Corp Borp"
             }
           }
         },
         "configuration": {
           "version": 1,
           "parameters": {
-            "corporation_item_delivery": {
-              "corporation_item_delivery": {
-                "item_type": {
-                  "values": [
-                    {
-                      "value_type": "item_type",
-                      "values": ["62454"]
-                    }
-                  ]
-                },
-                "corporation_office_location": {
-                  "values": [
-                    {
-                      "value_type": "station",
-                      "values": ["60001105"]
-                    }
-                  ]
-                }
+            "location": {
+              "matcher": {
+                "values": []
               }
             }
           },
-          "method": "DeliverItem"
+          "method": "KillNPC"
         },
         "contribution": {
           "max_committed_participants": 10000,
-          "reward_per_contribution": 725,
+          "contribution_per_participant_limit": 5000,
+          "reward_per_contribution": 4000,
           "submission_multiplier": 1
         },
         "access_and_visibility": {
           "acl_protected": false,
           "broadcast_locations": [
             {
-              "id": 30002048,
-              "name": "Bei"
+              "id": 30100032,
+              "name": "Manifest"
             },
             {
-              "id": 30002049,
-              "name": "Uttindar"
+              "id": 30002192,
+              "name": "Irnin"
             },
             {
-              "id": 30002562,
-              "name": "Trer"
+              "id": 30004970,
+              "name": "Renyn"
             }
-          ]
+          ],
+          "restrictions": {
+            "maximum_age": 14
+          }
         }
       }
     }
