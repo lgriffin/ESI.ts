@@ -174,9 +174,9 @@ describe('field drift', () => {
     );
   });
 
-  it('escapes a pipe in a sample so the table row holds', () => {
+  it('escapes a pipe and a backslash in a sample so the table row holds', () => {
     const drift = fieldDrift(
-      { yamlFile: 'groups.yaml', records: [[18, { ...full, notes: 'a|b' }]] },
+      { yamlFile: 'groups.yaml', records: [[18, { ...full, notes: 'a|b\\' }]] },
       spec,
       schema,
     );
@@ -191,7 +191,9 @@ describe('field drift', () => {
       fields: [drift],
       hasDrift: true,
     });
-    expect(rendered).toContain('| `groups.yaml` | `notes` | 1 | `"a\\|b"` |');
+    expect(rendered).toContain(
+      '| `groups.yaml` | `notes` | 1 | `"a\\|b\\\\\\\\"` |',
+    );
   });
 
   it('reports a required key no record carries as gone, and a nullable one as absent', () => {

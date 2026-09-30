@@ -373,7 +373,11 @@ export function renderReport(report: DriftReport): string {
         for (const key of f.newKeys) {
           const sample = f.samples[key];
           if (!sample) continue;
-          const value = sample.value.replace(/\|/g, '\\|').replace(/`/g, "'");
+          // Backslashes first, so the pipe's escape is not itself escaped.
+          const value = sample.value
+            .replace(/\\/g, '\\\\')
+            .replace(/\|/g, '\\|')
+            .replace(/`/g, "'");
           lines.push(
             `| \`${f.yamlFile}\` | \`${key}\` | ${sample.records} | \`${value}\` |`,
           );
