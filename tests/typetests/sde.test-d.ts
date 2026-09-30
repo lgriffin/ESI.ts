@@ -1152,9 +1152,85 @@ expectType<number>(skinrComponentPointValueRecord['1']);
 declare const skinrTierThresholdRecord: SkinrTierThreshold;
 expectType<number>(skinrTierThresholdRecord['4']);
 
+// --- Fields every record of a table carries ---
+// A field CCP always writes stays required, and a nullable one keeps both
+// members, so a declaration that loosens either fails here.
+
+expectType<string>(characterAttributeRecord.name);
+expectType<string>(characterAttributeRecord.notes);
+expectType<number>(expertSystemRecord.durationDays);
+expectType<number | null>(npcCharacterRecord.careerId);
+expectType<number>(raceRecord.shipTypeId);
+expectType<number>(schoolRecord.careerId);
+expectType<number>(schoolRecord.raceId);
+expectType<string>(militaryCampaignObjectiveRecord.campaignId);
+expectType<string>(militaryCampaignObjectiveRecord.careerPath);
+expectType<string>(militaryCampaignObjectiveRecord.title);
+expectType<string>(notificationTypeRecord.internalName);
+expectType<string | null>(npcCorporationDivisionRecord.description);
+expectType<boolean>(npcCorporationRecord.hasPlayerPersonnelManager);
+expectType<string>(npcCorporationRecord.name);
+expectType<boolean>(npcCorporationRecord.sendCharTerminationMessage);
+expectType<number | null>(npcCorporationRecord.friendId);
+expectType<number | null>(npcCorporationRecord.iconId);
+expectType<number | null>(npcCorporationRecord.solarSystemId);
+expectType<number | null>(dogmaEffectRecord.falloffAttributeId);
+expectType<number | null>(dogmaEffectRecord.rangeAttributeId);
+expectType<string | null>(dogmaEffectRecord.description);
+expectType<string>(industryActivityRecord.name);
+expectType<string>(industryTargetFilterRecord.name);
+expectType<string | null>(accountingEntryTypeRecord.description);
+expectType<number>(skinrComponentRarityRecord.rank);
+expectType<string>(skinrComponentRecord.projectionTypeU);
+expectType<string>(skinrSlotCategoryRecord.name);
+expectType<boolean>(skinrSlotConfigurationRecord.allowAllShips);
+expectType<boolean>(skinRecord.visibleTranquility);
+expectType<boolean>(eveCategoryRecord.published);
+expectType<number | null>(eveCategoryRecord.iconId);
+expectType<boolean>(fighterAbilityRecord.disallowInHighSec);
+expectType<number | null>(fighterAbilityRecord.turretGraphicId);
+expectType<boolean>(eveGroupRecord.fittableNonSingleton);
+expectType<number | null>(eveGroupRecord.iconId);
+expectType<boolean>(linkWithShipRecord.applyPvpFlag);
+expectType<string | null>(metaGroupRecord.iconSuffix);
+expectType<string>(shipTreeFactionRecord.icon);
+expectType<string>(shipTreeGroupRecord.icon);
+expectType<number | null>(eveTypeRecord.volume);
+expectType<number | null>(eveTypeRecord.graphicId);
+expectType<number | null>(eveTypeRecord.iconId);
+expectType<boolean | null>(eveTypeRecord.isRepackable);
+expectType<number>(starStatisticsRecord.life);
+expectType<number>(asteroidBeltRecord.radius);
+expectType<number>(secondarySunRecord.typeId);
+expectType<number>(solarSystemRecord.securityStatus);
+expectType<string>(sovereigntyUpgradeRecord.mutually_exclusive_group);
+expectType<number | null>(sovereigntyUpgradeRecord.power_production);
+expectType<number>(starRecord.typeId);
+
+// --- Lookups take their key ---
+
+declare const sdeProvider: IStaticDataProvider;
+expectError(sdeProvider.getType());
+expectError(sdeProvider.searchTypesByName());
+expectError(sdeProvider.getCertificate());
+expectError(sdeProvider.getCharacterAttribute());
+expectError(sdeProvider.getNpcCharacter());
+expectError(sdeProvider.getSecondarySun());
+expectError(sdeProvider.getSkinLicensesBySkin());
+expectError(sdeProvider.getStationOperation());
+declare const yamlProvider: SdeDataProvider;
+expectError(yamlProvider.getRace());
+expectError(yamlProvider.getAncestry());
+expectError(yamlProvider.getNpcStationsBySystem());
+expectError(yamlProvider.searchMarketGroupsByName());
+expectError(yamlProvider.getGraphic());
+expectError(yamlProvider.getCloneGrade());
+expectError(yamlProvider.getSecondarySunsBySystem());
+
 // --- Test data factory ---
 
 expectType<EveType>(SdeTestDataFactory.createEveType());
+expectType<EveGroup>(SdeTestDataFactory.createEveGroup());
 expectType<EveType>(SdeTestDataFactory.createEveType({ typeId: 34 }));
 expectError(SdeTestDataFactory.createEveType({ typeId: '34' }));
 expectType<SolarSystem>(SdeTestDataFactory.createSolarSystem({ name: 'Jita' }));
