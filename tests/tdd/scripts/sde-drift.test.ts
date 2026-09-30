@@ -24,6 +24,7 @@ import {
 import {
   EXIT_DRIFT,
   EXIT_FAILURE,
+  SAMPLE_LENGTH,
   SCHEMA_BY_FILE,
   analyseDrift,
   fieldDrift,
@@ -96,6 +97,7 @@ describe('SDE export drift over the fixture export', () => {
         records: 2,
         newKeys: ['sortOrder'],
         goneKeys: [],
+        samples: { sortOrder: { records: 1, value: '3' } },
       },
     ]);
   });
@@ -114,6 +116,12 @@ describe('SDE export drift over the fixture export', () => {
       '| `categories.yaml` | `eve_categories` | 2 | `sortOrder` |  |',
     );
     expect(rendered).toContain('Drift: yes');
+  });
+
+  it('samples each new key, so the type can be written from the report', () => {
+    const rendered = renderReport(report);
+    expect(rendered).toContain('### New key samples');
+    expect(rendered).toContain('| `categories.yaml` | `sortOrder` | 1 | `3` |');
   });
 });
 
@@ -142,7 +150,48 @@ describe('field drift', () => {
       records: 1,
       newKeys: [],
       goneKeys: [],
+      samples: {},
     });
+  });
+
+  it('counts the records carrying a new key and cuts a long sample', () => {
+    const long = 'x'.repeat(SAMPLE_LENGTH * 2);
+    const drift = fieldDrift(
+      {
+        yamlFile: 'groups.yaml',
+        records: [
+          [18, { ...full, notes: long }],
+          [19, { ...full, notes: 'short' }],
+        ],
+      },
+      spec,
+      schema,
+    );
+    expect(drift.newKeys).toEqual(['notes']);
+    expect(drift.samples.notes?.records).toBe(2);
+    expect(drift.samples.notes?.value).toBe(
+      `${JSON.stringify(long).slice(0, SAMPLE_LENGTH)}...`,
+    );
+  });
+
+  it('escapes a pipe in a sample so the table row holds', () => {
+    const drift = fieldDrift(
+      { yamlFile: 'groups.yaml', records: [[18, { ...full, notes: 'a|b' }]] },
+      spec,
+      schema,
+    );
+    const rendered = renderReport({
+      build: 'x',
+      checkedAt: 'now',
+      registered: 1,
+      observed: 1,
+      unknownFiles: [],
+      missingFiles: [],
+      unmappedFiles: [],
+      fields: [drift],
+      hasDrift: true,
+    });
+    expect(rendered).toContain('| `groups.yaml` | `notes` | 1 | `"a\\|b"` |');
   });
 
   it('reports a required key no record carries as gone, and a nullable one as absent', () => {
@@ -279,6 +328,19 @@ describe('scripts/sde/sde-drift.ts', () => {
     const report = JSON.parse(readFileSync(reportPath, 'utf-8')) as DriftReport;
     expect(report.missingFiles).not.toContain('landmarks.yaml');
     expect(report.observed).toBe(5);
+    expect(report.fields.map((f) => f.yamlFile)).toEqual(['categories.yaml']);
+  });
+
+  it('reads a list record as the providers do, so its indices are its keys', () => {
+    const dir = path.join(out, 'with-list');
+    cpSync(FIXTURE, dir, { recursive: true });
+    writeFileSync(
+      path.join(dir, 'skinrSlotsToMaterials.yaml'),
+      '1:\n- 10\n- 11\n- 12\n- 13\n',
+    );
+    const reportPath = path.join(dir, 'report.json');
+    runScript(['--dir', dir, '--out', reportPath]);
+    const report = JSON.parse(readFileSync(reportPath, 'utf-8')) as DriftReport;
     expect(report.fields.map((f) => f.yamlFile)).toEqual(['categories.yaml']);
   });
 
