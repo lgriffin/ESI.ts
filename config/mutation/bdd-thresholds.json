@@ -1,6 +1,8 @@
 {
   "src": 15.5,
+  "src/adapters": 66.6,
   "src/auth": 23.4,
+  "src/client": 40.9,
   "src/clients": 12.1,
   "src/core": 28.8,
   "src/core/cache": 22.3,
