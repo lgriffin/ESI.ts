@@ -247,15 +247,16 @@ export function fieldDrift(
   const { declared, required } = schemaKeys(schema);
   const declaredSet = new Set(declared);
   const seen = new Set<string>();
-  const samples: Record<string, NewKeySample> = {};
+  // A Map, so a key named like an Object.prototype member gets its own sample.
+  const samples = new Map<string, NewKeySample>();
   for (const [id, raw] of observed.records) {
     const record = transformRecordNative(id, raw, spec);
     for (const [key, value] of Object.entries(record)) {
       seen.add(key);
       if (declaredSet.has(key)) continue;
-      const sample = samples[key];
+      const sample = samples.get(key);
       if (sample) sample.records += 1;
-      else samples[key] = { records: 1, value: sampleOf(value) };
+      else samples.set(key, { records: 1, value: sampleOf(value) });
     }
   }
   const newKeys = [...seen].filter((key) => !declaredSet.has(key)).sort();
@@ -275,7 +276,7 @@ export function fieldDrift(
     records: observed.records.length,
     newKeys,
     goneKeys,
-    samples,
+    samples: Object.fromEntries(samples),
   };
 }
 
@@ -371,8 +372,8 @@ export function renderReport(report: DriftReport): string {
       lines.push('| :-- | :-- | --: | :-- |');
       for (const f of withSamples) {
         for (const key of f.newKeys) {
-          const sample = f.samples[key];
-          if (!sample) continue;
+          if (!Object.hasOwn(f.samples, key)) continue;
+          const sample = f.samples[key]!;
           // Backslashes first, so the pipe's escape is not itself escaped.
           const value = sample.value
             .replace(/\\/g, '\\\\')

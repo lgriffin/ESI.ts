@@ -174,6 +174,32 @@ describe('field drift', () => {
     );
   });
 
+  it('samples a new key named like an Object.prototype member', () => {
+    const drift = fieldDrift(
+      {
+        yamlFile: 'groups.yaml',
+        records: [[18, { ...full, constructor: 1, toString: 'x' }]],
+      },
+      spec,
+      schema,
+    );
+    expect(drift.newKeys).toEqual(['constructor', 'toString']);
+    expect(drift.samples.constructor).toEqual({ records: 1, value: '1' });
+    expect(drift.samples.toString).toEqual({ records: 1, value: '"x"' });
+    const rendered = renderReport({
+      build: 'x',
+      checkedAt: 'now',
+      registered: 1,
+      observed: 1,
+      unknownFiles: [],
+      missingFiles: [],
+      unmappedFiles: [],
+      fields: [drift],
+      hasDrift: true,
+    });
+    expect(rendered).toContain('| `groups.yaml` | `constructor` | 1 | `1` |');
+  });
+
   it('escapes a pipe and a backslash in a sample so the table row holds', () => {
     const drift = fieldDrift(
       { yamlFile: 'groups.yaml', records: [[18, { ...full, notes: 'a|b\\' }]] },
