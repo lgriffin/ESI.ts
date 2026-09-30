@@ -60,6 +60,15 @@ export const IndustryAssemblyLineSchema = z.looseObject({
   detailsPerGroup: z.unknown().nullable(),
   baseCostMultiplier: z.number().nullable(),
   detailsPerCategory: z.unknown().nullable(),
+  detailsPerTypeList: z
+    .array(
+      z.looseObject({
+        materialMultiplier: z.number(),
+        timeMultiplier: z.number(),
+        typeListId: z.number().int(),
+      }),
+    )
+    .optional(),
 });
 
 export const IndustryInstallationTypeSchema = z.looseObject({

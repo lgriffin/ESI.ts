@@ -191,6 +191,27 @@ export interface FieldDrift {
   newKeys: string[];
   /** Keys the schema requires that no record carries. */
   goneKeys: string[];
+  /**
+   * For each new key, how many records carry it and the first value seen
+   * (JSON, cut at SAMPLE_LENGTH), so the type and schema can be written from
+   * the report without downloading the export.
+   */
+  samples: Record<string, NewKeySample>;
+}
+
+export interface NewKeySample {
+  records: number;
+  value: string;
+}
+
+/** The longest sample value the report carries. */
+export const SAMPLE_LENGTH = 200;
+
+function sampleOf(value: unknown): string {
+  const json = JSON.stringify(value) ?? String(value);
+  return json.length > SAMPLE_LENGTH
+    ? `${json.slice(0, SAMPLE_LENGTH)}...`
+    : json;
 }
 
 export interface DriftReport {
@@ -218,15 +239,6 @@ export interface DriftInput {
   read: (spec: SdeFileSpec) => ObservedFile;
 }
 
-/** Keys of a raw record after the providers' transform, the injected ID included. */
-export function transformedKeys(
-  id: number | string,
-  raw: Record<string, unknown>,
-  spec: SdeFileSpec,
-): string[] {
-  return Object.keys(transformRecordNative(id, raw, spec));
-}
-
 export function fieldDrift(
   observed: ObservedFile,
   spec: SdeFileSpec,
@@ -235,8 +247,17 @@ export function fieldDrift(
   const { declared, required } = schemaKeys(schema);
   const declaredSet = new Set(declared);
   const seen = new Set<string>();
+  // A Map, so a key named like an Object.prototype member gets its own sample.
+  const samples = new Map<string, NewKeySample>();
   for (const [id, raw] of observed.records) {
-    for (const key of transformedKeys(id, raw, spec)) seen.add(key);
+    const record = transformRecordNative(id, raw, spec);
+    for (const [key, value] of Object.entries(record)) {
+      seen.add(key);
+      if (declaredSet.has(key)) continue;
+      const sample = samples.get(key);
+      if (sample) sample.records += 1;
+      else samples.set(key, { records: 1, value: sampleOf(value) });
+    }
   }
   const newKeys = [...seen].filter((key) => !declaredSet.has(key)).sort();
   // A file whose registry entry does not inject the map key carries the ID
@@ -255,6 +276,7 @@ export function fieldDrift(
     records: observed.records.length,
     newKeys,
     goneKeys,
+    samples: Object.fromEntries(samples),
   };
 }
 
@@ -340,6 +362,28 @@ export function renderReport(report: DriftReport): string {
       lines.push(
         `| \`${f.yamlFile}\` | \`${f.tableName}\` | ${f.records} | ${cell(f.newKeys)} | ${cell(f.goneKeys)} |`,
       );
+    }
+    const withSamples = report.fields.filter((f) => f.newKeys.length > 0);
+    if (withSamples.length > 0) {
+      lines.push('');
+      lines.push('### New key samples');
+      lines.push('');
+      lines.push('| File | Key | Records | First value |');
+      lines.push('| :-- | :-- | --: | :-- |');
+      for (const f of withSamples) {
+        for (const key of f.newKeys) {
+          if (!Object.hasOwn(f.samples, key)) continue;
+          const sample = f.samples[key]!;
+          // Backslashes first, so the pipe's escape is not itself escaped.
+          const value = sample.value
+            .replace(/\\/g, '\\\\')
+            .replace(/\|/g, '\\|')
+            .replace(/`/g, "'");
+          lines.push(
+            `| \`${f.yamlFile}\` | \`${key}\` | ${sample.records} | \`${value}\` |`,
+          );
+        }
+      }
     }
   }
   lines.push('');

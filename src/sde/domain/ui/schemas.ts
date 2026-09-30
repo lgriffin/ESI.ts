@@ -24,6 +24,7 @@ export const GraphicMaterialSetSchema = z.looseObject({
   custommaterial1: z.string().nullable(),
   custommaterial2: z.string().nullable(),
   sofPatternName: z.string().nullable(),
+  resPathInsert: z.string().optional(),
 });
 
 export const GraphicSchema = z.looseObject({
@@ -33,6 +34,8 @@ export const GraphicSchema = z.looseObject({
   sofFactionName: z.string().nullable(),
   sofHullName: z.string().nullable(),
   sofRaceName: z.string().nullable(),
+  sofLayout: z.array(z.string()).optional(),
+  sofMaterialSetId: z.number().int().optional(),
 });
 
 export const IconSchema = z.looseObject({

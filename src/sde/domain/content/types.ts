@@ -14,6 +14,7 @@ export interface Dungeon {
   description: string;
   factionId: number;
   name: string;
+  gameplayDescription?: string;
 }
 
 /** eve_epic_arcs [21 rows] */
@@ -88,6 +89,24 @@ export interface Mission {
   name: string;
   expirationTime: string | null;
   factionId: number | null;
+  agentTypeId?: number;
+  corporationId?: number;
+  /** What a courier mission asks the pilot to carry. */
+  courierMission?: {
+    objectiveQuantity: number;
+    objectiveSingleton: boolean;
+    objectiveTypeId: number;
+  };
+  /** Faction or corporation ID to the standing the mission adds. */
+  extraStandings?: Record<string, number>;
+  initialAgentGiftQuantity?: number;
+  initialAgentGiftTypeId?: number;
+  missionRewards?: {
+    bonusReward?: { rewardQuantity: number; rewardTypeId: number };
+    /** Seconds within which the bonus reward is earned. */
+    bonusTimeInterval?: number;
+    reward?: { rewardQuantity: number; rewardTypeId: number };
+  };
 }
 
 /** eve_notification_types [297 rows] */

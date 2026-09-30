@@ -561,4 +561,57 @@ describe('SDE Zod Schemas', () => {
       expect(() => SdeVersionSchema.parse({ version: '1.0.0' })).toThrow();
     });
   });
+  describe('keys CCP added in build 3552227 (#546)', () => {
+    it('accepts a type without them and keeps them when present', () => {
+      const bare = SdeTestDataFactory.createEveType();
+      expect(EveTypeSchema.parse(bare)).not.toHaveProperty('metaGroupId');
+      const result = EveTypeSchema.parse({
+        ...bare,
+        metaGroupId: 1,
+        techLevel: 2,
+        variationParentTypeId: 377,
+        isDynamicType: true,
+      });
+      expect(result.metaGroupId).toBe(1);
+      expect(result.techLevel).toBe(2);
+      expect(result.variationParentTypeId).toBe(377);
+      expect(result.isDynamicType).toBe(true);
+    });
+
+    it('rejects a new key of the wrong type', () => {
+      const bare = SdeTestDataFactory.createEveType();
+      expect(() =>
+        EveTypeSchema.parse({ ...bare, techLevel: 'one' }),
+      ).toThrow();
+    });
+
+    it('reads an exchange rate map keyed by corporation ID', () => {
+      const corp = NpcCorporationSchema.parse({
+        ...SdeTestDataFactory.createNpcCorporation(),
+        exchangeRates: { '1000002': 0.8 },
+      });
+      expect(corp.exchangeRates).toEqual({ '1000002': 0.8 });
+      expect(() =>
+        NpcCorporationSchema.parse({
+          ...SdeTestDataFactory.createNpcCorporation(),
+          exchangeRates: { '1000002': 'high' },
+        }),
+      ).toThrow();
+    });
+
+    it("keeps a solar system's anchoring limits and a planet's own name", () => {
+      const system = SolarSystemSchema.parse({
+        ...SdeTestDataFactory.createSolarSystem(),
+        disallowedAnchorCategories: [22, 65],
+        factionId: 500006,
+      });
+      expect(system.disallowedAnchorCategories).toEqual([22, 65]);
+      expect(system.factionId).toBe(500006);
+      const planet = PlanetSchema.parse({
+        ...SdeTestDataFactory.createPlanet(),
+        uniqueName: 'Uplingur IV (Ndoria)',
+      });
+      expect(planet.uniqueName).toBe('Uplingur IV (Ndoria)');
+    });
+  });
 });

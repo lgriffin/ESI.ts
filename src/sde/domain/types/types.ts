@@ -145,6 +145,13 @@ export interface TypeBonus {
   typeId: number;
   roleBonuses: unknown;
   types: unknown;
+  iconId?: number;
+  /** Bonuses that belong to no skill or role, with their text. */
+  miscBonuses?: Array<{
+    bonusText: string;
+    importance?: number;
+    isPositive?: boolean;
+  }>;
 }
 
 /** eve_type_dogma [26828 rows] */
@@ -170,12 +177,20 @@ export interface TypeList {
   excludedGroupIDs: unknown;
   excludedTypeIDs: unknown;
   excludedCategoryIDs: unknown;
+  displayDescription?: string;
+  displayName?: string;
 }
 
 /** eve_type_materials [9551 rows] */
 export interface TypeMaterial {
   typeId: number;
   materials: unknown;
+  /** Materials whose quantity is drawn between a minimum and a maximum. */
+  randomizedMaterials?: Array<{
+    materialTypeId: number;
+    quantityMin: number;
+    quantityMax: number;
+  }>;
 }
 
 /** eve_types [52863 rows] */
@@ -198,4 +213,13 @@ export interface EveType {
   marketGroupId: number | null;
   capacity: number | null;
   isRepackable: boolean | null;
+  factionId?: number;
+  /** True for a type whose attributes are rolled per item (mutaplasmid results). */
+  isDynamicType?: boolean;
+  metaGroupId?: number;
+  metaLevel?: number;
+  shipTreeGroupId?: number;
+  techLevel?: number;
+  /** The type this one is a variation of. */
+  variationParentTypeId?: number;
 }

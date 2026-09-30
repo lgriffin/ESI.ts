@@ -52,8 +52,10 @@ function readRecords(file: string): ObservedFile['records'] {
     ([key, value]) => {
       const numKey = Number(key);
       const id = Number.isNaN(numKey) ? key : numKey;
+      // A list record (skinrSlotsToMaterials) goes through the transform as
+      // the providers pass it, so its indices are its keys.
       const raw =
-        value != null && typeof value === 'object' && !Array.isArray(value)
+        value != null && typeof value === 'object'
           ? (value as Record<string, unknown>)
           : {};
       return [id, raw] as const;

@@ -15,6 +15,7 @@ export const DungeonSchema = z.looseObject({
   description: z.string(),
   factionId: z.number().int(),
   name: z.string(),
+  gameplayDescription: z.string().optional(),
 });
 
 export const EpicArcSchema = z.looseObject({
@@ -75,6 +76,11 @@ export const MilitaryCampaignSchema = z.looseObject({
   title: z.string(),
 });
 
+const MissionRewardSchema = z.looseObject({
+  rewardQuantity: z.number().int(),
+  rewardTypeId: z.number().int(),
+});
+
 export const MissionSchema = z.looseObject({
   missionId: z.number().int(),
   hasStandingRewards: z.boolean(),
@@ -83,6 +89,25 @@ export const MissionSchema = z.looseObject({
   name: z.string(),
   expirationTime: z.string().nullable(),
   factionId: z.number().int().nullable(),
+  agentTypeId: z.number().int().optional(),
+  corporationId: z.number().int().optional(),
+  courierMission: z
+    .looseObject({
+      objectiveQuantity: z.number().int(),
+      objectiveSingleton: z.boolean(),
+      objectiveTypeId: z.number().int(),
+    })
+    .optional(),
+  extraStandings: z.record(z.string(), z.number()).optional(),
+  initialAgentGiftQuantity: z.number().int().optional(),
+  initialAgentGiftTypeId: z.number().int().optional(),
+  missionRewards: z
+    .looseObject({
+      bonusReward: MissionRewardSchema.optional(),
+      bonusTimeInterval: z.number().int().optional(),
+      reward: MissionRewardSchema.optional(),
+    })
+    .optional(),
 });
 
 export const NotificationTypeSchema = z.looseObject({

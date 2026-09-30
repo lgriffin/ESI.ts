@@ -73,6 +73,10 @@ export interface DogmaEffect {
   displayName: string | null;
   iconId: number | null;
   modifierInfo: unknown;
+  fittingUsageChanceAttributeId?: number;
+  npcActivationChanceAttributeId?: number;
+  npcUsageChanceAttributeId?: number;
+  resistanceAttributeId?: number;
 }
 
 /** eve_dogma_units [60 rows] */

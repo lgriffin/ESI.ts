@@ -50,6 +50,7 @@ export const AsteroidBeltSchema = z.looseObject({
   solarSystemId: z.number().int(),
   statistics: z.unknown(),
   typeId: z.number().int(),
+  uniqueName: z.string().optional(),
 });
 
 export const ConstellationSchema = z.looseObject({
@@ -90,6 +91,7 @@ export const MoonSchema = z.looseObject({
   statistics: z.unknown(),
   typeId: z.number().int(),
   npcStationIDs: z.array(z.number().int()).nullable(),
+  uniqueName: z.string().optional(),
 });
 
 export const PlanetResourceSchema = z.looseObject({
@@ -112,6 +114,7 @@ export const PlanetSchema = z.looseObject({
   statistics: z.unknown(),
   typeId: z.number().int(),
   npcStationIDs: z.array(z.number().int()).nullable(),
+  uniqueName: z.string().optional(),
 });
 
 export const ProximityTrapSchema = z.looseObject({
@@ -167,6 +170,9 @@ export const SolarSystemSchema = z.looseObject({
   fringe: z.boolean().nullable(),
   wormholeClassId: z.number().int().nullable(),
   visualEffect: z.string().nullable(),
+  disallowedAnchorCategories: z.array(z.number().int()).optional(),
+  disallowedAnchorGroups: z.array(z.number().int()).optional(),
+  factionId: z.number().int().optional(),
 });
 
 export const SovereigntyUpgradeSchema = z.looseObject({

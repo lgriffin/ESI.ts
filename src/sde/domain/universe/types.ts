@@ -50,6 +50,8 @@ export interface AsteroidBelt {
   solarSystemId: number;
   statistics: unknown;
   typeId: number;
+  /** The belt's own name, on the belts that have one. */
+  uniqueName?: string;
 }
 
 /** eve_constellations [1184 rows] */
@@ -94,6 +96,8 @@ export interface Moon {
   statistics: unknown;
   typeId: number;
   npcStationIDs: number[] | null;
+  /** The moon's own name, on the moons that have one. */
+  uniqueName?: string;
 }
 
 /** eve_planet_resources [25798 rows] */
@@ -118,6 +122,8 @@ export interface Planet {
   statistics: unknown;
   typeId: number;
   npcStationIDs: number[] | null;
+  /** The planet's own name, on the planets that have one. */
+  uniqueName?: string;
 }
 
 /** eve_proximity_traps [24 rows] */
@@ -177,6 +183,12 @@ export interface SolarSystem {
   fringe: boolean | null;
   wormholeClassId: number | null;
   visualEffect: string | null;
+  /** Categories that cannot be anchored in the system. */
+  disallowedAnchorCategories?: number[];
+  /** Groups that cannot be anchored in the system. */
+  disallowedAnchorGroups?: number[];
+  /** The faction that owns the system, on faction-held systems. */
+  factionId?: number;
 }
 
 /** eve_sovereignty_upgrades [49 rows] */

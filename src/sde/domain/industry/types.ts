@@ -62,6 +62,11 @@ export interface IndustryAssemblyLine {
   detailsPerGroup: unknown;
   baseCostMultiplier: number | null;
   detailsPerCategory: unknown;
+  detailsPerTypeList?: Array<{
+    materialMultiplier: number;
+    timeMultiplier: number;
+    typeListId: number;
+  }>;
 }
 
 /** eve_industry_installation_types [102 rows] */
