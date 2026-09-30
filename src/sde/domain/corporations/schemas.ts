@@ -74,6 +74,7 @@ export const NpcCorporationSchema = z.looseObject({
   sizeFactor: z.number().nullable(),
   solarSystemId: z.number().int().nullable(),
   secondaryActivityId: z.number().int().nullable(),
+  exchangeRates: z.record(z.string(), z.number()).optional(),
 });
 
 export const NpcStationSchema = z.looseObject({

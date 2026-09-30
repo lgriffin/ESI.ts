@@ -119,6 +119,15 @@ export const NpcCharacterSchema = z.looseObject({
   careerId: z.number().int().nullable(),
   schoolId: z.number().int().nullable(),
   specialityId: z.number().int().nullable(),
+  agent: z
+    .looseObject({
+      agentTypeId: z.number().int(),
+      divisionId: z.number().int(),
+      isLocator: z.boolean(),
+      level: z.number().int(),
+    })
+    .optional(),
+  description: z.string().optional(),
 });
 
 export const RaceSchema = z.looseObject({

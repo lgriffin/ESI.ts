@@ -11,6 +11,7 @@ export interface SkinLicense {
   duration: number;
   licenseTypeId: number;
   skinId: number;
+  isSingleUse?: boolean;
 }
 
 /** eve_skin_materials [863 rows] — no PK */

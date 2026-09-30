@@ -71,6 +71,10 @@ export const DogmaEffectSchema = z.looseObject({
   displayName: z.string().nullable(),
   iconId: z.number().int().nullable(),
   modifierInfo: z.unknown().nullable(),
+  fittingUsageChanceAttributeId: z.number().int().optional(),
+  npcActivationChanceAttributeId: z.number().int().optional(),
+  npcUsageChanceAttributeId: z.number().int().optional(),
+  resistanceAttributeId: z.number().int().optional(),
 });
 
 export const DogmaUnitSchema = z.looseObject({

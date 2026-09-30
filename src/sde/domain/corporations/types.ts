@@ -77,6 +77,8 @@ export interface NpcCorporation {
   sizeFactor: number | null;
   solarSystemId: number | null;
   secondaryActivityId: number | null;
+  /** Corporation ID to the rate its loyalty points exchange at. */
+  exchangeRates?: Record<string, number>;
 }
 
 /** eve_npc_stations [5210 rows] */

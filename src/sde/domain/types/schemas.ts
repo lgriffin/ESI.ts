@@ -132,6 +132,16 @@ export const TypeBonusSchema = z.looseObject({
   typeId: z.number().int(),
   roleBonuses: z.unknown(),
   types: z.unknown(),
+  iconId: z.number().int().optional(),
+  miscBonuses: z
+    .array(
+      z.looseObject({
+        bonusText: z.string(),
+        importance: z.number().int().optional(),
+        isPositive: z.boolean().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export const TypeDogmaSchema = z.looseObject({
@@ -154,11 +164,22 @@ export const TypeListSchema = z.looseObject({
   excludedGroupIDs: z.unknown().nullable(),
   excludedTypeIDs: z.unknown().nullable(),
   excludedCategoryIDs: z.unknown().nullable(),
+  displayDescription: z.string().optional(),
+  displayName: z.string().optional(),
 });
 
 export const TypeMaterialSchema = z.looseObject({
   typeId: z.number().int(),
   materials: z.unknown(),
+  randomizedMaterials: z
+    .array(
+      z.looseObject({
+        materialTypeId: z.number().int(),
+        quantityMin: z.number().int(),
+        quantityMax: z.number().int(),
+      }),
+    )
+    .optional(),
 });
 
 export const EveTypeSchema = z.looseObject({
@@ -180,4 +201,11 @@ export const EveTypeSchema = z.looseObject({
   marketGroupId: z.number().int().nullable(),
   capacity: z.number().nullable(),
   isRepackable: z.boolean().nullable(),
+  factionId: z.number().int().optional(),
+  isDynamicType: z.boolean().optional(),
+  metaGroupId: z.number().int().optional(),
+  metaLevel: z.number().int().optional(),
+  shipTreeGroupId: z.number().int().optional(),
+  techLevel: z.number().int().optional(),
+  variationParentTypeId: z.number().int().optional(),
 });

@@ -128,6 +128,14 @@ export interface NpcCharacter {
   careerId: number | null;
   schoolId: number | null;
   specialityId: number | null;
+  /** Set when the character is a mission agent. */
+  agent?: {
+    agentTypeId: number;
+    divisionId: number;
+    isLocator: boolean;
+    level: number;
+  };
+  description?: string;
 }
 
 /** eve_races [11 rows] */

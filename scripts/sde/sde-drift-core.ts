@@ -253,10 +253,8 @@ export function fieldDrift(
     for (const [key, value] of Object.entries(record)) {
       seen.add(key);
       if (declaredSet.has(key)) continue;
-      // eslint-disable-next-line security/detect-object-injection -- key comes from the record
       const sample = samples[key];
       if (sample) sample.records += 1;
-      // eslint-disable-next-line security/detect-object-injection -- key comes from the record
       else samples[key] = { records: 1, value: sampleOf(value) };
     }
   }
@@ -373,7 +371,6 @@ export function renderReport(report: DriftReport): string {
       lines.push('| :-- | :-- | --: | :-- |');
       for (const f of withSamples) {
         for (const key of f.newKeys) {
-          // eslint-disable-next-line security/detect-object-injection -- key comes from newKeys
           const sample = f.samples[key];
           if (!sample) continue;
           const value = sample.value.replace(/\|/g, '\\|').replace(/`/g, "'");

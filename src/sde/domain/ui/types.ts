@@ -23,6 +23,7 @@ export interface GraphicMaterialSet {
   custommaterial1: string | null;
   custommaterial2: string | null;
   sofPatternName: string | null;
+  resPathInsert?: string;
 }
 
 /** eve_graphics [6069 rows] */
@@ -33,6 +34,8 @@ export interface Graphic {
   sofFactionName: string | null;
   sofHullName: string | null;
   sofRaceName: string | null;
+  sofLayout?: string[];
+  sofMaterialSetId?: number;
 }
 
 /** eve_icons [4658 rows] */

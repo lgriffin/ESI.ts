@@ -989,6 +989,7 @@ interface ZodDef {
   shape?: Record<string, z.ZodType>;
   innerType?: z.ZodType;
   element?: z.ZodType;
+  valueType?: z.ZodType;
   checks?: Array<{ _zod: { def: { check: string; format?: string } } }>;
 }
 
@@ -1069,6 +1070,13 @@ export function schemaArbitrary(schema: z.ZodType): fc.Arbitrary<unknown> {
       return fc.boolean();
     case 'array':
       return fc.array(schemaArbitrary(def.element!), { maxLength: 3 });
+    case 'record':
+      // Every record in the SDE schemas is keyed by an entity ID.
+      return fc.dictionary(
+        fc.integer({ min: 1, max: 99_999_999 }).map(String),
+        schemaArbitrary(def.valueType!),
+        { maxKeys: 3 },
+      );
     case 'optional':
       return fc.option(schemaArbitrary(def.innerType!), { nil: undefined });
     case 'nullable':

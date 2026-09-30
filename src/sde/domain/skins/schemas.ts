@@ -12,6 +12,7 @@ export const SkinLicenseSchema = z.looseObject({
   duration: z.number().int(),
   licenseTypeId: z.number().int(),
   skinId: z.number().int(),
+  isSingleUse: z.boolean().optional(),
 });
 
 export const SkinMaterialSchema = z.looseObject({
