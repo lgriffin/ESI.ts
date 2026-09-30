@@ -23,15 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-* **beads:** close five beads whose work has landed ([2cfea40](https://github.com/lgriffin/ESI.ts/commit/2cfea40260d212be3c6faa4bf12bc7dee7197944))
 * **beads:** close five beads whose work has landed ([68447d8](https://github.com/lgriffin/ESI.ts/commit/68447d81bc31a65b8f7deb8dd5e4faf490125bd4))
-* **beads:** mirror GitHub [#570](https://github.com/lgriffin/ESI.ts/issues/570), [#571](https://github.com/lgriffin/ESI.ts/issues/571) and [#572](https://github.com/lgriffin/ESI.ts/issues/572) ([64961c4](https://github.com/lgriffin/ESI.ts/commit/64961c489da50e992e9af2a9758365d2f2c4492f))
 * **beads:** mirror GitHub [#570](https://github.com/lgriffin/ESI.ts/issues/570), [#571](https://github.com/lgriffin/ESI.ts/issues/571) and [#572](https://github.com/lgriffin/ESI.ts/issues/572) ([a616feb](https://github.com/lgriffin/ESI.ts/commit/a616febcee991694577863ffc47784e03c2dbd1b))
-* **beads:** mirror the post-release issues [#551](https://github.com/lgriffin/ESI.ts/issues/551) and [#553](https://github.com/lgriffin/ESI.ts/issues/553) ([e05a070](https://github.com/lgriffin/ESI.ts/commit/e05a0703094215b8faeb9e9cf8ae2c1cc8672fc1))
 * **beads:** mirror the post-release issues [#551](https://github.com/lgriffin/ESI.ts/issues/551) and [#553](https://github.com/lgriffin/ESI.ts/issues/553) ([dc3508e](https://github.com/lgriffin/ESI.ts/commit/dc3508edb85c9c6f3adb2cca1247c479c27cafa6))
-* **cache:** build the ETag cache debug lines only when debug is enabled ([3dce968](https://github.com/lgriffin/ESI.ts/commit/3dce9683d03fcae56d99da0239aec65747ed7a69))
 * **cache:** build the ETag cache debug lines only when debug is enabled ([4c1b64d](https://github.com/lgriffin/ESI.ts/commit/4c1b64d4400d27467390528f1b875d8bf2fff068)), closes [#543](https://github.com/lgriffin/ESI.ts/issues/543)
-* **deps:** hold dependabot off pino 10 and typescript 7 ([9b91ae0](https://github.com/lgriffin/ESI.ts/commit/9b91ae0099db4a19d74099b3c72d2bb57f129a7f))
 * **deps:** hold dependabot off pino 10 and typescript 7 ([258f0eb](https://github.com/lgriffin/ESI.ts/commit/258f0ebbd77f4338872d4e09e0260431981f788d))
 * **deps:** hold dependabot off pino 10 and typescript 7 ([a5fe1e2](https://github.com/lgriffin/ESI.ts/commit/a5fe1e2dfa99113ad32dd3de8a17a108503bd269))
 
@@ -40,7 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * **agents:** collapse the duplicated beads blocks to pointers ([25a123d](https://github.com/lgriffin/ESI.ts/commit/25a123d0f7cb67ab173038b400ff82eef7ba479b))
 * **agents:** collapse the duplicated beads blocks to pointers at bd prime and guides/BEADS.md ([4e49cc9](https://github.com/lgriffin/ESI.ts/commit/4e49cc9677adf5e1008693af4b4cc60f960599c9)), closes [#276](https://github.com/lgriffin/ESI.ts/issues/276)
-* say 11.0.0 has shipped in the README and USAGE ([1f03a2b](https://github.com/lgriffin/ESI.ts/commit/1f03a2b700b4154554d2024d6ffbd53234edd8c0))
 * say 11.0.0 has shipped in the README and USAGE ([b43c269](https://github.com/lgriffin/ESI.ts/commit/b43c269d321b7315da47cbfb21ec63d5e7038857))
 
 
@@ -50,7 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **fuzz:** make the ETag cache vacuity check independent of the seed ([5d834ac](https://github.com/lgriffin/ESI.ts/commit/5d834ac29e5b69c78f9d8030d72a3d1817dd183c))
 * **logger:** match the cache debug lines by prefix, not by URL substring ([85be250](https://github.com/lgriffin/ESI.ts/commit/85be250522101cbc5148db1970a8c25e0e4c8482))
 * **mutation:** drop CorporationMarketOrderSchema from the export-coverage baseline ([08a4693](https://github.com/lgriffin/ESI.ts/commit/08a4693e8cb6009441a71e0422b22c1d7722aca1))
-* **mutation:** restore the nightly type and BDD mutation floors ([dc3c9ba](https://github.com/lgriffin/ESI.ts/commit/dc3c9bac5960b4ff3aacbf629bb86098072a3afb))
 * **mutation:** restore the nightly type and BDD mutation floors ([729e0ac](https://github.com/lgriffin/ESI.ts/commit/729e0ac75b317fd7f737284d9d94901f1078d04d)), closes [#542](https://github.com/lgriffin/ESI.ts/issues/542)
 
 ## [11.0.0](https://github.com/lgriffin/ESI.ts/compare/v10.2.3...v11.0.0) (2026-09-28)
