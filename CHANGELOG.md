@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [11.1.1](https://github.com/lgriffin/ESI.ts/compare/v11.1.0...v11.1.1) (2026-10-01)
+
+
+### Fixed
+
+* **deps:** raise brace-expansion override to &gt;=5.0.11 ([0926be7](https://github.com/lgriffin/ESI.ts/commit/0926be7d5af9f83ae81e1754d481fcc1192e2de3))
+* **deps:** raise brace-expansion override to &gt;=5.0.11 ([aa14cc6](https://github.com/lgriffin/ESI.ts/commit/aa14cc6531a980fb0e0171f31f9618ffc5a34e94))
+
 ## [11.1.0](https://github.com/lgriffin/ESI.ts/compare/v11.0.0...v11.1.0) (2026-09-30)
 
 
