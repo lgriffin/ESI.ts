@@ -3,9 +3,9 @@
   "call": {
     "client": "freelanceJobs",
     "method": "getFreelanceJobById",
-    "args": ["4f676ef6-c28a-49fb-9c2e-7dc0888b01d1"]
+    "args": ["115ab093-5347-48ea-a850-757ed574d8ea"]
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-10-02",
   "compatibilityDate": "2026-08-18",
   "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 60,
@@ -13,98 +13,93 @@
   "truncated": [
     {
       "page": 1,
+      "at": "$.details.description",
+      "kind": "string",
+      "original": 993,
+      "kept": 400
+    },
+    {
+      "page": 1,
       "at": "$.access_and_visibility.broadcast_locations",
       "kind": "array",
-      "original": 20,
+      "original": 13,
       "kept": 3
     }
   ],
   "pages": [
     {
-      "url": "freelance-jobs/4f676ef6-c28a-49fb-9c2e-7dc0888b01d1",
+      "url": "freelance-jobs/115ab093-5347-48ea-a850-757ed574d8ea",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 12:23:22 GMT",
-        "last-modified": "Sun, 27 Sep 2026 12:20:32 GMT"
+        "expires": "Fri, 02 Oct 2026 13:05:30 GMT",
+        "last-modified": "Fri, 02 Oct 2026 13:04:09 GMT"
       },
       "body": {
-        "id": "4f676ef6-c28a-49fb-9c2e-7dc0888b01d1",
-        "name": "Compressed Bitumens 90%Jita",
+        "id": "115ab093-5347-48ea-a850-757ed574d8ea",
+        "name": "New Player Support Program by \"Tenebris Academy\"",
         "state": "Active",
-        "last_modified": "2026-09-27T12:20:32.481Z",
+        "last_modified": "2026-10-02T13:04:09.838Z",
         "progress": {
-          "current": 10000,
-          "desired": 1300000
+          "current": 80803,
+          "desired": 190000
         },
         "reward": {
-          "initial": 942500000,
-          "remaining": 935250000
+          "initial": 760000000,
+          "remaining": 436788000
         },
         "details": {
-          "description": "This contract is priced at 90% of Jita market value.<br><br>We also offer regular buyback services for corporations. If your corporation is interested in setting up a buyback partnership, feel free to contact me directly.",
-          "career": "Industrialist",
-          "created": "2026-09-13T01:51:49.57Z",
-          "expires": "2026-10-13T01:45:00Z",
+          "description": "<font size=\"14\" color=\"#bfffffff\"></font><font size=\"14\" color=\"#ffd98d00\"><a href=\"showinfo:2//98841752\">Tenebris Academy</a></font><font size=\"14\" color=\"#bfffffff\"> is recruiting! We are open to new and returning pilots looking to learn EVE, make ISK, and fly with an active community. The Academy is the training and staging corporation for Tenebris Initiative, guiding pilots toward our main Wor",
+          "career": "Enforcer",
+          "created": "2026-09-15T18:51:14.23Z",
+          "expires": "2026-10-15T18:45:00Z",
           "creator": {
             "character": {
-              "id": 2123656257,
-              "name": "Tisto II"
+              "id": 2119013113,
+              "name": "Hubert Ariot"
             },
             "corporation": {
-              "id": 98776045,
-              "name": "Tilean Silver Lion Company"
+              "id": 98815087,
+              "name": "Tenebris Initiative"
             }
           }
         },
         "configuration": {
           "version": 1,
           "parameters": {
-            "corporation_item_delivery": {
-              "corporation_item_delivery": {
-                "item_type": {
-                  "values": [
-                    {
-                      "value_type": "item_type",
-                      "values": ["62454"]
-                    }
-                  ]
-                },
-                "corporation_office_location": {
-                  "values": [
-                    {
-                      "value_type": "station",
-                      "values": ["60001105"]
-                    }
-                  ]
-                }
+            "location": {
+              "matcher": {
+                "values": []
               }
             }
           },
-          "method": "DeliverItem"
+          "method": "KillNPC"
         },
         "contribution": {
           "max_committed_participants": 10000,
-          "reward_per_contribution": 725,
+          "reward_per_contribution": 4000,
           "submission_multiplier": 1
         },
         "access_and_visibility": {
           "acl_protected": false,
           "broadcast_locations": [
             {
-              "id": 30002048,
-              "name": "Bei"
+              "id": 30100035,
+              "name": "Forte"
             },
             {
-              "id": 30002049,
-              "name": "Uttindar"
+              "id": 30100045,
+              "name": "Mettle"
             },
             {
-              "id": 30002562,
-              "name": "Trer"
+              "id": 30100046,
+              "name": "Venerate"
             }
-          ]
+          ],
+          "restrictions": {
+            "maximum_age": 90
+          }
         }
       }
     }
