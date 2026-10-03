@@ -19,6 +19,7 @@ import {
   fixtureShape,
   mapPaths,
   optionalPaths,
+  shapeOf,
 } from '../recorded/shape';
 
 describe('coverageProblems', () => {
@@ -273,6 +274,43 @@ describe('diffShapes', () => {
         maps,
       ),
     ).toEqual(['$[].parameters.*.values[] type number -> string']);
+  });
+
+  it('treats a map key holding dots or brackets as one key', () => {
+    const maps = new Set(['$[].parameters']);
+    expect(
+      diffShapes(
+        fixtureShape(fixture({ parameters: { 'a.b[0]': { v: 1 } } })),
+        fixtureShape(fixture({ parameters: { c: { v: 2 } } })),
+        new Set(),
+        maps,
+      ),
+    ).toEqual([]);
+  });
+
+  it('reports a kept map key changing type even when the merged labels match', () => {
+    expect(
+      diffShapes(
+        fixtureShape(fixture({ m: { a: 1, b: 'x' } })),
+        fixtureShape(fixture({ m: { a: 'x', b: 1 } })),
+        new Set(),
+        new Set(['$[].m']),
+      ),
+    ).toEqual([
+      '$[].m.a type number -> string',
+      '$[].m.b type string -> number',
+    ]);
+  });
+});
+
+describe('shapeOf', () => {
+  it('quotes a key that holds path punctuation', () => {
+    expect(Object.keys(shapeOf({ 'a.b': 1, 'c[d]': 2, plain: 3 }))).toEqual([
+      '$',
+      '$.plain',
+      '$["a.b"]',
+      '$["c[d]"]',
+    ]);
   });
 });
 

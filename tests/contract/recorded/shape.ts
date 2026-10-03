@@ -16,6 +16,23 @@ function typeLabel(v: unknown): string {
   return typeof v;
 }
 
+/**
+ * A key as a path segment: `.name`, or `["a.b"]` (JSON-quoted) when the key
+ * holds a character the path notation uses, so a key never reads as two.
+ */
+function segment(key: string): string {
+  return /^[^.[\]"]+$/.test(key) ? `.${key}` : `[${JSON.stringify(key)}]`;
+}
+
+/** The length of the key segment that starts `rest` (see segment), or 0. */
+function segmentLength(rest: string): number {
+  const quoted = /^\["(?:[^"\\]|\\.)*"\]/.exec(rest);
+  if (quoted) return quoted[0].length;
+  if (!rest.startsWith('.')) return 0;
+  const end = rest.slice(1).search(/[.[]/);
+  return end < 0 ? rest.length : end + 1;
+}
+
 /** The set of JSON types seen at each key path of a value. */
 export function shapeOf(value: unknown): Shape {
   const seen = new Map<string, Set<string>>();
@@ -26,7 +43,8 @@ export function shapeOf(value: unknown): Shape {
     if (Array.isArray(v)) {
       for (const el of v) walk(el, `${at}[]`);
     } else if (v !== null && typeof v === 'object') {
-      for (const [k, child] of Object.entries(v)) walk(child, `${at}.${k}`);
+      for (const [k, child] of Object.entries(v))
+        walk(child, `${at}${segment(k)}`);
     }
   };
   walk(value, '$');
@@ -166,10 +184,9 @@ export function collapseMapKeys(
   const collapse = (p: string) => {
     let out = p;
     for (const m of ordered) {
-      if (!out.startsWith(`${m}.`)) continue;
-      const rest = out.slice(m.length + 1);
-      const end = rest.search(/[.[]/);
-      out = `${m}.*${end < 0 ? '' : rest.slice(end)}`;
+      if (!out.startsWith(m)) continue;
+      const len = segmentLength(out.slice(m.length));
+      if (len > 0) out = `${m}.*${out.slice(m.length + len)}`;
     }
     return out;
   };
@@ -185,6 +202,29 @@ export function collapseMapKeys(
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([k, v]) => [k, [...v].sort()]),
   );
+}
+
+/**
+ * Merging every map entry under `*` can hide a type change: {a: 1, b: 'x'}
+ * becoming {a: 'x', b: 1} keeps the labels number|string. So paths present
+ * in both uncollapsed shapes are compared too; lines already in `reported`
+ * are skipped.
+ */
+function keptEntryTypeChanges(
+  before: FixtureShape,
+  after: FixtureShape,
+  reported: readonly string[],
+): string[] {
+  const seen = new Set(reported);
+  const out: string[] = [];
+  for (const p of Object.keys(before.body).sort()) {
+    const b = before.body[p];
+    const a = after.body[p];
+    if (!a || !b || a.join() === b.join()) continue;
+    const line = `${p} type ${b.join('|')} -> ${a.join('|')}`;
+    if (!seen.has(line)) out.push(line);
+  }
+  return out;
 }
 
 /**
@@ -245,5 +285,7 @@ export function diffShapes(
       out.push(`${p} type ${b.join('|')} -> ${a.join('|')}`);
     }
   }
+  if (maps.size > 0)
+    out.push(...keptEntryTypeChanges(beforeShape, afterShape, out));
   return out;
 }
