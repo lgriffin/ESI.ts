@@ -17,11 +17,15 @@
  * 4. Runs Stryker with --incremental and --mutate narrowed to those files, plus
  *    any file in the same directories that the restored nightly incremental
  *    report (reports/mutation/stryker-incremental.json) does not cover.
- *    When the pull request changes or deletes a test, every reused file
- *    whose mutants that test covered in the report runs again with --force,
- *    since a score can only fall through a test that killed one of its
- *    mutants last night (#380); a test the report never saw can only raise
- *    a score, which the next nightly records. A test-only pull request
+ *    When the pull request changes or deletes a test, a score can only fall
+ *    through a test that killed one of its mutants last night (#380). If
+ *    every changed tests/ file is a test file, the mutants whose verdict
+ *    rests on one of them (killed by it, or covered by it and survived or
+ *    timed out) are dropped from the restored
+ *    report and run again, and every other result is reused (#571); a
+ *    changed helper, setup file or fixture instead reruns every reused file
+ *    whose mutants that test covered, with --force. A test the report never
+ *    saw can only raise a score, which the next nightly records. A test-only pull request
  *    mutates the directories its tests reach: those the report's per-test
  *    coverage ties them to, and for a test under tests/tdd/ the directory
  *    its path mirrors. With no restored report that is every file in those
@@ -42,7 +46,7 @@
  * itself could not run.
  */
 import { execFileSync, spawnSync } from 'child_process';
-import { appendFileSync, existsSync, readFileSync } from 'fs';
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import { baselineShardFor, parseShards } from './mutation-merge-core';
 import {
@@ -53,6 +57,8 @@ import {
   MutationReport,
   coverageFromReport,
   gatePrRun,
+  invalidateForChangedTests,
+  killsFromReport,
   planPrRun,
   readThresholdPair,
   renderPrSummary,
@@ -110,9 +116,14 @@ function mutatePatterns(): string[] {
   return patterns as string[];
 }
 
+const toRepoPath = (f: string): string =>
+  path.isAbsolute(f) ? path.relative(ROOT, f) : f;
+
 function readBaseline(): {
   sources: Map<string, string> | null;
   coverage: BaselineCoverage | null;
+  kills: BaselineCoverage | null;
+  report: IncrementalReport | null;
   note: string;
 } {
   const file = path.join(ROOT, INCREMENTAL);
@@ -120,6 +131,8 @@ function readBaseline(): {
     return {
       sources: null,
       coverage: null,
+      kills: null,
+      report: null,
       note: `no nightly incremental report at \`${INCREMENTAL}\`; every file in the touched directories is mutated from scratch.`,
     };
   }
@@ -128,12 +141,12 @@ function readBaseline(): {
     const sources = new Map(
       Object.entries(report.files).map(([f, { source }]) => [f, source ?? '']),
     );
-    const coverage = coverageFromReport(report, (f) =>
-      path.isAbsolute(f) ? path.relative(ROOT, f) : f,
-    );
+    const coverage = coverageFromReport(report, toRepoPath);
     return {
       sources,
       coverage,
+      kills: killsFromReport(report, toRepoPath),
+      report,
       note: `nightly incremental report restored (${sources.size} files${coverage === null ? ', no per-test coverage' : ''}); unchanged mutants reuse its results unless a test this pull request changes covered them.`,
     };
   } catch (err) {
@@ -266,6 +279,7 @@ function main(): number {
     readSource: (f) => readFileSync(path.join(ROOT, f), 'utf8'),
     changedTestFiles: changed.testFiles,
     baselineCoverage: baseline.coverage,
+    baselineKills: baseline.kills,
   });
 
   if (plan.skip) {
@@ -282,6 +296,21 @@ function main(): number {
   console.log(
     `Base ${base}. Changed in scope: ${plan.changed.join(', ')}.\nMutating ${plan.mutate.length} file(s) for directories ${plan.directories.join(', ')}${plan.retested.length > 0 ? `, ${plan.retested.length} of them again because a changed test covered them` : ''}${plan.force ? ' (--force: tests changed)' : ''}.`,
   );
+  // In place of --force: drop the verdicts a changed test decided from the
+  // restored report, so Stryker runs those mutants again and reuses the rest.
+  let invalidated = 0;
+  if ((plan.invalidate ?? []).length > 0 && baseline.report !== null) {
+    const pruned = invalidateForChangedTests(
+      baseline.report,
+      plan.invalidate ?? [],
+      toRepoPath,
+    );
+    for (const count of pruned.dropped.values()) invalidated += count;
+    writeFileSync(path.join(ROOT, INCREMENTAL), JSON.stringify(pruned.report));
+    console.log(
+      `Tests changed: ${invalidated} mutant(s) whose nightly verdict rests on a changed test will run again${pruned.dropped.size > 0 ? ` (${[...pruned.dropped].map(([f, n]) => `${f}: ${n}`).join(', ')})` : ''}.`,
+    );
+  }
   runStryker(plan.mutate, process.argv.slice(2), plan.force);
 
   const reportPath = path.join(ROOT, REPORT);
@@ -305,6 +334,7 @@ function main(): number {
       failures,
       baseline: `${baseline.note} Wall time ${minutes} min.`,
       testFiles: changed.testFiles,
+      invalidated,
     }),
   );
   return failures.length > 0 ? EXIT_RATCHET : 0;

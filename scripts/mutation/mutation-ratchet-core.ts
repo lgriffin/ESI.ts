@@ -438,6 +438,14 @@ export interface PrPlanInput {
    * per-test coverage, in which case every vouched sibling is retested.
    */
   baselineCoverage?: BaselineCoverage | null;
+  /**
+   * Per source file in the restored report, the test files a verdict on one
+   * of its mutants rests on (see killsFromReport): the only verdicts a
+   * changed test can overturn. With it,
+   * a pull request whose changed tests/ files are all test files reruns just
+   * those mutants instead of every mutant of the files (#571).
+   */
+  baselineKills?: BaselineCoverage | null;
 }
 
 /** Source file (repo-relative) to the test files the restored report saw cover it. */
@@ -451,7 +459,14 @@ export type BaselineCoverage = ReadonlyMap<string, ReadonlySet<string>>;
 export interface IncrementalReport {
   files: Record<
     string,
-    { source?: string; mutants: { coveredBy?: string[] }[] }
+    {
+      source?: string;
+      mutants: {
+        status?: string;
+        coveredBy?: string[];
+        killedBy?: string[];
+      }[];
+    }
   >;
   testFiles?: Record<string, { tests: { id: string }[] }>;
 }
@@ -484,6 +499,101 @@ export function coverageFromReport(
     coverage.set(normalise(toRepoPath(file)), covering);
   }
   return coverage;
+}
+
+/**
+ * The tests a mutant's verdict rests on, which a changed test can overturn:
+ * a Killed verdict on the tests that killed it (a weakened test may stop),
+ * a Timeout or Survived verdict on the tests that covered it (a changed test
+ * may stop timing out, or a strengthened one start killing). NoCoverage
+ * needs nothing here: Stryker reruns a mutant that gains a covering test.
+ */
+function verdictTests(mutant: {
+  status?: string;
+  coveredBy?: string[];
+  killedBy?: string[];
+}): string[] {
+  if (mutant.status === 'Killed') return mutant.killedBy ?? [];
+  if (mutant.status === 'Timeout' || mutant.status === 'Survived') {
+    return mutant.coveredBy ?? [];
+  }
+  return [];
+}
+
+function testFileById(
+  report: IncrementalReport,
+  toRepoPath: (file: string) => string,
+): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const [testFile, { tests }] of Object.entries(report.testFiles ?? {})) {
+    const repoPath = normalise(toRepoPath(testFile));
+    for (const { id } of tests) out.set(id, repoPath);
+  }
+  return out;
+}
+
+/**
+ * Per source file, the test files whose tests a verdict in the restored
+ * report rests on (see verdictTests). Null when the report has
+ * no `testFiles`, like coverageFromReport.
+ */
+export function killsFromReport(
+  report: IncrementalReport,
+  toRepoPath: (file: string) => string = (f) => f,
+): BaselineCoverage | null {
+  if (report.testFiles === undefined) return null;
+  const fileOfTest = testFileById(report, toRepoPath);
+  const kills = new Map<string, Set<string>>();
+  for (const [file, { mutants }] of Object.entries(report.files)) {
+    const tests = new Set<string>();
+    for (const mutant of mutants) {
+      for (const id of verdictTests(mutant)) {
+        const testFile = fileOfTest.get(id);
+        if (testFile !== undefined) tests.add(testFile);
+      }
+    }
+    kills.set(normalise(toRepoPath(file)), tests);
+  }
+  return kills;
+}
+
+/**
+ * The restored report without the mutants whose verdict rests on a test in
+ * one of `changedTests` (see verdictTests), so Stryker's incremental mode
+ * runs exactly those again and reuses every other result (#571). Returns the
+ * pruned report and how many mutants it dropped per source file.
+ */
+export function invalidateForChangedTests(
+  report: IncrementalReport,
+  changedTests: readonly string[],
+  toRepoPath: (file: string) => string = (f) => f,
+): { report: IncrementalReport; dropped: Map<string, number> } {
+  const changed = new Set(changedTests.map(normalise));
+  const fileOfTest = testFileById(report, toRepoPath);
+  const dropped = new Map<string, number>();
+  const files: IncrementalReport['files'] = {};
+  for (const [file, entry] of Object.entries(report.files)) {
+    const kept = entry.mutants.filter(
+      (mutant) =>
+        !verdictTests(mutant).some((id) => {
+          const testFile = fileOfTest.get(id);
+          return testFile !== undefined && changed.has(testFile);
+        }),
+    );
+    const count = entry.mutants.length - kept.length;
+    if (count > 0) dropped.set(normalise(toRepoPath(file)), count);
+    files[file] = { ...entry, mutants: kept };
+  }
+  return { report: { ...report, files }, dropped };
+}
+
+/**
+ * A changed path under tests/ that the restored report can answer for: a
+ * test file, whose tests it records by id. A helper, setup file or fixture
+ * can change what any test does, so it leaves the run on --force.
+ */
+export function isTestFile(file: string): boolean {
+  return /\.test\.ts$/.test(normalise(file));
 }
 
 /**
@@ -539,6 +649,13 @@ export interface PrPlan {
    * reusing a result recorded under the old tests.
    */
   force: boolean;
+  /**
+   * The changed test files whose verdicts the run invalidates in the restored
+   * report before Stryker starts (invalidateForChangedTests), in place of
+   * --force. Set when every changed tests/ file is a test file and the report
+   * records who killed what; empty or absent otherwise.
+   */
+  invalidate?: string[];
 }
 
 function sameSource(a: string, b: string): boolean {
@@ -553,6 +670,7 @@ export function planPrRun({
   readSource,
   changedTestFiles = [],
   baselineCoverage = null,
+  baselineKills = null,
 }: PrPlanInput): PrPlan {
   const srcChanged = changedFiles
     .map(normalise)
@@ -577,8 +695,27 @@ export function planPrRun({
   // next nightly records that; re-mutating whole directories for it does
   // not fit the job's time budget. Without coverage, every vouched sibling
   // is retested.
-  const force = testsChanged === null || testsChanged.length > 0;
+  //
+  // Forcing whole files reran all 165 mutants of a hot-path file for a
+  // one-test change and blew the job's deadline (#571). When every changed
+  // tests/ file is a test file and the report records which tests killed
+  // what, only the verdicts a changed test decided can change: those mutants
+  // are dropped from the restored report (plan.invalidate) and Stryker
+  // reuses the rest. A changed helper, setup file or fixture still forces.
+  const testsTouched = testsChanged === null || testsChanged.length > 0;
+  const precise =
+    testsChanged !== null &&
+    testsChanged.length > 0 &&
+    baselineSources !== null &&
+    baselineKills !== null &&
+    testsChanged.every(isTestFile);
+  const force = testsTouched && !precise;
   const touchedByChangedTest = (file: string): boolean => {
+    if (precise && baselineKills !== null && testsChanged !== null) {
+      const kills = baselineKills.get(file);
+      if (kills === undefined) return true;
+      return testsChanged.some((t) => kills.has(t));
+    }
     if (testsChanged === null || baselineCoverage === null) return true;
     const covering = baselineCoverage.get(file);
     if (covering === undefined) return true;
@@ -638,7 +775,7 @@ export function planPrRun({
     return recorded === undefined || !sameSource(recorded, readSource(f));
   });
   const retested =
-    force && baselineSources !== null
+    testsTouched && baselineSources !== null
       ? siblings.filter(
           (f) =>
             !changed.includes(f) &&
@@ -677,6 +814,8 @@ export function planPrRun({
     nightly,
     retested: [...retested].sort(),
     force,
+    invalidate:
+      precise && testsChanged !== null ? [...testsChanged].sort() : [],
   };
 }
 
@@ -807,6 +946,8 @@ export function renderPrSummary(args: {
    */
   testFiles?: readonly string[] | null;
   maxMutants?: number;
+  /** Mutants dropped from the restored report for plan.invalidate. */
+  invalidated?: number;
 }): string {
   const { plan, scores, thresholds, files, undetected, failures } = args;
   const maxMutants = args.maxMutants ?? 50;
@@ -842,6 +983,11 @@ export function renderPrSummary(args: {
       lines.push(
         '',
         '> Tests changed, so every mutant of the mutated files ran in this job (`--force`); no result was reused for them.',
+      );
+    } else if ((plan.invalidate ?? []).length > 0) {
+      lines.push(
+        '',
+        `> Tests changed, so the ${args.invalidated ?? 0} mutant(s) whose nightly verdict rests on a changed test (killed by it, or covered by it and survived or timed out) ran again in this job; every other unchanged mutant reused its nightly result.`,
       );
     }
   }
