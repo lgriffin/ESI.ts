@@ -1,5 +1,5 @@
 {
-  "_comment": "Advisories reviewed and accepted as known risk. Keyed by GHSA id. Every entry needs a reason and an expires date (YYYY-MM-DD) so acceptance is revisited rather than becoming permanent. An expired entry is a hard failure, not a silent pass — renew it deliberately or fix the advisory. Consumed by scripts/quality/audit-check.ts.",
+  "_comment": "Advisories reviewed and accepted as known risk. Keyed by GHSA id. Every entry needs a reason and an expires date (YYYY-MM-DD) so acceptance is revisited rather than becoming permanent. An expired entry is a hard failure, not a silent pass — renew it deliberately or fix the advisory. An entry with \"devOnly\": true stops being accepted by --check once a production dependency reaches the advisory (npm audit --omit=dev). Consumed by scripts/quality/audit-check.ts.",
   "exceptions": [
     {
       "ghsa": "GHSA-vwc7-r8mq-g2x9",
@@ -13,7 +13,8 @@
       "package": "braces",
       "severity": "high",
       "reason": "No upstream fix exists: braces 3.0.3 is the latest release and every version is affected. It reaches this repo only through tsd 0.33.0 (the latest) -> globby 11 -> fast-glob -> micromatch, a devDependency that is never installed for package consumers. The only input it expands is the fixed pattern in the test:types script ('tests/typetests/*.test-d.ts'), so no attacker-controlled pattern reaches it. Revisit when braces or tsd ships a fix.",
-      "expires": "2027-01-03"
+      "expires": "2027-01-03",
+      "devOnly": true
     }
   ]
 }
