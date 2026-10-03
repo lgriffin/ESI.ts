@@ -19,7 +19,9 @@
  *        npm run audit:check
  *
  * Both modes read `scripts/quality/audit-exceptions.json` and ignore advisories accepted
- * there. An exception past its `expires` date fails the run.
+ * there. An exception past its `expires` date fails the run. An exception
+ * marked `devOnly` was accepted because only devDependencies reach it: --check
+ * stops accepting it once `npm audit --omit=dev` reports it too.
  */
 
 import { execFileSync } from 'child_process';
@@ -37,6 +39,8 @@ interface AuditException {
   severity: string;
   reason: string;
   expires: string;
+  /** Accepted only while no production dependency reaches the advisory. */
+  devOnly?: boolean;
 }
 
 interface Advisory {
@@ -143,12 +147,12 @@ function loadExceptions(): Map<string, AuditException> {
   return new Map((parsed.exceptions ?? []).map((e) => [e.ghsa, e]));
 }
 
-function runAudit(): AuditReport {
+function runAudit(extraArgs: string[] = []): AuditReport {
   // npm audit exits non-zero whenever it finds anything, so a non-zero status
   // is expected and the payload still lands on stdout.
   let stdout: string;
   try {
-    stdout = execFileSync('npm', ['audit', '--json'], {
+    stdout = execFileSync('npm', ['audit', '--json', ...extraArgs], {
       encoding: 'utf-8',
       maxBuffer: 32 * 1024 * 1024,
     });
@@ -193,15 +197,38 @@ function argValue(flag: string): string | undefined {
   return index === -1 ? undefined : process.argv[index + 1];
 }
 
+/**
+ * The `devOnly` exceptions a production dependency now reaches: their reason
+ * no longer holds, so they stop counting as accepted. Runs the production-only
+ * audit only when such an exception matches something.
+ */
+function devOnlyBreaches(
+  advisories: Map<string, Advisory>,
+  exceptions: Map<string, AuditException>,
+): Set<string> {
+  const devOnly = [...advisories.keys()].filter(
+    (id) => exceptions.get(id)?.devOnly === true,
+  );
+  if (devOnly.length === 0) return new Set();
+  const production = collectAdvisories(runAudit(['--omit=dev']));
+  return new Set(devOnly.filter((id) => production.has(id)));
+}
+
 function checkMode(threshold: string, exceptions: Map<string, AuditException>) {
   const advisories = collectAdvisories(runAudit());
   const minRank = severityRank(threshold);
+  const breached = devOnlyBreaches(advisories, exceptions);
 
   const accepted: Advisory[] = [];
   const blocking: Advisory[] = [];
 
   for (const advisory of advisories.values()) {
-    if (exceptions.has(advisory.ghsa)) {
+    if (breached.has(advisory.ghsa)) {
+      console.error(
+        `${advisory.ghsa} (${advisory.package}) is accepted as devOnly, but a production dependency now reaches it.`,
+      );
+      blocking.push(advisory);
+    } else if (exceptions.has(advisory.ghsa)) {
       accepted.push(advisory);
     } else if (severityRank(advisory.severity) >= minRank) {
       blocking.push(advisory);

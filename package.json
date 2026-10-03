@@ -416,7 +416,7 @@
     "brace-expansion": ">=5.0.11",
     "esbuild": "$esbuild",
     "uuid": "~11.1.1",
-    "fast-uri": "^3.1.6",
+    "fast-uri": "^3.1.8",
     "cosmiconfig": {
       "js-yaml": "^4.3.2"
     },
