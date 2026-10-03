@@ -67,6 +67,8 @@ Without both, release-please falls back to `GITHUB_TOKEN`. Its release PR's CI t
 
 The same fallback applies when minting fails, for example because the app is not installed on the repository (the token API answers 404) or the key was deleted. The run carries a "Release app token" warning annotation saying so, and the release still goes out.
 
+`nightly-recorded-payloads.yml` opens its payload-drift pull request with the same app token, asking for Contents and Pull requests only, so `ci.yml` runs on it and `ci-success` reports ([#572](https://github.com/lgriffin/ESI.ts/issues/572)). Without the app it opens the pull request with `GITHUB_TOKEN` and a "Pull request token" warning; that pull request needs a manual push or re-run before it can merge.
+
 ---
 
 ## Release cadence
