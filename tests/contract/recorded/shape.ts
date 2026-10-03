@@ -67,9 +67,51 @@ interface SchemaNode {
   properties?: Record<string, SchemaNode>;
   required?: string[];
   items?: SchemaNode;
+  additionalProperties?: SchemaNode | boolean;
   oneOf?: SchemaNode[];
   anyOf?: SchemaNode[];
   allOf?: SchemaNode[];
+}
+
+/**
+ * Walks an OpenAPI response schema in fixture shape notation (the page body
+ * is `$[]`, a map entry is `.*`), calling `visit` on every node with its path.
+ */
+function walkSchema(
+  schema: unknown,
+  components: Record<string, unknown>,
+  visit: (node: SchemaNode, at: string) => void,
+): void {
+  // `refs` holds the $refs already followed on this branch, so a
+  // self-referencing schema stops instead of recursing forever.
+  const walk = (node: SchemaNode, at: string, refs: ReadonlySet<string>) => {
+    if (node.$ref) {
+      if (refs.has(node.$ref)) return;
+      const target = components[node.$ref.replace('#/components/schemas/', '')];
+      if (target && typeof target === 'object') {
+        walk(target as SchemaNode, at, new Set([...refs, node.$ref]));
+      }
+      return;
+    }
+    visit(node, at);
+    for (const branch of [
+      ...(node.oneOf ?? []),
+      ...(node.anyOf ?? []),
+      ...(node.allOf ?? []),
+    ])
+      walk(branch, at, refs);
+    if (node.items) walk(node.items, `${at}[]`, refs);
+    if (
+      node.additionalProperties &&
+      typeof node.additionalProperties === 'object'
+    )
+      walk(node.additionalProperties, `${at}.*`, refs);
+    for (const [key, child] of Object.entries(node.properties ?? {}))
+      walk(child, `${at}.${key}`, refs);
+  };
+  if (schema && typeof schema === 'object') {
+    walk(schema as SchemaNode, '$[]', new Set());
+  }
 }
 
 /**
@@ -84,34 +126,65 @@ export function optionalPaths(
   components: Record<string, unknown> = {},
 ): Set<string> {
   const out = new Set<string>();
-  // `refs` holds the $refs already followed on this branch, so a
-  // self-referencing schema stops instead of recursing forever.
-  const walk = (node: SchemaNode, at: string, refs: ReadonlySet<string>) => {
-    if (node.$ref) {
-      if (refs.has(node.$ref)) return;
-      const target = components[node.$ref.replace('#/components/schemas/', '')];
-      if (target && typeof target === 'object') {
-        walk(target as SchemaNode, at, new Set([...refs, node.$ref]));
-      }
-      return;
-    }
-    for (const branch of [
-      ...(node.oneOf ?? []),
-      ...(node.anyOf ?? []),
-      ...(node.allOf ?? []),
-    ])
-      walk(branch, at, refs);
-    if (node.items) walk(node.items, `${at}[]`, refs);
+  walkSchema(schema, components, (node, at) => {
     const required = new Set(node.required ?? []);
-    for (const [key, child] of Object.entries(node.properties ?? {})) {
+    for (const key of Object.keys(node.properties ?? {}))
       if (!required.has(key)) out.add(`${at}.${key}`);
-      walk(child, `${at}.${key}`, refs);
-    }
-  };
-  if (schema && typeof schema === 'object') {
-    walk(schema as SchemaNode, '$[]', new Set());
-  }
+  });
   return out;
+}
+
+/**
+ * Key paths the OpenAPI response schema declares as `additionalProperties`
+ * maps, in fixture shape notation. Their keys are data (a freelance job's
+ * parameter names), so which keys a recording holds depends on the record
+ * sampled, not on ESI changing.
+ */
+export function mapPaths(
+  schema: unknown,
+  components: Record<string, unknown> = {},
+): Set<string> {
+  const out = new Set<string>();
+  walkSchema(schema, components, (node, at) => {
+    if (node.additionalProperties) out.add(at);
+  });
+  return out;
+}
+
+/**
+ * A shape with every key under a map path (see mapPaths) written as `*`, so
+ * entries are compared by value shape whatever their keys. Labels of entries
+ * that collapse onto one path are merged.
+ */
+export function collapseMapKeys(
+  shape: Shape,
+  maps: ReadonlySet<string>,
+): Shape {
+  if (maps.size === 0) return shape;
+  // Shortest first: a nested map's path already has its parent's `*`.
+  const ordered = [...maps].sort((a, b) => a.length - b.length);
+  const collapse = (p: string) => {
+    let out = p;
+    for (const m of ordered) {
+      if (!out.startsWith(`${m}.`)) continue;
+      const rest = out.slice(m.length + 1);
+      const end = rest.search(/[.[]/);
+      out = `${m}.*${end < 0 ? '' : rest.slice(end)}`;
+    }
+    return out;
+  };
+  const merged = new Map<string, Set<string>>();
+  for (const [p, labels] of Object.entries(shape)) {
+    const key = collapse(p);
+    const set = merged.get(key) ?? new Set<string>();
+    for (const l of labels) set.add(l);
+    merged.set(key, set);
+  }
+  return Object.fromEntries(
+    [...merged.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => [k, [...v].sort()]),
+  );
 }
 
 /**
@@ -120,13 +193,20 @@ export function optionalPaths(
  * element shape to compare, so element paths under it are not reported.
  * A field in `optional` (see optionalPaths), or under one, appearing or
  * disappearing is sampling, not drift, and is not reported either; a type
- * change on it still is.
+ * change on it still is. Keys under a path in `maps` (see mapPaths) are
+ * compared as `*`, so a map holding different keys is not drift either.
  */
 export function diffShapes(
-  before: FixtureShape,
-  after: FixtureShape,
+  beforeShape: FixtureShape,
+  afterShape: FixtureShape,
   optional: ReadonlySet<string> = new Set(),
+  maps: ReadonlySet<string> = new Set(),
 ): string[] {
+  const before = {
+    ...beforeShape,
+    body: collapseMapKeys(beforeShape.body, maps),
+  };
+  const after = { ...afterShape, body: collapseMapKeys(afterShape.body, maps) };
   const out: string[] = [];
   if (before.status.join() !== after.status.join()) {
     out.push(`status ${before.status.join('/')} -> ${after.status.join('/')}`);

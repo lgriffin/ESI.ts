@@ -13,7 +13,13 @@ import {
 } from '../recorded/fixture';
 import { ARRAY_HEAD, ARRAY_MAX, STRING_MAX } from '../recorded/policy';
 import { shrinkOnlyProblems } from '../recorded/ratchet';
-import { diffShapes, fixtureShape, optionalPaths } from '../recorded/shape';
+import {
+  collapseMapKeys,
+  diffShapes,
+  fixtureShape,
+  mapPaths,
+  optionalPaths,
+} from '../recorded/shape';
 
 describe('coverageProblems', () => {
   const base = {
@@ -246,6 +252,56 @@ describe('diffShapes', () => {
       ),
     ).toEqual(['$[][].runs type number -> string']);
   });
+
+  it('compares map entries by value shape whatever their keys', () => {
+    const maps = new Set(['$[].parameters']);
+    expect(
+      diffShapes(
+        fixtureShape(fixture({ parameters: { delivery: { values: [1] } } })),
+        fixtureShape(
+          fixture({ parameters: { location: { values: [2] }, other: {} } }),
+        ),
+        new Set(),
+        maps,
+      ),
+    ).toEqual([]);
+    expect(
+      diffShapes(
+        fixtureShape(fixture({ parameters: { a: { values: [1] } } })),
+        fixtureShape(fixture({ parameters: { b: { values: ['1'] } } })),
+        new Set(),
+        maps,
+      ),
+    ).toEqual(['$[].parameters.*.values[] type number -> string']);
+  });
+});
+
+describe('collapseMapKeys', () => {
+  it('writes keys under map paths as *, nested maps included, and merges labels', () => {
+    expect(
+      collapseMapKeys(
+        {
+          '$[].m': ['object'],
+          '$[].m.a': ['object'],
+          '$[].m.a.n': ['object'],
+          '$[].m.a.n.x': ['number'],
+          '$[].m.b': ['null'],
+          '$[].m.b.n': ['object'],
+          '$[].m.b.n.y': ['array'],
+          '$[].m.b.n.y[]': ['string'],
+          '$[].other.k': ['string'],
+        },
+        new Set(['$[].m', '$[].m.*.n']),
+      ),
+    ).toEqual({
+      '$[].m': ['object'],
+      '$[].m.*': ['null', 'object'],
+      '$[].m.*.n': ['object'],
+      '$[].m.*.n.*': ['array', 'number'],
+      '$[].m.*.n.*[]': ['string'],
+      '$[].other.k': ['string'],
+    });
+  });
 });
 
 describe('optionalPaths', () => {
@@ -269,5 +325,49 @@ describe('optionalPaths', () => {
         ),
       ].sort(),
     ).toEqual(['$[][].child', '$[][].runs']);
+  });
+
+  it('lists properties of map values under .*', () => {
+    expect([
+      ...optionalPaths({
+        type: 'object',
+        properties: {
+          params: {
+            type: 'object',
+            additionalProperties: {
+              oneOf: [{ properties: { matcher: { type: 'object' } } }],
+            },
+          },
+        },
+      }),
+    ]).toEqual(['$[].params', '$[].params.*.matcher']);
+  });
+});
+
+describe('mapPaths', () => {
+  it('lists additionalProperties maps, through refs, arrays and other maps', () => {
+    const components = {
+      Job: {
+        type: 'object',
+        properties: {
+          parameters: {
+            type: 'object',
+            additionalProperties: {
+              type: 'object',
+              properties: { tags: { additionalProperties: true } },
+            },
+          },
+          closed: { type: 'object', additionalProperties: false },
+        },
+      },
+    };
+    expect(
+      [
+        ...mapPaths(
+          { type: 'array', items: { $ref: '#/components/schemas/Job' } },
+          components,
+        ),
+      ].sort(),
+    ).toEqual(['$[][].parameters', '$[][].parameters.*.tags']);
   });
 });
