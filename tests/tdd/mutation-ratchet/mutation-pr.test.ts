@@ -18,6 +18,9 @@ import {
   gatePrRun,
   globToRegExp,
   inMutationScope,
+  invalidateForChangedTests,
+  isTestFile,
+  killsFromReport,
   parseThresholds,
   planPrRun,
   readThresholdPair,
@@ -165,6 +168,108 @@ describe('coverage from the incremental report', () => {
       expect(sourceDirectoryForTest(test)).toBe(expected);
     },
   );
+});
+
+describe('verdicts a changed test can overturn (#571)', () => {
+  const incremental = {
+    files: {
+      '/runner/work/src/core/cache/ETagCacheManager.ts': {
+        mutants: [
+          { status: 'Killed', killedBy: ['1'], coveredBy: ['1', '3'] },
+          { status: 'Killed', killedBy: ['3'], coveredBy: ['1', '3'] },
+          { status: 'Timeout', coveredBy: ['1'] },
+          { status: 'Survived', coveredBy: ['1'] },
+          { status: 'NoCoverage' },
+        ],
+      },
+      '/runner/work/src/core/cache/cacheKey.ts': {
+        mutants: [{ status: 'Killed', killedBy: ['2'], coveredBy: ['1', '2'] }],
+      },
+    },
+    testFiles: {
+      '/runner/work/tests/tdd/core/loggerLevelEnabled.test.ts': {
+        tests: [{ id: '1' }],
+      },
+      '/runner/work/tests/tdd/core/cache/cacheKey.test.ts': {
+        tests: [{ id: '2' }],
+      },
+      '/runner/work/tests/tdd/core/cache/ETagCacheManager.test.ts': {
+        tests: [{ id: '3' }],
+      },
+    },
+  };
+  const toRepo = (f: string) => f.replace('/runner/work/', '');
+
+  it('ties a Killed verdict to its killing tests, Timeout and Survived to their covering tests', () => {
+    const kills = killsFromReport(incremental, toRepo);
+    expect(kills!.get('src/core/cache/ETagCacheManager.ts')).toEqual(
+      new Set([
+        'tests/tdd/core/loggerLevelEnabled.test.ts',
+        'tests/tdd/core/cache/ETagCacheManager.test.ts',
+      ]),
+    );
+    // A Killed verdict rests on its killer, not on every covering test.
+    expect(kills!.get('src/core/cache/cacheKey.ts')).toEqual(
+      new Set(['tests/tdd/core/cache/cacheKey.test.ts']),
+    );
+    expect(
+      killsFromReport({ files: { 'src/a.ts': { mutants: [] } } }),
+    ).toBeNull();
+  });
+
+  it.each([
+    [
+      'a Killed mutant without killedBy',
+      { status: 'Killed', coveredBy: ['1'] },
+    ],
+    ['a Timeout mutant without coveredBy', { status: 'Timeout' }],
+    ['a Survived mutant without coveredBy', { status: 'Survived' }],
+  ])(
+    'gives no kill index when %s, so no changed test is ruled out',
+    (_, mutant) => {
+      const report = {
+        files: { 'src/a.ts': { mutants: [mutant] } },
+        testFiles: { 'tests/a.test.ts': { tests: [{ id: '1' }] } },
+      };
+      expect(killsFromReport(report)).toBeNull();
+    },
+  );
+
+  it('drops only the mutants whose verdict rests on a changed test', () => {
+    const { report: pruned, dropped } = invalidateForChangedTests(
+      incremental,
+      ['tests/tdd/core/loggerLevelEnabled.test.ts'],
+      toRepo,
+    );
+    expect(
+      pruned.files['/runner/work/src/core/cache/ETagCacheManager.ts']!.mutants,
+    ).toEqual([
+      { status: 'Killed', killedBy: ['3'], coveredBy: ['1', '3'] },
+      { status: 'NoCoverage' },
+    ]);
+    expect(
+      pruned.files['/runner/work/src/core/cache/cacheKey.ts']!.mutants,
+    ).toHaveLength(1);
+    expect(dropped).toEqual(
+      new Map([['src/core/cache/ETagCacheManager.ts', 3]]),
+    );
+    expect(pruned.testFiles).toBe(incremental.testFiles);
+    // The input report is left as it was.
+    expect(
+      incremental.files['/runner/work/src/core/cache/ETagCacheManager.ts']
+        .mutants,
+    ).toHaveLength(5);
+  });
+
+  it.each([
+    ['tests/tdd/core/cache/cacheKey.test.ts', true],
+    ['tests\\tdd\\core\\a.test.ts', true],
+    ['tests/tdd/helpers/clientErrorTests.ts', false],
+    ['tests/setup/jest.setup.ts', false],
+    ['tests/bdd/support/steps.ts', false],
+  ])('treats %s as a test file: %s', (file, expected) => {
+    expect(isTestFile(file)).toBe(expected);
+  });
 });
 
 describe('mutation scope globs', () => {
@@ -315,6 +420,83 @@ describe('pull request mutation plan', () => {
     expect(untouched.force).toBe(false);
   });
 
+  it('invalidates the verdicts a changed test decided instead of forcing whole files (#571)', () => {
+    const base = {
+      changedFiles: ['src/core/cache/ETagCacheManager.ts'],
+      trackedFiles: [
+        'src/core/cache/ETagCacheManager.ts',
+        'src/core/cache/CacheHeaders.ts',
+        'src/core/cache/cacheKey.ts',
+      ],
+      baselineSources: new Map([
+        ['src/core/cache/ETagCacheManager.ts', 'old'],
+        ['src/core/cache/cacheKey.ts', 'same'],
+        ['src/core/cache/CacheHeaders.ts', 'same'],
+      ]),
+      // loggerLevelEnabled covers both siblings but only kills in cacheKey.
+      baselineCoverage: new Map([
+        [
+          'src/core/cache/cacheKey.ts',
+          new Set(['tests/tdd/core/loggerLevelEnabled.test.ts']),
+        ],
+        [
+          'src/core/cache/CacheHeaders.ts',
+          new Set(['tests/tdd/core/loggerLevelEnabled.test.ts']),
+        ],
+      ]),
+      baselineKills: new Map([
+        ['src/core/cache/ETagCacheManager.ts', new Set<string>()],
+        [
+          'src/core/cache/cacheKey.ts',
+          new Set(['tests/tdd/core/loggerLevelEnabled.test.ts']),
+        ],
+        ['src/core/cache/CacheHeaders.ts', new Set<string>()],
+      ]),
+      readSource: () => 'same',
+    };
+
+    // The #568 shape: one source file and one test file changed.
+    const precise = plan({
+      ...base,
+      changedTestFiles: ['tests/tdd/core/loggerLevelEnabled.test.ts'],
+    });
+    expect(precise.force).toBe(false);
+    expect(precise.invalidate).toEqual([
+      'tests/tdd/core/loggerLevelEnabled.test.ts',
+    ]);
+    expect(precise.retested).toEqual(['src/core/cache/cacheKey.ts']);
+    expect(precise.nightly).toEqual(['src/core/cache/CacheHeaders.ts']);
+
+    // A changed helper can change any test, so the run still forces.
+    const helper = plan({
+      ...base,
+      changedTestFiles: [
+        'tests/tdd/core/loggerLevelEnabled.test.ts',
+        'tests/tdd/helpers/spyLogger.ts',
+      ],
+    });
+    expect(helper.force).toBe(true);
+    expect(helper.invalidate).toEqual([]);
+    expect(helper.retested).toEqual([
+      'src/core/cache/CacheHeaders.ts',
+      'src/core/cache/cacheKey.ts',
+    ]);
+
+    // No kill index in the report: as before, force.
+    const noKills = plan({
+      ...base,
+      baselineKills: null,
+      changedTestFiles: ['tests/tdd/core/loggerLevelEnabled.test.ts'],
+    });
+    expect(noKills.force).toBe(true);
+    expect(noKills.invalidate).toEqual([]);
+
+    const untouched = plan({ ...base, changedTestFiles: [] });
+    expect(untouched.force).toBe(false);
+    expect(untouched.invalidate).toEqual([]);
+    expect(untouched.retested).toEqual([]);
+  });
+
   it('retests every vouched sibling when it cannot tell which tests covered what', () => {
     const baselineSources = new Map([
       ['src/core/cache/ETagCacheManager.ts', 'old'],
@@ -409,8 +591,36 @@ describe('pull request mutation plan', () => {
     });
     expect(result.skip).toBe(true);
     expect(result.reason).toMatch(/cannot lower a score/);
+    expect(result.reason).toMatch(/none of them covered a mutant/);
     expect(result.directories).toEqual(['src/core/cache']);
     expect(result.mutate).toEqual([]);
+
+    // With a kill index the test decided no verdict, though it may cover one.
+    const precise = plan({
+      changedFiles: ['tests/tdd/core/cache/cacheKey.test.ts'],
+      changedTestFiles: ['tests/tdd/core/cache/cacheKey.test.ts'],
+      baselineSources: new Map([
+        ['src/core/cache/ETagCacheManager.ts', 'same'],
+        ['src/core/cache/cacheKey.ts', 'same'],
+      ]),
+      baselineCoverage: new Map([
+        ['src/core/cache/ETagCacheManager.ts', new Set<string>()],
+        [
+          'src/core/cache/cacheKey.ts',
+          new Set(['tests/tdd/core/cache/cacheKey.test.ts']),
+        ],
+      ]),
+      baselineKills: new Map([
+        ['src/core/cache/ETagCacheManager.ts', new Set<string>()],
+        ['src/core/cache/cacheKey.ts', new Set<string>()],
+      ]),
+      readSource: () => 'same',
+    });
+    expect(precise.skip).toBe(true);
+    expect(precise.reason).toMatch(
+      /none of them killed a mutant, or covered one that survived or timed out/,
+    );
+    expect(precise.reason).not.toMatch(/none of them covered a mutant/);
   });
 
   it('skips a test-only pull request it cannot tie to a directory, saying so', () => {
@@ -722,6 +932,40 @@ describe('pull request ratchet gate', () => {
       '`src/core/cache`: 1 unchanged file(s) mutated again because this pull request changes a test that covered them',
     );
     expect(text).toContain('`src/core/cache/cacheKey.ts`');
+  });
+
+  it('says how many verdicts it reran instead of claiming --force', () => {
+    const precise: PrPlan = {
+      skip: false,
+      reason: '',
+      changed: ['src/core/cache/ETagCacheManager.ts'],
+      outOfScope: [],
+      directories: ['src/core/cache'],
+      mutate: ['src/core/cache/ETagCacheManager.ts'],
+      nightly: [],
+      retested: [],
+      force: false,
+      invalidate: ['tests/tdd/core/loggerLevelEnabled.test.ts'],
+    };
+    const run = report({ 'src/core/cache/ETagCacheManager.ts': ['Killed'] });
+    const { scores, failures } = gatePrRun(run, precise, {
+      'src/core/cache': 100,
+    });
+    const text = renderPrSummary({
+      plan: precise,
+      scores,
+      thresholds: { 'src/core/cache': 100 },
+      files: scoreFiles(run, precise.changed),
+      undetected: [],
+      failures,
+      baseline: 'test baseline',
+      testFiles: ['tests/tdd/core/loggerLevelEnabled.test.ts'],
+      invalidated: 7,
+    });
+    expect(text).toContain(
+      'the 7 mutant(s) whose nightly verdict rests on a changed test',
+    );
+    expect(text).not.toContain('--force');
   });
 
   it('escapes a replacement that would otherwise break the summary table', () => {
