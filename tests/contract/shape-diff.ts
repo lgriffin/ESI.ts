@@ -7,6 +7,8 @@
  * Values (prices, IDs, dates, ETags) are ignored. See recorded/shape.ts.
  * A field the vendored OpenAPI snapshot declares optional appearing or
  * disappearing is ignored too: it depends on which live record was sampled.
+ * So are the keys of an `additionalProperties` map: entries are compared by
+ * value shape, whatever they are called.
  *
  * --revert-unchanged restores every fixture whose shape did not change, so
  * only shape changes are left in the working tree for the nightly pull
@@ -25,7 +27,12 @@ import {
 import { findSpecOperation, OpenApiSpec } from './helpers';
 import { publicGetEndpoints } from './recorded/catalogue';
 import { CONTRACT_DIR, FIXTURES_DIR, REPO_ROOT } from './recorded/policy';
-import { diffShapes, fixtureShape, optionalPaths } from './recorded/shape';
+import {
+  diffShapes,
+  fixtureShape,
+  mapPaths,
+  optionalPaths,
+} from './recorded/shape';
 
 const SNAPSHOT_PATH = path.join(
   CONTRACT_DIR,
@@ -33,17 +40,25 @@ const SNAPSHOT_PATH = path.join(
   'esi-openapi.snapshot.json',
 );
 
-/** Optional response fields per fixture endpoint, from the vendored spec. */
-function optionalFieldsByEndpoint(): Map<string, Set<string>> {
+interface SpecPaths {
+  optional: Set<string>;
+  maps: Set<string>;
+}
+
+/** Optional fields and map paths per fixture endpoint, from the vendored spec. */
+function specPathsByEndpoint(): Map<string, SpecPaths> {
   const spec = JSON.parse(
     fs.readFileSync(SNAPSHOT_PATH, 'utf-8'),
   ) as OpenApiSpec;
-  const out = new Map<string, Set<string>>();
+  const out = new Map<string, SpecPaths>();
   for (const { key, definition } of publicGetEndpoints()) {
     const op = findSpecOperation(spec, definition.path, 'GET');
     const schema =
       op?.responses?.['200']?.content?.['application/json']?.schema;
-    out.set(key, optionalPaths(schema, spec.components?.schemas));
+    out.set(key, {
+      optional: optionalPaths(schema, spec.components?.schemas),
+      maps: mapPaths(schema, spec.components?.schemas),
+    });
   }
   return out;
 }
@@ -76,7 +91,7 @@ function main(): number {
   const current = new Map(
     listFixtureFiles().map((file) => [path.basename(file), file]),
   );
-  const optional = optionalFieldsByEndpoint();
+  const specPaths = specPathsByEndpoint();
   const sections: string[] = [];
   let changed = 0;
 
@@ -101,7 +116,8 @@ function main(): number {
     const diffs = diffShapes(
       fixtureShape(before),
       fixtureShape(after),
-      optional.get(after.endpoint),
+      specPaths.get(after.endpoint)?.optional,
+      specPaths.get(after.endpoint)?.maps,
     );
     if (diffs.length === 0) {
       if (revert) git(['checkout', ref, '--', rel]);
