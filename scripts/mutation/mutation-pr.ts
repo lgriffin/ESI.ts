@@ -305,10 +305,14 @@ function main(): number {
       plan.invalidate ?? [],
       toRepoPath,
     );
-    for (const count of pruned.dropped.values()) invalidated += count;
+    // Only files this run mutates rerun their dropped verdicts; the rest
+    // are not in --mutate, so they do not count towards the summary.
+    const mutated = new Set(plan.mutate);
+    const rerun = [...pruned.dropped].filter(([f]) => mutated.has(f));
+    for (const [, count] of rerun) invalidated += count;
     writeFileSync(path.join(ROOT, INCREMENTAL), JSON.stringify(pruned.report));
     console.log(
-      `Tests changed: ${invalidated} mutant(s) whose nightly verdict rests on a changed test will run again${pruned.dropped.size > 0 ? ` (${[...pruned.dropped].map(([f, n]) => `${f}: ${n}`).join(', ')})` : ''}.`,
+      `Tests changed: ${invalidated} mutant(s) whose nightly verdict rests on a changed test will run again${rerun.length > 0 ? ` (${rerun.map(([f, n]) => `${f}: ${n}`).join(', ')})` : ''}.`,
     );
   }
   runStryker(plan.mutate, process.argv.slice(2), plan.force);

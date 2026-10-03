@@ -217,6 +217,24 @@ describe('verdicts a changed test can overturn (#571)', () => {
     ).toBeNull();
   });
 
+  it.each([
+    [
+      'a Killed mutant without killedBy',
+      { status: 'Killed', coveredBy: ['1'] },
+    ],
+    ['a Timeout mutant without coveredBy', { status: 'Timeout' }],
+    ['a Survived mutant without coveredBy', { status: 'Survived' }],
+  ])(
+    'gives no kill index when %s, so no changed test is ruled out',
+    (_, mutant) => {
+      const report = {
+        files: { 'src/a.ts': { mutants: [mutant] } },
+        testFiles: { 'tests/a.test.ts': { tests: [{ id: '1' }] } },
+      };
+      expect(killsFromReport(report)).toBeNull();
+    },
+  );
+
   it('drops only the mutants whose verdict rests on a changed test', () => {
     const { report: pruned, dropped } = invalidateForChangedTests(
       incremental,
@@ -573,8 +591,36 @@ describe('pull request mutation plan', () => {
     });
     expect(result.skip).toBe(true);
     expect(result.reason).toMatch(/cannot lower a score/);
+    expect(result.reason).toMatch(/none of them covered a mutant/);
     expect(result.directories).toEqual(['src/core/cache']);
     expect(result.mutate).toEqual([]);
+
+    // With a kill index the test decided no verdict, though it may cover one.
+    const precise = plan({
+      changedFiles: ['tests/tdd/core/cache/cacheKey.test.ts'],
+      changedTestFiles: ['tests/tdd/core/cache/cacheKey.test.ts'],
+      baselineSources: new Map([
+        ['src/core/cache/ETagCacheManager.ts', 'same'],
+        ['src/core/cache/cacheKey.ts', 'same'],
+      ]),
+      baselineCoverage: new Map([
+        ['src/core/cache/ETagCacheManager.ts', new Set<string>()],
+        [
+          'src/core/cache/cacheKey.ts',
+          new Set(['tests/tdd/core/cache/cacheKey.test.ts']),
+        ],
+      ]),
+      baselineKills: new Map([
+        ['src/core/cache/ETagCacheManager.ts', new Set<string>()],
+        ['src/core/cache/cacheKey.ts', new Set<string>()],
+      ]),
+      readSource: () => 'same',
+    });
+    expect(precise.skip).toBe(true);
+    expect(precise.reason).toMatch(
+      /none of them killed a mutant, or covered one that survived or timed out/,
+    );
+    expect(precise.reason).not.toMatch(/none of them covered a mutant/);
   });
 
   it('skips a test-only pull request it cannot tie to a directory, saying so', () => {

@@ -512,10 +512,10 @@ function verdictTests(mutant: {
   status?: string;
   coveredBy?: string[];
   killedBy?: string[];
-}): string[] {
-  if (mutant.status === 'Killed') return mutant.killedBy ?? [];
+}): string[] | null {
+  if (mutant.status === 'Killed') return mutant.killedBy ?? null;
   if (mutant.status === 'Timeout' || mutant.status === 'Survived') {
-    return mutant.coveredBy ?? [];
+    return mutant.coveredBy ?? null;
   }
   return [];
 }
@@ -535,7 +535,10 @@ function testFileById(
 /**
  * Per source file, the test files whose tests a verdict in the restored
  * report rests on (see verdictTests). Null when the report has
- * no `testFiles`, like coverageFromReport.
+ * no `testFiles`, like coverageFromReport, or when a verdict does not say
+ * which tests it rests on (a Killed mutant without `killedBy`, a Timeout or
+ * Survived one without `coveredBy`): no test can be ruled out for it, so
+ * the caller falls back to --force.
  */
 export function killsFromReport(
   report: IncrementalReport,
@@ -547,7 +550,9 @@ export function killsFromReport(
   for (const [file, { mutants }] of Object.entries(report.files)) {
     const tests = new Set<string>();
     for (const mutant of mutants) {
-      for (const id of verdictTests(mutant)) {
+      const ids = verdictTests(mutant);
+      if (ids === null) return null;
+      for (const id of ids) {
         const testFile = fileOfTest.get(id);
         if (testFile !== undefined) tests.add(testFile);
       }
@@ -575,7 +580,7 @@ export function invalidateForChangedTests(
   for (const [file, entry] of Object.entries(report.files)) {
     const kept = entry.mutants.filter(
       (mutant) =>
-        !verdictTests(mutant).some((id) => {
+        !(verdictTests(mutant) ?? []).some((id) => {
           const testFile = fileOfTest.get(id);
           return testFile !== undefined && changed.has(testFile);
         }),
@@ -788,12 +793,14 @@ export function planPrRun({
   const nightly = siblings.filter((f) => !fresh.has(f));
 
   if (mutate.length === 0) {
-    // A test-only pull request whose tests covered nothing in the restored
-    // report: it can only raise a score, which the next nightly records.
+    // A test-only pull request whose tests decided no verdict in the
+    // restored report: it can only raise a score, which the next nightly
+    // records.
     return {
       skip: true,
-      reason:
-        'This pull request changes only tests, and none of them covered a mutant in the restored report, so it cannot lower a score; a score it raises is recorded by the next nightly.',
+      reason: precise
+        ? 'This pull request changes only tests, and none of them killed a mutant, or covered one that survived or timed out, in the restored report, so it cannot lower a score; a score it raises is recorded by the next nightly.'
+        : 'This pull request changes only tests, and none of them covered a mutant in the restored report, so it cannot lower a score; a score it raises is recorded by the next nightly.',
       changed,
       outOfScope,
       directories: [...directories].sort(),
