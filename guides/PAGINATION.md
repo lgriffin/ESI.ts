@@ -57,7 +57,7 @@ const orders = await client.market.getMarketOrders(10000002);
 const { data, meta } = await client.market
   .withMetadata()
   .getMarketOrders(10000002);
-console.log(`${data.length} orders across ${meta.pages ?? 1} pages`);
+log.info(`${data.length} orders across ${meta.pages ?? 1} pages`);
 ```
 
 What happens:
@@ -81,7 +81,7 @@ A later call that is inside the spec TTL, or that gets a 304 on page 1, is answe
 for await (const page of client.market.streamMarketOrders(10000002)) {
   for (const order of page.data) {
     if (order.is_buy_order && order.price > 1_000_000) {
-      console.log(`${order.type_id} @ ${order.price}`);
+      log.info(`${order.type_id} @ ${order.price}`);
     }
   }
   if (page.page >= 3) break;
@@ -129,7 +129,7 @@ for await (const page of client.market.streamEndpoint<number>(
   'getMarketTypes',
   10000002,
 )) {
-  console.log(page.page, page.data.length);
+  log.info(`Page ${page.page}: ${page.data.length} orders`);
 }
 
 const orders = await client.market.fetchAllEndpoint<MarketOrder>(
@@ -215,11 +215,11 @@ const result = await client.batch(
   (id) => client.universe.getTypeById(id),
   {
     concurrency: 10,
-    onProgress: (done, total) => console.log(`${done}/${total}`),
+    onProgress: (done, total) => log.info(`${done}/${total}`),
   },
 );
 
-console.log(`${result.results.size} ok, ${result.errors.size} failed`);
+log.info(`${result.results.size} ok, ${result.errors.size} failed`);
 ```
 
 - Runs at most `concurrency` fetchers at once (default 20), starting the next as each settles.

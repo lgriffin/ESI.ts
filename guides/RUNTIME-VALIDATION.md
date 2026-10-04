@@ -43,18 +43,21 @@ When validation fails, an `EsiValidationError` is thrown:
 import {
   EsiClient,
   EsiValidationError,
+  createConsoleLogger,
   isValidationError,
 } from '@lgriffin/esi.ts';
 
+const log = createConsoleLogger('info');
 const client = new EsiClient();
 
 try {
   const character = await client.characters.getCharacterPublicInfo(12345);
 } catch (err) {
   if (isValidationError(err)) {
-    console.error('ESI response did not match expected schema');
-    console.error('URL:', err.url);
-    console.error('Details:', err.validationError); // Zod error object
+    log.error('ESI response did not match expected schema', {
+      url: err.url,
+      details: err.validationError, // Zod error object
+    });
   }
 }
 ```
@@ -73,9 +76,9 @@ import { schemas } from '@lgriffin/esi.ts';
 // Validate data you received from another source
 const result = schemas.CharacterInfoSchema.safeParse(someData);
 if (result.success) {
-  console.log(result.data.name); // fully typed
+  log.info(result.data.name); // fully typed
 } else {
-  console.error(result.error.issues);
+  log.error('Invalid data', { issues: result.error.issues });
 }
 
 // Parse with assertion (throws on failure)

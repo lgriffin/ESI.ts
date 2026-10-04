@@ -139,7 +139,7 @@ const esi = new EsiClient({
 
 `info` lines are written as they are; every other level is prefixed with its name (`warn: ...`). `info` and below go to `console.log`, `warn` to `console.warn`, `error` and `fatal` to `console.error`. Context becomes `[key=value]` tokens after the message: an `Error` shows its message, a string as is, anything else as JSON.
 
-The programs in `examples/` all use it the same way: one logger at `info` for the program's own output, and one at `ESI_LOG_LEVEL` passed to the client, so library diagnostics share the console format without crowding the output. None of them calls `console` directly; `tests/tdd/scripts/examples-logging.test.ts` holds them to that, and `no-console` is an error in `src/`, where `ConsoleLogger.ts` is the one exemption.
+The programs in `examples/` all use it the same way: one logger at `info` for the program's own output, and one at `ESI_LOG_LEVEL` passed to the client, so library diagnostics share the console format without crowding the output. The code blocks in the README and the guides follow the same pattern; fragments use the `log` built in the README Quick Start. None of them calls `console` directly; `tests/tdd/scripts/examples-logging.test.ts` holds the examples and the documentation blocks to that, and `no-console` is an error in `src/`, where `ConsoleLogger.ts` is the one exemption.
 
 ```ts
 import { EsiClient, createConsoleLogger } from '@lgriffin/esi.ts';

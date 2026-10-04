@@ -37,15 +37,13 @@ import { SdeDataProvider } from '@lgriffin/esi.ts/sde';
 const sde = SdeDataProvider.fromDirectory('./sde-data');
 
 const tritanium = sde.getType(34);
-console.log(tritanium?.name); // "Tritanium"
-console.log(tritanium?.published); // true
+log.info('Type 34', { name: tritanium?.name, published: tritanium?.published }); // Type 34 [name=Tritanium] [published=true]
 
 const jita = sde.getSolarSystem(30000142);
-console.log(jita?.name); // "Jita"
-console.log(jita?.securityStatus); // 0.9459...
+log.info('System', { name: jita?.name, security: jita?.securityStatus }); // System [name=Jita] [security=0.9459...]
 
 const minerals = sde.getTypesByGroup(18);
-console.log(minerals.map((t) => t.name));
+log.info(`Minerals: ${minerals.map((t) => t.name).join(', ')}`);
 // ["Tritanium", "Pyerite", "Mexallon", ...]
 
 sde.close();

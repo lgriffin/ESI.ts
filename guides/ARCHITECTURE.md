@@ -919,7 +919,7 @@ try {
   await client.characters.getCharacterPublicInfo(12345);
 } catch (err) {
   if (isCircuitOpen(err)) {
-    console.log(`${err.endpoint} open, retry in ${err.retryAfterMs} ms`);
+    log.warn(`${err.endpoint} open, retry in ${err.retryAfterMs} ms`);
   }
 }
 

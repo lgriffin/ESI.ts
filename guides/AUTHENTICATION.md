@@ -114,7 +114,7 @@ async function onSsoCallback(requestUrl: string, savedState: string) {
     throw new Error('SSO callback missing code or state mismatch');
   }
   const stored = await tokens.addCharacter(code);
-  console.log(`Added ${stored.characterName} (${stored.characterId})`);
+  log.info(`Added ${stored.characterName} (${stored.characterId})`);
 
   // 3. A view of the shared runtime as that character, refreshed through the manager
   await esi
@@ -163,7 +163,7 @@ for (const r of results) {
     case 'skipped':
       break; // not stale, or the run was aborted
     case 'revoked':
-      console.log(`${r.characterId} must log in again`);
+      log.info(`${r.characterId} must log in again`);
       break;
     case 'failed':
       if (r.retryable) scheduleRetry(r.characterId);
