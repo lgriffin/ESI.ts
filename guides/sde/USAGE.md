@@ -136,6 +136,9 @@ const highsecSystems = sde
 
 ```ts
 import { SdeDataProvider, isSdeError } from '@lgriffin/esi.ts/sde';
+import { createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 try {
   const sde = SdeDataProvider.fromDirectory('./nonexistent');

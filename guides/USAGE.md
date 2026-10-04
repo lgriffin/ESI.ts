@@ -188,7 +188,14 @@ The recorded-payload tier replays real responses for every public route on every
 Every one of the 201 GET definitions declares a Zod `responseSchema`, and validation is on by default. A body that does not match throws `EsiValidationError`. Schemas are `z.looseObject`, so a field CCP adds tomorrow passes through to your code unchanged rather than failing (posture 3 in the charter). For mutations, `validateRequest: true` checks the outgoing body against the endpoint's `requestSchema`. Endpoints that return a body without declaring a schema are tracked in [#298](https://github.com/lgriffin/ESI.ts/issues/298) (DES-02, Phase 3).
 
 ```typescript
-import { EsiClient, isValidationError, schemas } from '@lgriffin/esi.ts';
+import {
+  EsiClient,
+  isValidationError,
+  schemas,
+  createConsoleLogger,
+} from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 const strict = new EsiClient();
 try {

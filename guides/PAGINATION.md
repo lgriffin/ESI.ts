@@ -48,7 +48,9 @@ The header-token style exists for routes that return cursors in `x-cursor-before
 Calling a paginated domain method returns every page as one array.
 
 ```typescript
-import { EsiClient } from '@lgriffin/esi.ts';
+import { EsiClient, createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 const client = new EsiClient({ clientId: 'my-app' });
 
@@ -124,12 +126,15 @@ For an endpoint without a wrapper, `BaseEsiClient` exposes both primitives. They
 
 ```typescript
 import type { MarketOrder } from '@lgriffin/esi.ts';
+import { createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 for await (const page of client.market.streamEndpoint<number>(
   'getMarketTypes',
   10000002,
 )) {
-  log.info(`Page ${page.page}: ${page.data.length} orders`);
+  log.info(`Page ${page.page}: ${page.data.length} type ids`);
 }
 
 const orders = await client.market.fetchAllEndpoint<MarketOrder>(

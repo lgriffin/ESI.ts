@@ -71,7 +71,9 @@ A rejected body is not kept in the ETag cache: the next call to the same endpoin
 All Zod schemas are exported under the `schemas` namespace for direct use:
 
 ```typescript
-import { schemas } from '@lgriffin/esi.ts';
+import { schemas, createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 // Validate data you received from another source
 const result = schemas.CharacterInfoSchema.safeParse(someData);

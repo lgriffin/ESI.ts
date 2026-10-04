@@ -168,6 +168,9 @@ Every tier has to prove it can fail: a negative fixture, a killed mutant or a ca
 import { MarketOrderSchema } from '@lgriffin/esi.ts/schemas';
 import { EsiError, isRetryable } from '@lgriffin/esi.ts/errors';
 import { SdeDataProvider } from '@lgriffin/esi.ts/sde';
+import { createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 const sdeData = SdeDataProvider.fromDirectory('./sde-data');
 log.info(`Type 34: ${sdeData.getType(34)?.name}`); // Type 34: Tritanium

@@ -33,6 +33,9 @@ This downloads the latest SDE ZIP from CCP (~200 MB), extracts all YAML files to
 
 ```typescript
 import { SdeDataProvider } from '@lgriffin/esi.ts/sde';
+import { createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 const sde = SdeDataProvider.fromDirectory('./sde-data');
 

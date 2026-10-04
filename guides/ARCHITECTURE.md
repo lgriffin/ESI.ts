@@ -908,7 +908,13 @@ stateDiagram-v2
 **Handling and diagnostics.**
 
 ```typescript
-import { EsiClient, isCircuitOpen } from '@lgriffin/esi.ts';
+import {
+  EsiClient,
+  isCircuitOpen,
+  createConsoleLogger,
+} from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 const client = new EsiClient({
   enableCircuitBreaker: true,

@@ -358,6 +358,9 @@ The two families do not share a base class, and that is the point. An `EsiError`
 ```typescript
 import { isEsiError } from '@lgriffin/esi.ts/errors';
 import { isSdeError } from '@lgriffin/esi.ts/sde';
+import { createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 try {
   const orders = await client.market.getMarketOrders(regionId);
@@ -387,6 +390,9 @@ import {
   MemorySdeProvider,
   SdeTestDataFactory,
 } from '@lgriffin/esi.ts/sde/memory';
+import { createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 const sde = new MemorySdeProvider({
   categories: [
