@@ -8,14 +8,20 @@
  * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const RIFTER_TYPE_ID = 587;
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log('Dogma & Item Type Data\n');
+    log.info('Dogma & Item Type Data\n');
 
     // Look up Rifter details and some dogma attributes
     const [rifter, attrIds] = await Promise.all([
@@ -23,21 +29,21 @@ async function main() {
       client.dogma.getAttributes(),
     ]);
 
-    console.log(`Item: ${rifter.name}`);
-    console.log('-'.repeat(40));
-    console.log(`  Type ID:     ${rifter.type_id}`);
-    console.log(`  Group ID:    ${rifter.group_id}`);
-    console.log(`  Description: ${rifter.description?.substring(0, 80)}...`);
-    console.log(`  Mass:        ${rifter.mass?.toLocaleString()} kg`);
-    console.log(`  Volume:      ${rifter.volume?.toLocaleString()} m3`);
-    console.log(`  Capacity:    ${rifter.capacity?.toLocaleString()} m3`);
-    console.log(`  Published:   ${rifter.published}`);
+    log.info(`Item: ${rifter.name}`);
+    log.info('-'.repeat(40));
+    log.info(`  Type ID:     ${rifter.type_id}`);
+    log.info(`  Group ID:    ${rifter.group_id}`);
+    log.info(`  Description: ${rifter.description?.substring(0, 80)}...`);
+    log.info(`  Mass:        ${rifter.mass?.toLocaleString()} kg`);
+    log.info(`  Volume:      ${rifter.volume?.toLocaleString()} m3`);
+    log.info(`  Capacity:    ${rifter.capacity?.toLocaleString()} m3`);
+    log.info(`  Published:   ${rifter.published}`);
 
     if (rifter.dogma_attributes?.length) {
-      console.log(
+      log.info(
         `\nDogma Attributes on Rifter (first 5 of ${rifter.dogma_attributes.length})`,
       );
-      console.log('-'.repeat(40));
+      log.info('-'.repeat(40));
 
       // Look up the first 5 attribute names
       const sampleAttrs = rifter.dogma_attributes.slice(0, 5);
@@ -52,13 +58,13 @@ async function main() {
         const sample = sampleAttrs[i]!;
         const name =
           attr.display_name || attr.name || `attr_${sample.attribute_id}`;
-        console.log(`  ${name}: ${sample.value}`);
+        log.info(`  ${name}: ${sample.value}`);
       }
     }
 
-    console.log(`\nTotal dogma attributes in game: ${attrIds.length}`);
+    log.info(`\nTotal dogma attributes in game: ${attrIds.length}`);
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

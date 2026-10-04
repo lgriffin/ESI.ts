@@ -14,22 +14,31 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const THE_FORGE_REGION = 10000002; // Jita's region
 
 async function main() {
-  const client = new EsiClient({ clientId: 'esi-ts-contracts-demo' });
+  const client = new EsiClient({
+    logger: esiLog,
+    clientId: 'esi-ts-contracts-demo',
+  });
 
   try {
-    console.log('Contracts Browser\n');
+    log.info('Contracts Browser\n');
 
     // --- Public contracts (no auth) ---
-    console.log(
+    log.info(
       `Fetching public contracts in The Forge (region ${THE_FORGE_REGION})...`,
     );
     const publicContracts =
       await client.contracts.getPublicContracts(THE_FORGE_REGION);
-    console.log(`  Found ${publicContracts.length} public contracts\n`);
+    log.info(`  Found ${publicContracts.length} public contracts\n`);
 
     // Break down by type. ESI lists only outstanding public contracts and
     // sends no status field on them.
@@ -38,78 +47,78 @@ async function main() {
       byType.set(c.type, (byType.get(c.type) || 0) + 1);
     }
 
-    console.log('Public Contracts by Type');
-    console.log('-'.repeat(40));
+    log.info('Public Contracts by Type');
+    log.info('-'.repeat(40));
     for (const [type, count] of [...byType.entries()].sort(
       (a, b) => b[1] - a[1],
     )) {
-      console.log(`  ${type}: ${count.toLocaleString()}`);
+      log.info(`  ${type}: ${count.toLocaleString()}`);
     }
 
     // Show a sample auction contract with bids
     const auctions = publicContracts.filter((c) => c.type === 'auction');
     if (auctions.length > 0) {
       const auction = auctions[0]!;
-      console.log(`\nSample Auction Contract #${auction.contract_id}`);
-      console.log('-'.repeat(40));
-      console.log(`  Price:       ${auction.price?.toLocaleString() || 0} ISK`);
-      console.log(
+      log.info(`\nSample Auction Contract #${auction.contract_id}`);
+      log.info('-'.repeat(40));
+      log.info(`  Price:       ${auction.price?.toLocaleString() || 0} ISK`);
+      log.info(
         `  Buyout:      ${auction.buyout?.toLocaleString() || 'none'} ISK`,
       );
-      console.log(
+      log.info(
         `  Volume:      ${auction.volume?.toLocaleString() || 'N/A'} m3`,
       );
-      console.log(`  Expires:     ${auction.date_expired}`);
+      log.info(`  Expires:     ${auction.date_expired}`);
 
       try {
         const bids = await client.contracts.getPublicContractBids(
           auction.contract_id,
         );
-        console.log(`  Bids:        ${bids.length}`);
+        log.info(`  Bids:        ${bids.length}`);
         if (bids.length > 0) {
           const topBid = bids.sort((a, b) => b.amount - a.amount)[0]!;
-          console.log(`  Highest bid: ${topBid.amount.toLocaleString()} ISK`);
+          log.info(`  Highest bid: ${topBid.amount.toLocaleString()} ISK`);
         }
       } catch {
-        console.log('  Bids:        unavailable');
+        log.info('  Bids:        unavailable');
       }
 
       try {
         const items = await client.contracts.getPublicContractItems(
           auction.contract_id,
         );
-        console.log(`  Items:       ${items.length}`);
+        log.info(`  Items:       ${items.length}`);
         for (const item of items.slice(0, 3)) {
           const label = item.is_included ? 'included' : 'requested';
-          console.log(`    Type ${item.type_id} x${item.quantity} (${label})`);
+          log.info(`    Type ${item.type_id} x${item.quantity} (${label})`);
         }
         if (items.length > 3) {
-          console.log(`    ... and ${items.length - 3} more items`);
+          log.info(`    ... and ${items.length - 3} more items`);
         }
       } catch {
-        console.log('  Items:       unavailable');
+        log.info('  Items:       unavailable');
       }
     }
 
     // --- Character contracts (requires auth) ---
     // Scope: esi-contracts.read_character_contracts.v1
-    console.log('\n--- Character Contracts ---');
+    log.info('\n--- Character Contracts ---');
     try {
       const characterId = 1689391488;
       const myContracts =
         await client.contracts.getCharacterContracts(characterId);
-      console.log(`Found ${myContracts.length} personal contracts`);
+      log.info(`Found ${myContracts.length} personal contracts`);
 
       if (myContracts.length > 0) {
         const recent = myContracts.slice(0, 5);
-        console.log('-'.repeat(40));
+        log.info('-'.repeat(40));
         for (const c of recent) {
-          console.log(
+          log.info(
             `  #${c.contract_id} | ${c.type} | ${c.status} | ${c.price?.toLocaleString() || 0} ISK`,
           );
         }
         if (myContracts.length > 5) {
-          console.log(`  ... and ${myContracts.length - 5} more contracts`);
+          log.info(`  ... and ${myContracts.length - 5} more contracts`);
         }
       }
     } catch (err) {
@@ -119,7 +128,7 @@ async function main() {
           (err instanceof EsiError &&
             (err.statusCode === 401 || err.statusCode === 403)))
       ) {
-        console.log(
+        log.info(
           'Skipped: ESI_ACCESS_TOKEN not set or missing scope esi-contracts.read_character_contracts.v1',
         );
       } else {
@@ -127,7 +136,7 @@ async function main() {
       }
     }
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

@@ -4194,6 +4194,9 @@ export interface CreateClientOptions {
     safeMode?: boolean;
 }
 
+// @public
+export function createConsoleLogger(level?: LogLevel | 'silent'): ILogger;
+
 // @public (undocumented)
 export function createDefaultLogger(level?: string): ILogger;
 

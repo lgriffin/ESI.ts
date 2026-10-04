@@ -11,6 +11,12 @@
  */
 import { SdeDataProvider } from '../src/sde';
 import type { MarketGroup } from '../src/sde/domain/types';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 function printTree(
   sde: ReturnType<typeof SdeDataProvider.fromDirectory>,
@@ -22,7 +28,7 @@ function printTree(
   const typeCount = group.hasTypes
     ? ` [${sde.getTypesByMarketGroup(group.marketGroupId).length} types]`
     : '';
-  console.log(`${indent}- ${group.name} (${group.marketGroupId})${typeCount}`);
+  log.info(`${indent}- ${group.name} (${group.marketGroupId})${typeCount}`);
 
   if (depth >= maxDepth) return;
 
@@ -39,22 +45,20 @@ function main() {
 
   try {
     const roots = sde.getRootMarketGroups();
-    console.log(
-      `=== Market Group Tree (${roots.length} root categories) ===\n`,
-    );
+    log.info(`=== Market Group Tree (${roots.length} root categories) ===\n`);
 
     for (const root of roots) {
       printTree(sde, root);
     }
 
     // Search example
-    console.log('\n--- Search: "Drone" market groups ---');
+    log.info('\n--- Search: "Drone" market groups ---');
     const droneGroups = sde.searchMarketGroupsByName('Drone', 10);
     for (const g of droneGroups) {
       const parent = g.parentGroupId
         ? sde.getMarketGroup(g.parentGroupId)
         : null;
-      console.log(`  ${g.name} (parent: ${parent?.name ?? 'root'})`);
+      log.info(`  ${g.name} (parent: ${parent?.name ?? 'root'})`);
     }
   } finally {
     sde.close();

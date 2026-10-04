@@ -10,16 +10,22 @@
  * @nightly mixed
  */
 import { EsiClient } from '../src/EsiClient';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log('Paragon Hub SKINR Marketplace\n');
+    log.info('Paragon Hub SKINR Marketplace\n');
 
     // --- Public listings (no auth required) ---
-    console.log('Public SKINR Listings (first page)');
-    console.log('-'.repeat(60));
+    log.info('Public SKINR Listings (first page)');
+    log.info('-'.repeat(60));
 
     const publicPage = await client.paragonHub.getPublicListings(
       undefined,
@@ -31,21 +37,21 @@ async function main() {
       const priceStr = listing.price.isk
         ? `${(listing.price.isk / 1_000_000).toFixed(1)}M ISK`
         : `${listing.price.plex} PLEX`;
-      console.log(
+      log.info(
         `  [${listing.state}] SKINR ${listing.skinr_id} — ${priceStr} — ` +
           `Qty: ${listing.quantity} — Seller: ${listing.seller_id}`,
       );
     }
 
     if (publicPage.listings.length === 0) {
-      console.log('  No public listings found.');
+      log.info('  No public listings found.');
     }
 
     // --- The design behind a listing (public, cosmetics client) ---
     const firstListing = publicPage.listings[0];
     if (firstListing) {
       const design = await client.cosmetics.getSkinr(firstListing.skinr_id);
-      console.log(
+      log.info(
         `\n  SKINR ${firstListing.skinr_id}: "${design.name}" for ship type ` +
           `${design.ship_type_id}, tier ${design.tier.level}`,
       );
@@ -53,20 +59,20 @@ async function main() {
 
     // --- Cursor pagination ---
     if (publicPage.cursor?.after) {
-      console.log('\nFetching next page...');
+      log.info('\nFetching next page...');
       const nextPage = await client.paragonHub.getPublicListings(
         publicPage.cursor.after,
         undefined,
         10,
       );
-      console.log(`  Page 2: ${nextPage.listings.length} listing(s)`);
+      log.info(`  Page 2: ${nextPage.listings.length} listing(s)`);
     }
 
     // --- Character-specific listings (requires auth) ---
     const characterId = parseInt(process.env.CHARACTER_ID || '0', 10);
     if (characterId) {
-      console.log(`\nYour Paragon Hub Listings (Character ${characterId})`);
-      console.log('-'.repeat(60));
+      log.info(`\nYour Paragon Hub Listings (Character ${characterId})`);
+      log.info('-'.repeat(60));
 
       const charPage =
         await client.paragonHub.getCharacterListings(characterId);
@@ -76,19 +82,19 @@ async function main() {
         byState.set(listing.state, (byState.get(listing.state) || 0) + 1);
       }
       for (const [state, count] of byState) {
-        console.log(`  ${state.padEnd(12)} ${count}`);
+        log.info(`  ${state.padEnd(12)} ${count}`);
       }
 
       if (charPage.listings.length === 0) {
-        console.log('  No listings found for this character.');
+        log.info('  No listings found for this character.');
       }
     } else {
-      console.log(
+      log.info(
         '\nSkipping character listings (set CHARACTER_ID env var to include).',
       );
     }
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

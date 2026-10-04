@@ -11,100 +11,106 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { isNotFound } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   const skinrId = process.env.SKINR_ID || '';
   const characterId = parseInt(process.env.CHARACTER_ID || '0', 10);
 
   try {
-    console.log('SKINR Cosmetics\n');
+    log.info('SKINR Cosmetics\n');
 
     if (skinrId) {
-      console.log(`Looking up SKINR design: ${skinrId}`);
-      console.log('-'.repeat(60));
+      log.info(`Looking up SKINR design: ${skinrId}`);
+      log.info('-'.repeat(60));
 
       try {
         const skinr = await client.cosmetics.getSkinr(skinrId);
-        console.log(`  Name:       ${skinr.name}`);
-        console.log(`  Creator:    ${skinr.creator_id}`);
-        console.log(`  Ship Type:  ${skinr.ship_type_id}`);
-        console.log(`  Tier:       ${skinr.tier.level}`);
+        log.info(`  Name:       ${skinr.name}`);
+        log.info(`  Creator:    ${skinr.creator_id}`);
+        log.info(`  Ship Type:  ${skinr.ship_type_id}`);
+        log.info(`  Tier:       ${skinr.tier.level}`);
         if (skinr.line) {
-          console.log(`  Line:       ${skinr.line}`);
+          log.info(`  Line:       ${skinr.line}`);
         }
-        console.log(`  Blend Mode: ${skinr.layout.pattern_blend_mode}`);
-        console.log(`  Slots:      ${skinr.layout.slots.length}`);
+        log.info(`  Blend Mode: ${skinr.layout.pattern_blend_mode}`);
+        log.info(`  Slots:      ${skinr.layout.slots.length}`);
       } catch (err) {
         if (isNotFound(err)) {
-          console.log(`  SKINR design '${skinrId}' not found.`);
+          log.info(`  SKINR design '${skinrId}' not found.`);
         } else {
           throw err;
         }
       }
-      console.log();
+      log.info('');
     } else {
-      console.log(
+      log.info(
         'Set SKINR_ID environment variable to look up a specific design.\n',
       );
     }
 
     if (!characterId) {
-      console.log(
+      log.info(
         'Set CHARACTER_ID environment variable to view owned licenses and components.',
       );
       return;
     }
 
-    console.log(`Character ${characterId} — SKINR Licenses`);
-    console.log('-'.repeat(60));
+    log.info(`Character ${characterId} — SKINR Licenses`);
+    log.info('-'.repeat(60));
 
     try {
       const owned = await client.cosmetics.getCharacterSkinr(characterId);
 
       if (owned.licenses.length === 0) {
-        console.log('  No SKINR licenses owned.');
+        log.info('  No SKINR licenses owned.');
       } else {
         const activated = owned.licenses.filter((l) => l.activated);
         const unactivated = owned.licenses.filter((l) => !l.activated);
 
-        console.log(`  Total:       ${owned.licenses.length}`);
-        console.log(`  Activated:   ${activated.length}`);
-        console.log(`  Unactivated: ${unactivated.length}`);
+        log.info(`  Total:       ${owned.licenses.length}`);
+        log.info(`  Activated:   ${activated.length}`);
+        log.info(`  Unactivated: ${unactivated.length}`);
 
         if (unactivated.length > 0) {
-          console.log('\n  Unactivated licenses (first 5):');
+          log.info('\n  Unactivated licenses (first 5):');
           for (const lic of unactivated.slice(0, 5)) {
-            console.log(
+            log.info(
               `    ${lic.skinr_id} — ${lic.unactivated} copies available`,
             );
           }
         }
       }
 
-      console.log(`\nCharacter ${characterId} — SKINR Components`);
-      console.log('-'.repeat(60));
+      log.info(`\nCharacter ${characterId} — SKINR Components`);
+      log.info('-'.repeat(60));
 
       const components =
         await client.cosmetics.getCharacterSkinrComponents(characterId);
 
       if (components.licenses.length === 0) {
-        console.log('  No SKINR components owned.');
+        log.info('  No SKINR components owned.');
       } else {
         const byType = new Map<string, number>();
         for (const comp of components.licenses) {
           byType.set(comp.type, (byType.get(comp.type) || 0) + 1);
         }
 
-        console.log(`  Total components: ${components.licenses.length}`);
+        log.info(`  Total components: ${components.licenses.length}`);
         for (const [type, count] of byType) {
-          console.log(`    ${type.padEnd(14)} ${count}`);
+          log.info(`    ${type.padEnd(14)} ${count}`);
         }
       }
     } catch (err) {
       if (isNotFound(err)) {
-        console.log(
+        log.info(
           '  Cosmetics endpoints are not currently available on this ESI version.',
         );
       } else {
@@ -112,7 +118,7 @@ async function main() {
       }
     }
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

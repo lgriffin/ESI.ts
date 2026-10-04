@@ -12,28 +12,34 @@
  * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const JITA_SYSTEM_ID = 30000142;
 const AMARR_SYSTEM_ID = 30002187;
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log(`Route: Jita -> Amarr\n`);
+    log.info(`Route: Jita -> Amarr\n`);
 
     // Basic route (shortest path, default options)
     const route = await client.route.getRoute(JITA_SYSTEM_ID, AMARR_SYSTEM_ID);
 
-    console.log(`Total jumps: ${route.length - 1}\n`);
+    log.info(`Total jumps: ${route.length - 1}\n`);
 
     // Resolve system names by looking up each system
     const systems = await Promise.all(
       route.map((id: number) => client.universe.getSystemById(id)),
     );
 
-    console.log('Route (Shortest)');
-    console.log('-'.repeat(40));
+    log.info('Route (Shortest)');
+    log.info('-'.repeat(40));
     for (let i = 0; i < route.length; i++) {
       const sys = systems[i]!;
       const name = sys.name ?? `System ${route[i]}`;
@@ -44,12 +50,12 @@ async function main() {
           : i === route.length - 1
             ? 'END  '
             : `  ${String(i).padStart(3)}`;
-      console.log(`  ${prefix}  ${name} (${sec})`);
+      log.info(`  ${prefix}  ${name} (${sec})`);
     }
 
     // Safer route
-    console.log('\nRoute (Safer)');
-    console.log('-'.repeat(40));
+    log.info('\nRoute (Safer)');
+    log.info('-'.repeat(40));
     const saferRoute = await client.route.getRoute(
       JITA_SYSTEM_ID,
       AMARR_SYSTEM_ID,
@@ -57,9 +63,9 @@ async function main() {
         preference: 'Safer',
       },
     );
-    console.log(`  ${saferRoute.length - 1} jumps`);
+    log.info(`  ${saferRoute.length - 1} jumps`);
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

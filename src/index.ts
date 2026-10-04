@@ -194,6 +194,7 @@ export {
   logTrace,
 } from './core/logger/loggerUtil';
 export { createNoopLogger } from './core/logger/NoopLogger';
+export { createConsoleLogger } from './core/logger/ConsoleLogger';
 export { createDefaultLogger, toPinoLogger } from './core/logger/DefaultLogger';
 export type { LogLevel } from './core/logger/DefaultLogger';
 

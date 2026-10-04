@@ -9,49 +9,55 @@
  * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CHARACTER_ID = 1689391488; // deiseman
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log(`Looking up character ${CHARACTER_ID}...\n`);
+    log.info(`Looking up character ${CHARACTER_ID}...\n`);
 
     const [character, portrait] = await Promise.all([
       client.characters.getCharacterPublicInfo(CHARACTER_ID),
       client.characters.getCharacterPortrait(CHARACTER_ID),
     ]);
 
-    console.log('Character Info');
-    console.log('-'.repeat(40));
-    console.log(`  Name:            ${character.name}`);
-    console.log(
+    log.info('Character Info');
+    log.info('-'.repeat(40));
+    log.info(`  Name:            ${character.name}`);
+    log.info(
       `  Birthday:        ${new Date(character.birthday).toLocaleDateString()}`,
     );
-    console.log(`  Security Status: ${character.security_status?.toFixed(2)}`);
-    console.log(`  Corporation ID:  ${character.corporation_id}`);
+    log.info(`  Security Status: ${character.security_status?.toFixed(2)}`);
+    log.info(`  Corporation ID:  ${character.corporation_id}`);
     if (character.alliance_id) {
-      console.log(`  Alliance ID:     ${character.alliance_id}`);
+      log.info(`  Alliance ID:     ${character.alliance_id}`);
     }
 
-    console.log('\nPortrait URLs');
-    console.log('-'.repeat(40));
-    console.log(`  64x64:   ${portrait.px64x64}`);
-    console.log(`  128x128: ${portrait.px128x128}`);
-    console.log(`  256x256: ${portrait.px256x256}`);
-    console.log(`  512x512: ${portrait.px512x512}`);
+    log.info('\nPortrait URLs');
+    log.info('-'.repeat(40));
+    log.info(`  64x64:   ${portrait.px64x64}`);
+    log.info(`  128x128: ${portrait.px128x128}`);
+    log.info(`  256x256: ${portrait.px256x256}`);
+    log.info(`  512x512: ${portrait.px512x512}`);
 
     // Fetch corporation info
     const corp = await client.corporations.getCorporationInfo(
       character.corporation_id,
     );
-    console.log('\nCorporation');
-    console.log('-'.repeat(40));
-    console.log(`  Name:    ${corp.name} [${corp.ticker}]`);
-    console.log(`  Members: ${corp.member_count?.toLocaleString()}`);
+    log.info('\nCorporation');
+    log.info('-'.repeat(40));
+    log.info(`  Name:    ${corp.name} [${corp.ticker}]`);
+    log.info(`  Members: ${corp.member_count?.toLocaleString()}`);
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

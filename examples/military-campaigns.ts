@@ -19,6 +19,12 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CHARACTER_ID = 90439768;
 
@@ -34,7 +40,7 @@ async function tryOrSkip<T>(
       err instanceof EsiError &&
       [401, 403, 404].includes(err.statusCode ?? 0)
     ) {
-      console.log(`  ${label}: not available to this token — skipped`);
+      log.info(`  ${label}: not available to this token — skipped`);
       return null;
     }
     throw err;
@@ -42,42 +48,42 @@ async function tryOrSkip<T>(
 }
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log('Military Campaigns\n');
+    log.info('Military Campaigns\n');
 
     // --- Public: List All Campaigns ---
-    console.log('All Military Campaigns');
-    console.log('-'.repeat(50));
+    log.info('All Military Campaigns');
+    log.info('-'.repeat(50));
     const { campaigns } = await client.militaryCampaigns.getMilitaryCampaigns();
 
-    console.log(`  Campaigns found: ${campaigns.length}`);
+    log.info(`  Campaigns found: ${campaigns.length}`);
 
     for (const campaign of campaigns.slice(0, 5)) {
-      console.log(`    ${campaign.id} (${campaign.state})`);
-      console.log(`      Progress: ${campaign.progress}`);
-      if (campaign.started) console.log(`      Started: ${campaign.started}`);
+      log.info(`    ${campaign.id} (${campaign.state})`);
+      log.info(`      Progress: ${campaign.progress}`);
+      if (campaign.started) log.info(`      Started: ${campaign.started}`);
       if (campaign.finished) {
-        console.log(`      Finished: ${campaign.finished}`);
+        log.info(`      Finished: ${campaign.finished}`);
       }
     }
     if (campaigns.length > 5) {
-      console.log(`    ... and ${campaigns.length - 5} more`);
+      log.info(`    ... and ${campaigns.length - 5} more`);
     }
 
     // --- Public: Get Campaign Details ---
     const firstCampaign = campaigns[0];
     if (firstCampaign) {
-      console.log(`\n  Campaign Detail: ${firstCampaign.id}`);
+      log.info(`\n  Campaign Detail: ${firstCampaign.id}`);
       const campaignDetail = await client.militaryCampaigns.getMilitaryCampaign(
         firstCampaign.id,
       );
-      console.log(`    State: ${campaignDetail.state}`);
-      console.log(`    Progress: ${campaignDetail.progress}`);
+      log.info(`    State: ${campaignDetail.state}`);
+      log.info(`    Progress: ${campaignDetail.progress}`);
 
       // --- Public: Get Objectives (first page of up to 50) ---
-      console.log(`\n  Objectives for campaign: ${firstCampaign.id}`);
+      log.info(`\n  Objectives for campaign: ${firstCampaign.id}`);
       const { objectives, cursor } =
         await client.militaryCampaigns.getMilitaryCampaignObjectives(
           firstCampaign.id,
@@ -86,16 +92,16 @@ async function main() {
           50,
         );
 
-      console.log(`    Objectives on this page: ${objectives.length}`);
+      log.info(`    Objectives on this page: ${objectives.length}`);
       for (const obj of objectives.slice(0, 5)) {
-        console.log(`    ${obj.id} (${obj.state})`);
-        console.log(`      Progress: ${obj.progress}`);
-        console.log(
+        log.info(`    ${obj.id} (${obj.state})`);
+        log.info(`      Progress: ${obj.progress}`);
+        log.info(
           `      Participants: ${obj.participants.total} total, ${obj.participants.committed} committed, ${obj.participants.contributors} contributors`,
         );
       }
       if (cursor?.after) {
-        console.log(`    More objectives follow (cursor ${cursor.after})`);
+        log.info(`    More objectives follow (cursor ${cursor.after})`);
       }
 
       // --- Public: Get One Objective ---
@@ -106,17 +112,17 @@ async function main() {
             firstCampaign.id,
             firstObjective.id,
           );
-        console.log(
+        log.info(
           `\n  Objective ${objective.id}: ${objective.state}, progress ${objective.progress}`,
         );
       }
     }
 
     // --- Authenticated: Character Participation ---
-    console.log('\nCharacter Campaign Participation');
-    console.log('-'.repeat(50));
+    log.info('\nCharacter Campaign Participation');
+    log.info('-'.repeat(50));
     if (!process.env.ESI_ACCESS_TOKEN) {
-      console.log('  Needs ESI_ACCESS_TOKEN — skipped');
+      log.info('  Needs ESI_ACCESS_TOKEN — skipped');
       return;
     }
     const charObjectives = await tryOrSkip('Character objectives', () =>
@@ -127,21 +133,21 @@ async function main() {
 
     if (charObjectives) {
       const participated = charObjectives.objectives;
-      console.log(`  Participated objectives: ${participated.length}`);
+      log.info(`  Participated objectives: ${participated.length}`);
       for (const obj of participated.slice(0, 5)) {
-        console.log(`    Objective: ${obj.id}`);
-        console.log(`      Campaign: ${obj.campaign_id}`);
-        console.log(`      Committed: ${obj.is_committed}`);
-        console.log(`      Contributed: ${obj.contributed}`);
+        log.info(`    Objective: ${obj.id}`);
+        log.info(`      Campaign: ${obj.campaign_id}`);
+        log.info(`      Committed: ${obj.is_committed}`);
+        log.info(`      Contributed: ${obj.contributed}`);
       }
       if (participated.length > 5) {
-        console.log(`    ... and ${participated.length - 5} more`);
+        log.info(`    ... and ${participated.length - 5} more`);
       }
 
       // Get detail on first objective
       const firstObj = participated[0];
       if (firstObj) {
-        console.log(`\n  Detail for objective: ${firstObj.id}`);
+        log.info(`\n  Detail for objective: ${firstObj.id}`);
         const detail = await tryOrSkip('Objective detail', () =>
           client.militaryCampaigns.getCharacterMilitaryCampaignObjective(
             CHARACTER_ID,
@@ -149,13 +155,13 @@ async function main() {
           ),
         );
         if (detail) {
-          console.log(`    Committed: ${detail.is_committed}`);
-          console.log(`    Contributed: ${detail.contributed}`);
+          log.info(`    Committed: ${detail.is_committed}`);
+          log.info(`    Contributed: ${detail.contributed}`);
         }
       }
     }
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

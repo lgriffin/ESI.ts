@@ -15,20 +15,29 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CHARACTER_ID = 1689391488;
 
 async function main() {
-  const client = new EsiClient({ clientId: 'esi-ts-assets-demo' });
+  const client = new EsiClient({
+    logger: esiLog,
+    clientId: 'esi-ts-assets-demo',
+  });
 
   try {
-    console.log('Asset Inventory\n');
+    log.info('Asset Inventory\n');
 
     // Step 1: Fetch all character assets
     // Scope: esi-assets.read_assets.v1
-    console.log('Fetching character assets...');
+    log.info('Fetching character assets...');
     const assets = await client.assets.getCharacterAssets(CHARACTER_ID);
-    console.log(`  Found ${assets.length} items\n`);
+    log.info(`  Found ${assets.length} items\n`);
 
     // Step 2: Summarize by location
     const byLocation = new Map<string, { count: number; items: number }>();
@@ -40,18 +49,18 @@ async function main() {
       byLocation.set(locKey, entry);
     }
 
-    console.log(`Assets by Location (${byLocation.size} locations)`);
-    console.log('-'.repeat(40));
+    log.info(`Assets by Location (${byLocation.size} locations)`);
+    log.info('-'.repeat(40));
     const sortedLocations = [...byLocation.entries()]
       .sort((a, b) => b[1].items - a[1].items)
       .slice(0, 10);
     for (const [locId, info] of sortedLocations) {
-      console.log(
+      log.info(
         `  Location ${locId}: ${info.count} stacks, ${info.items.toLocaleString()} total items`,
       );
     }
     if (byLocation.size > 10) {
-      console.log(`  ... and ${byLocation.size - 10} more locations`);
+      log.info(`  ... and ${byLocation.size - 10} more locations`);
     }
 
     // Step 3: Summarize by location_flag (hangar, cargo, etc.)
@@ -63,19 +72,19 @@ async function main() {
       );
     }
 
-    console.log(`\nAssets by Container Type`);
-    console.log('-'.repeat(40));
+    log.info(`\nAssets by Container Type`);
+    log.info('-'.repeat(40));
     const sortedFlags = [...byFlag.entries()].sort((a, b) => b[1] - a[1]);
     for (const [flag, count] of sortedFlags) {
-      console.log(`  ${flag}: ${count} stacks`);
+      log.info(`  ${flag}: ${count} stacks`);
     }
 
     // Step 4: Look up names for named items (ships, containers, etc.)
     // Scope: esi-assets.read_assets.v1
     const sampleIds = assets.slice(0, 10).map((a) => a.item_id);
     if (sampleIds.length > 0) {
-      console.log('\nAsset Names (first 10 items)');
-      console.log('-'.repeat(40));
+      log.info('\nAsset Names (first 10 items)');
+      log.info('-'.repeat(40));
       try {
         const names = await client.assets.postCharacterAssetNames(
           CHARACTER_ID,
@@ -83,32 +92,32 @@ async function main() {
         );
         for (const named of names) {
           const displayName = named.name || '(unnamed)';
-          console.log(`  Item ${named.item_id}: ${displayName}`);
+          log.info(`  Item ${named.item_id}: ${displayName}`);
         }
       } catch {
-        console.log('  Name lookup unavailable for these items');
+        log.info('  Name lookup unavailable for these items');
       }
     }
 
     // Summary statistics
     const totalItems = assets.reduce((sum, a) => sum + a.quantity, 0);
     const uniqueTypes = new Set(assets.map((a) => a.type_id));
-    console.log('\nInventory Summary');
-    console.log('-'.repeat(40));
-    console.log(`  Total stacks:     ${assets.length.toLocaleString()}`);
-    console.log(`  Total items:      ${totalItems.toLocaleString()}`);
-    console.log(`  Unique types:     ${uniqueTypes.size.toLocaleString()}`);
-    console.log(`  Locations:        ${byLocation.size}`);
+    log.info('\nInventory Summary');
+    log.info('-'.repeat(40));
+    log.info(`  Total stacks:     ${assets.length.toLocaleString()}`);
+    log.info(`  Total items:      ${totalItems.toLocaleString()}`);
+    log.info(`  Unique types:     ${uniqueTypes.size.toLocaleString()}`);
+    log.info(`  Locations:        ${byLocation.size}`);
   } catch (err) {
     if (
       err instanceof EsiError &&
       (err.statusCode === 401 || err.statusCode === 403)
     ) {
-      console.error(
+      log.error(
         'Authentication required. Set ESI_ACCESS_TOKEN with scope esi-assets.read_assets.v1',
       );
     } else {
-      console.error('Error:', err instanceof Error ? err.message : err);
+      log.error('Request failed', { error: err });
     }
     process.exit(1);
   } finally {

@@ -14,41 +14,53 @@
  *
  * @nightly auth
  */
-import { EsiTokenManager, FileTokenStorage, isTokenRevoked } from '../src';
+import {
+  createConsoleLogger,
+  EsiTokenManager,
+  FileTokenStorage,
+  isTokenRevoked,
+} from '../src';
 import { createEsi } from '../src/client';
 
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
+
 const esi = createEsi({
+  logger: esiLog,
   userAgent: 'esi.ts-examples/1.0 (https://github.com/lgriffin/ESI.ts)',
 });
 
 const tokens = new EsiTokenManager({
+  logger: esiLog,
   clientId: process.env.ESI_SSO_CLIENT_ID ?? '',
   clientSecret: process.env.ESI_SSO_CLIENT_SECRET,
   storage: new FileTokenStorage('./tokens.example.json'),
 });
 
 async function main() {
-  console.log('Many characters, one runtime');
-  console.log('='.repeat(50));
+  log.info('Many characters, one runtime');
+  log.info('='.repeat(50));
 
   if (!process.env.ESI_SSO_CLIENT_ID) {
-    console.log('Set ESI_SSO_CLIENT_ID to run this example.');
+    log.info('Set ESI_SSO_CLIENT_ID to run this example.');
     return;
   }
 
   // The public view needs no token and is never attributed to a character.
   const status = await esi.public.status.get();
-  console.log(`\nTranquility: ${status.players} players online`);
+  log.info(`\nTranquility: ${status.players} players online`);
 
   const characters = (await tokens.listCharacters()).filter((c) => !c.revoked);
   if (characters.length === 0) {
-    console.log('\nNo stored characters. Run example:token-manager first.');
+    log.info('\nNo stored characters. Run example:token-manager first.');
     return;
   }
 
   // One view per character over the same runtime. The manager keeps each
   // token fresh; a 401 refreshes through SSO and the request is retried.
-  console.log(`\nWallets of ${characters.length} character(s):`);
+  log.info(`\nWallets of ${characters.length} character(s):`);
   const balances = await Promise.all(
     characters.map(async (c) => {
       const view = esi.as(tokens.identity(c.characterId));
@@ -64,7 +76,7 @@ async function main() {
     }),
   );
   for (const { name, isk } of balances) {
-    console.log(
+    log.info(
       isk === null
         ? `  ${name}: token revoked, log in again`
         : `  ${name}: ${isk.toLocaleString('en-US', { maximumFractionDigits: 2 })} ISK`,
@@ -74,11 +86,11 @@ async function main() {
   // The second read of the status is served from the shared cache while the
   // spec TTL (30 s) holds: no request goes out.
   await esi.public.status.get();
-  console.log('\nDone.');
+  log.info('\nDone.');
   esi.shutdown();
 }
 
 main().catch((err) => {
-  console.error('Error:', err instanceof Error ? err.message : err);
+  log.error('Request failed', { error: err });
   process.exitCode = 1;
 });

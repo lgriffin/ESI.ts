@@ -10,6 +10,12 @@
  * @nightly sde
  */
 import { SdeDataProvider, type Blueprint } from '../src/sde';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 function main() {
   const sde = SdeDataProvider.fromDirectory(
@@ -31,34 +37,34 @@ function main() {
       ) ?? blueprints.find((b) => b.activities.manufacturing !== undefined);
 
     if (!bp) {
-      console.error('No blueprint with a manufacturing activity found');
+      log.error('No blueprint with a manufacturing activity found');
       return;
     }
 
     const bpType = sde.getType(bp.blueprintTypeId);
-    console.log(`=== ${bpType?.name ?? `Blueprint ${bp.blueprintTypeId}`} ===`);
-    console.log(`  Max production limit: ${bp.maxProductionLimit}`);
+    log.info(`=== ${bpType?.name ?? `Blueprint ${bp.blueprintTypeId}`} ===`);
+    log.info(`  Max production limit: ${bp.maxProductionLimit}`);
 
     const mfg = bp.activities.manufacturing;
     if (mfg) {
-      console.log(`\n--- Manufacturing ---`);
-      console.log(`  Time: ${mfg.time}s (${(mfg.time / 60).toFixed(1)} min)`);
+      log.info(`\n--- Manufacturing ---`);
+      log.info(`  Time: ${mfg.time}s (${(mfg.time / 60).toFixed(1)} min)`);
 
       if (mfg.materials) {
-        console.log('  Materials:');
+        log.info('  Materials:');
         for (const mat of mfg.materials) {
           const matType = sde.getType(mat.typeId);
-          console.log(
+          log.info(
             `    ${matType?.name ?? `type ${mat.typeId}`}: ${mat.quantity}`,
           );
         }
       }
 
       if (mfg.products) {
-        console.log('  Products:');
+        log.info('  Products:');
         for (const prod of mfg.products) {
           const prodType = sde.getType(prod.typeId);
-          console.log(
+          log.info(
             `    ${prodType?.name ?? `type ${prod.typeId}`}: x${prod.quantity}`,
           );
         }
@@ -67,29 +73,29 @@ function main() {
 
     const research = bp.activities.research_material;
     if (research) {
-      console.log(`\n--- Material Research ---`);
-      console.log(
+      log.info(`\n--- Material Research ---`);
+      log.info(
         `  Time: ${research.time}s (${(research.time / 60).toFixed(1)} min)`,
       );
     }
 
     const invention = bp.activities.invention;
     if (invention) {
-      console.log(`\n--- Invention ---`);
-      console.log(`  Time: ${invention.time}s`);
+      log.info(`\n--- Invention ---`);
+      log.info(`  Time: ${invention.time}s`);
       if (invention.products) {
         for (const prod of invention.products) {
           const prodType = sde.getType(prod.typeId);
-          console.log(`  Produces: ${prodType?.name ?? `type ${prod.typeId}`}`);
+          log.info(`  Produces: ${prodType?.name ?? `type ${prod.typeId}`}`);
         }
       }
     }
 
     // Planet schematics
-    console.log('\n\n=== Planet Schematics (sample) ===');
+    log.info('\n\n=== Planet Schematics (sample) ===');
     const schematics = sde.getAllPlanetSchematics().slice(0, 5);
     for (const s of schematics) {
-      console.log(`  ${s.name} (cycle: ${s.cycleTime}s)`);
+      log.info(`  ${s.name} (cycle: ${s.cycleTime}s)`);
     }
   } finally {
     sde.close();

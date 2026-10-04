@@ -17,6 +17,12 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CHARACTER_ID = 90439768;
 const CORP_ID = 98135622;
@@ -32,7 +38,7 @@ async function tryOrSkip<T>(
       err instanceof EsiError &&
       [401, 403, 404].includes(err.statusCode ?? 0)
     ) {
-      console.log(`  ${label}: endpoint not available — skipped`);
+      log.info(`  ${label}: endpoint not available — skipped`);
       return null;
     }
     throw err;
@@ -40,41 +46,41 @@ async function tryOrSkip<T>(
 }
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log('Freelance Jobs (Equinox)\n');
+    log.info('Freelance Jobs (Equinox)\n');
 
     // --- Character Freelance Jobs ---
-    console.log('Character Freelance Jobs');
-    console.log('-'.repeat(50));
+    log.info('Character Freelance Jobs');
+    log.info('-'.repeat(50));
     const charJobs = await tryOrSkip('Character jobs', () =>
       client.freelanceJobs.getCharacterFreelanceJobs(CHARACTER_ID),
     );
 
     if (charJobs) {
       const jobs = charJobs.freelance_jobs;
-      console.log(`  Jobs found: ${jobs.length}`);
+      log.info(`  Jobs found: ${jobs.length}`);
 
       for (const job of jobs.slice(0, 5)) {
-        console.log(`    ${job.name} (${job.state})`);
-        console.log(
+        log.info(`    ${job.name} (${job.state})`);
+        log.info(
           `      Progress: ${job.progress.current}/${job.progress.desired}`,
         );
         if (job.reward) {
-          console.log(
+          log.info(
             `      Reward: ${job.reward.remaining.toLocaleString()} ISK remaining`,
           );
         }
       }
       if (jobs.length > 5) {
-        console.log(`    ... and ${jobs.length - 5} more`);
+        log.info(`    ... and ${jobs.length - 5} more`);
       }
 
       // If we have jobs, try participation on the first one
       if (jobs.length > 0) {
         const firstJob = jobs[0]!;
-        console.log(`\n  Participation in "${firstJob.name}":`);
+        log.info(`\n  Participation in "${firstJob.name}":`);
         const participation = await tryOrSkip('Participation', () =>
           client.freelanceJobs.getCharacterFreelanceJobParticipation(
             CHARACTER_ID,
@@ -82,38 +88,38 @@ async function main() {
           ),
         );
         if (participation) {
-          console.log(`    State: ${participation.state}`);
-          console.log(`    Contributed: ${participation.contributed}`);
-          console.log(`    Last modified: ${participation.last_modified}`);
+          log.info(`    State: ${participation.state}`);
+          log.info(`    Contributed: ${participation.contributed}`);
+          log.info(`    Last modified: ${participation.last_modified}`);
         }
       }
     }
 
     // --- Corporation Freelance Jobs ---
-    console.log('\nCorporation Freelance Jobs');
-    console.log('-'.repeat(50));
+    log.info('\nCorporation Freelance Jobs');
+    log.info('-'.repeat(50));
     const corpJobs = await tryOrSkip('Corporation jobs', () =>
       client.freelanceJobs.getCorporationFreelanceJobs(CORP_ID),
     );
 
     if (corpJobs) {
       const jobs = corpJobs.freelance_jobs;
-      console.log(`  Jobs found: ${jobs.length}`);
+      log.info(`  Jobs found: ${jobs.length}`);
 
       for (const job of jobs.slice(0, 5)) {
-        console.log(`    ${job.name} (${job.state})`);
-        console.log(
+        log.info(`    ${job.name} (${job.state})`);
+        log.info(
           `      Progress: ${job.progress.current}/${job.progress.desired}`,
         );
       }
       if (jobs.length > 5) {
-        console.log(`    ... and ${jobs.length - 5} more`);
+        log.info(`    ... and ${jobs.length - 5} more`);
       }
 
       // If we have jobs, try participants on the first one
       if (jobs.length > 0) {
         const firstJob = jobs[0]!;
-        console.log(`\n  Participants in "${firstJob.name}":`);
+        log.info(`\n  Participants in "${firstJob.name}":`);
         const participants = await tryOrSkip('Participants', () =>
           client.freelanceJobs.getCorporationFreelanceJobParticipants(
             CORP_ID,
@@ -122,9 +128,9 @@ async function main() {
         );
         if (participants) {
           const roll = participants.participants;
-          console.log(`    Participants on this page: ${roll.length}`);
+          log.info(`    Participants on this page: ${roll.length}`);
           for (const p of roll.slice(0, 5)) {
-            console.log(
+            log.info(
               `      ${p.name} (${p.id}): ${p.contributed} contributed (${p.state})`,
             );
           }
@@ -132,7 +138,7 @@ async function main() {
       }
     }
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

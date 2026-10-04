@@ -9,24 +9,27 @@
  * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
     const status = await client.status.getStatus();
-    console.log('EVE Server Status');
-    console.log('-'.repeat(40));
-    console.log(`  Players online: ${status.players.toLocaleString()}`);
-    console.log(`  Server version: ${status.server_version}`);
-    console.log(`  Start time:     ${status.start_time}`);
-    if (status.vip) console.log('  VIP mode:       ACTIVE');
-    console.log('\nESI is reachable and working.');
+    log.info('EVE Server Status');
+    log.info('-'.repeat(40));
+    log.info(`  Players online: ${status.players.toLocaleString()}`);
+    log.info(`  Server version: ${status.server_version}`);
+    log.info(`  Start time:     ${status.start_time}`);
+    if (status.vip) log.info('  VIP mode:       ACTIVE');
+    log.info('\nESI is reachable and working.');
   } catch (err) {
-    console.error(
-      'Failed to reach ESI:',
-      err instanceof Error ? err.message : err,
-    );
+    log.error('Failed to reach ESI', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

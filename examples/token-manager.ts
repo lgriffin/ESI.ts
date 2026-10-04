@@ -21,6 +21,7 @@
  */
 import * as http from 'http';
 import {
+  createConsoleLogger,
   EsiTokenManager,
   FileTokenStorage,
   generatePkcePair,
@@ -29,7 +30,13 @@ import {
 } from '../src';
 import { createEsi } from '../src/client';
 
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
+
 const esi = createEsi({
+  logger: esiLog,
   userAgent: 'esi.ts-examples/1.0 (https://github.com/lgriffin/ESI.ts)',
 });
 
@@ -38,16 +45,16 @@ const CALLBACK_URL = `http://localhost:${CALLBACK_PORT}/callback`;
 const SCOPES = ['esi-location.read_location.v1', 'esi-skills.read_skills.v1'];
 
 const tokens = new EsiTokenManager({
+  logger: esiLog,
   clientId: process.env.ESI_SSO_CLIENT_ID ?? '',
   clientSecret: process.env.ESI_SSO_CLIENT_SECRET, // undefined => PKCE public client
   callbackUrl: CALLBACK_URL,
   storage: new FileTokenStorage('./tokens.example.json'),
   onRefresh: (t) =>
-    console.log(
+    log.info(
       `  [refresh] ${t.characterName} now expires ${new Date(t.expiresAt).toISOString()}`,
     ),
-  onRevoked: (id) =>
-    console.log(`  [revoked] character ${id} must log in again`),
+  onRevoked: (id) => log.info(`  [revoked] character ${id} must log in again`),
 });
 
 /** Run the browser login flow once and store the character. */
@@ -63,17 +70,17 @@ async function loginNewCharacter(): Promise<number> {
     codeChallenge: pkce?.codeChallenge,
   });
 
-  console.log('\nOpen this URL in a browser to log in:\n');
-  console.log(`  ${loginUrl}\n`);
+  log.info('\nOpen this URL in a browser to log in:\n');
+  log.info(`  ${loginUrl}\n`);
 
   const code = await waitForCallback(state);
   const stored = await tokens.addCharacter(code, {
     codeVerifier: pkce?.codeVerifier,
   });
-  console.log(
+  log.info(
     `  Stored token for ${stored.characterName} (${stored.characterId})`,
   );
-  console.log(`  Scopes: ${stored.scopes.join(', ')}`);
+  log.info(`  Scopes: ${stored.scopes.join(', ')}`);
   return stored.characterId;
 }
 
@@ -101,17 +108,17 @@ function waitForCallback(expectedState: string): Promise<string> {
       resolve(code);
     });
     server.listen(CALLBACK_PORT, () =>
-      console.log(`  Waiting for callback on ${CALLBACK_URL} ...`),
+      log.info(`  Waiting for callback on ${CALLBACK_URL} ...`),
     );
   });
 }
 
 async function main() {
-  console.log('Token Manager Demo');
-  console.log('='.repeat(50));
+  log.info('Token Manager Demo');
+  log.info('='.repeat(50));
 
   if (!process.env.ESI_SSO_CLIENT_ID) {
-    console.log(
+    log.info(
       'Set ESI_SSO_CLIENT_ID (and optionally ESI_SSO_CLIENT_SECRET) to run this example.',
     );
     return;
@@ -120,9 +127,9 @@ async function main() {
   // --- 1. Find or add a character ---
   const characters = await tokens.listCharacters();
   const active = characters.filter((c) => !c.revoked);
-  console.log(`\nStored characters: ${active.length}`);
+  log.info(`\nStored characters: ${active.length}`);
   for (const c of active) {
-    console.log(
+    log.info(
       `  ${c.characterName} (${c.characterId}) expires ${new Date(c.expiresAt).toISOString()}`,
     );
   }
@@ -135,20 +142,20 @@ async function main() {
   const view = esi.as(tokens.identity(characterId));
   try {
     const location = await view.character(characterId).location.get();
-    console.log(`\nCurrent system: ${location.solar_system_id}`);
+    log.info(`\nCurrent system: ${location.solar_system_id}`);
   } catch (err) {
     if (isTokenRevoked(err)) {
-      console.log('\nToken revoked — remove the character and log in again:');
-      console.log(`  await tokens.removeCharacter(${characterId})`);
+      log.info('\nToken revoked — remove the character and log in again:');
+      log.info(`  await tokens.removeCharacter(${characterId})`);
     } else {
-      console.error('  Error:', err instanceof Error ? err.message : err);
+      log.error('Request failed', { error: err });
     }
   }
 
   // --- 3. Bulk refresh ---
   // Only tokens expiring in the next five minutes are refreshed; the rest
   // are reported as skipped. Each character settles independently.
-  console.log('\nBulk refresh (tokens expiring within 5 minutes):');
+  log.info('\nBulk refresh (tokens expiring within 5 minutes):');
   const results = await tokens.refreshAll({
     concurrency: 5,
     expiringWithinMs: 5 * 60_000,
@@ -158,13 +165,13 @@ async function main() {
       r.status === 'failed'
         ? ` (${r.error?.message}${r.retryable ? ', retryable' : ''})`
         : '';
-    console.log(`  ${r.characterId}: ${r.status}${detail}`);
+    log.info(`  ${r.characterId}: ${r.status}${detail}`);
   }
 
-  console.log('\nDone.');
+  log.info('\nDone.');
 }
 
 main().catch((err) => {
-  console.error(err);
+  log.error('Unexpected error', { error: err });
   process.exit(1);
 });

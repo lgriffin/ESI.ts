@@ -15,6 +15,12 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CORP_ID = 98135622;
 const CHARACTER_ID = 90439768;
@@ -30,7 +36,7 @@ async function tryOrSkip<T>(
       err instanceof EsiError &&
       [401, 403, 404].includes(err.statusCode ?? 0)
     ) {
-      console.log(`  ${label}: endpoint not available — skipped`);
+      log.info(`  ${label}: endpoint not available — skipped`);
       return null;
     }
     throw err;
@@ -38,39 +44,39 @@ async function tryOrSkip<T>(
 }
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log('Corporation Projects\n');
+    log.info('Corporation Projects\n');
 
     // --- List Corporation Projects ---
-    console.log('Corporation Projects');
-    console.log('-'.repeat(50));
+    log.info('Corporation Projects');
+    log.info('-'.repeat(50));
     const listing = await tryOrSkip('Corporation projects', () =>
       client.corporationProjects.getCorporationProjects(CORP_ID),
     );
 
     if (listing) {
       const projects = listing.projects;
-      console.log(`  Projects on this page: ${projects.length}`);
+      log.info(`  Projects on this page: ${projects.length}`);
       if (listing.cursor?.after) {
-        console.log(`  Next page cursor: ${listing.cursor.after}`);
+        log.info(`  Next page cursor: ${listing.cursor.after}`);
       }
 
       for (const project of projects.slice(0, 5)) {
         const { current, desired } = project.progress;
-        console.log(`    ${project.name} [${project.id}] (${project.state})`);
-        console.log(`      Progress: ${current}/${desired}`);
-        console.log(`      Last modified: ${project.last_modified}`);
+        log.info(`    ${project.name} [${project.id}] (${project.state})`);
+        log.info(`      Progress: ${current}/${desired}`);
+        log.info(`      Last modified: ${project.last_modified}`);
       }
       if (projects.length > 5) {
-        console.log(`    ... and ${projects.length - 5} more`);
+        log.info(`    ... and ${projects.length - 5} more`);
       }
 
       // --- Project Details ---
       if (projects.length > 0) {
         const firstProject = projects[0]!;
-        console.log(`\n  Details for Project ${firstProject.id}:`);
+        log.info(`\n  Details for Project ${firstProject.id}:`);
         const detail = await tryOrSkip('Project detail', () =>
           client.corporationProjects.getCorporationProject(
             CORP_ID,
@@ -78,13 +84,13 @@ async function main() {
           ),
         );
         if (detail) {
-          console.log(`    State: ${detail.state}`);
-          console.log(`    Created by: ${detail.creator.name}`);
-          console.log(`    Career: ${detail.details.career}`);
+          log.info(`    State: ${detail.state}`);
+          log.info(`    Created by: ${detail.creator.name}`);
+          log.info(`    Career: ${detail.details.career}`);
         }
 
         // --- Project Contributors ---
-        console.log(`\n  Contributors for Project ${firstProject.id}:`);
+        log.info(`\n  Contributors for Project ${firstProject.id}:`);
         const contributors = await tryOrSkip('Contributors', () =>
           client.corporationProjects.getCorporationProjectContributors(
             CORP_ID,
@@ -93,19 +99,17 @@ async function main() {
         );
         if (contributors) {
           const roll = contributors.contributors;
-          console.log(`    Contributors on this page: ${roll.length}`);
+          log.info(`    Contributors on this page: ${roll.length}`);
           for (const c of roll.slice(0, 5)) {
-            console.log(
-              `      ${c.name} (${c.id}): ${c.contributed} contributed`,
-            );
+            log.info(`      ${c.name} (${c.id}): ${c.contributed} contributed`);
           }
           if (roll.length > 5) {
-            console.log(`      ... and ${roll.length - 5} more`);
+            log.info(`      ... and ${roll.length - 5} more`);
           }
         }
 
         // --- Character Contribution ---
-        console.log(
+        log.info(
           `\n  Character ${CHARACTER_ID} contribution to Project ${firstProject.id}:`,
         );
         const contribution = await tryOrSkip('Contribution', () =>
@@ -116,12 +120,12 @@ async function main() {
           ),
         );
         if (contribution) {
-          console.log(`    Contributed: ${contribution.contributed}`);
+          log.info(`    Contributed: ${contribution.contributed}`);
         }
       }
     }
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();
