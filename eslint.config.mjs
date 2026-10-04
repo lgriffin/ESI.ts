@@ -208,6 +208,14 @@ export default tseslint.config(
     rules: { 'sonarjs/no-nested-assignment': 'off' },
   },
 
+  // Library code logs through ILogger, never the console. The one console
+  // sink is createConsoleLogger (src/core/logger/ConsoleLogger.ts), which
+  // turns the rule off for its three lines.
+  {
+    files: ['src/**/*.ts'],
+    rules: { 'no-console': 'error' },
+  },
+
   // src/core/requestPipeline and src/clients log through the per-client
   // logger, never the global loggerUtil (#265).
   ...loggerImports.loggerImportsConfig(),
