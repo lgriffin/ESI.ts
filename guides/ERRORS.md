@@ -311,8 +311,9 @@ type EsiResult<T> =
 ```
 
 ```typescript runnable
-import { EsiClient } from '@lgriffin/esi.ts';
+import { EsiClient, createConsoleLogger } from '@lgriffin/esi.ts';
 
+const log = createConsoleLogger('info');
 const esi = new EsiClient({ clientId: 'my-app' });
 
 const result = await esi.characters
@@ -320,11 +321,14 @@ const result = await esi.characters
   .getCharacterPublicInfo(2112625428);
 
 if (result.ok) {
-  console.log(result.data.name, result.meta.fromCache);
+  log.info(result.data.name, { fromCache: result.meta.fromCache });
 } else if (result.error.isNotFound()) {
-  console.log('No such character');
+  log.info('No such character');
 } else {
-  console.error(result.error.statusCode, result.error.message);
+  log.error('Lookup failed', {
+    status: result.error.statusCode,
+    error: result.error,
+  });
 }
 ```
 

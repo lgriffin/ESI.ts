@@ -25,6 +25,10 @@ type SdeDataProvider = import('@lgriffin/esi.ts/sde').SdeDataProvider;
 type EveType = import('@lgriffin/esi.ts/sde').EveType;
 type SolarSystem = import('@lgriffin/esi.ts/sde').SolarSystem;
 
+// The program's own logger, built in the README Quick Start
+// (createConsoleLogger('info')); fragments log through it, not console.
+declare const log: import('@lgriffin/esi.ts').ILogger;
+
 // Clients and providers built in an earlier block.
 declare const client: import('@lgriffin/esi.ts').EsiClient;
 declare const esi: import('@lgriffin/esi.ts/client').Esi;

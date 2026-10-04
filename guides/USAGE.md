@@ -54,12 +54,13 @@ const prices = await marketClient.getMarketPrices();
 Call `shutdown()` when you are done with a client. It stops the cache sweep timer and the circuit-breaker cleanup timer, so a script can exit. It is synchronous.
 
 ```typescript runnable
-import { EsiClient } from '@lgriffin/esi.ts';
+import { EsiClient, createConsoleLogger } from '@lgriffin/esi.ts';
 
-const client = new EsiClient();
+const log = createConsoleLogger('info');
+const client = new EsiClient({ logger: createConsoleLogger() });
 try {
   const status = await client.status.getStatus();
-  console.log(status.server_version);
+  log.info(`Server version ${status.server_version}`);
 } finally {
   client.shutdown();
 }
@@ -187,19 +188,26 @@ The recorded-payload tier replays real responses for every public route on every
 Every one of the 201 GET definitions declares a Zod `responseSchema`, and validation is on by default. A body that does not match throws `EsiValidationError`. Schemas are `z.looseObject`, so a field CCP adds tomorrow passes through to your code unchanged rather than failing (posture 3 in the charter). For mutations, `validateRequest: true` checks the outgoing body against the endpoint's `requestSchema`. Endpoints that return a body without declaring a schema are tracked in [#298](https://github.com/lgriffin/ESI.ts/issues/298) (DES-02, Phase 3).
 
 ```typescript
-import { EsiClient, isValidationError, schemas } from '@lgriffin/esi.ts';
+import {
+  EsiClient,
+  isValidationError,
+  schemas,
+  createConsoleLogger,
+} from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 const strict = new EsiClient();
 try {
   const character = await strict.characters.getCharacterPublicInfo(12345);
-  console.log(character.name);
+  log.info(character.name);
 } catch (err) {
-  if (isValidationError(err)) console.log(err.message);
+  if (isValidationError(err)) log.error('Invalid response', { error: err });
 }
 
 // The same schemas are exported for your own data
 const result = schemas.CharacterInfoSchema.safeParse(someData);
-if (result.success) console.log(result.data.name);
+if (result.success) log.info(result.data.name);
 ```
 
 See [RUNTIME-VALIDATION.md](RUNTIME-VALIDATION.md).
@@ -212,10 +220,12 @@ See [RUNTIME-VALIDATION.md](RUNTIME-VALIDATION.md).
 const withMeta = client.alliance.withMetadata();
 const { data, meta } = await withMeta.getAllianceById(99000001);
 
-console.log(data.name);
-console.log(meta.fromCache, meta.cacheHitType); // 'spec-ttl' | 'etag-304' | 'stale-on-error'
-console.log(meta.rateLimit); // { remaining, limit, used, group }
-console.log(meta.requestId); // ESI request id, for CCP support
+log.info(data.name, {
+  fromCache: meta.fromCache,
+  cacheHitType: meta.cacheHitType, // 'spec-ttl' | 'etag-304' | 'stale-on-error'
+  rateLimit: meta.rateLimit, // { remaining, limit, used, group }
+  requestId: meta.requestId, // ESI request id, for CCP support
+});
 ```
 
 | Field             | Type                     | Meaning                                         |
@@ -274,10 +284,10 @@ const result = await client.batch(
   (id) => client.universe.getTypeById(id),
   {
     concurrency: 10,
-    onProgress: (done, total) => console.log(`${done}/${total}`),
+    onProgress: (done, total) => log.info(`${done}/${total}`),
   },
 );
-console.log(`${result.results.size} succeeded, ${result.errors.size} failed`);
+log.info(`${result.results.size} succeeded, ${result.errors.size} failed`);
 
 const names = await client.batchPost(
   largeIdArray,
@@ -296,9 +306,7 @@ Cursor routes, such as Freelance Jobs, page with opaque `before` and `after` tok
 
 ```typescript
 for await (const page of client.market.streamMarketOrders(10000002)) {
-  console.log(
-    `Page ${page.page}/${page.totalPages}: ${page.data.length} orders`,
-  );
+  log.info(`Page ${page.page}/${page.totalPages}: ${page.data.length} orders`);
   if (page.page >= 3) break;
 }
 ```

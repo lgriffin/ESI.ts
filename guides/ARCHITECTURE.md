@@ -908,7 +908,13 @@ stateDiagram-v2
 **Handling and diagnostics.**
 
 ```typescript
-import { EsiClient, isCircuitOpen } from '@lgriffin/esi.ts';
+import {
+  EsiClient,
+  isCircuitOpen,
+  createConsoleLogger,
+} from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 const client = new EsiClient({
   enableCircuitBreaker: true,
@@ -919,7 +925,7 @@ try {
   await client.characters.getCharacterPublicInfo(12345);
 } catch (err) {
   if (isCircuitOpen(err)) {
-    console.log(`${err.endpoint} open, retry in ${err.retryAfterMs} ms`);
+    log.warn(`${err.endpoint} open, retry in ${err.retryAfterMs} ms`);
   }
 }
 

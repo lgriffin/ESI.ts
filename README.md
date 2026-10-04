@@ -29,16 +29,22 @@ You need Node.js 22.12 or later; on Node 18 or 20, stay on 10.x. TypeScript proj
 ## Quick start
 
 ```typescript runnable
-import { EsiClient } from '@lgriffin/esi.ts';
+import { EsiClient, createConsoleLogger } from '@lgriffin/esi.ts';
 
-const client = new EsiClient({ userAgent: 'my-app/1.0 (you@example.com)' });
+const log = createConsoleLogger('info');
+const client = new EsiClient({
+  userAgent: 'my-app/1.0 (you@example.com)',
+  logger: createConsoleLogger(), // library diagnostics, at ESI_LOG_LEVEL (default warn)
+});
 try {
   const status = await client.status.getStatus();
-  console.log(`${status.players} pilots online`);
+  log.info(`${status.players} pilots online`);
 } finally {
   client.shutdown();
 }
 ```
+
+The examples here and in the guides log through an `ILogger` rather than `console`: `log` is the program's own output, and the client gets a logger of its own for library diagnostics. [Logging](guides/LOGGING.md) has the details and how to plug in pino or anything else.
 
 Public data needs no token. For character data, pass an EVE SSO access token, or set `ESI_ACCESS_TOKEN`, and the client attaches it only to the calls that declare a scope:
 
@@ -76,6 +82,9 @@ const wallet = await esi
 ```typescript runnable
 import { createEsi, identityFromToken } from '@lgriffin/esi.ts/client';
 import { createMockTransport } from '@lgriffin/esi.ts/testing';
+import { createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 const transport = createMockTransport().respond({
   method: 'GET',
@@ -89,8 +98,8 @@ const esi = createEsi({
 try {
   const view = esi.as(identityFromToken('an-access-token'));
   const wallet = await view.character(2114794365).wallet.get();
-  console.log(wallet); // 1234567.89
-  console.log(transport.sent[0]?.headers['authorization']); // Bearer an-access-token
+  log.info(`Wallet: ${wallet}`); // Wallet: 1234567.89
+  log.info(`Sent: ${transport.sent[0]?.headers['authorization']}`); // Sent: Bearer an-access-token
 } finally {
   esi.shutdown();
 }
@@ -159,9 +168,12 @@ Every tier has to prove it can fail: a negative fixture, a killed mutant or a ca
 import { MarketOrderSchema } from '@lgriffin/esi.ts/schemas';
 import { EsiError, isRetryable } from '@lgriffin/esi.ts/errors';
 import { SdeDataProvider } from '@lgriffin/esi.ts/sde';
+import { createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 const sdeData = SdeDataProvider.fromDirectory('./sde-data');
-console.log(sdeData.getType(34)?.name); // "Tritanium"
+log.info(`Type 34: ${sdeData.getType(34)?.name}`); // Type 34: Tritanium
 sdeData.close();
 ```
 
