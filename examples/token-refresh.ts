@@ -19,6 +19,12 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CHARACTER_ID = 1689391488;
 
@@ -36,7 +42,7 @@ const clientId = process.env.ESI_SSO_CLIENT_ID || '';
  * TOKEN_REFRESH_FAILED.
  */
 async function refreshAccessToken(): Promise<string> {
-  console.log('  [Token Refresh] Refreshing access token via EVE SSO...');
+  log.info('  [Token Refresh] Refreshing access token via EVE SSO...');
 
   const response = await fetch('https://login.eveonline.com/v2/oauth/token', {
     method: 'POST',
@@ -61,7 +67,7 @@ async function refreshAccessToken(): Promise<string> {
 
   // EVE SSO may rotate the refresh token — always save the latest one
   refreshToken = data.refresh_token;
-  console.log(
+  log.info(
     `  [Token Refresh] New token obtained (expires in ${data.expires_in}s)`,
   );
 
@@ -70,10 +76,11 @@ async function refreshAccessToken(): Promise<string> {
 
 // --- Example 1: Configure at construction time ---
 async function exampleConstructorConfig() {
-  console.log('Example 1: Token refresh via constructor config');
-  console.log('='.repeat(50));
+  log.info('Example 1: Token refresh via constructor config');
+  log.info('='.repeat(50));
 
   const client = new EsiClient({
+    logger: esiLog,
     clientId: 'esi-ts-token-refresh-demo',
     accessToken: process.env.ESI_ACCESS_TOKEN,
     onTokenRefresh: refreshAccessToken,
@@ -83,11 +90,11 @@ async function exampleConstructorConfig() {
     // This request will automatically refresh the token if it's expired.
     // First call → 401 → refreshAccessToken() → retry → success
     const location = await client.location.getCharacterLocation(CHARACTER_ID);
-    console.log(`  Current system: ${location.solar_system_id}`);
+    log.info(`  Current system: ${location.solar_system_id}`);
 
     // Subsequent calls reuse the refreshed token — no extra refresh needed
     const ship = await client.location.getCharacterShip(CHARACTER_ID);
-    console.log(`  Current ship: type ${ship.ship_type_id}`);
+    log.info(`  Current ship: type ${ship.ship_type_id}`);
   } catch (err) {
     handleError(err);
   } finally {
@@ -97,10 +104,11 @@ async function exampleConstructorConfig() {
 
 // --- Example 2: Configure at runtime ---
 async function exampleRuntimeConfig() {
-  console.log('\nExample 2: Token refresh set at runtime');
-  console.log('='.repeat(50));
+  log.info('\nExample 2: Token refresh set at runtime');
+  log.info('='.repeat(50));
 
   const client = new EsiClient({
+    logger: esiLog,
     clientId: 'esi-ts-token-refresh-demo',
     accessToken: process.env.ESI_ACCESS_TOKEN,
   });
@@ -110,7 +118,7 @@ async function exampleRuntimeConfig() {
 
   try {
     const skills = await client.skills.getCharacterSkills(CHARACTER_ID);
-    console.log(`  Total SP: ${skills.total_sp?.toLocaleString()}`);
+    log.info(`  Total SP: ${skills.total_sp?.toLocaleString()}`);
   } catch (err) {
     handleError(err);
   } finally {
@@ -122,10 +130,11 @@ async function exampleRuntimeConfig() {
 
 // --- Example 3: What happens without a token provider ---
 async function exampleWithoutProvider() {
-  console.log('\nExample 3: Without token refresh (manual handling)');
-  console.log('='.repeat(50));
+  log.info('\nExample 3: Without token refresh (manual handling)');
+  log.info('='.repeat(50));
 
   const client = new EsiClient({
+    logger: esiLog,
     clientId: 'esi-ts-token-refresh-demo',
     accessToken: 'deliberately-expired-token',
     // No onTokenRefresh — 401 errors will throw immediately
@@ -135,8 +144,8 @@ async function exampleWithoutProvider() {
     await client.location.getCharacterLocation(CHARACTER_ID);
   } catch (err) {
     if (err instanceof EsiError && err.isUnauthorized()) {
-      console.log('  Got 401 as expected — no auto-refresh configured');
-      console.log('  You would need to manually call client.setAccessToken()');
+      log.info('  Got 401 as expected — no auto-refresh configured');
+      log.info('  You would need to manually call client.setAccessToken()');
     } else {
       handleError(err);
     }
@@ -147,10 +156,11 @@ async function exampleWithoutProvider() {
 
 // --- Example 4: Handling refresh token expiry ---
 async function exampleRefreshFailure() {
-  console.log('\nExample 4: When the refresh token itself is expired');
-  console.log('='.repeat(50));
+  log.info('\nExample 4: When the refresh token itself is expired');
+  log.info('='.repeat(50));
 
   const client = new EsiClient({
+    logger: esiLog,
     clientId: 'esi-ts-token-refresh-demo',
     accessToken: 'expired-access-token',
     onTokenRefresh: async () => {
@@ -163,8 +173,8 @@ async function exampleRefreshFailure() {
     await client.location.getCharacterLocation(CHARACTER_ID);
   } catch (err) {
     if (err instanceof Error && err.message.includes('TOKEN_REFRESH_FAILED')) {
-      console.log('  Token refresh failed — user needs to re-authenticate');
-      console.log(`  Error: ${err.message}`);
+      log.info('  Token refresh failed — user needs to re-authenticate');
+      log.info(`  Error: ${err.message}`);
     } else {
       handleError(err);
     }
@@ -175,22 +185,22 @@ async function exampleRefreshFailure() {
 
 function handleError(err: unknown) {
   if (err instanceof EsiError) {
-    console.error(`  ESI error ${err.statusCode}: ${err.message}`);
+    log.error(`  ESI error ${err.statusCode}: ${err.message}`);
     if (err.isUnauthorized()) {
-      console.error(
+      log.error(
         '  Set ESI_ACCESS_TOKEN and ESI_REFRESH_TOKEN in your environment',
       );
     }
   } else {
-    console.error('  Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
   }
 }
 
 async function main() {
-  console.log('Token Refresh Demo\n');
+  log.info('Token Refresh Demo\n');
 
   if (!process.env.ESI_ACCESS_TOKEN) {
-    console.log(
+    log.info(
       'Note: ESI_ACCESS_TOKEN is not set. Examples 1-2 will fail with 401.\n',
     );
   }
@@ -200,7 +210,7 @@ async function main() {
   await exampleWithoutProvider();
   await exampleRefreshFailure();
 
-  console.log('\nDone.');
+  log.info('\nDone.');
 }
 
 main();

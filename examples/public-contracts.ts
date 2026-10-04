@@ -11,11 +11,17 @@
  * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const THE_FORGE = 10000002;
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
     const contracts = await client.contracts.getPublicContracts(THE_FORGE);
@@ -23,20 +29,20 @@ async function main() {
     for (const contract of contracts) {
       byType.set(contract.type, (byType.get(contract.type) ?? 0) + 1);
     }
-    console.log(`Public contracts in The Forge: ${contracts.length}`);
-    for (const [type, count] of byType) console.log(`  ${type}: ${count}`);
+    log.info(`Public contracts in The Forge: ${contracts.length}`);
+    for (const [type, count] of byType) log.info(`  ${type}: ${count}`);
 
     const exchange = contracts.find((c) => c.type === 'item_exchange');
     if (exchange) {
       const items = await client.contracts.getPublicContractItems(
         exchange.contract_id,
       );
-      console.log(
+      log.info(
         `\nItem exchange ${exchange.contract_id}: ${items.length} item line(s)`,
       );
       for (const item of items.slice(0, 5)) {
         const side = item.is_included ? 'offered' : 'wanted';
-        console.log(`  ${item.quantity} x type ${item.type_id} (${side})`);
+        log.info(`  ${item.quantity} x type ${item.type_id} (${side})`);
       }
     }
 
@@ -46,12 +52,12 @@ async function main() {
         auction.contract_id,
       );
       const top = bids.reduce((max, bid) => Math.max(max, bid.amount), 0);
-      console.log(
+      log.info(
         `\nAuction ${auction.contract_id}: ${bids.length} bid(s), highest ${top.toLocaleString()} ISK`,
       );
     }
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

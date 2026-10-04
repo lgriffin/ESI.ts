@@ -16,39 +16,48 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CHARACTER_ID = 1689391488;
 
 async function main() {
-  const client = new EsiClient({ clientId: 'esi-ts-contacts-demo' });
+  const client = new EsiClient({
+    logger: esiLog,
+    clientId: 'esi-ts-contacts-demo',
+  });
 
   try {
-    console.log('Contact Management\n');
+    log.info('Contact Management\n');
 
     // Fetch contacts and labels in parallel
     // Scope: esi-characters.read_contacts.v1
-    console.log('Fetching contacts and labels...\n');
+    log.info('Fetching contacts and labels...\n');
     const [contacts, labels] = await Promise.all([
       client.contacts.getCharacterContacts(CHARACTER_ID),
       client.contacts.getCharacterContactLabels(CHARACTER_ID),
     ]);
 
     // Labels
-    console.log(`Contact Labels (${labels.length})`);
-    console.log('-'.repeat(40));
+    log.info(`Contact Labels (${labels.length})`);
+    log.info('-'.repeat(40));
     if (labels.length === 0) {
-      console.log('  No custom labels');
+      log.info('  No custom labels');
     } else {
       for (const label of labels) {
-        console.log(`  [${label.label_id}] ${label.label_name}`);
+        log.info(`  [${label.label_id}] ${label.label_name}`);
       }
     }
 
     // Contact list
-    console.log(`\nContacts (${contacts.length})`);
-    console.log('-'.repeat(40));
+    log.info(`\nContacts (${contacts.length})`);
+    log.info('-'.repeat(40));
     if (contacts.length === 0) {
-      console.log('  No contacts');
+      log.info('  No contacts');
     } else {
       // Group by standing
       const standingGroups = new Map<string, typeof contacts>([
@@ -69,18 +78,18 @@ async function main() {
 
       for (const [group, members] of standingGroups) {
         if (members.length > 0) {
-          console.log(
+          log.info(
             `\n  ${group}: ${members.length} contact${members.length > 1 ? 's' : ''}`,
           );
           for (const c of members.slice(0, 5)) {
             const type = c.contact_type || 'unknown';
             const labelIds = c.label_ids?.join(', ') || 'none';
-            console.log(
+            log.info(
               `    ${type} ${c.contact_id} | standing ${c.standing} | labels: ${labelIds}`,
             );
           }
           if (members.length > 5) {
-            console.log(`    ... and ${members.length - 5} more`);
+            log.info(`    ... and ${members.length - 5} more`);
           }
         }
       }
@@ -92,9 +101,9 @@ async function main() {
         byType.set(type, (byType.get(type) || 0) + 1);
       }
 
-      console.log('\n  By Contact Type:');
+      log.info('\n  By Contact Type:');
       for (const [type, count] of byType) {
-        console.log(`    ${type}: ${count}`);
+        log.info(`    ${type}: ${count}`);
       }
     }
 
@@ -102,7 +111,7 @@ async function main() {
     // client.contacts.postCharacterContacts(characterId, { ... })      — Scope: esi-characters.write_contacts.v1
     // client.contacts.putCharacterContacts(characterId, { ... })       — Scope: esi-characters.write_contacts.v1
     // client.contacts.deleteCharacterContacts(characterId, [ids])      — Scope: esi-characters.write_contacts.v1
-    console.log(
+    log.info(
       '\nNote: write operations (add/edit/delete contacts) require scope esi-characters.write_contacts.v1',
     );
   } catch (err) {
@@ -110,11 +119,11 @@ async function main() {
       err instanceof EsiError &&
       (err.statusCode === 401 || err.statusCode === 403)
     ) {
-      console.error(
+      log.error(
         'Authentication required. Set ESI_ACCESS_TOKEN with scope esi-characters.read_contacts.v1',
       );
     } else {
-      console.error('Error:', err instanceof Error ? err.message : err);
+      log.error('Request failed', { error: err });
     }
     process.exit(1);
   } finally {

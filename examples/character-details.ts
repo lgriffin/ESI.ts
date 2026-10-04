@@ -13,16 +13,22 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CHARACTER_ID = 90439768;
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log('Character Details\n');
+    log.info('Character Details\n');
 
-    console.log('Fetching character data...');
+    log.info('Fetching character data...');
     const [
       research,
       blueprints,
@@ -48,110 +54,108 @@ async function main() {
     ]);
 
     // Agent Research
-    console.log('Agent Research');
-    console.log('-'.repeat(50));
-    console.log(`  Active research agents: ${research.length}`);
+    log.info('Agent Research');
+    log.info('-'.repeat(50));
+    log.info(`  Active research agents: ${research.length}`);
     for (const agent of research.slice(0, 3)) {
-      console.log(
+      log.info(
         `    Agent ${agent.agent_id}: skill ${agent.skill_type_id}, ${agent.points_per_day?.toFixed(2) ?? 0} pts/day`,
       );
     }
 
     // Blueprints
-    console.log(`\nBlueprints`);
-    console.log('-'.repeat(50));
-    console.log(`  Total blueprints: ${blueprints.length}`);
+    log.info(`\nBlueprints`);
+    log.info('-'.repeat(50));
+    log.info(`  Total blueprints: ${blueprints.length}`);
     const originals = blueprints.filter((b) => b.quantity === -1).length;
     const copies = blueprints.filter((b) => b.quantity === -2).length;
-    console.log(`  Originals: ${originals}, Copies: ${copies}`);
+    log.info(`  Originals: ${originals}, Copies: ${copies}`);
 
     // Roles
-    console.log(`\nRoles`);
-    console.log('-'.repeat(50));
-    console.log(`  Roles: ${roles.roles?.length ?? 0}`);
-    console.log(`  Roles at HQ: ${roles.roles_at_hq?.length ?? 0}`);
-    console.log(`  Roles at base: ${roles.roles_at_base?.length ?? 0}`);
-    console.log(`  Roles at other: ${roles.roles_at_other?.length ?? 0}`);
+    log.info(`\nRoles`);
+    log.info('-'.repeat(50));
+    log.info(`  Roles: ${roles.roles?.length ?? 0}`);
+    log.info(`  Roles at HQ: ${roles.roles_at_hq?.length ?? 0}`);
+    log.info(`  Roles at base: ${roles.roles_at_base?.length ?? 0}`);
+    log.info(`  Roles at other: ${roles.roles_at_other?.length ?? 0}`);
 
     // Standings
-    console.log(`\nStandings`);
-    console.log('-'.repeat(50));
-    console.log(`  Total standings: ${standings.length}`);
+    log.info(`\nStandings`);
+    log.info('-'.repeat(50));
+    log.info(`  Total standings: ${standings.length}`);
     for (const s of standings.slice(0, 5)) {
-      console.log(`    ${s.from_type} ${s.from_id}: ${s.standing}`);
+      log.info(`    ${s.from_type} ${s.from_id}: ${s.standing}`);
     }
     if (standings.length > 5)
-      console.log(`    ... and ${standings.length - 5} more`);
+      log.info(`    ... and ${standings.length - 5} more`);
 
     // Titles
-    console.log(`\nTitles`);
-    console.log('-'.repeat(50));
-    console.log(`  Titles held: ${titles.length}`);
+    log.info(`\nTitles`);
+    log.info('-'.repeat(50));
+    log.info(`  Titles held: ${titles.length}`);
     for (const t of titles) {
-      console.log(`    [${t.title_id}] ${t.name || '(unnamed)'}`);
+      log.info(`    [${t.title_id}] ${t.name || '(unnamed)'}`);
     }
 
     // Contact Notifications
-    console.log(`\nContact Notifications`);
-    console.log('-'.repeat(50));
-    console.log(`  Notifications: ${contactNotifications.length}`);
+    log.info(`\nContact Notifications`);
+    log.info('-'.repeat(50));
+    log.info(`  Notifications: ${contactNotifications.length}`);
 
     // Corporation History
-    console.log(`\nCorporation History`);
-    console.log('-'.repeat(50));
-    console.log(`  Corporations joined: ${corpHistory.length}`);
+    log.info(`\nCorporation History`);
+    log.info('-'.repeat(50));
+    log.info(`  Corporations joined: ${corpHistory.length}`);
     for (const entry of corpHistory.slice(0, 5)) {
       const date = new Date(entry.start_date).toLocaleDateString();
-      console.log(
+      log.info(
         `    ${date}: Corp ${entry.corporation_id} (record ${entry.record_id})`,
       );
     }
     if (corpHistory.length > 5)
-      console.log(`    ... and ${corpHistory.length - 5} more`);
+      log.info(`    ... and ${corpHistory.length - 5} more`);
 
     // Jump Fatigue
-    console.log(`\nJump Fatigue`);
-    console.log('-'.repeat(50));
+    log.info(`\nJump Fatigue`);
+    log.info('-'.repeat(50));
     if (fatigue.jump_fatigue_expire_date) {
-      console.log(`  Fatigue expires: ${fatigue.jump_fatigue_expire_date}`);
-      console.log(`  Last jump:       ${fatigue.last_jump_date || 'unknown'}`);
-      console.log(
-        `  Last update:     ${fatigue.last_update_date || 'unknown'}`,
-      );
+      log.info(`  Fatigue expires: ${fatigue.jump_fatigue_expire_date}`);
+      log.info(`  Last jump:       ${fatigue.last_jump_date || 'unknown'}`);
+      log.info(`  Last update:     ${fatigue.last_update_date || 'unknown'}`);
     } else {
-      console.log('  No jump fatigue');
+      log.info('  No jump fatigue');
     }
 
     // Medals
-    console.log(`\nMedals`);
-    console.log('-'.repeat(50));
-    console.log(`  Medals earned: ${medals.length}`);
+    log.info(`\nMedals`);
+    log.info('-'.repeat(50));
+    log.info(`  Medals earned: ${medals.length}`);
     for (const m of medals.slice(0, 3)) {
-      console.log(
+      log.info(
         `    Medal ${m.medal_id} from corp ${m.corporation_id} (${m.status})`,
       );
     }
 
     // Notifications
-    console.log(`\nNotifications`);
-    console.log('-'.repeat(50));
-    console.log(`  Recent notifications: ${notifications.length}`);
+    log.info(`\nNotifications`);
+    log.info('-'.repeat(50));
+    log.info(`  Recent notifications: ${notifications.length}`);
     for (const n of notifications.slice(0, 5)) {
       const date = new Date(n.timestamp).toLocaleDateString();
-      console.log(
+      log.info(
         `    ${date} | ${n.type} | from ${n.sender_type} ${n.sender_id}`,
       );
     }
     if (notifications.length > 5)
-      console.log(`    ... and ${notifications.length - 5} more`);
+      log.info(`    ... and ${notifications.length - 5} more`);
   } catch (err) {
     if (
       err instanceof EsiError &&
       (err.statusCode === 401 || err.statusCode === 403)
     ) {
-      console.error('Authentication required. Set ESI_ACCESS_TOKEN.');
+      log.error('Authentication required. Set ESI_ACCESS_TOKEN.');
     } else {
-      console.error('Error:', err instanceof Error ? err.message : err);
+      log.error('Request failed', { error: err });
     }
     process.exit(1);
   } finally {

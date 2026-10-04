@@ -9,16 +9,22 @@
  * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const FORGE_REGION_ID = 10000002;
 const TRITANIUM_TYPE_ID = 34;
 const PLEX_TYPE_ID = 44992;
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log('Market Data\n');
+    log.info('Market Data\n');
 
     // Fetch global average prices and Tritanium history in parallel
     const [prices, tritHistory] = await Promise.all([
@@ -34,8 +40,8 @@ async function main() {
       { id: 587, name: 'Rifter (Frigate)' },
     ];
 
-    console.log('Average Prices (Universe-wide)');
-    console.log('-'.repeat(50));
+    log.info('Average Prices (Universe-wide)');
+    log.info('-'.repeat(50));
     for (const item of notableItems) {
       const price = prices.find((p: any) => p.type_id === item.id);
       if (price) {
@@ -47,18 +53,16 @@ async function main() {
           price.adjusted_price?.toLocaleString(undefined, {
             maximumFractionDigits: 2,
           }) ?? 'N/A';
-        console.log(
+        log.info(
           `  ${item.name.padEnd(22)} avg: ${avg.padStart(18)}  adj: ${adj.padStart(18)}`,
         );
       }
     }
 
     // Show recent Tritanium history in The Forge
-    console.log('\nTritanium Price History (The Forge, last 5 days)');
-    console.log('-'.repeat(70));
-    console.log(
-      '  Date          Average       Lowest       Highest      Volume',
-    );
+    log.info('\nTritanium Price History (The Forge, last 5 days)');
+    log.info('-'.repeat(70));
+    log.info('  Date          Average       Lowest       Highest      Volume');
     const recent = tritHistory.slice(-5);
     for (const day of recent) {
       const date = day.date;
@@ -66,18 +70,18 @@ async function main() {
       const low = day.lowest.toFixed(2).padStart(12);
       const high = day.highest.toFixed(2).padStart(12);
       const vol = day.volume.toLocaleString().padStart(14);
-      console.log(`  ${date} ${avg} ${low} ${high} ${vol}`);
+      log.info(`  ${date} ${avg} ${low} ${high} ${vol}`);
     }
 
-    console.log(`\nTotal items with price data: ${prices.length}`);
+    log.info(`\nTotal items with price data: ${prices.length}`);
 
     // Market groups: the browser tree in the in-game market window
     const groupIds = await client.market.getMarketGroups();
     const firstGroupId = groupIds[0];
-    console.log(`\nMarket groups: ${groupIds.length}`);
+    log.info(`\nMarket groups: ${groupIds.length}`);
     if (firstGroupId !== undefined) {
       const group = await client.market.getMarketGroupInformation(firstGroupId);
-      console.log(`  ${group.name}: ${group.types.length} type(s)`);
+      log.info(`  ${group.name}: ${group.types.length} type(s)`);
     }
 
     // Everything traded in a small region, and its live orders (all pages)
@@ -87,11 +91,11 @@ async function main() {
       client.market.fetchAllMarketOrders(PURE_BLIND_REGION_ID),
     ]);
     const buys = orders.filter((o) => o.is_buy_order).length;
-    console.log(
+    log.info(
       `Pure Blind: ${tradedTypes.length} types traded, ${orders.length} orders (${buys} buy, ${orders.length - buys} sell)`,
     );
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

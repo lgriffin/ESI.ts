@@ -12,17 +12,26 @@
  * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const FORGE_REGION_ID = 10000002;
 
 async function streamAllOrders() {
-  const client = new EsiClient({ clientId: 'esi-ts-streaming-demo' });
+  const client = new EsiClient({
+    logger: esiLog,
+    clientId: 'esi-ts-streaming-demo',
+  });
 
   try {
-    console.log('='.repeat(60));
-    console.log('Streaming Market Orders — The Forge (all pages)');
-    console.log('='.repeat(60));
-    console.log();
+    log.info('='.repeat(60));
+    log.info('Streaming Market Orders — The Forge (all pages)');
+    log.info('='.repeat(60));
+    log.info('');
 
     let totalOrders = 0;
     let buyOrders = 0;
@@ -38,7 +47,7 @@ async function streamAllOrders() {
         else sellOrders++;
       }
 
-      console.log(
+      log.info(
         `  Page ${page.page}/${page.totalPages}: ` +
           `${page.data.length} orders ` +
           `(total so far: ${totalOrders.toLocaleString()})`,
@@ -46,25 +55,28 @@ async function streamAllOrders() {
     }
 
     const elapsed = Date.now() - startTime;
-    console.log();
-    console.log(`Done in ${(elapsed / 1000).toFixed(1)}s`);
-    console.log(`  Total orders: ${totalOrders.toLocaleString()}`);
-    console.log(`  Buy orders:   ${buyOrders.toLocaleString()}`);
-    console.log(`  Sell orders:  ${sellOrders.toLocaleString()}`);
+    log.info('');
+    log.info(`Done in ${(elapsed / 1000).toFixed(1)}s`);
+    log.info(`  Total orders: ${totalOrders.toLocaleString()}`);
+    log.info(`  Buy orders:   ${buyOrders.toLocaleString()}`);
+    log.info(`  Sell orders:  ${sellOrders.toLocaleString()}`);
   } finally {
     client.shutdown();
   }
 }
 
 async function streamWithEarlyStop() {
-  const client = new EsiClient({ clientId: 'esi-ts-streaming-demo' });
+  const client = new EsiClient({
+    logger: esiLog,
+    clientId: 'esi-ts-streaming-demo',
+  });
 
   try {
-    console.log();
-    console.log('='.repeat(60));
-    console.log('Streaming with Early Stop (first 3 pages only)');
-    console.log('='.repeat(60));
-    console.log();
+    log.info('');
+    log.info('='.repeat(60));
+    log.info('Streaming with Early Stop (first 3 pages only)');
+    log.info('='.repeat(60));
+    log.info('');
 
     let count = 0;
 
@@ -72,18 +84,18 @@ async function streamWithEarlyStop() {
       FORGE_REGION_ID,
     )) {
       count += page.data.length;
-      console.log(
+      log.info(
         `  Page ${page.page}/${page.totalPages}: ${page.data.length} orders`,
       );
 
       if (page.page >= 3) {
-        console.log('  → Stopping early (backpressure demo)');
+        log.info('  → Stopping early (backpressure demo)');
         break;
       }
     }
 
-    console.log();
-    console.log(
+    log.info('');
+    log.info(
       `Processed ${count.toLocaleString()} orders from 3 pages ` +
         `without fetching the remaining pages`,
     );
@@ -93,27 +105,30 @@ async function streamWithEarlyStop() {
 }
 
 async function streamMarketTypes() {
-  const client = new EsiClient({ clientId: 'esi-ts-streaming-demo' });
+  const client = new EsiClient({
+    logger: esiLog,
+    clientId: 'esi-ts-streaming-demo',
+  });
 
   try {
-    console.log();
-    console.log('='.repeat(60));
-    console.log('Streaming Market Type IDs — The Forge');
-    console.log('='.repeat(60));
-    console.log();
+    log.info('');
+    log.info('='.repeat(60));
+    log.info('Streaming Market Type IDs — The Forge');
+    log.info('='.repeat(60));
+    log.info('');
 
     let totalTypes = 0;
 
     for await (const page of client.market.streamMarketTypes(FORGE_REGION_ID)) {
       totalTypes += page.data.length;
-      console.log(
+      log.info(
         `  Page ${page.page}/${page.totalPages}: ` +
           `${page.data.length} type IDs`,
       );
     }
 
-    console.log();
-    console.log(
+    log.info('');
+    log.info(
       `Total item types with active orders: ${totalTypes.toLocaleString()}`,
     );
   } finally {
@@ -127,7 +142,7 @@ async function main() {
     await streamMarketTypes();
     await streamAllOrders();
   } catch (err) {
-    console.error('\nError:', err instanceof Error ? err.message : String(err));
+    log.error('Request failed', { error: err });
     process.exit(1);
   }
 }

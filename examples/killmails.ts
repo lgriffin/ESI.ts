@@ -15,31 +15,40 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CHARACTER_ID = 1689391488;
 
 async function main() {
-  const client = new EsiClient({ clientId: 'esi-ts-killmails-demo' });
+  const client = new EsiClient({
+    logger: esiLog,
+    clientId: 'esi-ts-killmails-demo',
+  });
 
   try {
-    console.log('Killmail Lookup\n');
+    log.info('Killmail Lookup\n');
 
     // Step 1: Get recent killmail summaries (IDs + hashes)
     // Scope: esi-killmails.read_killmails.v1
-    console.log('Fetching recent killmail summaries...');
+    log.info('Fetching recent killmail summaries...');
     const summaries =
       await client.killmails.getCharacterRecentKillmails(CHARACTER_ID);
-    console.log(`  Found ${summaries.length} recent killmails\n`);
+    log.info(`  Found ${summaries.length} recent killmails\n`);
 
     if (summaries.length === 0) {
-      console.log('No killmails found. This character has been staying safe!');
+      log.info('No killmails found. This character has been staying safe!');
       return;
     }
 
     // Step 2: Fetch full details for up to 5 killmails in parallel
     // No scope needed — killmail details are public
     const batch = summaries.slice(0, 5);
-    console.log(`Fetching details for ${batch.length} killmails...\n`);
+    log.info(`Fetching details for ${batch.length} killmails...\n`);
 
     const details = await Promise.all(
       batch.map((s) =>
@@ -47,45 +56,45 @@ async function main() {
       ),
     );
 
-    console.log('Recent Killmails');
-    console.log('='.repeat(60));
+    log.info('Recent Killmails');
+    log.info('='.repeat(60));
     for (const km of details) {
-      console.log(`\nKillmail #${km.killmail_id}`);
-      console.log('-'.repeat(40));
-      console.log(`  Time:        ${km.killmail_time}`);
-      console.log(`  System:      ${km.solar_system_id}`);
-      console.log(`  Victim ship: Type ${km.victim.ship_type_id}`);
+      log.info(`\nKillmail #${km.killmail_id}`);
+      log.info('-'.repeat(40));
+      log.info(`  Time:        ${km.killmail_time}`);
+      log.info(`  System:      ${km.solar_system_id}`);
+      log.info(`  Victim ship: Type ${km.victim.ship_type_id}`);
       if (km.victim.character_id) {
-        console.log(`  Victim:      Character ${km.victim.character_id}`);
+        log.info(`  Victim:      Character ${km.victim.character_id}`);
       }
       if (km.victim.corporation_id) {
-        console.log(`  Victim corp: ${km.victim.corporation_id}`);
+        log.info(`  Victim corp: ${km.victim.corporation_id}`);
       }
-      console.log(`  Attackers:   ${km.attackers.length}`);
+      log.info(`  Attackers:   ${km.attackers.length}`);
 
       const finalBlow = km.attackers.find((a) => a.final_blow);
       if (finalBlow) {
-        console.log(
+        log.info(
           `  Final blow:  Character ${finalBlow.character_id || 'NPC'} (Type ${finalBlow.ship_type_id || 'unknown'})`,
         );
-        console.log(`  Damage:      ${finalBlow.damage_done.toLocaleString()}`);
+        log.info(`  Damage:      ${finalBlow.damage_done.toLocaleString()}`);
       }
 
       const totalDamage = km.attackers.reduce(
         (sum, a) => sum + a.damage_done,
         0,
       );
-      console.log(`  Total dmg:   ${totalDamage.toLocaleString()}`);
+      log.info(`  Total dmg:   ${totalDamage.toLocaleString()}`);
       if (km.victim.items) {
-        console.log(
+        log.info(
           `  Items:       ${km.victim.items.length} item types involved`,
         );
       }
     }
 
     // Summary
-    console.log('\n' + '='.repeat(60));
-    console.log(
+    log.info('\n' + '='.repeat(60));
+    log.info(
       `Displayed ${details.length} of ${summaries.length} total killmails`,
     );
   } catch (err) {
@@ -93,11 +102,11 @@ async function main() {
       err instanceof EsiError &&
       (err.statusCode === 401 || err.statusCode === 403)
     ) {
-      console.error(
+      log.error(
         'Authentication required. Set ESI_ACCESS_TOKEN with scope esi-killmails.read_killmails.v1',
       );
     } else {
-      console.error('Error:', err instanceof Error ? err.message : err);
+      log.error('Request failed', { error: err });
     }
     process.exit(1);
   } finally {

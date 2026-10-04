@@ -10,6 +10,12 @@
  * @nightly sde
  */
 import { SdeDataProvider } from '../src/sde';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const FITTING_ATTRIBUTES: Record<string, string> = {
   powerOutput: 'Powergrid',
@@ -37,22 +43,22 @@ function main() {
     const RIFTER_TYPE_ID = 587;
     const ship = sde.getType(RIFTER_TYPE_ID);
     if (!ship) {
-      console.error(`Type ${RIFTER_TYPE_ID} not found`);
+      log.error(`Type ${RIFTER_TYPE_ID} not found`);
       return;
     }
 
     const group = sde.getGroup(ship.groupId);
     const category = group ? sde.getCategory(group.categoryId) : null;
 
-    console.log(`=== ${ship.name} ===`);
-    console.log(`  ${category?.name} > ${group?.name}`);
-    console.log(`  Mass: ${ship.mass} kg`);
-    console.log(`  Volume: ${ship.volume} m3`);
+    log.info(`=== ${ship.name} ===`);
+    log.info(`  ${category?.name} > ${group?.name}`);
+    log.info(`  Mass: ${ship.mass} kg`);
+    log.info(`  Volume: ${ship.volume} m3`);
 
     // Look up dogma attributes for this type
     const typeDogma = sde.getTypeDogma(RIFTER_TYPE_ID);
     if (typeDogma && Array.isArray(typeDogma.dogmaAttributes)) {
-      console.log('\n--- Fitting Stats ---');
+      log.info('\n--- Fitting Stats ---');
 
       for (const attr of typeDogma.dogmaAttributes) {
         const attrDef = sde.getDogmaAttribute(
@@ -62,13 +68,13 @@ function main() {
           const label = FITTING_ATTRIBUTES[attrDef.name];
           const unit = sde.getDogmaUnit(attrDef.unitId ?? 0);
           const unitStr = unit?.displayName ? ` ${unit.displayName}` : '';
-          console.log(
+          log.info(
             `  ${label}: ${(attr as { value: number }).value}${unitStr}`,
           );
         }
       }
     } else {
-      console.log('\n  (No dogma attributes found for this type)');
+      log.info('\n  (No dogma attributes found for this type)');
     }
 
     // Show other ships in the same group
@@ -77,12 +83,12 @@ function main() {
         .getTypesByGroup(group.groupId)
         .filter((t) => t.published && t.typeId !== ship.typeId);
       if (siblings.length > 0) {
-        console.log(`\n--- Other ${group.name} ---`);
+        log.info(`\n--- Other ${group.name} ---`);
         for (const s of siblings.slice(0, 10)) {
-          console.log(`  - ${s.name} (${s.typeId})`);
+          log.info(`  - ${s.name} (${s.typeId})`);
         }
         if (siblings.length > 10) {
-          console.log(`  ... and ${siblings.length - 10} more`);
+          log.info(`  ... and ${siblings.length - 10} more`);
         }
       }
     }

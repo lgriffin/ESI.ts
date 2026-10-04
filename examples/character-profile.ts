@@ -18,6 +18,12 @@
 
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 // Demo character ID - a well-known EVE Online character (the author of this tool)
 const DEMO_CHARACTER_ID = 1689391488;
@@ -31,16 +37,16 @@ async function getCompleteCharacterProfile(
   client: EsiClient,
   characterId: number,
 ) {
-  console.log(`\nGathering complete profile for character ID: ${characterId}`);
+  log.info(`\nGathering complete profile for character ID: ${characterId}`);
 
   try {
     // First, get basic character info to obtain corporation ID
-    console.log('Fetching basic character information...');
+    log.info('Fetching basic character information...');
     const character =
       await client.characters.getCharacterPublicInfo(characterId);
 
     // Now fetch all related data in parallel for maximum efficiency
-    console.log('Fetching detailed profile data in parallel...');
+    log.info('Fetching detailed profile data in parallel...');
 
     // Build parallel requests array based on what's available
     const requests: Promise<any>[] = [
@@ -66,7 +72,7 @@ async function getCompleteCharacterProfile(
     // Location is often restricted, so handle gracefully
     requests.push(
       client.location.getCharacterLocation(characterId).catch(() => {
-        console.log(
+        log.info(
           'Character location unavailable (may be offline or restricted)',
         );
         return null;
@@ -109,69 +115,66 @@ async function getCompleteCharacterProfile(
  * Format and display the character profile data
  */
 function displayCharacterProfile(profile: any) {
-  console.log('\n' + '='.repeat(60));
-  console.log('CHARACTER PROFILE SUMMARY');
-  console.log('='.repeat(60));
+  log.info('\n' + '='.repeat(60));
+  log.info('CHARACTER PROFILE SUMMARY');
+  log.info('='.repeat(60));
 
-  console.log(`Name: ${profile.character.name}`);
-  console.log(`Character ID: ${profile.character.character_id}`);
-  console.log(
+  log.info(`Name: ${profile.character.name}`);
+  log.info(`Character ID: ${profile.character.character_id}`);
+  log.info(
     `Birthday: ${new Date(profile.character.birthday).toLocaleDateString()}`,
   );
-  console.log(
+  log.info(
     `Security Status: ${profile.character.security_status?.toFixed(2) || 'Unknown'}`,
   );
 
   if (profile.corporation) {
-    console.log(
+    log.info(
       `\nCorporation: ${profile.corporation.name} [${profile.corporation.ticker}]`,
     );
-    console.log(
+    log.info(
       `Members: ${profile.corporation.member_count?.toLocaleString() || 'Unknown'}`,
     );
   } else {
-    console.log(`\nCorporation: Information unavailable`);
+    log.info(`\nCorporation: Information unavailable`);
   }
 
   if (profile.alliance) {
-    console.log(
-      `Alliance: ${profile.alliance.name} [${profile.alliance.ticker}]`,
-    );
-    console.log(
+    log.info(`Alliance: ${profile.alliance.name} [${profile.alliance.ticker}]`);
+    log.info(
       `Founded: ${new Date(profile.alliance.date_founded).toLocaleDateString()}`,
     );
   } else {
-    console.log(`Alliance: None`);
+    log.info(`Alliance: None`);
   }
 
-  console.log(`\nPortrait URLs:`);
-  console.log(`  64x64: ${profile.portrait.px64x64}`);
-  console.log(`  128x128: ${profile.portrait.px128x128}`);
-  console.log(`  256x256: ${profile.portrait.px256x256}`);
-  console.log(`  512x512: ${profile.portrait.px512x512}`);
+  log.info(`\nPortrait URLs:`);
+  log.info(`  64x64: ${profile.portrait.px64x64}`);
+  log.info(`  128x128: ${profile.portrait.px128x128}`);
+  log.info(`  256x256: ${profile.portrait.px256x256}`);
+  log.info(`  512x512: ${profile.portrait.px512x512}`);
 
   if (profile.location) {
-    console.log(`\nCurrent Location:`);
-    console.log(`  Solar System ID: ${profile.location.solar_system_id}`);
-    console.log(
-      `  Ship Type ID: ${profile.location.ship_type_id || 'Unknown'}`,
-    );
-    console.log(`  Station ID: ${profile.location.station_id || 'In space'}`);
+    log.info(`\nCurrent Location:`);
+    log.info(`  Solar System ID: ${profile.location.solar_system_id}`);
+    log.info(`  Ship Type ID: ${profile.location.ship_type_id || 'Unknown'}`);
+    log.info(`  Station ID: ${profile.location.station_id || 'In space'}`);
   } else {
-    console.log(`\nCurrent Location: Unavailable (character may be offline)`);
+    log.info(`\nCurrent Location: Unavailable (character may be offline)`);
   }
 
-  console.log('\n' + '='.repeat(60));
+  log.info('\n' + '='.repeat(60));
 }
 
 /**
  * Main example function
  */
 async function runCharacterProfileExample() {
-  console.log('ESI.ts Character Profile Example');
-  console.log('=====================================');
+  log.info('ESI.ts Character Profile Example');
+  log.info('=====================================');
 
   const client = new EsiClient({
+    logger: esiLog,
     clientId: 'esi-ts-example',
     timeout: 30000,
     retryAttempts: 3,
@@ -187,24 +190,21 @@ async function runCharacterProfileExample() {
 
     displayCharacterProfile(profile);
 
-    console.log(`\nTotal execution time: ${endTime - startTime}ms`);
-    console.log('Character profile retrieved successfully!');
+    log.info(`\nTotal execution time: ${endTime - startTime}ms`);
+    log.info('Character profile retrieved successfully!');
   } catch (error) {
-    console.error(
-      '\nError retrieving character profile:',
-      error instanceof Error ? error.message : String(error),
-    );
+    log.error('Error retrieving character profile', { error: error });
     process.exit(1);
   } finally {
-    console.log('\nCleaning up resources...');
+    log.info('\nCleaning up resources...');
     await client.shutdown();
-    console.log('Done!');
+    log.info('Done!');
   }
 }
 
 if (require.main === module) {
   runCharacterProfileExample().catch((error) => {
-    console.error('Fatal error:', error);
+    log.error('Fatal error', { error: error });
     process.exit(1);
   });
 }

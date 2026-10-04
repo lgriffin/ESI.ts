@@ -12,19 +12,25 @@
  * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log('Sovereignty Campaigns\n');
+    log.info('Sovereignty Campaigns\n');
 
     const campaigns = await client.sovereignty.getSovereigntyCampaigns();
 
-    console.log(`Active campaigns: ${campaigns.length}\n`);
+    log.info(`Active campaigns: ${campaigns.length}\n`);
 
     if (campaigns.length === 0) {
-      console.log('No active sovereignty campaigns at this time.');
+      log.info('No active sovereignty campaigns at this time.');
       return;
     }
 
@@ -34,20 +40,20 @@ async function main() {
       byType.set(c.event_type, (byType.get(c.event_type) || 0) + 1);
     }
 
-    console.log('Campaigns by Type');
-    console.log('-'.repeat(50));
+    log.info('Campaigns by Type');
+    log.info('-'.repeat(50));
     for (const [type, count] of [...byType.entries()].sort(
       (a, b) => b[1] - a[1],
     )) {
-      console.log(`  ${type}: ${count}`);
+      log.info(`  ${type}: ${count}`);
     }
 
-    console.log('\nRecent Campaigns (first 5)');
-    console.log('-'.repeat(60));
+    log.info('\nRecent Campaigns (first 5)');
+    log.info('-'.repeat(60));
     for (const c of campaigns.slice(0, 5)) {
       const attackPct = ((c.attackers_score ?? 0) * 100).toFixed(1);
       const defendPct = ((c.defender_score ?? 0) * 100).toFixed(1);
-      console.log(
+      log.info(
         `  System ${c.solar_system_id} | ${c.event_type}` +
           ` | Attack: ${attackPct}% | Defense: ${defendPct}%` +
           ` | Defender: ${c.defender_id}`,
@@ -61,11 +67,11 @@ async function main() {
         Date.parse(s.theft_vulnerability.start) <= now &&
         now < Date.parse(s.theft_vulnerability.end),
     );
-    console.log(
+    log.info(
       `\nSkyhooks: ${skyhooks.length} with a theft window, ${open.length} open now`,
     );
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();

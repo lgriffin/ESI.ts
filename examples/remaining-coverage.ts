@@ -14,6 +14,12 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CHARACTER_ID = 90439768;
 const CORP_ID = 98135622;
@@ -49,15 +55,15 @@ async function tryEndpoint(
 }
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
   const results: { label: string; status: string; detail: string }[] = [];
 
-  console.log('Remaining Endpoint Coverage Test\n');
-  console.log('='.repeat(60));
+  log.info('Remaining Endpoint Coverage Test\n');
+  log.info('='.repeat(60));
 
   // --- 1. Dogma Dynamic Item (public, no auth) ---
-  console.log('\n1. Dogma Dynamic Item');
-  console.log('-'.repeat(40));
+  log.info('\n1. Dogma Dynamic Item');
+  log.info('-'.repeat(40));
   results.push(
     await tryEndpoint('GET dogma/dynamic/items/{typeId}/{itemId}', async () => {
       return await client.dogma.getDynamicItemInfo(47789, 1049829575325);
@@ -65,8 +71,8 @@ async function main() {
   );
 
   // --- 2. CSPA Charge Cost ---
-  console.log('\n2. CSPA Charge Cost');
-  console.log('-'.repeat(40));
+  log.info('\n2. CSPA Charge Cost');
+  log.info('-'.repeat(40));
   results.push(
     await tryEndpoint('POST characters/{id}/cspa/', async () => {
       return await client.characters.postCspaChargeCost(
@@ -77,8 +83,8 @@ async function main() {
   );
 
   // --- 3. Asset Location & Name POSTs ---
-  console.log('\n3. Asset POST Endpoints');
-  console.log('-'.repeat(40));
+  log.info('\n3. Asset POST Endpoints');
+  log.info('-'.repeat(40));
 
   // Get an asset item ID first
   let assetItemId: number | undefined;
@@ -120,8 +126,8 @@ async function main() {
   );
 
   // --- 4. Calendar: Respond to Event ---
-  console.log('\n4. Calendar Respond');
-  console.log('-'.repeat(40));
+  log.info('\n4. Calendar Respond');
+  log.info('-'.repeat(40));
   // Event 3267240 exists from earlier calendar-search run
   results.push(
     await tryEndpoint('PUT characters/{id}/calendar/{eventId}/', async () => {
@@ -134,8 +140,8 @@ async function main() {
   );
 
   // --- 5. Fleet Write Operations ---
-  console.log('\n5. Fleet Write Operations');
-  console.log('-'.repeat(40));
+  log.info('\n5. Fleet Write Operations');
+  log.info('-'.repeat(40));
 
   let fleetId: number | undefined;
   let wingId: number | undefined;
@@ -145,9 +151,9 @@ async function main() {
   try {
     const fleetInfo = await client.fleets.getCharacterFleetInfo(CHARACTER_ID);
     fleetId = fleetInfo.fleet_id;
-    console.log(`  Fleet ID: ${fleetId}`);
+    log.info(`  Fleet ID: ${fleetId}`);
   } catch (err) {
-    console.log('  Not in a fleet — skipping fleet write tests');
+    log.info('  Not in a fleet — skipping fleet write tests');
   }
 
   if (fleetId) {
@@ -303,18 +309,18 @@ async function main() {
   }
 
   // --- Summary ---
-  console.log('\n' + '='.repeat(60));
-  console.log('RESULTS\n');
+  log.info('\n' + '='.repeat(60));
+  log.info('RESULTS\n');
   const maxLabel = Math.max(...results.map((r) => r.label.length));
   for (const r of results) {
     const pad = r.label.padEnd(maxLabel + 2);
-    console.log(`  ${pad} ${r.status.padEnd(12)} ${r.detail}`);
+    log.info(`  ${pad} ${r.status.padEnd(12)} ${r.detail}`);
   }
 
   const passed = results.filter((r) => r.status.startsWith('PASS')).length;
   const failed = results.filter((r) => r.status.startsWith('FAIL')).length;
   const skipped = results.filter((r) => r.status === 'SKIP').length;
-  console.log(
+  log.info(
     `\n${passed} passed, ${failed} failed, ${skipped} skipped out of ${results.length} endpoints`,
   );
 

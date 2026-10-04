@@ -16,6 +16,12 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CHARACTER_ID = 90439768;
 const CORP_ID = 98135622;
@@ -32,7 +38,7 @@ async function tryOrSkip(
       err instanceof EsiError &&
       (err.statusCode === 403 || err.statusCode === 401)
     ) {
-      console.log(`  ${label}: requires corporation/alliance roles — skipped`);
+      log.info(`  ${label}: requires corporation/alliance roles — skipped`);
     } else {
       throw err;
     }
@@ -40,20 +46,20 @@ async function tryOrSkip(
 }
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log('Contracts, Contacts, Assets & Wallet\n');
+    log.info('Contracts, Contacts, Assets & Wallet\n');
 
     // --- Character Contract Bids & Items ---
-    console.log('Character Contract Bids & Items');
-    console.log('-'.repeat(50));
+    log.info('Character Contract Bids & Items');
+    log.info('-'.repeat(50));
     const charContracts =
       await client.contracts.getCharacterContracts(CHARACTER_ID);
-    console.log(`  Character contracts: ${charContracts.length}`);
+    log.info(`  Character contracts: ${charContracts.length}`);
     if (charContracts.length > 0) {
       const first = charContracts[0]!;
-      console.log(
+      log.info(
         `  First contract: ${first.contract_id} (${first.type}, ${first.status})`,
       );
 
@@ -62,10 +68,10 @@ async function main() {
           CHARACTER_ID,
           first.contract_id,
         );
-        console.log(`    Bids: ${bids.length}`);
+        log.info(`    Bids: ${bids.length}`);
       } catch (err) {
         if (err instanceof EsiError && err.statusCode === 404) {
-          console.log('    Bids: N/A (not an auction)');
+          log.info('    Bids: N/A (not an auction)');
         } else {
           throw err;
         }
@@ -76,28 +82,28 @@ async function main() {
           CHARACTER_ID,
           first.contract_id,
         );
-        console.log(`    Items: ${items.length}`);
+        log.info(`    Items: ${items.length}`);
       } catch (err) {
         if (err instanceof EsiError && err.statusCode === 404) {
-          console.log('    Items: N/A');
+          log.info('    Items: N/A');
         } else {
           throw err;
         }
       }
     } else {
-      console.log('  No contracts found');
+      log.info('  No contracts found');
     }
 
     // --- Corporation Contracts ---
-    console.log('\nCorporation Contracts');
-    console.log('-'.repeat(50));
+    log.info('\nCorporation Contracts');
+    log.info('-'.repeat(50));
     await tryOrSkip('Corp contracts', async () => {
       const corpContracts =
         await client.contracts.getCorporationContracts(CORP_ID);
-      console.log(`  Corporation contracts: ${corpContracts.length}`);
+      log.info(`  Corporation contracts: ${corpContracts.length}`);
       if (corpContracts.length > 0) {
         const first = corpContracts[0]!;
-        console.log(
+        log.info(
           `  First: ${first.contract_id} (${first.type}, ${first.status})`,
         );
 
@@ -106,10 +112,10 @@ async function main() {
             CORP_ID,
             first.contract_id,
           );
-          console.log(`    Bids: ${bids.length}`);
+          log.info(`    Bids: ${bids.length}`);
         } catch (err) {
           if (err instanceof EsiError && err.statusCode === 404) {
-            console.log('    Bids: N/A (not an auction)');
+            log.info('    Bids: N/A (not an auction)');
           } else {
             throw err;
           }
@@ -120,10 +126,10 @@ async function main() {
             CORP_ID,
             first.contract_id,
           );
-          console.log(`    Items: ${items.length}`);
+          log.info(`    Items: ${items.length}`);
         } catch (err) {
           if (err instanceof EsiError && err.statusCode === 404) {
-            console.log('    Items: N/A');
+            log.info('    Items: N/A');
           } else {
             throw err;
           }
@@ -132,53 +138,52 @@ async function main() {
     });
 
     // --- Alliance Contacts ---
-    console.log('\nAlliance Contacts');
-    console.log('-'.repeat(50));
+    log.info('\nAlliance Contacts');
+    log.info('-'.repeat(50));
     await tryOrSkip('Alliance contacts', async () => {
       const contacts = await client.contacts.getAllianceContacts(ALLIANCE_ID);
-      console.log(`  Alliance contacts: ${contacts.length}`);
+      log.info(`  Alliance contacts: ${contacts.length}`);
     });
     await tryOrSkip('Alliance contact labels', async () => {
       const labels =
         await client.contacts.getAllianceContactLabels(ALLIANCE_ID);
-      console.log(`  Alliance contact labels: ${labels.length}`);
+      log.info(`  Alliance contact labels: ${labels.length}`);
     });
 
     // --- Corporation Contacts ---
-    console.log('\nCorporation Contacts');
-    console.log('-'.repeat(50));
+    log.info('\nCorporation Contacts');
+    log.info('-'.repeat(50));
     await tryOrSkip('Corp contacts', async () => {
       const contacts = await client.contacts.getCorporationContacts(CORP_ID);
-      console.log(`  Corporation contacts: ${contacts.length}`);
+      log.info(`  Corporation contacts: ${contacts.length}`);
     });
     await tryOrSkip('Corp contact labels', async () => {
       const labels = await client.contacts.getCorporationContactLabels(CORP_ID);
-      console.log(`  Corporation contact labels: ${labels.length}`);
+      log.info(`  Corporation contact labels: ${labels.length}`);
     });
 
     // --- Corporation Assets ---
-    console.log('\nCorporation Assets');
-    console.log('-'.repeat(50));
+    log.info('\nCorporation Assets');
+    log.info('-'.repeat(50));
     await tryOrSkip('Corp assets', async () => {
       const assets = await client.assets.getCorporationAssets(CORP_ID);
-      console.log(`  Corporation assets: ${assets.length}`);
+      log.info(`  Corporation assets: ${assets.length}`);
       for (const a of assets.slice(0, 5)) {
-        console.log(
+        log.info(
           `    Type ${a.type_id}: qty ${a.quantity} in ${a.location_type} ${a.location_id}`,
         );
       }
-      if (assets.length > 5)
-        console.log(`    ... and ${assets.length - 5} more`);
+      if (assets.length > 5) log.info(`    ... and ${assets.length - 5} more`);
     });
 
     // --- Corporation Wallets ---
-    console.log('\nCorporation Wallets');
-    console.log('-'.repeat(50));
+    log.info('\nCorporation Wallets');
+    log.info('-'.repeat(50));
     await tryOrSkip('Corp wallets', async () => {
       const wallets = await client.wallet.getCorporationWallets(CORP_ID);
-      console.log(`  Wallet divisions: ${wallets.length}`);
+      log.info(`  Wallet divisions: ${wallets.length}`);
       for (const w of wallets) {
-        console.log(
+        log.info(
           `    Division ${w.division}: ${w.balance.toLocaleString()} ISK`,
         );
       }
@@ -189,43 +194,43 @@ async function main() {
           CORP_ID,
           div,
         );
-        console.log(`\n  Division ${div} journal entries: ${journal.length}`);
+        log.info(`\n  Division ${div} journal entries: ${journal.length}`);
         for (const entry of journal.slice(0, 3)) {
-          console.log(
+          log.info(
             `    ${entry.date}: ${entry.ref_type} — ${entry.amount?.toLocaleString() ?? 0} ISK`,
           );
         }
         if (journal.length > 3)
-          console.log(`    ... and ${journal.length - 3} more`);
+          log.info(`    ... and ${journal.length - 3} more`);
 
         const txns = await client.wallet.getCorporationWalletTransactions(
           CORP_ID,
           div,
         );
-        console.log(`\n  Division ${div} transactions: ${txns.length}`);
+        log.info(`\n  Division ${div} transactions: ${txns.length}`);
         for (const tx of txns.slice(0, 3)) {
-          console.log(
+          log.info(
             `    ${tx.date}: type ${tx.type_id} x${tx.quantity} @ ${tx.unit_price.toLocaleString()} ISK`,
           );
         }
-        if (txns.length > 3) console.log(`    ... and ${txns.length - 3} more`);
+        if (txns.length > 3) log.info(`    ... and ${txns.length - 3} more`);
       }
     });
 
     // --- Structures (public list + detail) ---
-    console.log('\nPublic Structures');
-    console.log('-'.repeat(50));
+    log.info('\nPublic Structures');
+    log.info('-'.repeat(50));
     try {
       const structureIds = await client.universe.getStructures();
-      console.log(`  Public structure IDs: ${structureIds.length}`);
+      log.info(`  Public structure IDs: ${structureIds.length}`);
 
       if (structureIds.length > 0) {
         try {
           const detail = await client.universe.getStructureById(
             structureIds[0]!,
           );
-          console.log(`  Structure ${structureIds[0]}: ${detail.name}`);
-          console.log(
+          log.info(`  Structure ${structureIds[0]}: ${detail.name}`);
+          log.info(
             `    System: ${detail.solar_system_id}, Type: ${detail.type_id ?? 'N/A'}`,
           );
         } catch (err) {
@@ -233,7 +238,7 @@ async function main() {
             err instanceof EsiError &&
             (err.statusCode === 403 || err.statusCode === 401)
           ) {
-            console.log('  Structure detail requires docking access — skipped');
+            log.info('  Structure detail requires docking access — skipped');
           } else {
             throw err;
           }
@@ -244,7 +249,7 @@ async function main() {
         err instanceof EsiError &&
         (err.statusCode === 403 || err.statusCode === 401)
       ) {
-        console.log('  Requires authentication — skipped');
+        log.info('  Requires authentication — skipped');
       } else {
         throw err;
       }
@@ -254,9 +259,9 @@ async function main() {
       err instanceof EsiError &&
       (err.statusCode === 401 || err.statusCode === 403)
     ) {
-      console.error('Authentication required. Set ESI_ACCESS_TOKEN.');
+      log.error('Authentication required. Set ESI_ACCESS_TOKEN.');
     } else {
-      console.error('Error:', err instanceof Error ? err.message : err);
+      log.error('Request failed', { error: err });
     }
     process.exit(1);
   } finally {

@@ -18,49 +18,59 @@
  * @nightly mixed
  */
 
-import { EsiClient, FreelanceJobsListing, fetchAllCursorPages } from '../src';
+import {
+  createConsoleLogger,
+  EsiClient,
+  FreelanceJobsListing,
+  fetchAllCursorPages,
+} from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 // ─── Example 1: Fetch the public freelance jobs listing ──────────────────────
 async function fetchFirstPage() {
-  console.log('=== Fetch First Page of Freelance Jobs ===\n');
+  log.info('=== Fetch First Page of Freelance Jobs ===\n');
 
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
     const result: FreelanceJobsListing =
       await client.freelanceJobs.getFreelanceJobs();
 
-    console.log(`  Fetched ${result.freelance_jobs.length} jobs`);
-    console.log(`  Cursor before: ${result.cursor?.before}`);
-    console.log(`  Cursor after:  ${result.cursor?.after}`);
-    console.log();
+    log.info(`  Fetched ${result.freelance_jobs.length} jobs`);
+    log.info(`  Cursor before: ${result.cursor?.before}`);
+    log.info(`  Cursor after:  ${result.cursor?.after}`);
+    log.info('');
 
     for (const job of result.freelance_jobs.slice(0, 3)) {
       const pct = ((job.progress.current / job.progress.desired) * 100).toFixed(
         1,
       );
-      console.log(`  ${job.name}`);
-      console.log(`    State: ${job.state} | Progress: ${pct}%`);
+      log.info(`  ${job.name}`);
+      log.info(`    State: ${job.state} | Progress: ${pct}%`);
       if (job.reward) {
-        console.log(
+        log.info(
           `    Reward: ${(job.reward.remaining / 1_000_000).toFixed(0)}M ISK remaining`,
         );
       }
     }
     if (result.freelance_jobs.length > 3) {
-      console.log(`  ... and ${result.freelance_jobs.length - 3} more`);
+      log.info(`  ... and ${result.freelance_jobs.length - 3} more`);
     }
   } finally {
     await client.shutdown();
   }
-  console.log();
+  log.info('');
 }
 
 // ─── Example 2: Manual cursor pagination ─────────────────────────────────────
 async function manualCursorPagination() {
-  console.log('=== Manual Cursor Pagination ===\n');
+  log.info('=== Manual Cursor Pagination ===\n');
 
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
   let totalJobs = 0;
   let pageCount = 0;
   let afterToken: string | undefined;
@@ -74,37 +84,35 @@ async function manualCursorPagination() {
       );
       pageCount++;
 
-      console.log(`  Page ${pageCount}: ${result.freelance_jobs.length} jobs`);
+      log.info(`  Page ${pageCount}: ${result.freelance_jobs.length} jobs`);
 
       if (result.freelance_jobs.length === 0) {
-        console.log('  End of dataset reached.');
+        log.info('  End of dataset reached.');
         break;
       }
 
       totalJobs += result.freelance_jobs.length;
 
       if (!result.cursor?.after) {
-        console.log('  No more pages.');
+        log.info('  No more pages.');
         break;
       }
 
       afterToken = result.cursor?.after ?? undefined;
     }
 
-    console.log(
-      `\n  Total jobs fetched: ${totalJobs} across ${pageCount} pages`,
-    );
+    log.info(`\n  Total jobs fetched: ${totalJobs} across ${pageCount} pages`);
   } finally {
     await client.shutdown();
   }
-  console.log();
+  log.info('');
 }
 
 // ─── Example 3: Auto-fetch all with fetchAllCursorPages ──────────────────────
 async function autoFetchAll() {
-  console.log('=== Auto-fetch All Freelance Jobs ===\n');
+  log.info('=== Auto-fetch All Freelance Jobs ===\n');
 
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
     const allJobs = await fetchAllCursorPages(
@@ -113,61 +121,61 @@ async function autoFetchAll() {
       (response) => response.cursor ?? {},
     );
 
-    console.log(`  Fetched ${allJobs.length} total freelance jobs`);
+    log.info(`  Fetched ${allJobs.length} total freelance jobs`);
 
     // Show some stats
     const active = allJobs.filter((j) => j.state === 'Active').length;
-    console.log(`  Active: ${active}`);
+    log.info(`  Active: ${active}`);
   } finally {
     await client.shutdown();
   }
-  console.log();
+  log.info('');
 }
 
 // ─── Example 4: Fetch a specific job's details ───────────────────────────────
 async function fetchJobDetail() {
-  console.log('=== Fetch Job Detail ===\n');
+  log.info('=== Fetch Job Detail ===\n');
 
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
     // First get a job ID from the listing
     const listing = await client.freelanceJobs.getFreelanceJobs();
     if (listing.freelance_jobs.length === 0) {
-      console.log('  No jobs found.');
+      log.info('  No jobs found.');
       return;
     }
 
     const jobId = listing.freelance_jobs[0]!.id;
     const detail = await client.freelanceJobs.getFreelanceJobById(jobId);
 
-    console.log(`  Job: ${detail.name}`);
-    console.log(`  Career: ${detail.details.career}`);
-    console.log(`  Creator: ${detail.details.creator.character.name}`);
-    console.log(`  Corporation: ${detail.details.creator.corporation.name}`);
-    console.log(`  Method: ${detail.configuration.method}`);
-    console.log(`  Expires: ${detail.details.expires ?? 'no expiry'}`);
+    log.info(`  Job: ${detail.name}`);
+    log.info(`  Career: ${detail.details.career}`);
+    log.info(`  Creator: ${detail.details.creator.character.name}`);
+    log.info(`  Corporation: ${detail.details.creator.corporation.name}`);
+    log.info(`  Method: ${detail.configuration.method}`);
+    log.info(`  Expires: ${detail.details.expires ?? 'no expiry'}`);
     if (detail.contribution) {
-      console.log(
+      log.info(
         `  Max participants: ${detail.contribution.max_committed_participants}`,
       );
     }
     const broadcast = detail.access_and_visibility.broadcast_locations ?? [];
     if (broadcast.length > 0) {
       const locations = broadcast.map((l) => l.name).join(', ');
-      console.log(`  Broadcast locations: ${locations}`);
+      log.info(`  Broadcast locations: ${locations}`);
     }
   } finally {
     await client.shutdown();
   }
-  console.log();
+  log.info('');
 }
 
 // ─── Example 5: Polling for changes ──────────────────────────────────────────
 async function pollingPattern() {
-  console.log('=== Polling Pattern (Incremental Updates) ===\n');
+  log.info('=== Polling Pattern (Incremental Updates) ===\n');
 
-  console.log(`  // After initial scan, save the final cursor token:
+  log.info(`  // After initial scan, save the final cursor token:
   let savedCursor = lastPage.cursor.after;
 
   // Later: check for updates (hours, days, or weeks later)
@@ -185,10 +193,10 @@ async function pollingPattern() {
 
 // ─── Run all examples ────────────────────────────────────────────────────────
 async function main() {
-  console.log('Freelance Jobs & Cursor Pagination Examples\n');
-  console.log('These examples use the live ESI Freelance Jobs endpoints.');
-  console.log('Public endpoints (no auth needed): listing + detail');
-  console.log('Character/Corporation endpoints require ESI_ACCESS_TOKEN.\n');
+  log.info('Freelance Jobs & Cursor Pagination Examples\n');
+  log.info('These examples use the live ESI Freelance Jobs endpoints.');
+  log.info('Public endpoints (no auth needed): listing + detail');
+  log.info('Character/Corporation endpoints require ESI_ACCESS_TOKEN.\n');
 
   await fetchFirstPage();
   await manualCursorPagination();
@@ -196,7 +204,7 @@ async function main() {
   await fetchJobDetail();
   await pollingPattern();
 
-  console.log('Done!');
+  log.info('Done!');
 }
 
 if (require.main === module) {

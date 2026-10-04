@@ -18,18 +18,27 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const CHARACTER_ID = 1689391488;
 
 async function main() {
-  const client = new EsiClient({ clientId: 'esi-ts-fittings-demo' });
+  const client = new EsiClient({
+    logger: esiLog,
+    clientId: 'esi-ts-fittings-demo',
+  });
 
   try {
-    console.log('Fittings & Clones\n');
+    log.info('Fittings & Clones\n');
 
     // Fetch fittings, clones, and implants in parallel
     // Scopes: esi-fittings.read_fittings.v1, esi-clones.read_clones.v1, esi-clones.read_implants.v1
-    console.log('Fetching data...\n');
+    log.info('Fetching data...\n');
     const [fittings, clones, implants] = await Promise.all([
       client.fittings.getFittings(CHARACTER_ID),
       client.clones.getClones(CHARACTER_ID),
@@ -37,10 +46,10 @@ async function main() {
     ]);
 
     // --- Fittings ---
-    console.log(`Saved Fittings (${fittings.length})`);
-    console.log('='.repeat(50));
+    log.info(`Saved Fittings (${fittings.length})`);
+    log.info('='.repeat(50));
     if (fittings.length === 0) {
-      console.log('  No saved fittings');
+      log.info('  No saved fittings');
     } else {
       // Group by ship type
       const byShip = new Map<number, typeof fittings>();
@@ -51,18 +60,18 @@ async function main() {
       }
 
       for (const [shipTypeId, fits] of byShip) {
-        console.log(
+        log.info(
           `\n  Ship Type ${shipTypeId} (${fits.length} fitting${fits.length > 1 ? 's' : ''}):`,
         );
         for (const fit of fits) {
-          console.log(`    "${fit.name}" (ID: ${fit.fitting_id})`);
+          log.info(`    "${fit.name}" (ID: ${fit.fitting_id})`);
           if (fit.items && fit.items.length > 0) {
-            console.log(`      ${fit.items.length} modules/charges`);
+            log.info(`      ${fit.items.length} modules/charges`);
             for (const item of fit.items.slice(0, 3)) {
-              console.log(`        Type ${item.type_id} in ${item.flag}`);
+              log.info(`        Type ${item.type_id} in ${item.flag}`);
             }
             if (fit.items.length > 3) {
-              console.log(`        ... and ${fit.items.length - 3} more`);
+              log.info(`        ... and ${fit.items.length - 3} more`);
             }
           }
         }
@@ -74,43 +83,43 @@ async function main() {
     // client.fittings.deleteFitting(characterId, fittingId)                     — Scope: esi-fittings.write_fittings.v1
 
     // --- Clones ---
-    console.log(`\n\nClone State`);
-    console.log('='.repeat(50));
+    log.info(`\n\nClone State`);
+    log.info('='.repeat(50));
 
     // Home location
     if (clones.home_location) {
       const loc = clones.home_location;
-      console.log(`  Home station:  ${loc.location_type} ${loc.location_id}`);
+      log.info(`  Home station:  ${loc.location_type} ${loc.location_id}`);
     }
 
     // Jump clones
     if (clones.jump_clones && clones.jump_clones.length > 0) {
-      console.log(`\n  Jump Clones (${clones.jump_clones.length}):`);
+      log.info(`\n  Jump Clones (${clones.jump_clones.length}):`);
       for (const jc of clones.jump_clones) {
         const implantCount = jc.implants?.length || 0;
-        console.log(
+        log.info(
           `    Clone ${jc.jump_clone_id} @ ${jc.location_type} ${jc.location_id} (${implantCount} implants)`,
         );
         if (jc.implants && jc.implants.length > 0) {
           for (const imp of jc.implants.slice(0, 3)) {
-            console.log(`      Implant type ${imp}`);
+            log.info(`      Implant type ${imp}`);
           }
           if (jc.implants.length > 3) {
-            console.log(`      ... and ${jc.implants.length - 3} more`);
+            log.info(`      ... and ${jc.implants.length - 3} more`);
           }
         }
       }
     } else {
-      console.log('  No jump clones available');
+      log.info('  No jump clones available');
     }
 
     // Active implants
-    console.log(`\n  Active Implants (${implants.length}):`);
+    log.info(`\n  Active Implants (${implants.length}):`);
     if (implants.length === 0) {
-      console.log('    No implants installed');
+      log.info('    No implants installed');
     } else {
       for (const typeId of implants) {
-        console.log(`    Type ${typeId}`);
+        log.info(`    Type ${typeId}`);
       }
     }
   } catch (err) {
@@ -118,14 +127,12 @@ async function main() {
       err instanceof EsiError &&
       (err.statusCode === 401 || err.statusCode === 403)
     ) {
-      console.error(
-        'Authentication required. Set ESI_ACCESS_TOKEN with scopes:',
-      );
-      console.error('  - esi-fittings.read_fittings.v1');
-      console.error('  - esi-clones.read_clones.v1');
-      console.error('  - esi-clones.read_implants.v1');
+      log.error('Authentication required. Set ESI_ACCESS_TOKEN with scopes:');
+      log.error('  - esi-fittings.read_fittings.v1');
+      log.error('  - esi-clones.read_clones.v1');
+      log.error('  - esi-clones.read_implants.v1');
     } else {
-      console.error('Error:', err instanceof Error ? err.message : err);
+      log.error('Request failed', { error: err });
     }
     process.exit(1);
   } finally {

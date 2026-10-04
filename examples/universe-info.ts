@@ -9,60 +9,66 @@
  * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
+import { createConsoleLogger } from '../src';
+
+// The program's own output. The client logs through the same console sink
+// at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
+const log = createConsoleLogger('info');
+const esiLog = createConsoleLogger();
 
 const JITA_SYSTEM_ID = 30000142;
 const JITA_TRADE_HUB_STATION_ID = 60003760;
 
 async function main() {
-  const client = new EsiClient();
+  const client = new EsiClient({ logger: esiLog });
 
   try {
-    console.log('Universe Data Lookup\n');
+    log.info('Universe Data Lookup\n');
 
     const [system, station] = await Promise.all([
       client.universe.getSystemById(JITA_SYSTEM_ID),
       client.universe.getStationById(JITA_TRADE_HUB_STATION_ID),
     ]);
 
-    console.log('Solar System: Jita');
-    console.log('-'.repeat(40));
-    console.log(`  System ID:        ${system.system_id}`);
-    console.log(`  Name:             ${system.name}`);
-    console.log(`  Security Status:  ${system.security_status?.toFixed(4)}`);
-    console.log(`  Constellation ID: ${system.constellation_id}`);
-    console.log(`  Planets:          ${system.planets?.length ?? 0}`);
-    console.log(`  Stargates:        ${system.stargates?.length ?? 0}`);
-    console.log(`  Stations:         ${system.stations?.length ?? 0}`);
+    log.info('Solar System: Jita');
+    log.info('-'.repeat(40));
+    log.info(`  System ID:        ${system.system_id}`);
+    log.info(`  Name:             ${system.name}`);
+    log.info(`  Security Status:  ${system.security_status?.toFixed(4)}`);
+    log.info(`  Constellation ID: ${system.constellation_id}`);
+    log.info(`  Planets:          ${system.planets?.length ?? 0}`);
+    log.info(`  Stargates:        ${system.stargates?.length ?? 0}`);
+    log.info(`  Stations:         ${system.stations?.length ?? 0}`);
 
     // Look up the constellation
     const constellation = await client.universe.getConstellationById(
       system.constellation_id,
     );
 
-    console.log(`\nConstellation: ${constellation.name}`);
-    console.log('-'.repeat(40));
-    console.log(`  Constellation ID: ${constellation.constellation_id}`);
-    console.log(`  Region ID:        ${constellation.region_id}`);
-    console.log(`  Systems:          ${constellation.systems?.length ?? 0}`);
+    log.info(`\nConstellation: ${constellation.name}`);
+    log.info('-'.repeat(40));
+    log.info(`  Constellation ID: ${constellation.constellation_id}`);
+    log.info(`  Region ID:        ${constellation.region_id}`);
+    log.info(`  Systems:          ${constellation.systems?.length ?? 0}`);
 
     // Look up the region
     const region = await client.universe.getRegionById(constellation.region_id);
 
-    console.log(`\nRegion: ${region.name}`);
-    console.log('-'.repeat(40));
-    console.log(`  Region ID:        ${region.region_id}`);
-    console.log(`  Constellations:   ${region.constellations?.length ?? 0}`);
+    log.info(`\nRegion: ${region.name}`);
+    log.info('-'.repeat(40));
+    log.info(`  Region ID:        ${region.region_id}`);
+    log.info(`  Constellations:   ${region.constellations?.length ?? 0}`);
 
-    console.log(`\nStation: ${station.name}`);
-    console.log('-'.repeat(40));
-    console.log(`  Station ID:       ${station.station_id}`);
-    console.log(`  Owner (Corp ID):  ${station.owner}`);
-    console.log(`  Type ID:          ${station.type_id}`);
+    log.info(`\nStation: ${station.name}`);
+    log.info('-'.repeat(40));
+    log.info(`  Station ID:       ${station.station_id}`);
+    log.info(`  Owner (Corp ID):  ${station.owner}`);
+    log.info(`  Type ID:          ${station.type_id}`);
 
     const structureIds = await client.universe.getStructures();
-    console.log(`\nPublic Upwell structures: ${structureIds.length}`);
+    log.info(`\nPublic Upwell structures: ${structureIds.length}`);
   } catch (err) {
-    console.error('Error:', err instanceof Error ? err.message : err);
+    log.error('Request failed', { error: err });
     process.exit(1);
   } finally {
     await client.shutdown();
