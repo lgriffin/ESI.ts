@@ -90,7 +90,7 @@ file sets no floor for that directory.
 | `src/core/util`            |                                          95.4 |                                             42.8 |
 | `src/schemas`              |                                             — |                                              0.0 |
 | `src/sde`                  |                                          85.6 |                                             29.2 |
-| `src/sde/ingestion`        |                                          71.8 |                                             56.0 |
+| `src/sde/ingestion`        |                                          98.0 |                                             56.0 |
 | `src/sde/providers`        |                                          87.5 |                                             56.5 |
 
 The plan's target is 90 on the hand-written core and 80 repo-wide. Only

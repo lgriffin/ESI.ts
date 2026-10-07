@@ -209,6 +209,54 @@ describe('SdeExtractor', () => {
         fs.rmSync(outputDir, { recursive: true, force: true });
       }
     });
+
+    it('overwrites a file already in the output directory', () => {
+      const zipPath = createTestZip({ 'types.yaml': 'fresh: 1\n' });
+      tempFiles.push(zipPath);
+      const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sde-extract-'));
+      fs.writeFileSync(path.join(outputDir, 'types.yaml'), 'stale: 1\n');
+
+      try {
+        extractor.extractAll(zipPath, outputDir);
+        expect(
+          fs.readFileSync(path.join(outputDir, 'types.yaml'), 'utf-8'),
+        ).toBe('fresh: 1\n');
+      } finally {
+        fs.rmSync(outputDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  describe('entry lookup by file name', () => {
+    it('finds the file at any depth and picks it among others, whichever separator the archive used', () => {
+      const zipPath = createTestZip({
+        'sde/fsd/groups.yaml': { 18: { name: 'Mineral' } },
+        'sde\\fsd\\types.yaml': { 34: { name: 'Tritanium' } },
+        'categories.yaml': { 4: { name: 'Material' } },
+      });
+      tempFiles.push(zipPath);
+
+      const names = (file: string) =>
+        [...extractor.parseFile(zipPath, file).records.values()].map(
+          (r) => r.name,
+        );
+      expect(names('types.yaml')).toEqual(['Tritanium']);
+      expect(names('groups.yaml')).toEqual(['Mineral']);
+      expect(names('categories.yaml')).toEqual(['Material']);
+    });
+
+    it('matches on the base name of a requested path', () => {
+      const zipPath = createTestZip({
+        'groups.yaml': { 18: { name: 'Mineral' } },
+      });
+      tempFiles.push(zipPath);
+
+      expect(
+        extractor
+          .parseFiles(zipPath, ['sde/groups.yaml'])
+          .map((f) => f.filename),
+      ).toEqual(['sde/groups.yaml']);
+    });
   });
 
   describe('listFiles', () => {
