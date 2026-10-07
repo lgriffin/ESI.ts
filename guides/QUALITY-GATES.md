@@ -305,7 +305,7 @@ Daily at 03:30 UTC on Node 22 with a 60-minute timeout. Runs the composition tie
 
 ### `consumer-matrix-nightly.yml` — Nightly Consumer Matrix
 
-Daily at 04:45 UTC. Builds, packs, and runs `npm run test:consumer -- --tarball` on the rows pull requests skip: TypeScript `next` and `latest` on Node `lts/*` and `current`, and the oldest supported TypeScript on `current`. A failure is a toolchain release breaking a consumer, not a pull request; the job title and step summary name the Node and TypeScript versions and the failing cell. A `report` job then keeps one open issue titled "consumer-matrix: nightly consumer contract failed" and labelled `consumer-matrix` while the run fails: it creates it, or comments on it with the run link, and closes it on the next green night. It creates the label if it is missing.
+Daily at 04:45 UTC. Builds, packs, and runs `npm run test:consumer -- --tarball` on the rows pull requests skip: TypeScript `next` and `latest` on Node `lts/*` and `current`, and the oldest supported TypeScript on `current`. A failure is a toolchain release breaking a consumer, not a pull request; the job title and step summary name the Node and TypeScript versions and the failing cell. On TypeScript `next` only, a cell whose errors all lie inside a runtime dependency's own declarations is an upstream break when a control consumer that imports just those dependencies (`zod`, `pino`), in the same module format and resolution as the cell, reports every one of the cell's diagnostics (file, position and error code): it is shown as `upstream break` with a warning and does not fail the run, because nothing in this package can fix it (zod 4.6.5 on TypeScript 7.1 nightly, issue #564). A `report` job then keeps one open issue titled "consumer-matrix: nightly consumer contract failed" and labelled `consumer-matrix` while the run fails: it creates it, or comments on it with the run link, and closes it on the next green night. It creates the label if it is missing.
 
 ### `nightly-mutation.yml` — Nightly Mutation Testing
 
@@ -654,7 +654,7 @@ To raise a budget, run `npm run build && npm run size`, set the new measurement 
 
 The pull request job audits base and head in one run, each from its `package.json` and `package-lock.json` alone in a bare directory, so both hit the same advisory snapshot and neither depends on how `node_modules` was installed. Any difference is a real difference between the trees. The job skips entirely when neither file changed.
 
-Advisories are keyed by GHSA id (taken from the advisory URL), falling back to `npm-<source>` for older advisories without one. One advisory reached through several dependency paths counts once.
+Advisories are keyed by GHSA id (taken from the advisory URL), falling back to `npm-<source>` for older advisories without one. One advisory reached through several dependency paths counts once. The nightly `--filter` also drops a package npm lists only because a dependency carries an accepted advisory (its `via` names that dependency), so accepting `braces` hides `micromatch`, `fast-glob`, `globby` and `tsd` too; a package that also reaches an unaccepted advisory stays.
 
 ### Accepting a known risk
 
