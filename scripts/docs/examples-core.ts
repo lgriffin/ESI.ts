@@ -68,17 +68,84 @@ export interface ExampleResult {
   durationMs: number;
 }
 
-export type Verdict = 'passed' | 'flaky' | 'failed';
+/**
+ * `unavailable` is a failure whose output shows Tranquility itself was down or
+ * still starting (see `isOutage`): CCP's downtime, not a defect here, so the
+ * workflow warns instead of opening an issue.
+ */
+export type Verdict = 'passed' | 'flaky' | 'failed' | 'unavailable';
+
+/**
+ * What ESI and its gateway say when Tranquility is down or still coming up:
+ * the client's messages for 500, 502, 503, 504 and 520 (src/core/requestPipeline/
+ * statusHandling.ts), `ESI server error (5xx)` from examples that wrap it, and
+ * the messages the cluster sends while its services start after the daily
+ * downtime (markets "MktMarketOpening", "Contract system starting up").
+ */
+const OUTAGE_PATTERNS: readonly RegExp[] = [
+  /\bBad Gateway\b/i,
+  /\bService Unavailable\b/i,
+  /\bGateway Timeout\b/i,
+  /\bTimeout contacting tranquility\b/i,
+  /\bESI server error \(5\d\d\)/,
+  /\bInternal server error\b/i,
+  /\bstarting up, please try again\b/i,
+  /\bMktMarketOpening\b/,
+];
+
+/** Whether an example's output ends in an error Tranquility being unavailable explains. */
+export function isOutage(output: string): boolean {
+  const lastError = output
+    .trimEnd()
+    .split('\n')
+    .reverse()
+    .find((line) => /\berror\b/i.test(line));
+  return (
+    lastError !== undefined &&
+    OUTAGE_PATTERNS.some((pattern) => pattern.test(lastError))
+  );
+}
 
 export function verdictOf(result: ExampleResult): Verdict {
   const ok = !result.timedOut && result.exitCode === 0;
-  if (!ok) return 'failed';
+  if (!ok) {
+    return !result.timedOut && isOutage(result.output)
+      ? 'unavailable'
+      : 'failed';
+  }
   return result.attempts > 1 ? 'flaky' : 'passed';
+}
+
+/** How long after Tranquility starts its services count as up (markets, contracts). */
+export const WARM_UP_MS = 15 * 60_000;
+
+/**
+ * Whether Tranquility is ready for the nightly run, from a `GET /status`
+ * answer: it must answer 200, not be in VIP mode, and have started at least
+ * `WARM_UP_MS` ago. The daily downtime is 11:00 UTC, and GitHub can delay a
+ * scheduled run by hours, so a 04:15 run can land in it.
+ */
+export function tranquilityReady(
+  httpStatus: number,
+  body: unknown,
+  now: Date,
+): boolean {
+  if (httpStatus !== 200 || typeof body !== 'object' || body === null) {
+    return false;
+  }
+  const { start_time: startTime, vip } = body as {
+    start_time?: unknown;
+    vip?: unknown;
+  };
+  if (vip === true || typeof startTime !== 'string') return false;
+  const started = Date.parse(startTime);
+  return !Number.isNaN(started) && now.getTime() - started >= WARM_UP_MS;
 }
 
 /** Why a failed run failed, in words for the issue title and summary. */
 export function failureReason(result: ExampleResult): string {
   if (result.timedOut) return 'timed out';
+  if (verdictOf(result) === 'unavailable') return 'Tranquility unavailable';
   if (result.exitCode === STRICT_EXIT_CODE)
     return 'exited 0 but logged an error';
   return `exited with code ${result.exitCode}`;
@@ -100,7 +167,7 @@ export function summarize(results: readonly ExampleResult[]): string {
   const rows = results.map((r) => {
     const verdict = verdictOf(r);
     const detail =
-      verdict === 'failed'
+      verdict === 'failed' || verdict === 'unavailable'
         ? failureReason(r)
         : verdict === 'flaky'
           ? 'passed on retry'
@@ -108,10 +175,19 @@ export function summarize(results: readonly ExampleResult[]): string {
     return `| \`${r.file}\` | ${verdict} | ${(r.durationMs / 1000).toFixed(1)}s | ${detail} |`;
   });
   const failed = results.filter((r) => verdictOf(r) === 'failed').length;
+  const unavailable = results.filter(
+    (r) => verdictOf(r) === 'unavailable',
+  ).length;
   return [
     '## Nightly examples',
     '',
-    `${results.length - failed} of ${results.length} passed.`,
+    `${results.length - failed - unavailable} of ${results.length} passed.`,
+    ...(unavailable > 0
+      ? [
+          '',
+          `${unavailable} could not run because Tranquility was unavailable; no issue is opened for them.`,
+        ]
+      : []),
     '',
     '| Example | Result | Time | Detail |',
     '| --- | --- | --- | --- |',

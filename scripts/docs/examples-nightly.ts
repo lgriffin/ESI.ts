@@ -15,8 +15,14 @@
  * else ./sde-data, holding types.yaml): with `--tier sde` that is required,
  * otherwise they are left out and only the live tiers run.
  *
+ * Before a live tier runs it waits, up to 30 minutes, for Tranquility to
+ * answer `/status` and finish warming up (see `tranquilityReady`), and it
+ * waits a minute before retrying a failure Tranquility being down explains.
+ * A failure that is still an outage after the retry is reported as
+ * `unavailable`, not failed.
+ *
  * Writes a markdown summary to $GITHUB_STEP_SUMMARY when set. Exits 1 when an
- * example failed. The --json file is rewritten after every example, so a run
+ * example failed; an `unavailable` one only warns. The --json file is rewritten after every example, so a run
  * the workflow stops part-way still reports the examples that finished.
  */
 import { spawn } from 'node:child_process';
@@ -26,10 +32,12 @@ import {
   ExampleResult,
   type ExampleTier,
   failureReason,
+  isOutage,
   runTiers,
   summarize,
   tail,
   tierOf,
+  tranquilityReady,
   verdictOf,
 } from './examples-core';
 
@@ -37,6 +45,13 @@ const ROOT = path.resolve(__dirname, '../..');
 const EXAMPLES = path.join(ROOT, 'examples');
 const STRICT = path.join(__dirname, 'examples-strict.cjs');
 const TIMEOUT_MS = 120_000;
+const ESI_BASE_URL = process.env.ESI_BASE_URL ?? 'https://esi.evetech.net';
+const READY_WAIT_MS = 30 * 60_000;
+const POLL_MS = 60_000;
+const OUTAGE_RETRY_DELAY_MS = 60_000;
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /** Credentials an example could pick up; the nightly run is anonymous. */
 const STRIPPED_ENV = [
@@ -66,10 +81,14 @@ function nightlyExamples(
     .filter((file) => file.endsWith('.ts'))
     .filter((file) => !only || file === only)
     .filter((file) => {
-      const tier = tierOf(fs.readFileSync(path.join(EXAMPLES, file), 'utf8'));
+      const tier = tierOfFile(file);
       return tier !== null && tiers.includes(tier);
     })
     .sort();
+}
+
+function tierOfFile(file: string): ExampleTier | null {
+  return tierOf(fs.readFileSync(path.join(EXAMPLES, file), 'utf8'));
 }
 
 function runOnce(
@@ -104,14 +123,54 @@ function runOnce(
   });
 }
 
+/**
+ * Wait until Tranquility answers `/status` and has warmed up, or until
+ * `READY_WAIT_MS` passes; the run goes ahead either way, and an outage that
+ * outlasts the wait shows as `unavailable` results.
+ */
+async function waitForTranquility(): Promise<void> {
+  const deadline = Date.now() + READY_WAIT_MS;
+  let announced = false;
+  for (;;) {
+    let ready = false;
+    try {
+      const response = await fetch(`${ESI_BASE_URL}/status/`, {
+        signal: AbortSignal.timeout(30_000),
+      });
+      const body: unknown = response.ok ? await response.json() : null;
+      ready = tranquilityReady(response.status, body, new Date());
+    } catch {
+      ready = false;
+    }
+    if (ready) return;
+    if (Date.now() + POLL_MS > deadline) {
+      console.log(
+        'Tranquility is still not ready; running anyway, so outages show as unavailable.',
+      );
+      return;
+    }
+    if (!announced) {
+      console.log(
+        'Tranquility is down or warming up (daily downtime 11:00 UTC); waiting for it.',
+      );
+      announced = true;
+    }
+    await sleep(POLL_MS);
+  }
+}
+
 async function run(file: string): Promise<ExampleResult> {
   const started = performance.now();
   let attempts = 0;
   let last: Awaited<ReturnType<typeof runOnce>>;
-  do {
+  for (;;) {
     attempts++;
     last = await runOnce(file);
-  } while ((last.timedOut || last.code !== 0) && attempts < 2);
+    if ((!last.timedOut && last.code === 0) || attempts >= 2) break;
+    if (!last.timedOut && isOutage(last.output)) {
+      await sleep(OUTAGE_RETRY_DELAY_MS);
+    }
+  }
   return {
     file,
     exitCode: last.code,
@@ -139,16 +198,26 @@ async function main(): Promise<void> {
     console.error('No nightly examples matched.');
     process.exit(1);
   }
+  if (files.some((file) => tierOfFile(file) !== 'sde')) {
+    await waitForTranquility();
+  }
   const jsonPath = argValue('--json');
   const results: ExampleResult[] = [];
   for (const file of files) {
     const result = await run(file);
     results.push(result);
-    if (jsonPath) fs.writeFileSync(jsonPath, JSON.stringify(results, null, 2));
+    if (jsonPath) {
+      const withVerdicts = results.map((r) => ({
+        ...r,
+        verdict: verdictOf(r),
+      }));
+      fs.writeFileSync(jsonPath, JSON.stringify(withVerdicts, null, 2));
+    }
     const verdict = verdictOf(result);
-    const detail = verdict === 'failed' ? ` (${failureReason(result)})` : '';
+    const failed = verdict === 'failed' || verdict === 'unavailable';
+    const detail = failed ? ` (${failureReason(result)})` : '';
     console.log(`${verdict.padEnd(6)} ${file}${detail}`);
-    if (verdict === 'failed') console.log(result.output.replace(/^/gm, '    '));
+    if (failed) console.log(result.output.replace(/^/gm, '    '));
   }
 
   const summary = summarize(results);
@@ -156,9 +225,15 @@ async function main(): Promise<void> {
   if (summaryPath) fs.appendFileSync(summaryPath, summary);
 
   const failed = results.filter((r) => verdictOf(r) === 'failed');
+  const unavailable = results.filter((r) => verdictOf(r) === 'unavailable');
   console.log(
-    `\n${results.length - failed.length} of ${results.length} examples passed.`,
+    `\n${results.length - failed.length - unavailable.length} of ${results.length} examples passed.`,
   );
+  if (unavailable.length > 0) {
+    console.log(
+      `::warning title=Nightly examples::${unavailable.length} example(s) could not run because Tranquility was unavailable`,
+    );
+  }
   if (failed.length > 0) process.exit(1);
 }
 
