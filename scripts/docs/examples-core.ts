@@ -77,10 +77,10 @@ export type Verdict = 'passed' | 'flaky' | 'failed' | 'unavailable';
 
 /**
  * What ESI and its gateway say when Tranquility is down or still coming up:
- * a 502, 503 or 504 from the gateway, a 5xx the client reports, and the
- * messages the cluster sends while its services start after the daily
- * downtime (markets "MktMarketOpening", "Contract system starting up",
- * "did the request terminate too soon?").
+ * the client's messages for 500, 502, 503, 504 and 520 (src/core/requestPipeline/
+ * statusHandling.ts), `ESI server error (5xx)` from examples that wrap it, and
+ * the messages the cluster sends while its services start after the daily
+ * downtime (markets "MktMarketOpening", "Contract system starting up").
  */
 const OUTAGE_PATTERNS: readonly RegExp[] = [
   /\bBad Gateway\b/i,
@@ -88,7 +88,7 @@ const OUTAGE_PATTERNS: readonly RegExp[] = [
   /\bGateway Timeout\b/i,
   /\bTimeout contacting tranquility\b/i,
   /\bESI server error \(5\d\d\)/,
-  /did the request terminate too soon\?/i,
+  /\bInternal server error\b/i,
   /\bstarting up, please try again\b/i,
   /\bMktMarketOpening\b/,
 ];

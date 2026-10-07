@@ -47,7 +47,7 @@ jobs:
   examples:
     name: Run the public examples against live ESI
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 150
     permissions:
       contents: read
       issues: write # open, comment on and close the per-example issues
@@ -73,13 +73,14 @@ jobs:
         run: npm run typecheck:examples
 
       # Each attempt times out after 2 minutes and a failure is retried once.
-      # The runner may first wait up to 45 minutes for Tranquility to come
-      # back from downtime. The step stops at 90 minutes so the issue steps below still run on
+      # The runner may first wait up to 30 minutes for Tranquility to come
+      # back from downtime, which leaves 90 minutes for the examples. The
+      # step stops at 120 minutes so the issue steps below still run on
       # the examples that finished (the results file is written after each).
       - name: Run the nightly examples
         id: run
         continue-on-error: true
-        timeout-minutes: 90
+        timeout-minutes: 120
         run: npm run examples:nightly -- --json examples-results.json
 
       - name: Upload the results

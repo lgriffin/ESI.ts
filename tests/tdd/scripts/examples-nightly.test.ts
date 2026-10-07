@@ -311,6 +311,8 @@ describe('verdicts and reporting', () => {
     'error: Error retrieving character profile [error=ESI server error (502): Bad Gateway: unroutable]',
     'error: Request failed [error=Internal server error, did the request terminate too soon?: Contract system starting up, please try again in a moment]',
     'error: Request failed [error=Internal server error, did the request terminate too soon?: MktMarketOpening, details: {"region": [3, 10000002]}]',
+    // A plain 500, as examples/status.ts logs it.
+    'error: Failed to get status [error=Internal server error]',
   ])('calls a failure ending "%s" unavailable, not failed', (line) => {
     const r = result({
       exitCode: 1,

@@ -15,7 +15,7 @@
  * else ./sde-data, holding types.yaml): with `--tier sde` that is required,
  * otherwise they are left out and only the live tiers run.
  *
- * Before a live tier runs it waits, up to 45 minutes, for Tranquility to
+ * Before a live tier runs it waits, up to 30 minutes, for Tranquility to
  * answer `/status` and finish warming up (see `tranquilityReady`), and it
  * waits a minute before retrying a failure Tranquility being down explains.
  * A failure that is still an outage after the retry is reported as
@@ -46,7 +46,7 @@ const EXAMPLES = path.join(ROOT, 'examples');
 const STRICT = path.join(__dirname, 'examples-strict.cjs');
 const TIMEOUT_MS = 120_000;
 const ESI_BASE_URL = process.env.ESI_BASE_URL ?? 'https://esi.evetech.net';
-const READY_WAIT_MS = 45 * 60_000;
+const READY_WAIT_MS = 30 * 60_000;
 const POLL_MS = 60_000;
 const OUTAGE_RETRY_DELAY_MS = 60_000;
 
