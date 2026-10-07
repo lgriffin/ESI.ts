@@ -8,6 +8,11 @@ name: Nightly Examples
 # Each failing example gets its own issue, titled
 # "Nightly example failing: examples/<file>", or a comment on it when it is
 # already open. A later run in which that example passes closes the issue.
+# A failure Tranquility being down explains (verdict `unavailable`: a 5xx from
+# the gateway, or a service still starting after CCP's 11:00 UTC downtime) is
+# a warning, not an issue, and leaves that example's issue as it was. GitHub
+# can delay the 04:15 schedule by hours, so the runner first waits for
+# Tranquility to answer /status and warm up.
 # A type-check failure opens one issue, "Nightly examples do not type-check".
 #
 # On a pull request that touches the examples or this tooling, the same run
@@ -42,7 +47,7 @@ jobs:
   examples:
     name: Run the public examples against live ESI
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 150
     permissions:
       contents: read
       issues: write # open, comment on and close the per-example issues
@@ -68,12 +73,14 @@ jobs:
         run: npm run typecheck:examples
 
       # Each attempt times out after 2 minutes and a failure is retried once.
-      # The step stops at 90 minutes so the issue steps below still run on
+      # The runner may first wait up to 30 minutes for Tranquility to come
+      # back from downtime, which leaves 90 minutes for the examples. The
+      # step stops at 120 minutes so the issue steps below still run on
       # the examples that finished (the results file is written after each).
       - name: Run the nightly examples
         id: run
         continue-on-error: true
-        timeout-minutes: 90
+        timeout-minutes: 120
         run: npm run examples:nightly -- --json examples-results.json
 
       - name: Upload the results
@@ -98,6 +105,10 @@ jobs:
           jq -c '.[]' examples-results.json | while read -r result; do
             FILE=$(jq -r '.file' <<<"$result")
             TITLE="Nightly example failing: examples/$FILE"
+            if jq -e '.verdict == "unavailable"' <<<"$result" >/dev/null; then
+              echo "::warning title=Nightly examples::examples/$FILE could not run: Tranquility was unavailable"
+              continue
+            fi
             NUMBER=$(open_issue "$TITLE")
             if jq -e '.timedOut or .exitCode != 0' <<<"$result" >/dev/null; then
               REASON=$(jq -r 'if .timedOut then "timed out" elif .exitCode == 86 then "exited 0 but logged an error" else "exited with code \(.exitCode)" end' <<<"$result")

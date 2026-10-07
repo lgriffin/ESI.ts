@@ -704,7 +704,7 @@ npx jest --config config/jest/integration.config.cjs --testPathPatterns=esi-spec
 
 ### Examples against live ESI
 
-`examples/` holds runnable scripts against the real API (`npm run example:<name>`; `npm run help -- example` lists them). `nightly-examples.yml` type-checks every example and runs each one tagged `@nightly public` or `@nightly mixed` against live ESI at 04:15 UTC, opening one issue per failing example. `tests/tdd/scripts/examples-nightly.test.ts` fails `npm test` when a public endpoint has no example calling it. Details in [QUALITY-GATES.md](QUALITY-GATES.md#nightly-examples).
+`examples/` holds runnable scripts against the real API (`npm run example:<name>`; `npm run help -- example` lists them). `nightly-examples.yml` type-checks every example and runs each one tagged `@nightly public` or `@nightly mixed` against live ESI at 04:15 UTC, opening one issue per failing example. A failure Tranquility being down explains (a gateway 5xx, or a service still starting after the 11:00 UTC downtime) is a warning, not an issue, and the runner first waits for `/status` to answer, because GitHub can delay the schedule into the downtime. `tests/tdd/scripts/examples-nightly.test.ts` fails `npm test` when a public endpoint has no example calling it. Details in [QUALITY-GATES.md](QUALITY-GATES.md#nightly-examples).
 
 ## Consumer contract
 
