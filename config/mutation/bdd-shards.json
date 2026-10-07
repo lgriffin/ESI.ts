@@ -1,40 +1,157 @@
 {
   "$comment": "How the BDD-only mutation run (config/mutation/stryker.bdd.config.mjs) is split across jobs. One unsharded run mutates every file in src/ against the BDD suite alone and does not finish: its first and only attempt was killed at 30 minutes (nightly-mutation.yml, 2026-09-17), so config/mutation/bdd-thresholds.json could not be seeded until the sharded run first completed (2026-09-19). Each shard here is a set of directories; nightly-mutation.yml runs one job per shard and merges the reports before the ratchet, so the gate still sees one score per directory.",
   "$invariant": "The shards partition src/: every TypeScript file under it belongs to exactly one shard. src/sde has its own shard (Track S Run 2) so its directories are scored, ratcheted and restored on their own. tests/tdd/mutation-ratchet/bddShards.test.ts fails on a file claimed twice or not at all, so a shard boundary cannot quietly drop a directory from the run. The exclusions in config/mutation/stryker.bdd.config.mjs apply to every shard alike, so the union of the shards mutates exactly what the unsharded glob did.",
-  "$balance": "Balanced by mutant count, measured with `BDD_MUTATION_SHARD=<name> npx stryker run config/mutation/stryker.bdd.config.mjs --dryRunOnly`. src/core was one shard of 1,545 mutants until 2026-09-18, then three. core-rest was split the same day after a runner reclaimed it at 94% of its 724 mutants, 45 minutes in: src/core/util alone is 324 of them, so core-support (logger and util) and core-root (the remainder of src/core) come out at roughly half each. Shorter shards do not stop a reclaim — nothing inside the job can, the runner goes rather than the process — but they make one cheaper, and the merge refuses an incomplete set by design. nightly-mutation-retry.yml re-runs a reclaimed shard once. Per directory: requestPipeline 503, rateLimiter 401, util 324, pagination 231, circuitBreaker 193, cache 182, logger 63, middleware 35. The sde shard (Track S Run 2) instruments 1,536 mutants, measured 2026-09-27 with `BDD_MUTATION_SHARD=sde npx stryker run config/mutation/stryker.bdd.config.mjs --dryRunOnly`; rest lost them. After Run 12's layout the same shard ran 1,007 mutants locally (2026-09-28, 2 h 27 m at concurrency 6), 103 of them in src/sde/testing, which is now excluded here as it is in the unit run.",
+  "$balance": "Balanced on 2026-10-07 so each shard should finish inside 30 minutes, because GitHub reclaims long-running runners (\"The runner has received a shutdown signal\") often enough that the 37-138 minute shards before it lost one most nights. Method: Stryker's instrumenter counted each file's mutants (StringLiteral excluded, as in stryker.bdd.config.mjs), each file was weighted by its old shard's observed minutes per mutant (2026-10-04 to 10-07 nightlies: core 10-15 per 100, rest 11, sde 4.4, clients 2.5, schemas 1.6), and the files were packed into shards of about 22 minutes. A heavy file gets a shard of its own. Each original area keeps its old name as the catch-all shard: it includes the area's directories and excludes what the split-out shards claim, so a new file lands in it rather than in no shard. Known over budget: src/core/rateLimiter/RateLimiter.ts alone (402 mutants, estimated 54 minutes) is the core-rate-limiter shard; one file cannot be split by directory, so it stays a single long shard. Re-balance from the job durations in nightly-mutation.yml when a shard drifts past 30 minutes.",
   "shards": [
     {
+      "name": "core-endpoints-client",
+      "include": ["src/core/endpoints/createClient.ts"]
+    },
+    {
       "name": "core-endpoints",
-      "include": ["src/core/endpoints"]
+      "include": ["src/core/endpoints"],
+      "exclude": ["src/core/endpoints/createClient.ts"]
+    },
+    {
+      "name": "core-cache-policy",
+      "include": ["src/core/requestPipeline/cachePolicy.ts"]
+    },
+    {
+      "name": "core-status-handling",
+      "include": [
+        "src/core/requestPipeline/middlewareBridge.ts",
+        "src/core/requestPipeline/statusHandling.ts"
+      ]
+    },
+    {
+      "name": "core-middleware",
+      "include": [
+        "src/core/middleware",
+        "src/core/requestPipeline/headers.ts",
+        "src/core/requestPipeline/paginationOrchestration.ts"
+      ]
     },
     {
       "name": "core-request-pipeline",
-      "include": ["src/core/requestPipeline", "src/core/middleware"]
+      "include": ["src/core/requestPipeline"],
+      "exclude": [
+        "src/core/requestPipeline/cachePolicy.ts",
+        "src/core/requestPipeline/headers.ts",
+        "src/core/requestPipeline/middlewareBridge.ts",
+        "src/core/requestPipeline/paginationOrchestration.ts",
+        "src/core/requestPipeline/statusHandling.ts"
+      ]
     },
     {
-      "name": "core-backoff",
-      "include": ["src/core/rateLimiter", "src/core/circuitBreaker"]
+      "name": "core-rate-limiter",
+      "include": ["src/core/rateLimiter"]
+    },
+    {
+      "name": "core-circuit-breaker",
+      "include": ["src/core/circuitBreaker"]
+    },
+    {
+      "name": "core-etag-cache",
+      "include": ["src/core/cache/ETagCacheManager.ts"]
+    },
+    {
+      "name": "core-pagination",
+      "include": [
+        "src/core/cache/cacheKey.ts",
+        "src/core/pagination/PaginationHandler.ts"
+      ]
+    },
+    {
+      "name": "core-cursor-pagination",
+      "include": ["src/core/pagination/CursorPaginationHandler.ts"]
     },
     {
       "name": "core-cache",
-      "include": ["src/core/cache", "src/core/pagination"]
+      "include": ["src/core/cache", "src/core/pagination"],
+      "exclude": [
+        "src/core/cache/ETagCacheManager.ts",
+        "src/core/cache/cacheKey.ts",
+        "src/core/pagination/CursorPaginationHandler.ts",
+        "src/core/pagination/PaginationHandler.ts"
+      ]
+    },
+    {
+      "name": "core-util-error",
+      "include": ["src/core/util/error.ts"]
+    },
+    {
+      "name": "core-support-2",
+      "include": [
+        "src/core/logger/NoopLogger.ts",
+        "src/core/util/callerIdentity.ts",
+        "src/core/util/sleep.ts",
+        "src/core/util/validation.ts"
+      ]
+    },
+    {
+      "name": "core-support-3",
+      "include": [
+        "src/core/logger/ConsoleLogger.ts",
+        "src/core/logger/resolveLogger.ts",
+        "src/core/util/concurrency.ts",
+        "src/core/util/headersUtil.ts",
+        "src/core/util/stringUtil.ts"
+      ]
     },
     {
       "name": "core-support",
-      "include": ["src/core/logger", "src/core/util"]
+      "include": ["src/core/logger", "src/core/util"],
+      "exclude": [
+        "src/core/logger/ConsoleLogger.ts",
+        "src/core/logger/NoopLogger.ts",
+        "src/core/logger/resolveLogger.ts",
+        "src/core/util/callerIdentity.ts",
+        "src/core/util/concurrency.ts",
+        "src/core/util/error.ts",
+        "src/core/util/headersUtil.ts",
+        "src/core/util/sleep.ts",
+        "src/core/util/stringUtil.ts",
+        "src/core/util/validation.ts"
+      ]
+    },
+    {
+      "name": "core-root-1",
+      "include": ["src/core/ApiRequestHandler.ts", "src/core/EsiDiagnostics.ts"]
+    },
+    {
+      "name": "core-root-2",
+      "include": [
+        "src/core/BatchRequestHandler.ts",
+        "src/core/RetryStrategy.ts"
+      ]
+    },
+    {
+      "name": "core-root-3",
+      "include": [
+        "src/core/ApiClientBuilder.ts",
+        "src/core/configureApiClient.ts",
+        "src/core/constants.ts"
+      ]
     },
     {
       "name": "core-root",
       "include": ["src/core"],
       "exclude": [
-        "src/core/endpoints",
-        "src/core/requestPipeline",
+        "src/core/ApiClientBuilder.ts",
+        "src/core/ApiRequestHandler.ts",
+        "src/core/BatchRequestHandler.ts",
+        "src/core/EsiDiagnostics.ts",
+        "src/core/RetryStrategy.ts",
         "src/core/cache",
         "src/core/circuitBreaker",
-        "src/core/rateLimiter",
-        "src/core/pagination",
-        "src/core/middleware",
+        "src/core/configureApiClient.ts",
+        "src/core/constants.ts",
+        "src/core/endpoints",
         "src/core/logger",
+        "src/core/middleware",
+        "src/core/pagination",
+        "src/core/rateLimiter",
+        "src/core/requestPipeline",
         "src/core/util"
       ]
     },
@@ -47,13 +164,98 @@
       "include": ["src/schemas"]
     },
     {
+      "name": "sde-1",
+      "include": [
+        "src/sde/domain/corporations/schemas.ts",
+        "src/sde/domain/skins/schemas.ts",
+        "src/sde/domain/ui/schemas.ts",
+        "src/sde/domain/version",
+        "src/sde/errors.ts",
+        "src/sde/optionalPeers.ts",
+        "src/sde/providers/memory"
+      ]
+    },
+    {
+      "name": "sde-2",
+      "include": [
+        "src/sde/domain/characters/schemas.ts",
+        "src/sde/domain/dogma/schemas.ts",
+        "src/sde/domain/types/schemas.ts",
+        "src/sde/ingestion/constants.ts",
+        "src/sde/ingestion/metadata.ts",
+        "src/sde/providers/order.ts",
+        "src/sde/providers/yaml"
+      ]
+    },
+    {
       "name": "sde",
-      "include": ["src/sde"]
+      "include": ["src/sde"],
+      "exclude": [
+        "src/sde/domain/characters/schemas.ts",
+        "src/sde/domain/corporations/schemas.ts",
+        "src/sde/domain/dogma/schemas.ts",
+        "src/sde/domain/skins/schemas.ts",
+        "src/sde/domain/types/schemas.ts",
+        "src/sde/domain/ui/schemas.ts",
+        "src/sde/domain/version",
+        "src/sde/errors.ts",
+        "src/sde/ingestion/constants.ts",
+        "src/sde/ingestion/metadata.ts",
+        "src/sde/optionalPeers.ts",
+        "src/sde/providers/memory",
+        "src/sde/providers/order.ts",
+        "src/sde/providers/yaml"
+      ]
+    },
+    {
+      "name": "auth-token-manager",
+      "include": ["src/auth/EsiTokenManager.ts"]
+    },
+    {
+      "name": "auth-sso-client",
+      "include": ["src/auth/EveSsoClient.ts"]
+    },
+    {
+      "name": "esi-client",
+      "include": ["src/EsiClient.ts"]
+    },
+    {
+      "name": "esi-client-builder",
+      "include": ["src/EsiClientBuilder.ts"]
+    },
+    {
+      "name": "rest-2",
+      "include": [
+        "src/adapters",
+        "src/auth/jwt.ts",
+        "src/auth/storage/MemoryTokenStorage.ts"
+      ]
+    },
+    {
+      "name": "rest-3",
+      "include": [
+        "src/auth/storage/FileTokenStorage.ts",
+        "src/client/identity.ts"
+      ]
     },
     {
       "name": "rest",
       "include": ["src"],
-      "exclude": ["src/core", "src/clients", "src/schemas", "src/sde"]
+      "exclude": [
+        "src/EsiClient.ts",
+        "src/EsiClientBuilder.ts",
+        "src/adapters",
+        "src/auth/EsiTokenManager.ts",
+        "src/auth/EveSsoClient.ts",
+        "src/auth/jwt.ts",
+        "src/auth/storage/FileTokenStorage.ts",
+        "src/auth/storage/MemoryTokenStorage.ts",
+        "src/client/identity.ts",
+        "src/clients",
+        "src/core",
+        "src/schemas",
+        "src/sde"
+      ]
     }
   ]
 }

@@ -31,9 +31,11 @@ import {
   MutationReport,
   applyRatchet,
   detectedByEveryRun,
+  directoryOf,
   parseThresholds,
   renderTable,
   scoreByDirectory,
+  undetectedMutants,
 } from './mutation-ratchet-core';
 
 const ROOT = path.resolve(__dirname, '../..');
@@ -138,6 +140,28 @@ function main(): void {
 
   if (failures.length > 0) {
     console.error(`\n${failures.join('\n')}`);
+    const below = new Set(
+      scores
+        .filter((s) => {
+          const floor = (update ? raised : thresholds)[s.directory];
+          return floor !== undefined && s.score < floor;
+        })
+        .map((s) => s.directory),
+    );
+    // Name what to kill: the report is an artifact, slower to reach than the log.
+    const undetected = undetectedMutants(
+      report,
+      Object.keys(report.files).filter((file) => below.has(directoryOf(file))),
+    );
+    if (undetected.length > 0 && undetected.length <= 50) {
+      const lines = undetected.map(
+        (m) =>
+          `  ${m.file}:${m.line} ${m.mutator} ${m.status}: ${m.replacement.replace(/\s+/g, ' ').slice(0, 80)}`,
+      );
+      console.error(
+        `\nUndetected mutants in the directories below their floor:\n${lines.join('\n')}`,
+      );
+    }
     process.exit(1);
   }
 }
