@@ -18,11 +18,14 @@ import {
   RUN_TIERS,
   STRICT_EXIT_CODE,
   callersFromClientSource,
+  WARM_UP_MS,
   failureReason,
+  isOutage,
   issueTitle,
   runTiers,
   summarize,
   tierOf,
+  tranquilityReady,
   uncoveredPublicEndpoints,
   verdictOf,
 } from '../../../scripts/docs/examples-core';
@@ -299,6 +302,72 @@ describe('verdicts and reporting', () => {
     expect(failureReason(r)).toBe(reason);
   });
 
+  // The last lines of the ten examples that failed during the 2026-10-07
+  // downtime (issues #594-#603).
+  it.each([
+    'error: Request failed [error=Bad Gateway: unroutable]',
+    'error: Request failed [error=Bad Gateway: Bad Gateway]',
+    'error: Request failed [error=Gateway Timeout: Timeout contacting tranquility]',
+    'error: Error retrieving character profile [error=ESI server error (502): Bad Gateway: unroutable]',
+    'error: Request failed [error=Internal server error, did the request terminate too soon?: Contract system starting up, please try again in a moment]',
+    'error: Request failed [error=Internal server error, did the request terminate too soon?: MktMarketOpening, details: {"region": [3, 10000002]}]',
+    // A plain 500, as examples/status.ts logs it.
+    'error: Failed to get status [error=Internal server error]',
+  ])('calls a failure ending "%s" unavailable, not failed', (line) => {
+    const r = result({
+      exitCode: 1,
+      attempts: 2,
+      output: `Market Data\nCharacter location unavailable\n${line}`,
+    });
+    expect(isOutage(r.output)).toBe(true);
+    expect(verdictOf(r)).toBe('unavailable');
+    expect(failureReason(r)).toBe('Tranquility unavailable');
+  });
+
+  it.each([
+    'error: Request failed [error=Not Found: Type not found]',
+    'error: ZodError: expected number, received string',
+    'TypeError: Cannot read properties of undefined',
+  ])('keeps a failure ending "%s" failed', (line) => {
+    const r = result({ exitCode: 1, attempts: 2, output: line });
+    expect(verdictOf(r)).toBe('failed');
+  });
+
+  it('judges only the last error line, and never a timeout', () => {
+    expect(
+      isOutage(
+        'error: retrying after Bad Gateway\nerror: ZodError: expected number',
+      ),
+    ).toBe(false);
+    expect(
+      verdictOf(
+        result({
+          exitCode: null,
+          timedOut: true,
+          attempts: 2,
+          output: 'error: Bad Gateway',
+        }),
+      ),
+    ).toBe('failed');
+  });
+
+  it('counts unavailable examples apart from passes in the summary', () => {
+    const summary = summarize([
+      result({}),
+      result({
+        file: 'industry.ts',
+        exitCode: 1,
+        attempts: 2,
+        output: 'error: Request failed [error=Gateway Timeout: x]',
+      }),
+    ]);
+    expect(summary).toContain('1 of 2 passed.');
+    expect(summary).toContain('1 could not run because Tranquility');
+    expect(summary).toContain(
+      '| `industry.ts` | unavailable | 1.2s | Tranquility unavailable |',
+    );
+  });
+
   it('titles the issue after the example file', () => {
     expect(issueTitle('status.ts')).toBe(
       'Nightly example failing: examples/status.ts',
@@ -314,6 +383,28 @@ describe('verdicts and reporting', () => {
     expect(summary).toContain(
       '| `wars.ts` | failed | 1.2s | exited with code 1 |',
     );
+  });
+});
+
+describe('tranquilityReady', () => {
+  const started = '2026-10-07T11:10:00Z';
+  const at = (ms: number) => new Date(Date.parse(started) + ms);
+
+  it('waits for Tranquility to answer and warm up', () => {
+    const body = { players: 1, server_version: '1', start_time: started };
+    expect(tranquilityReady(200, body, at(WARM_UP_MS))).toBe(true);
+    expect(tranquilityReady(200, body, at(WARM_UP_MS - 1))).toBe(false);
+  });
+
+  it('is not ready on an error, a VIP cluster or a body without start_time', () => {
+    const late = at(2 * WARM_UP_MS);
+    expect(tranquilityReady(502, null, late)).toBe(false);
+    expect(tranquilityReady(503, { start_time: started }, late)).toBe(false);
+    expect(
+      tranquilityReady(200, { start_time: started, vip: true }, late),
+    ).toBe(false);
+    expect(tranquilityReady(200, { players: 1 }, late)).toBe(false);
+    expect(tranquilityReady(200, { start_time: 'soon' }, late)).toBe(false);
   });
 });
 
