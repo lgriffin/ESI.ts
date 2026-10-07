@@ -316,10 +316,55 @@ function diffMode(
 }
 
 /**
+ * The advisories a package is vulnerable through: its own (`via` objects) and,
+ * following `via` strings, those of the packages it depends on. npm lists a
+ * dependent such as `micromatch` with `via: ["braces"]`, so without this an
+ * accepted advisory still reports every package on its path.
+ */
+function reachableAdvisories(
+  name: string,
+  vulnerabilities: Record<string, RawVulnerability>,
+  seen: Set<string> = new Set(),
+): Set<string> {
+  const ids = new Set<string>();
+  if (seen.has(name)) return ids;
+  seen.add(name);
+  for (const via of vulnerabilities[name]?.via ?? []) {
+    if (typeof via === 'string') {
+      for (const id of reachableAdvisories(via, vulnerabilities, seen)) {
+        ids.add(id);
+      }
+    } else {
+      const id = advisoryId(via);
+      if (id !== undefined) ids.add(id);
+    }
+  }
+  return ids;
+}
+
+/**
+ * The entries of an npm audit `vulnerabilities` map that some unaccepted
+ * advisory reaches. A package entry survives if *any* advisory it is
+ * vulnerable through, directly or via a dependency, is unaccepted: accepting
+ * one advisory must not hide a second one that arrives through the same
+ * package, and must hide the packages that only carry the accepted one.
+ */
+export function withoutAccepted(
+  vulnerabilities: Record<string, RawVulnerability>,
+  accepted: ReadonlySet<string>,
+): Record<string, RawVulnerability> {
+  const kept: Record<string, RawVulnerability> = {};
+  for (const [name, vuln] of Object.entries(vulnerabilities)) {
+    const ids = [...reachableAdvisories(name, vulnerabilities)];
+    if (ids.length > 0 && ids.every((id) => accepted.has(id))) continue;
+    kept[name] = vuln;
+  }
+  return kept;
+}
+
+/**
  * Strip accepted advisories from a report, preserving npm's structure so the
- * nightly workflow's existing jq queries keep working. A package entry survives
- * if *any* of its advisories is unaccepted — accepting one advisory must not
- * hide a second one that happens to arrive through the same package.
+ * nightly workflow's existing jq queries keep working.
  */
 function filterMode(
   inFile: string,
@@ -328,21 +373,9 @@ function filterMode(
 ) {
   const report = readReport(inFile);
   const vulnerabilities = report.vulnerabilities ?? {};
-  const kept: Record<string, RawVulnerability> = {};
-  let dropped = 0;
-
-  for (const [name, vuln] of Object.entries(vulnerabilities)) {
-    const ids = (vuln.via ?? [])
-      .filter((via): via is RawVia => typeof via !== 'string')
-      .map(advisoryId)
-      .filter((id): id is string => id !== undefined);
-
-    if (ids.length > 0 && ids.every((id) => exceptions.has(id))) {
-      dropped++;
-      continue;
-    }
-    kept[name] = vuln;
-  }
+  const kept = withoutAccepted(vulnerabilities, new Set(exceptions.keys()));
+  const dropped =
+    Object.keys(vulnerabilities).length - Object.keys(kept).length;
 
   fs.writeFileSync(
     outFile,
@@ -381,4 +414,4 @@ function main() {
   checkMode(argValue('--level') ?? 'high', exceptions);
 }
 
-main();
+if (require.main === module) main();
