@@ -52,10 +52,10 @@ import * as path from 'path';
 
 import {
   CELLS,
-  CONTROL_FILE,
   DOCUMENTED_SUBPATHS,
   OLDEST_TYPESCRIPT,
   PACKAGE_NAME,
+  controlFile,
   controlSource,
   exportsProblems,
   isUpstreamBreak,
@@ -64,6 +64,7 @@ import {
   treeShakeCheck,
   typeCheckCell,
   writeProbes,
+  type Cell,
   type CellResult,
   type EsbuildLike,
 } from './consumer-contract-core';
@@ -240,19 +241,27 @@ export function buildAndPack(work: string, skipBuild: boolean): string {
 }
 
 /**
- * Type-check a consumer that imports only the runtime dependencies (the
- * nodenext ES module cell's settings); its output, or '' when it passes.
+ * Type-check a consumer that imports only the runtime dependencies, with the
+ * given cell's module format and resolution; its output, or '' when it
+ * passes.
  */
-function controlCheck(consumer: string, dependencies: string[]): string {
+function controlCheck(
+  consumer: string,
+  cell: Cell,
+  dependencies: string[],
+): string {
   if (dependencies.length === 0) return '';
-  writeFileSync(path.join(consumer, CONTROL_FILE), controlSource(dependencies));
-  const cell = CELLS.find((c) => c.id === 'esm-nodenext') ?? CELLS[0]!;
+  const file = controlFile(cell.format);
+  writeFileSync(
+    path.join(consumer, file),
+    controlSource(dependencies, cell.format),
+  );
   const result = typeCheckCell(consumer, cell, {
     probe: false,
-    files: [CONTROL_FILE],
+    files: [file],
   });
   console.log(
-    `  control (${dependencies.join(', ')} alone): ${result.ok ? 'passes' : 'fails'}`,
+    `  control for ${cell.id} (${dependencies.join(', ')} alone): ${result.ok ? 'passes' : 'fails'}`,
   );
   return result.ok ? '' : result.output;
 }
@@ -360,12 +369,14 @@ async function main(): Promise<void> {
     );
     // On TypeScript's nightly build, a break inside a runtime dependency's
     // own declarations is upstream news, not this package's defect: check
-    // the dependencies alone and, when they fail the same way, warn.
-    const controlOutput =
-      typescriptChoice === 'next' && results.some((r) => !r.ok)
-        ? controlCheck(consumer, Object.keys(packed.dependencies ?? {}))
-        : null;
+    // the dependencies alone, in the failed cell's own format and
+    // resolution, and when they fail with the same diagnostics, warn.
+    const dependencies = Object.keys(packed.dependencies ?? {});
     for (const result of results) {
+      const controlOutput =
+        typescriptChoice === 'next' && !result.ok
+          ? controlCheck(consumer, result.cell, dependencies)
+          : null;
       const upstream =
         !result.ok &&
         isUpstreamBreak(result.output, controlOutput, PACKAGE_NAME);

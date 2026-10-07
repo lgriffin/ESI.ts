@@ -19,8 +19,9 @@ import {
   CELLS,
   DOCUMENTED_SUBPATHS,
   cellTsconfig,
+  controlFile,
   controlSource,
-  errorPackages,
+  errorDiagnostics,
   exportsProblems,
   isUpstreamBreak,
   probeSource,
@@ -346,13 +347,25 @@ describe('consumer matrix: upstream breaks on TypeScript next', () => {
     "node_modules/@lgriffin/esi.ts/dist/index.d.ts(3,1): error TS2307: Cannot find module './x'.";
   const probe = "probe/probe.mts(1,1): error TS2307: Cannot find module 'y'.";
 
-  it('names the packages whose declarations hold every error', () => {
-    expect(errorPackages(zod)).toEqual(new Set(['zod']));
-    expect(errorPackages(`${zod}\n${ours}`)).toEqual(
-      new Set(['zod', '@lgriffin/esi.ts']),
+  it('keys each error by file, position and code', () => {
+    expect(errorDiagnostics(zod)).toEqual(
+      new Set([
+        'node_modules/zod/v4/classic/schemas.d.cts(804,5): error TS5115',
+      ]),
     );
-    expect(errorPackages(`${zod}\n${probe}`)).toBeNull();
-    expect(errorPackages('')).toBeNull();
+    expect(errorDiagnostics(`${zod}\n${ours}`)?.size).toBe(2);
+    expect(errorDiagnostics(zod.replace(/\//g, '\\'))).toEqual(
+      errorDiagnostics(zod),
+    );
+  });
+
+  it('gives up on an output it cannot account for in full', () => {
+    expect(errorDiagnostics(`${zod}\n${probe}`)).toBeNull();
+    expect(errorDiagnostics('')).toBeNull();
+    // A global error carries no file position: it could be anyone's.
+    expect(
+      errorDiagnostics(`${zod}\nerror TS5023: Unknown compiler option 'x'.`),
+    ).toBeNull();
   });
 
   it('calls a cell upstream only when the dependencies alone fail the same way', () => {
@@ -364,10 +377,26 @@ describe('consumer matrix: upstream breaks on TypeScript next', () => {
     expect(isUpstreamBreak(`${zod}\n${probe}`, zod, name)).toBe(false);
   });
 
-  it('writes a control that imports only the runtime dependencies', () => {
+  it('is not fooled by a different error in the same dependency', () => {
+    const name = '@lgriffin/esi.ts';
+    // This package's types can make a dependency's declarations fail in a
+    // way the dependencies alone never do.
+    const another =
+      'node_modules/zod/v4/core/core.d.cts(12,3): error TS2589: Type instantiation is excessively deep.';
+    expect(isUpstreamBreak(another, zod, name)).toBe(false);
+    expect(isUpstreamBreak(`${zod}\n${another}`, zod, name)).toBe(false);
+    expect(isUpstreamBreak(zod, `${zod}\n${another}`, name)).toBe(true);
+  });
+
+  it('writes a control that imports only the runtime dependencies, per format', () => {
     expect(controlSource(['pino', 'zod'])).toContain(
       "import * as d0 from 'pino';\nimport * as d1 from 'zod';",
     );
+    expect(controlSource(['pino', 'zod'], 'cjs')).toContain(
+      "import d0 = require('pino');\nimport d1 = require('zod');",
+    );
+    expect(controlFile('esm')).toMatch(/control\.mts$/);
+    expect(controlFile('cjs')).toMatch(/control\.cts$/);
   });
 
   it('leaves the probe out of a control cell', () => {
