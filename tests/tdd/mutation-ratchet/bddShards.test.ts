@@ -80,17 +80,39 @@ describe('the shards partition src/', () => {
     expect(shardsClaiming('scripts/spec/spec-audit.ts', shards)).toEqual([]);
   });
 
-  it('gives the SDE its own shard, ingestion included, which rest leaves alone', () => {
+  it('keeps the SDE in its own shards, ingestion included, which rest leaves alone', () => {
     // Track S Run 2: src/sde is scored, ratcheted and restored on its own.
-    expect(
-      shardsClaiming('src/sde/providers/yaml/SdeDataProvider.ts', shards),
-    ).toEqual(['sde']);
+    // Since 2026-10-07 it spans several shards (sde, sde-1, ...) so each
+    // finishes inside 30 minutes; none of them reaches outside src/sde.
+    const sdeShards = new Set(
+      files
+        .filter((file) => file.startsWith('src/sde/'))
+        .flatMap((file) => shardsClaiming(file, shards)),
+    );
+    expect([...sdeShards].every((name) => /^sde(-\d+)?$/.test(name))).toBe(
+      true,
+    );
+    for (const file of files.filter((f) => !f.startsWith('src/sde/'))) {
+      expect(sdeShards.has(shardsClaiming(file, shards)[0]!)).toBe(false);
+    }
     expect(
       shardsClaiming('src/sde/ingestion/SdeDatabaseBuilder.ts', shards),
     ).toEqual(['sde']);
-    expect(shardsClaiming('src/auth/EveSsoClient.ts', shards)).toEqual([
-      'rest',
-    ]);
+    expect(shardsClaiming('src/auth/jwt.ts', shards)).toEqual(['rest-2']);
+    expect(shardsClaiming('src/auth/types.ts', shards)).toEqual(['rest']);
+  });
+
+  it.each([
+    ['src/core/requestPipeline/newStep.ts', 'core-request-pipeline'],
+    ['src/core/cache/NewCache.ts', 'core-cache'],
+    ['src/core/util/newUtil.ts', 'core-support'],
+    ['src/core/NewHandler.ts', 'core-root'],
+    ['src/sde/providers/NewProvider.ts', 'sde'],
+    ['src/auth/NewAuth.ts', 'rest'],
+  ])('puts a new file %s in its area catch-all, %s', (file, shard) => {
+    // A split-out shard claims named files; the catch-all keeps the area's
+    // directories, so a file added later is still mutated somewhere.
+    expect(shardsClaiming(file, shards)).toEqual([shard]);
   });
 
   it('reports both owners when two shards overlap', () => {

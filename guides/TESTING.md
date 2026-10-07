@@ -836,7 +836,7 @@ GitHub-hosted runners intermittently drop a long job with `The runner has receiv
 
 Because the merge refuses an incomplete set, one reclaim costs every shard's score. Two things blunt that:
 
-- **Shorter shards.** A reclaim is roughly proportional to how long a job runs, so splitting the longest ones makes each loss smaller and each re-run cheaper. It does not make reclaims rarer.
+- **Shorter shards.** A reclaim is roughly proportional to how long a job runs, so splitting the longest ones makes each loss smaller and each re-run cheaper. Between 4 and 7 October 2026 a 37 to 138 minute shard was reclaimed on both attempts most nights, so on 7 October the BDD run was re-balanced to 32 shards that each aim to finish inside 30 minutes, packed by mutant count weighted by each area's observed minutes per mutant (the method is in the `$balance` note of `config/mutation/bdd-shards.json`). A shard may name single files as well as directories; each area keeps a catch-all shard under its old name that excludes the files split out of it, so a new file is still mutated. `src/core/rateLimiter/RateLimiter.ts` alone is about 400 mutants and stays one longer shard.
 - **`nightly-mutation-retry.yml`.** On `workflow_run`, if the nightly finished as a failure on its first attempt, it re-runs the failed jobs once. `gh run rerun --failed` re-runs their dependents too, so the merge and the ratchet run again with the artifacts the surviving shards already uploaded, which persist across attempts of one run.
 
 It has to be a separate workflow: a job inside a run cannot re-run its own run. It is bounded to one extra attempt, because a shard that fails twice is not a reclaimed runner and the second failure should be read.

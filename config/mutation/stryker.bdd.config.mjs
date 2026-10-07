@@ -62,12 +62,17 @@ if (shardName && !shard) {
   );
 }
 
-/** A shard's directories as Stryker globs, most specific exclusion last. */
+/** A shard entry as a Stryker glob: a `.ts` entry is one file, else a directory. */
+function globFor(entry) {
+  return entry.endsWith('.ts') ? entry : `${entry}/**/*.ts`;
+}
+
+/** A shard's directories and files as Stryker globs, most specific exclusion last. */
 function mutateFor(definition) {
   if (!definition) return ['src/**/*.ts', ...COMMON_EXCLUSIONS];
   return [
-    ...definition.include.map((dir) => `${dir}/**/*.ts`),
-    ...(definition.exclude ?? []).map((dir) => `!${dir}/**`),
+    ...definition.include.map(globFor),
+    ...(definition.exclude ?? []).map((entry) => `!${globFor(entry)}`),
     ...COMMON_EXCLUSIONS,
   ];
 }
