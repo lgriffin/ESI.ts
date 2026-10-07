@@ -45,22 +45,25 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
+  writeFileSync,
 } from 'fs';
 import { tmpdir } from 'os';
 import * as path from 'path';
 
 import {
   CELLS,
+  CONTROL_FILE,
   DOCUMENTED_SUBPATHS,
   OLDEST_TYPESCRIPT,
   PACKAGE_NAME,
+  controlSource,
   exportsProblems,
+  isUpstreamBreak,
   runRuntimeProbe,
   specifierFor,
   treeShakeCheck,
   typeCheckCell,
   writeProbes,
-  type Cell,
   type CellResult,
   type EsbuildLike,
 } from './consumer-contract-core';
@@ -236,6 +239,24 @@ export function buildAndPack(work: string, skipBuild: boolean): string {
   return path.join(work, tarballs[0]!);
 }
 
+/**
+ * Type-check a consumer that imports only the runtime dependencies (the
+ * nodenext ES module cell's settings); its output, or '' when it passes.
+ */
+function controlCheck(consumer: string, dependencies: string[]): string {
+  if (dependencies.length === 0) return '';
+  writeFileSync(path.join(consumer, CONTROL_FILE), controlSource(dependencies));
+  const cell = CELLS.find((c) => c.id === 'esm-nodenext') ?? CELLS[0]!;
+  const result = typeCheckCell(consumer, cell, {
+    probe: false,
+    files: [CONTROL_FILE],
+  });
+  console.log(
+    `  control (${dependencies.join(', ')} alone): ${result.ok ? 'passes' : 'fails'}`,
+  );
+  return result.ok ? '' : result.output;
+}
+
 function summarise(
   typescriptVersion: string,
   results: CellResult[],
@@ -243,7 +264,7 @@ function summarise(
 ): void {
   const rows = results.map(
     (r) =>
-      `| ${r.cell.id} | ${r.cell.format} | ${r.cell.resolution} | ${r.ok ? 'pass' : '**fail**'} |`,
+      `| ${r.cell.id} | ${r.cell.format} | ${r.cell.resolution} | ${r.ok ? 'pass' : r.upstream ? 'upstream break' : '**fail**'} |`,
   );
   const lines = [
     `### Consumer contract: Node ${process.versions.node}, TypeScript ${typescriptVersion}`,
@@ -255,6 +276,12 @@ function summarise(
     failures.length === 0
       ? 'Every check passed.'
       : `Failed: ${failures.join('; ')}`,
+    ...(results.some((r) => r.upstream)
+      ? [
+          '',
+          "An upstream break is a cell that fails only inside a runtime dependency's own declarations, which also fail with this package left out: the dependency and this TypeScript build disagree, and nothing here can fix it. It warns instead of failing, on TypeScript `next` only.",
+        ]
+      : []),
     '',
   ];
   const summary = process.env.GITHUB_STEP_SUMMARY;
@@ -328,17 +355,32 @@ async function main(): Promise<void> {
 
     step(`Type-check ${CELLS.length} cells (skipLibCheck: false)`);
     writeProbes(consumer, PACKAGE_NAME, DOCUMENTED_SUBPATHS);
-    const results = CELLS.map((cell: Cell) => {
-      const result = typeCheckCell(consumer, cell, {
-        files: CELL_FILES[cell.id] ?? [],
-      });
-      console.log(`  ${result.ok ? '✔' : '✖'} ${cell.id}`);
-      if (!result.ok) {
-        console.log(indent(indent(result.output)));
-        failures.push(`cell ${cell.id}`);
-      }
-      return result;
-    });
+    const results = CELLS.map((cell) =>
+      typeCheckCell(consumer, cell, { files: CELL_FILES[cell.id] ?? [] }),
+    );
+    // On TypeScript's nightly build, a break inside a runtime dependency's
+    // own declarations is upstream news, not this package's defect: check
+    // the dependencies alone and, when they fail the same way, warn.
+    const controlOutput =
+      typescriptChoice === 'next' && results.some((r) => !r.ok)
+        ? controlCheck(consumer, Object.keys(packed.dependencies ?? {}))
+        : null;
+    for (const result of results) {
+      const upstream =
+        !result.ok &&
+        isUpstreamBreak(result.output, controlOutput, PACKAGE_NAME);
+      result.upstream = upstream;
+      console.log(
+        `  ${result.ok ? '✔' : upstream ? '⚠' : '✖'} ${result.cell.id}${upstream ? ' (upstream break)' : ''}`,
+      );
+      if (!result.ok) console.log(indent(indent(result.output)));
+      if (!result.ok && !upstream) failures.push(`cell ${result.cell.id}`);
+    }
+    if (results.some((r) => r.upstream)) {
+      console.log(
+        `::warning title=Consumer contract::TypeScript ${typescriptVersion} fails on a runtime dependency's own declarations, with or without this package; see the step summary`,
+      );
+    }
 
     step('Every documented sub-path loads through require and import');
     const runtime = runRuntimeProbe(

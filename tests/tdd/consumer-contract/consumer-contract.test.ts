@@ -19,7 +19,10 @@ import {
   CELLS,
   DOCUMENTED_SUBPATHS,
   cellTsconfig,
+  controlSource,
+  errorPackages,
   exportsProblems,
+  isUpstreamBreak,
   probeSource,
   runRuntimeProbe,
   treeShakeCheck,
@@ -332,5 +335,45 @@ describe('consumer matrix: broken packages are rejected', () => {
     expect(result.problems.join('\n')).toMatch(
       /includes node_modules\/fixture-dual\/dist\/index\.mjs/,
     );
+  });
+});
+
+describe('consumer matrix: upstream breaks on TypeScript next', () => {
+  // What zod 4.6.5 reported under TypeScript 7.1.0-dev.20261007 (issue #564).
+  const zod =
+    "node_modules/zod/v4/classic/schemas.d.cts(804,5): error TS5115: Instantiations of the following types appear infinitely circular: 'IsOptionalIn'.";
+  const ours =
+    "node_modules/@lgriffin/esi.ts/dist/index.d.ts(3,1): error TS2307: Cannot find module './x'.";
+  const probe = "probe/probe.mts(1,1): error TS2307: Cannot find module 'y'.";
+
+  it('names the packages whose declarations hold every error', () => {
+    expect(errorPackages(zod)).toEqual(new Set(['zod']));
+    expect(errorPackages(`${zod}\n${ours}`)).toEqual(
+      new Set(['zod', '@lgriffin/esi.ts']),
+    );
+    expect(errorPackages(`${zod}\n${probe}`)).toBeNull();
+    expect(errorPackages('')).toBeNull();
+  });
+
+  it('calls a cell upstream only when the dependencies alone fail the same way', () => {
+    const name = '@lgriffin/esi.ts';
+    expect(isUpstreamBreak(zod, zod, name)).toBe(true);
+    expect(isUpstreamBreak(zod, '', name)).toBe(false);
+    expect(isUpstreamBreak(zod, null, name)).toBe(false);
+    expect(isUpstreamBreak(`${zod}\n${ours}`, zod, name)).toBe(false);
+    expect(isUpstreamBreak(`${zod}\n${probe}`, zod, name)).toBe(false);
+  });
+
+  it('writes a control that imports only the runtime dependencies', () => {
+    expect(controlSource(['pino', 'zod'])).toContain(
+      "import * as d0 from 'pino';\nimport * as d1 from 'zod';",
+    );
+  });
+
+  it('leaves the probe out of a control cell', () => {
+    const cell = CELLS[0]!;
+    expect(
+      cellTsconfig(cell, { probe: false, files: ['probe/control.mts'] }).files,
+    ).toEqual(['probe/control.mts']);
   });
 });
