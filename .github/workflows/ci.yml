@@ -54,6 +54,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Every installed package's registry signature, and its provenance
+      # attestation where it has one, must verify against the npm registry's
+      # public keys. Catches a tarball that differs from what the registry
+      # signed (a tampered mirror or cache), which npm ci's integrity hash
+      # cannot: the hash comes from the same lockfile an attacker would edit.
+      - name: Verify registry signatures of installed packages
+        run: npm run audit:signatures
+
       - name: Run ESLint
         run: npm run lint
 
@@ -168,10 +176,11 @@ jobs:
           echo "::warning::$problem. This pull request does not touch the generator or the generated files, so the drift is already on the base branch; nightly-spec-drift.yml files it as a spec-drift issue."
           echo "Generated types differ from the live ESI spec (pre-existing drift, not blocking)." >> "$GITHUB_STEP_SUMMARY"
 
-      # Reported, not blocking, to keep pull request friction low; release.yml
-      # runs the same check as a blocking gate (CHARTER GATE-04).
+      # Blocking since 2026-10-08: the baseline has been clean since #271, so
+      # an unused file, export or dependency now fails the pull request that
+      # adds it rather than the release (CHARTER GATE-04).
       - name: Run dead code detection (knip)
-        run: npx knip --no-exit-code
+        run: npm run knip
 
       # Every public export must be referenced by a test, or listed in
       # scripts/package/export-coverage-baseline.json. The baseline only shrinks

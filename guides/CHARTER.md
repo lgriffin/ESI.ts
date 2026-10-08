@@ -32,6 +32,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 ### Amendments after revision 2 (the detail behind revision 3)
 
+- **2026-10-08, static analysis gates.** From the static analysis audit of 2026-10-08. knip blocks pull requests as well as the release (GATE-04): its baseline has been clean since #271, so `ci.yml` drops `--no-exit-code` and `check:local` gains a `knip` tier. `codeql.yml` runs the `security-extended` query suite. `lint-and-build` runs `npm audit signatures` after `npm ci`, so a package whose registry signature or provenance does not verify fails the pull request.
 - **2026-09-28, one testing guide (DOC-01).** `guides/MUTATION-TESTING.md` is folded into `guides/TESTING.md` as its "Mutation testing" section and deleted, after root `TESTING.md` the day before; every link now points at the section. DOC-01 moves from Gap to Enforced: `tests/tdd/scripts/sync-docs.test.ts` keeps the retired copies deleted, keeps the tier table in TESTING.md alone, and fails on a guide link to a missing guide or heading ([#273](https://github.com/lgriffin/ESI.ts/issues/273)).
 - **2026-09-27, EARS governance.** Six decisions from the review of the specification's reach, taken by the maintainer on the recommendations recorded in the roadmap: exclusions are stated as unwanted-behaviour Rules (TEST-11, new); the charter itself is audited like a feature file (PROC-06, new); every public client method traces to a Rule (TEST-10, new, shared with Track S Run 4); `npm run ears` already runs in CI (`ears.yml`, on every pull request that touches `src/`, `tests/bdd/` or the EARS scripts; `bdd-tests` and `spec-audit` gate the same ground inside `ci-success`), and making it a required check is a branch-protection setting for the maintainer that would first need the workflow's path filters removed, so a documentation-only pull request is not blocked by a check that never ran; TEST-01 moves to Practised because its RED step is a workflow, not a check; TEST-07 gains the 11.0.0 mutation floors. Statuses that moved down did so with the reason in the row.
 
@@ -510,7 +511,7 @@ A change to the public API surface **shall** be visible as a diff to `etc/esi.ts
 knip **shall** block the release gate on unused exports and dependencies, with an explicit ignore list for intentional public re-exports.
 
 - **Why:** Non-blocking everywhere means the report is never read. Blocking only at release keeps PR friction low.
-- **Verified by:** the "Dead code detection" step of `validate-release` in `release.yml` runs `npx knip` without `--no-exit-code`, so an unused file, export or dependency fails the release. The ignore list is `knip.jsonc`, each entry with its reason. `ci.yml` (`static-analysis`) still runs it with `--no-exit-code`; `npm run validate` and `npm run check:all` block on it.
+- **Verified by:** the "Dead code detection" step of `validate-release` in `release.yml` runs `npx knip` without `--no-exit-code`, so an unused file, export or dependency fails the release. The ignore list is `knip.jsonc`, each entry with its reason. Since 2026-10-08 `ci.yml` (`static-analysis`) blocks on it too (`npm run knip`), and `check:local` runs it; `npm run validate` and `npm run check:all` block on it.
 
 #### GATE-05 · Ubiquitous · Enforced
 
