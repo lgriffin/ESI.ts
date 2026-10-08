@@ -175,5 +175,5 @@ asserts. Read the assertion and put that number in the requirement.
 
 Changes to this skill are gated (R14). Bump `skill.version` in
 `eval/eval.yaml`, then run `npx ts-node scripts/quality/skill-eval.ts`; the offline
-judges must pass. On the PR, `skill-eval.yml` also runs the live eval cases
-against the manifest's thresholds and cost budget.
+judges must pass. On the PR, `skill-eval.yml` runs the same offline judges;
+there is no live, LLM-judged tier in CI.

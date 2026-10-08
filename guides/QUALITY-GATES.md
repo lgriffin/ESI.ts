@@ -283,7 +283,7 @@ The `zizmor` job in `ci.yml` runs `zizmor` (pinned version, via `uvx`) over `.gi
 
 ### `skill-eval.yml` — Skill Eval
 
-Gates changes to agent skills (`R14`). `deterministic` unit-tests the judges, fails if a skill's `SKILL.md` changed without a `skill.version` bump in its `eval/eval.yaml`, and runs `scripts/quality/skill-eval.ts` offline against each case's recorded outputs: one `shall` per Rule, scenarios under Rules, no `spyOn(client…)`, transport-seam mocking, step bindings, and the spec audit. `live` then runs the native `claude plugin eval` suite through the same script, which enforces the manifest's per-case score, LLM-grader `min_mean`, deterministic pass rate and `max_cost_usd` budget. `live` fails rather than skips when the `ANTHROPIC_API_KEY` secret is absent — including on fork PRs, where a maintainer re-runs it via `workflow_dispatch`. Not a required check yet.
+Gates changes to agent skills (`R14`). `deterministic` unit-tests the judges, fails if a skill's `SKILL.md` changed without a `skill.version` bump in its `eval/eval.yaml`, and runs `scripts/quality/skill-eval.ts` offline against each case's recorded outputs: one `shall` per Rule, scenarios under Rules, no `spyOn(client…)`, transport-seam mocking, step bindings, and the spec audit. There is no live, LLM-judged tier in CI (removed 2026-10-08): nothing calls a model and no API key is needed. The native `claude plugin eval` run with the manifest's score and cost thresholds is still available locally as `skill-eval.ts --live`. Not a required check yet.
 
 ### `ears.yml` — EARS Requirements
 
