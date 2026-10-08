@@ -7,14 +7,12 @@ export function extractLocale(
 ): string {
   if (field == null) return fallback;
   if (typeof field === 'string') return field;
-  if (typeof field === 'object' && !Array.isArray(field)) {
-    const map = field as Record<string, unknown>;
-    // eslint-disable-next-line security/detect-object-injection
-    const value = map[locale];
-    if (typeof value === 'string') return value;
-    return fallback;
-  }
-  return fallback;
+  if (Array.isArray(field)) return fallback;
+  // Any other value is read as a locale map; a number or boolean has no
+  // locale keys, so it falls through to the fallback.
+  // eslint-disable-next-line security/detect-object-injection
+  const value = (field as Record<string, unknown>)[locale];
+  return typeof value === 'string' ? value : fallback;
 }
 
 export function normalizeSdeFieldName(name: string): string {
@@ -46,8 +44,7 @@ export function transformRecord(
   const row: Record<string, SqliteValue> = {};
 
   if (spec.injectId) {
-    row[spec.idAttribute] =
-      typeof entityId === 'string' ? entityId : Number(entityId);
+    row[spec.idAttribute] = entityId;
   }
 
   for (const [key, value] of Object.entries(raw)) {
@@ -83,18 +80,11 @@ export function transformRecordNative(
   const row: Record<string, unknown> = {};
 
   if (spec.injectId) {
-    row[spec.idAttribute] =
-      typeof entityId === 'string' ? entityId : Number(entityId);
+    row[spec.idAttribute] = entityId;
   }
 
   for (const [key, value] of Object.entries(raw)) {
-    const normalizedKey = normalizeSdeFieldName(key);
-
-    if (isLocaleMap(value)) {
-      row[normalizedKey] = extractLocale(value);
-    } else {
-      row[normalizedKey] = normalizeNested(value);
-    }
+    row[normalizeSdeFieldName(key)] = normalizeNested(value);
   }
 
   return row;
