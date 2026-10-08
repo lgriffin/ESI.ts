@@ -4,8 +4,8 @@
  *
  * Computes every metric in `scripts/docs/doc-metrics-core.ts` from the
  * source, writes `etc/doc-metrics.json`, and rewrites each
- * `<!-- metric:name -->value<!-- /metric -->` in README.md, guides/*.md and
- * docs-site/index.md. Runs no test and makes no network call.
+ * `<!-- metric:name -->value<!-- /metric -->` in README.md, guides/*.md,
+ * guides/sde/*.md and docs-site/index.md. Runs no test and makes no network call.
  *
  * With `--check` it writes nothing and exits 1, naming each stale file and
  * metric, when a marked number or the JSON file differs from the source, or
@@ -131,17 +131,24 @@ export function gatherMetrics(): Metrics {
   });
 }
 
-/** The documents that may carry markers: README.md, guides/*.md, docs-site/index.md. */
+/** The documents that may carry markers: README.md, guides/*.md, guides/sde/*.md, docs-site/index.md. */
 function docFiles(): DocFile[] {
   const guides = fs
     .readdirSync(path.join(ROOT, 'guides'))
     .filter((f) => f.endsWith('.md'))
     .sort()
     .map((f) => `guides/${f}`);
-  return ['README.md', ...guides, 'docs-site/index.md'].map((p) => ({
-    path: p,
-    text: read(p),
-  }));
+  const sdeGuides = fs
+    .readdirSync(path.join(ROOT, 'guides/sde'))
+    .filter((f) => f.endsWith('.md'))
+    .sort()
+    .map((f) => `guides/sde/${f}`);
+  return ['README.md', ...guides, ...sdeGuides, 'docs-site/index.md'].map(
+    (p) => ({
+      path: p,
+      text: read(p),
+    }),
+  );
 }
 
 function committedJson(): string | null {

@@ -30,8 +30,8 @@ Reproduce with `npx jest --config config/jest/unit.config.cjs --coverage --colle
 | Specification (`npm run spec:audit:verbose`, `features/sde/`) | Count                                                                                                                                                                      |
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Feature files                                                 | <!-- metric:featureFilesSde -->23<!-- /metric -->, all on the step library (`tests/bdd/specs/sde/`, `tests/bdd/steps/`); none on legacy `defineFeature` files              |
-| `Rule:` requirements                                          | 137, one EARS `shall` each                                                                                                                                                 |
-| Scenarios                                                     | 192 `Scenario`, no `Scenario Outline`                                                                                                                                      |
+| `Rule:` requirements                                          | <!-- metric:requirementsSde -->138<!-- /metric -->, one EARS `shall` each                                                                                                  |
+| Scenarios                                                     | <!-- metric:scenariosSde -->193<!-- /metric --> `Scenario`, no `Scenario Outline`                                                                                          |
 | Audit result                                                  | 23 of 23 pass; `scripts/spec/spec-audit-exceptions.json` lists no SDE file                                                                                                 |
 | Method coverage (`npm run spec:coverage:sde:ci`)              | 96 of 96 `IStaticDataProvider` methods reached by a Rule or a bound step; `scripts/sde/sde-spec-coverage-baseline.json` is empty, so a method that loses its Rule fails CI |
 
@@ -39,34 +39,32 @@ The feature files run from `0001-static-data-lookup` to `0023-sde-ingestion`: th
 
 ## Where the scores stand
 
-Three mutation runs score the SDE, each with its own shard and its own floors, ratcheted the way the core's are (`guides/TESTING.md`, "Where the scores stand"): a complete nightly raises a floor to that night's score and never lowers one. The SDE floors below are still the provisional seeds Run 12 took from a local run on 2026-09-28, two points under what it measured, because no nightly has yet completed every job since (the run cited here failed on a core shard, so its raised thresholds were not committed); the scores are what the nightly measured. All three come from the [nightly of 2026-09-28](https://github.com/lgriffin/ESI.ts/actions/runs/36396694021) on `1a08e19c`, the first complete nightly after Run 12 moved the module into `ports/`, `domain/`, `providers/`, `ingestion/` and `testing/`.
+Three mutation runs score the SDE, each with its own shard and its own floors, ratcheted the way the core's are (`guides/TESTING.md`, "Where the scores stand"): a complete nightly raises a floor to that night's score and never lowers one, and a pull request cannot lower or remove one.
 
-| Directory           | Unit score ([job](https://github.com/lgriffin/ESI.ts/actions/runs/36396694021/job/108875331280)) | Killed / valid | Unit floor | BDD-only score ([job](https://github.com/lgriffin/ESI.ts/actions/runs/36396694021/job/108875331754)) | Killed / valid | BDD floor |
-| ------------------- | -----------------------------------------------------------------------------------------------: | -------------: | ---------: | ---------------------------------------------------------------------------------------------------: | -------------: | --------: |
-| `src/sde`           |                                                                                            93.8% |          15/16 |       85.6 |                                                                                                50.0% |           8/16 |      29.2 |
-| `src/sde/ingestion` |                                                                                            73.9% |        161/218 |       71.8 |                                                                                                59.0% |        135/229 |      56.0 |
-| `src/sde/providers` |                                                                                            89.6% |          86/96 |       87.5 |                                                                                                58.6% |          58/99 |      56.5 |
-| All of `src/sde`    |                                                                                            79.4% |        262/330 |          — |                                                                                                58.4% |        201/344 |         — |
+Track S Run M ([#458](https://github.com/lgriffin/ESI.ts/issues/458), 2026-10-07 and 08) took every SDE directory to 90 or above on both the unit and the BDD-only run, one directory per pull request. Each pull request gave every surviving mutant a verdict: a new test or scenario kills it, or it is equivalent and carries `// Stryker disable next-line <Mutator>: <reason>` in the source, or it is listed below with the reason no test should name it. The scores are local runs with the nightly's own configs (`config/mutation/stryker.config.mjs` and `stryker.bdd.config.mjs`, `--mutate` narrowed to the directory), except the unit `src/sde` row, which Run M did not need to touch and which comes from the [nightly of 2026-09-28](https://github.com/lgriffin/ESI.ts/actions/runs/36396694021).
 
-`src/sde` is the root files: `clock.ts`, `errors.ts` and `optionalPeers.ts`. `src/sde/domain` holds only type declarations and Zod schemas and yields no valid mutants; `src/sde/testing` is excluded from both runs like `src/testing`. A mutant that crashes the runner (a missing-file check removed, a transform recursing on itself) counts as a runtime error and in no score: 508 in the unit run, 491 in the BDD run. The unit run took 11 minutes, the BDD run 39, because the BDD dry run cannot narrow to related tests and runs every spec (`guides/TESTING.md`, "How it works" under Mutation testing).
+| Directory           | Unit score | Killed / valid | Unit floor | Pull request | BDD-only score | Killed / valid | BDD floor | Pull request |
+| ------------------- | ---------: | -------------: | ---------: | ------------ | -------------: | -------------: | --------: | ------------ |
+| `src/sde`           |      93.8% |          15/16 |       85.6 | (nightly)    |         100.0% |          15/15 |        93 | #611         |
+| `src/sde/ingestion` |     100.0% |        184/184 |         98 | #608         |          97.6% |        162/166 |        97 | #612         |
+| `src/sde/providers` |     100.0% |          92/92 |         98 | #607         |          90.5% |          86/95 |        90 | #610         |
 
-Per file, from the same two jobs:
+Before Run M the same directories scored 93.8 / 73.9 / 89.6 on the unit run and 50.0 / 59.0 / 58.6 BDD-only. The unit `src/sde` floor still holds its provisional seed, under its score, until a complete nightly raises it.
 
-| File                                    |   Unit | BDD-only | Where the survivors are                                                            |
-| --------------------------------------- | -----: | -------: | ---------------------------------------------------------------------------------- |
-| `providers/memory/MemorySdeProvider.ts` |  96.0% |   100.0% | One unit survivor                                                                  |
-| `providers/yaml/SdeDataProvider.ts`     |  83.3% |    52.6% | Nine unit survivors; 17 mutants no scenario reaches                                |
-| `providers/order.ts`                    | 100.0% |    17.6% | Ordering is specified by its unit tests; 14 of 17 mutants sit outside any scenario |
-| `ingestion/SdeDownloader.ts`            |  94.6% |    67.6% |                                                                                    |
-| `ingestion/transforms.ts`               |  80.0% |    64.3% |                                                                                    |
-| `ingestion/SdeDatabaseBuilder.ts`       |  66.0% |    56.7% | 25 unit survivors, the largest pool in the module                                  |
-| `ingestion/SdeExtractor.ts`             |  59.4% |    46.9% | 12 unit survivors                                                                  |
-| `ingestion/metadata.ts`                 | 100.0% |    57.1% |                                                                                    |
-| `clock.ts`                              | 100.0% |     0.0% | One mutant; no scenario reads the clock directly                                   |
-| `errors.ts`                             | 100.0% |   100.0% |                                                                                    |
-| `optionalPeers.ts`                      |  91.7% |    41.7% | The `MODULE_NOT_FOUND` guard; the two peer scenarios each hit one branch           |
+`src/sde` is the root files: `clock.ts`, `errors.ts` and `optionalPeers.ts`. `src/sde/domain` holds only type declarations and Zod schemas and yields no valid mutants; `src/sde/testing` is excluded from both runs like `src/testing`. A mutant that crashes the runner (a missing-file check removed, a transform recursing on itself) counts as a runtime error and in no score. A unit run takes 10 to 15 minutes a directory on four cores; a BDD-only run over all of `src/sde` takes about 50, because the BDD dry run cannot narrow to related tests and runs every spec (`guides/TESTING.md`, "How it works" under Mutation testing).
 
-Every directory sits above its floor in both runs. Run M in [ROADMAP.md](../ROADMAP.md#run-m--kill-sde-mutants-one-directory-per-night--repeat--test) takes the directories still under 90 one night at a time; `SdeExtractor` and `SdeDatabaseBuilder` are the two it goes to first. Where the BDD-only score is low the unit score is high, which is the intended shape: scenarios specify behaviour through the provider, unit tests pin the ordering, extraction and build internals a scenario has no reason to name.
+Run M changed one behaviour on the way: the database builder took its columns from the first 50 records of a file, so a field that first appeared later was dropped from the table. It now scans every record (#609, with a Rule in `0023-sde-ingestion`). Nothing else in the source changed except equivalent-mutant annotations; the scores rose because the tests and scenarios grew.
+
+The BDD-only survivors, each left on purpose because unit tests pin it and no scenario has a reason to name it:
+
+| File                                | Survivors | Why no scenario kills it                                                                                                                                      |
+| ----------------------------------- | --------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `providers/order.ts`                |         8 | `compareIds` on mixed number and string IDs (no SDE table mixes them), and the `<=` / `>=` / `0` forms that only differ for equal IDs, which keys never are   |
+| `providers/yaml/SdeDataProvider.ts` |         1 | The null skip when indexing a foreign key: no lookup asks for null                                                                                            |
+| `ingestion/SdeDatabaseBuilder.ts`   |         2 | The prepare-failure `catch`: a real database always has the table and the quoted columns; the unit suite covers it with a fake database                       |
+| `ingestion/transforms.ts`           |         2 | The array guard in `extractLocale` (an array has no `en` key) and the object test in `toSqliteValue` (only a function or symbol differs; YAML yields neither) |
+
+The unit runs have no survivors in `providers` or `ingestion`; `src/sde`'s one is in `optionalPeers.ts`.
 
 | Type mutation ([job](https://github.com/lgriffin/ESI.ts/actions/runs/36396694021/job/108875328069)) | Score | Killed / valid | Invalid | Candidates | Floor (`config/mutation/type-thresholds.json`) |
 | --------------------------------------------------------------------------------------------------- | ----: | -------------: | ------: | ---------: | ---------------------------------------------: |
@@ -90,7 +88,7 @@ Type mutation rewrites the built `dist/sde/*.d.ts` (a field made optional, a uni
 ## What is open
 
 - `./sde` type mutation sits 2.5 points under its floor on the nightly sample. The floor does not move; the fix is more `expectError` assertions where the survivors cluster (`reports/type-mutation/type-mutation.md` from the run names them).
-- Run M: `ingestion/SdeExtractor.ts` (59.4%) and `ingestion/SdeDatabaseBuilder.ts` (66.0%) hold 37 of the 59 unit survivors; `providers/order.ts` and `clock.ts` have no BDD scenario that reaches them, by design, and stay unit-specified.
+- The Run M floors come from local runs. The next complete nightly re-measures all six and raises any floor that sits under its score; a nightly score under a floor fails the ratchet and is the next piece of work.
 - Two behaviours recorded by the programme and left for the maintainer, not the tests: an empty search fragment matches everything up to the limit, and a search limit below 1 answers one record (`ROADMAP.md`, Track S).
 
-Every floor here is a one-way ratchet: the next complete nightly raises the provisional seeds to its scores, a pull request cannot lower one, and a directory without a floor fails the ratchet.
+Every floor here is a one-way ratchet: the next complete nightly raises a floor to its score, a pull request cannot lower one, and a directory without a floor fails the ratchet.

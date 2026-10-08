@@ -174,8 +174,33 @@ describe('counting', () => {
       featureFilesCore: 1,
       requirements: 2,
       scenarios: 3,
+      requirementsSde: 0,
+      scenariosSde: 0,
     });
     expect(Object.keys(m)).toEqual([...METRIC_NAMES]);
+  });
+
+  it('counts the SDE requirements and scenarios apart from the whole', () => {
+    const m = computeMetrics({
+      packageVersion: '1.0.0',
+      constantsSource: "COMPATIBILITY_DATE = '2026-01-01'",
+      files: [],
+      endpoints: [],
+      operations: 0,
+      clients: [],
+      features: [
+        { file: 'tests/bdd/features/core/status.feature', source: FEATURE },
+        { file: 'tests/bdd/features/sde/0001-lookup.feature', source: FEATURE },
+      ],
+      charter: '',
+    });
+    expect(m).toMatchObject({
+      featureFilesSde: 1,
+      requirements: 4,
+      scenarios: 6,
+      requirementsSde: 2,
+      scenariosSde: 3,
+    });
   });
 });
 

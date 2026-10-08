@@ -20,6 +20,8 @@
   "scenarios": 740,
   "plainScenarios": 731,
   "scenarioOutlines": 9,
+  "requirementsSde": 138,
+  "scenariosSde": 193,
   "testFiles": 341,
   "unitSuites": 214,
   "compositionSuites": 7,
