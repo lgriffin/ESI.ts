@@ -48,6 +48,8 @@ export const METRIC_NAMES = [
   'scenarios',
   'plainScenarios',
   'scenarioOutlines',
+  'requirementsSde',
+  'scenariosSde',
   'testFiles',
   'unitSuites',
   'compositionSuites',
@@ -302,6 +304,9 @@ export function computeMetrics(input: MetricInputs): Metrics {
       f.file.startsWith(`tests/bdd/features/${dir}/`),
     ).length;
   const features = countFeatures(input.features);
+  const sde = countFeatures(
+    input.features.filter((f) => f.file.startsWith('tests/bdd/features/sde/')),
+  );
   const metrics: Metrics = {
     version: input.packageVersion,
     compatibilityDate: compatibilityDateOf(input.constantsSource),
@@ -330,6 +335,8 @@ export function computeMetrics(input: MetricInputs): Metrics {
     scenarios: features.plainScenarios + features.scenarioOutlines,
     plainScenarios: features.plainScenarios,
     scenarioOutlines: features.scenarioOutlines,
+    requirementsSde: sde.requirements,
+    scenariosSde: sde.plainScenarios + sde.scenarioOutlines,
     ...countTestFiles(files),
     ...countCharter(input.charter),
   };
