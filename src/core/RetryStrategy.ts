@@ -1,20 +1,13 @@
-import { ApiClient } from './ApiClient';
 import { EsiError, EsiTokenRefreshError } from './util/error';
 import { CircuitOpenError } from './circuitBreaker/CircuitBreaker';
 import { RetryConfig, retryDelay } from './util/retry';
 import { sleep } from './util/sleep';
 import { logInfo, logWarn, logError } from './logger/clientLog';
-import { IRetryStrategy } from './IRetryStrategy';
+import type { IRetryStrategy, RetryContext } from './IRetryStrategy';
 
-export interface RetryContext {
-  client?: ApiClient | undefined;
-  endpoint: string;
-  method: string;
-  requiresAuth: boolean;
-  refreshToken?: (() => Promise<void>) | undefined;
-  /** @deprecated Unused — after refresh the strategy re-enters the main operation loop. */
-  retryOperation?: (() => Promise<unknown>) | undefined;
-}
+// RetryContext moved to IRetryStrategy.ts so the interface no longer imports
+// its implementation; re-exported here for existing importers.
+export type { RetryContext };
 
 export class RetryStrategy implements IRetryStrategy {
   private readonly maxRetries: number;

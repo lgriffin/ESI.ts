@@ -88,6 +88,9 @@ jobs:
       - name: Imports point inward (layer rule)
         run: npm run lint:layers
 
+      - name: No runtime import cycles in src
+        run: npm run lint:cycles
+
       - name: Check formatting
         run: npm run format:check
 

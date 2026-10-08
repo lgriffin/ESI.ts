@@ -1,4 +1,4 @@
-import { CircuitState } from './CircuitBreaker';
+export type CircuitState = 'closed' | 'open' | 'half-open';
 
 export interface ICircuitBreaker {
   checkCircuit(endpoint: string): void;

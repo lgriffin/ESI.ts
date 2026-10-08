@@ -169,6 +169,7 @@
     "lint:ratchet": "ts-node scripts/quality/warning-ratchet.ts",
     "lint:bdd-seam": "eslint --config config/eslint/bdd-seam.config.mjs tests/bdd",
     "lint:determinism": "ts-node scripts/quality/determinism-lint.ts",
+    "lint:cycles": "ts-node scripts/quality/import-cycles.ts",
     "lint:layers": "eslint --config config/eslint/layers.config.mjs --no-inline-config src",
     "lint:suite-health": "eslint --config config/eslint/suite-health.config.mjs tests",
     "lint:workflows": "ts-node scripts/quality/workflow-lint.ts",

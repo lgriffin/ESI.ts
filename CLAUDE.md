@@ -16,6 +16,7 @@ npm run lint           # ESLint (src/, tests/ and scripts/; test and script rela
 npm run lint:ratchet   # lint, plus warnings per file and rule held to config/eslint/warning-baseline.json (shrink-only; -- --update lowers it)
 npm run lint:bdd-seam  # BDD scenarios mock only at the transport seam (tests/bdd)
 npm run lint:determinism  # Time/timers/Math.random in src/ only via the clock module (shrink-only baseline)
+npm run lint:cycles    # No runtime import cycles in src/ (import type edges excluded)
 npm run lint:layers    # Imports in src/ point inward: core, ports, generated (shrink-only baseline)
 npm run lint:suite-health  # tests/: no .only/.skip/.todo, no assertion-free tests or Then steps, no swallowed assertions or unrestored console mocks
 npm run lint:package   # publint + attw on the npm pack tarball (known findings: scripts/package/package-lint-baseline.json)
