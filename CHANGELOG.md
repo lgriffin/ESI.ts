@@ -5,6 +5,71 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [11.2.0](https://github.com/lgriffin/ESI.ts/compare/v11.1.1...v11.2.0) (2026-10-08)
+
+
+### Added
+
+* **logger:** add createConsoleLogger and route every example through ILogger ([68b8f24](https://github.com/lgriffin/ESI.ts/commit/68b8f242d06fda37199576b678e11f30a0b15b3b))
+* **logger:** add createConsoleLogger, a readable console ILogger ([5176cf3](https://github.com/lgriffin/ESI.ts/commit/5176cf365b88116961675e40e4740a45621995e8))
+
+
+### Fixed
+
+* **ci:** match upstream breaks by diagnostic, per cell format ([dec77dc](https://github.com/lgriffin/ESI.ts/commit/dec77dcc98ed63358e56591f8f8ff8afa0b59db6))
+* **examples:** count a plain 500 as an outage and budget the downtime wait ([23d7a87](https://github.com/lgriffin/ESI.ts/commit/23d7a87eb5ef86010a8e9892c62753185d97b181))
+* **examples:** treat tranquility downtime as unavailable, not failed ([f25cf94](https://github.com/lgriffin/ESI.ts/commit/f25cf9455c202a635356c16cbbdf906a2ee783d7))
+* **examples:** treat tranquility downtime as unavailable, not failed ([76c65d7](https://github.com/lgriffin/ESI.ts/commit/76c65d7b9b55bf7cf4f7e8c1f28b281b980d7a80))
+* **mutation:** force when a verdict names no tests; count only mutated reruns ([7b45bcf](https://github.com/lgriffin/ESI.ts/commit/7b45bcf1a4b2717c41265157f7c2b63be8829ada))
+* **quality:** stop the audit and consumer nightlies filing upstream issues ([a08c358](https://github.com/lgriffin/ESI.ts/commit/a08c3583709e93eac4b15c6d71e6b61b57f2744e))
+* **quality:** stop the audit and consumer nightlies filing upstream issues ([109aef5](https://github.com/lgriffin/ESI.ts/commit/109aef50f787df911d9739b3c440258c8d352d01))
+* **sde:** give the SDE database a column for every field any record carries ([e920129](https://github.com/lgriffin/ESI.ts/commit/e92012954a57388648320ee64fb82c57ecbf0fe7))
+* **sde:** give the SDE database a column for every field any record carries ([7282ed1](https://github.com/lgriffin/ESI.ts/commit/7282ed1f303d2d6c324d272a019d6c64cadd706b)), closes [#458](https://github.com/lgriffin/ESI.ts/issues/458)
+* **sde:** quote every column name the SDE database builder writes ([c419198](https://github.com/lgriffin/ESI.ts/commit/c4191984a7d1b1a682989b36e6035b426af395f4)), closes [#458](https://github.com/lgriffin/ESI.ts/issues/458)
+
+
+### Changed
+
+* **audit:** accept a devOnly advisory only while production stays clear ([d1ed9a1](https://github.com/lgriffin/ESI.ts/commit/d1ed9a16c8cd3041cff8b84b7620cfbf28314882))
+* **deps:** Bump the major group with 3 updates ([7238ad6](https://github.com/lgriffin/ESI.ts/commit/7238ad6a6abb5980125b2f8c4a8cc44e3649f110))
+* **deps:** Bump the major group with 3 updates ([e3364da](https://github.com/lgriffin/ESI.ts/commit/e3364daa2a293fe243cc5ab2cafa4d172099a5be))
+* **deps:** Bump the minor group with 4 updates ([4de90a5](https://github.com/lgriffin/ESI.ts/commit/4de90a5646c58cf1f100d100c2e5e8adcc9fb3ab))
+* **deps:** Bump the minor group with 4 updates ([0c72b15](https://github.com/lgriffin/ESI.ts/commit/0c72b15c6e7710f4a4f11839f8cbcab4d620db0a))
+* **deps:** clear the nightly audit findings for fast-uri, markdown-it and braces ([c1748bb](https://github.com/lgriffin/ESI.ts/commit/c1748bb36dfeddc71f87fd5cb910518008274362))
+* **deps:** clear the nightly audit findings for fast-uri, markdown-it and braces ([baa6bff](https://github.com/lgriffin/ESI.ts/commit/baa6bff07a4d636fa2057b6c2006da613a04e27a)), closes [#577](https://github.com/lgriffin/ESI.ts/issues/577)
+* **examples:** log through createConsoleLogger instead of console ([f3b306f](https://github.com/lgriffin/ESI.ts/commit/f3b306f66e603dbef73d4fb3a29ae238d522233a))
+
+
+### Documentation
+
+* build log in every self-contained snippet that imports ([d3cb25c](https://github.com/lgriffin/ESI.ts/commit/d3cb25c8b67575c36cf2f9dad47423a291f562a0))
+* log through createConsoleLogger in the README and guides ([7643670](https://github.com/lgriffin/ESI.ts/commit/7643670ecf35966bd3a23bb133e7bf61ae9ba8f2))
+* log through createConsoleLogger in the README and guides ([8de1df8](https://github.com/lgriffin/ESI.ts/commit/8de1df803f7f3cc2944ab4112b456bfc83b6a9ea))
+* refresh documentation metrics for the new audit test ([452ad2f](https://github.com/lgriffin/ESI.ts/commit/452ad2fed320265c0a6fc4a1988b0486a1c23afa))
+* **sde:** describe the builder's prepare-failure test as it is ([653bf76](https://github.com/lgriffin/ESI.ts/commit/653bf76f33892a6c56acdb7c0daf46ddbac4749b)), closes [#458](https://github.com/lgriffin/ESI.ts/issues/458)
+* **sde:** re-measure the scorecard after Run M and mark Run M done ([5bbd673](https://github.com/lgriffin/ESI.ts/commit/5bbd6733892a51aaa5ba97186daf5788c37badd6)), closes [#458](https://github.com/lgriffin/ESI.ts/issues/458)
+* **sde:** Run M scores in the SDE scorecard, TESTING and README ([9ca37b3](https://github.com/lgriffin/ESI.ts/commit/9ca37b3b71c4dc62bce2c90d0ea47a7ce08051a8))
+* **sde:** Run M scores in the SDE scorecard, TESTING and README ([4b978ce](https://github.com/lgriffin/ESI.ts/commit/4b978ce5d5f289587a9a211e59cb849637d150d4)), closes [#458](https://github.com/lgriffin/ESI.ts/issues/458)
+* **testing:** count 32 BDD mutation shards ([f5366f9](https://github.com/lgriffin/ESI.ts/commit/f5366f9c321eaf97eb92765e220ec55d6e8d6e4f))
+
+
+### Testing
+
+* **contract:** compare additionalProperties map entries by shape, not key ([48dad6a](https://github.com/lgriffin/ESI.ts/commit/48dad6adce5321305636b0660bd8ca693a507f4d))
+* **contract:** compare additionalProperties map entries by shape, not key ([79ce8a1](https://github.com/lgriffin/ESI.ts/commit/79ce8a1303fce0e6d89f8e1931358686153c736b)), closes [#570](https://github.com/lgriffin/ESI.ts/issues/570)
+* **contract:** quote dotted map keys and keep per-key type checks ([ee71518](https://github.com/lgriffin/ESI.ts/commit/ee7151854b98cd834cbb07ed07c4af0538c4e09a))
+* **sde:** call the skipped type 36 a null entry, not an empty one ([31415f8](https://github.com/lgriffin/ESI.ts/commit/31415f81f4624549e2fa1bdc8325f12f9b861da9)), closes [#458](https://github.com/lgriffin/ESI.ts/issues/458)
+* **sde:** raise src/sde BDD mutation score to 100 ([f561323](https://github.com/lgriffin/ESI.ts/commit/f561323fe2e09a7686304ae5e2edc57db51696e3))
+* **sde:** raise src/sde BDD mutation score to 100 ([ff5466f](https://github.com/lgriffin/ESI.ts/commit/ff5466f9b24827f3ff5013272f4d7cf182a7b469)), closes [#458](https://github.com/lgriffin/ESI.ts/issues/458)
+* **sde:** raise src/sde/ingestion BDD mutation score to 97 ([0b038ba](https://github.com/lgriffin/ESI.ts/commit/0b038ba423bdcd8a3fb215c7d639066dc0e4a94a))
+* **sde:** raise src/sde/ingestion BDD mutation score to 97 ([323cc0c](https://github.com/lgriffin/ESI.ts/commit/323cc0cffaa142f28f2cf5c39163be019b190a68)), closes [#458](https://github.com/lgriffin/ESI.ts/issues/458)
+* **sde:** raise src/sde/ingestion mutation score to 100 ([3f4a142](https://github.com/lgriffin/ESI.ts/commit/3f4a142a8b3b1f97f29b96cce9d27da3fbc4f15f))
+* **sde:** raise src/sde/ingestion mutation score to 100 ([d5830f0](https://github.com/lgriffin/ESI.ts/commit/d5830f0b3bac260c0491f286c76b064daed07751)), closes [#458](https://github.com/lgriffin/ESI.ts/issues/458)
+* **sde:** raise src/sde/providers BDD mutation score to 90 ([321ab24](https://github.com/lgriffin/ESI.ts/commit/321ab244c7d6548c1e758827ed64a44fe01bdb57))
+* **sde:** raise src/sde/providers BDD mutation score to 90 ([e9dc22a](https://github.com/lgriffin/ESI.ts/commit/e9dc22a9e8b24b07b2ec9417827ed94afdb338f3)), closes [#458](https://github.com/lgriffin/ESI.ts/issues/458)
+* **sde:** raise src/sde/providers mutation score to 100 ([a14b77e](https://github.com/lgriffin/ESI.ts/commit/a14b77e4cfae885da79df781443fd48dd32628b1))
+* **sde:** raise src/sde/providers mutation score to 100 ([4b8c6e8](https://github.com/lgriffin/ESI.ts/commit/4b8c6e88b9078a8a5b50216b29157b2d27a55ba0)), closes [#458](https://github.com/lgriffin/ESI.ts/issues/458)
+
 ## [11.1.1](https://github.com/lgriffin/ESI.ts/compare/v11.1.0...v11.1.1) (2026-10-01)
 
 
