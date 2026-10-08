@@ -1,11 +1,12 @@
-import { ApiClient } from '../ApiClient';
+import type { ApiClient } from '../ApiClient';
 import { logWarn, logInfo } from '../logger/clientLog';
-import { ICircuitBreaker } from './ICircuitBreaker';
+import type { CircuitState, ICircuitBreaker } from './ICircuitBreaker';
 import { CircuitOpenError } from '../util/error';
 
 export { CircuitOpenError };
-
-export type CircuitState = 'closed' | 'open' | 'half-open';
+// CircuitState moved to ICircuitBreaker.ts so the interface no longer imports
+// its implementation; re-exported here for existing importers.
+export type { CircuitState };
 
 export interface CircuitBreakerConfig {
   failureThreshold?: number | undefined;
