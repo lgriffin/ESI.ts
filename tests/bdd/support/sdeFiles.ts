@@ -114,7 +114,7 @@ export const EXTENDED_SDE_FILES: Record<string, unknown> = {
 };
 
 /**
- * The raw export whose types file also holds an empty entry (36) and one
+ * The raw export whose types file also holds a null entry (36) and one
  * that is a bare number (37), neither of them a record.
  */
 export const NON_RECORD_SDE_FILES: Record<string, unknown> = {

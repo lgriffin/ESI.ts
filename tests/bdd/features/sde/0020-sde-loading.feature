@@ -95,13 +95,13 @@ Feature: Loading the Static Data Export
       When I look up types in group 18
       Then the result should contain exactly 2 records
 
-  Rule: If an entry of a loaded file is empty or is not a mapping, then the SdeDataProvider shall serve no record for that entry's ID.
-    An entry with no fields, or a bare value where a record belongs, carries
-    nothing a typed record could be built from. Loading passes over it and
-    keeps the entries around it.
+  Rule: If an entry of a loaded file is null or is not a mapping, then the SdeDataProvider shall serve no record for that entry's ID.
+    An entry written with no value (YAML null), or a bare value where a
+    record belongs, carries nothing a typed record could be built from.
+    Loading passes over it and keeps the entries around it.
 
-    Scenario: An empty entry and a bare number in the types file are passed over
-      Given an SDE directory whose types file also holds an empty entry and a number
+    Scenario: A null entry and a bare number in the types file are passed over
+      Given an SDE directory whose types file also holds a null entry and a number
       When I open the SDE from the directory
       And the user looks up type ID 37
       Then the provider shall return null
