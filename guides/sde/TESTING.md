@@ -57,12 +57,12 @@ Run M changed one behaviour on the way: the database builder took its columns fr
 
 The BDD-only survivors, each left on purpose because unit tests pin it and no scenario has a reason to name it:
 
-| File                                | Survivors | Why no scenario kills it                                                                                                                                      |
-| ----------------------------------- | --------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `providers/order.ts`                |         8 | `compareIds` on mixed number and string IDs (no SDE table mixes them), and the `<=` / `>=` / `0` forms that only differ for equal IDs, which keys never are   |
-| `providers/yaml/SdeDataProvider.ts` |         1 | The null skip when indexing a foreign key: no lookup asks for null                                                                                            |
-| `ingestion/SdeDatabaseBuilder.ts`   |         2 | The prepare-failure `catch`: a real database always has the table and the quoted columns; the unit suite covers it with a fake database                       |
-| `ingestion/transforms.ts`           |         2 | The array guard in `extractLocale` (an array has no `en` key) and the object test in `toSqliteValue` (only a function or symbol differs; YAML yields neither) |
+| File                                | Survivors | Why no scenario kills it                                                                                                                                                                        |
+| ----------------------------------- | --------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `providers/order.ts`                |         8 | `compareIds` on mixed number and string IDs (no SDE table mixes them), and the `<=` / `>=` / `0` forms that only differ for equal IDs, which keys never are                                     |
+| `providers/yaml/SdeDataProvider.ts` |         1 | The null skip when indexing a foreign key: no lookup asks for null                                                                                                                              |
+| `ingestion/SdeDatabaseBuilder.ts`   |         2 | The prepare-failure `catch`: it fires only when the output file already holds the table with other columns; a unit test rebuilds over such a file, and no scenario builds into a stale database |
+| `ingestion/transforms.ts`           |         2 | The array guard in `extractLocale` (an array has no `en` key) and the object test in `toSqliteValue` (only a function or symbol differs; YAML yields neither)                                   |
 
 The unit runs have no survivors in `providers` or `ingestion`; `src/sde`'s one is in `optionalPeers.ts`.
 
