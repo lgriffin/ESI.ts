@@ -95,6 +95,67 @@ Feature: Loading the Static Data Export
       When I look up types in group 18
       Then the result should contain exactly 2 records
 
+  Rule: If an entry of a loaded file is empty or is not a mapping, then the SdeDataProvider shall serve no record for that entry's ID.
+    An entry with no fields, or a bare value where a record belongs, carries
+    nothing a typed record could be built from. Loading passes over it and
+    keeps the entries around it.
+
+    Scenario: An empty entry and a bare number in the types file are passed over
+      Given an SDE directory whose types file also holds an empty entry and a number
+      When I open the SDE from the directory
+      And the user looks up type ID 37
+      Then the provider shall return null
+      When the user looks up type ID 36
+      Then the provider shall return null
+      When the user looks up type ID 34
+      Then the returned record shall be named "Tritanium"
+
+  Rule: When a table whose IDs are strings is loaded, the SdeDataProvider shall key its records by the ID string and serve the whole table in ascending order of ID.
+    Translation languages, character titles and military campaigns are keyed
+    by codes, not numbers. The codes stay strings, and a whole-table read
+    sorts them, whatever order the file listed them in.
+
+    Scenario: Languages listed ru, fr, zh, de, en are served in code order
+      Given an SDE directory holding the raw export files, market groups and translation languages
+      When I open the SDE from the directory
+      And I look up every entity in table "eve_translation_languages"
+      Then the returned records shall have "translationLanguageId" values "de, en, fr, ru, zh" in that order
+
+  # ── Searching and filtering ──────────────────────────────────────────
+
+  Rule: When the user searches a loaded table by name, the SdeDataProvider shall return, in ascending order of ID and no more than the limit, the records whose English name contains the search text in any letter case.
+    The search compares lower case with lower case, so a caller need not
+    know how CCP capitalised a name. The default limit is 25; the provider
+    stops at the limit rather than reading the rest of the table.
+
+    Scenario: An upper-case fragment finds Tritanium only
+      Given an SDE directory holding the raw export files
+      When I open the SDE from the directory
+      And the user searches for types matching "TRIT"
+      Then the returned records shall have "name" values "Tritanium" in that order
+
+    Scenario: A fragment both minerals share returns both under the default limit
+      Given an SDE directory holding the raw export files
+      When I open the SDE from the directory
+      And the user searches for types matching "rI"
+      Then the returned records shall have "name" values "Tritanium, Pyerite" in that order
+
+    Scenario: A limit of one returns the first match only
+      Given an SDE directory holding the raw export files
+      When I open the SDE from the directory
+      And the user searches for types matching "ri" with a limit of 1
+      Then the returned records shall have "name" values "Tritanium" in that order
+
+  Rule: When the user asks a loaded provider for the root market groups, the SdeDataProvider shall return the market groups that have no parent group.
+    The market browser starts from the groups with no parent; a group with
+    a parentGroupID sits under one of them and is not a root.
+
+    Scenario: Groups 2 and 4 are roots and group 9 under 4 is not
+      Given an SDE directory holding the raw export files, market groups and translation languages
+      When I open the SDE from the directory
+      And I look up root market groups
+      Then the returned records shall have "marketGroupId" values "2, 4" in that order
+
   # ── Opening an archive ───────────────────────────────────────────────
 
   Rule: When the SDE is opened from a ZIP archive, the SdeDataProvider shall serve the records and the version record that opening the directory the archive was made from serves.
@@ -148,3 +209,12 @@ Feature: Loading the Static Data Export
       And I close the provider
       And the user looks up type ID 34
       Then the provider shall return null
+
+    Scenario: A closed file-backed provider forgets the foreign-key lookups it answered
+      Given an SDE directory holding the raw export files
+      When I open the SDE from the directory
+      And I look up types in group 18
+      Then the result should contain exactly 2 records
+      When I close the provider
+      And I look up types in group 18
+      Then the provider shall return an empty list

@@ -91,6 +91,41 @@ export const UNREGISTERED_INVALID_YAML: Record<string, string> = {
   'futureTable.yaml': 'records: [unclosed\n',
 };
 
+/**
+ * The raw export plus a market group tree (roots 2 and 4, group 9 under 4)
+ * and a table keyed by strings, listed out of order (ru, fr, zh, de, en), so a
+ * root-group, search or whole-table read on the file-backed provider has
+ * something to tell apart.
+ */
+export const EXTENDED_SDE_FILES: Record<string, unknown> = {
+  ...RAW_SDE_FILES,
+  'marketGroups.yaml': {
+    2: { name: { en: 'Blueprints' }, hasTypes: false },
+    4: { name: { en: 'Ships' }, hasTypes: false },
+    9: { name: { en: 'Frigates' }, parentGroupID: 4, hasTypes: true },
+  },
+  'translationLanguages.yaml': {
+    ru: { name: 'Russian' },
+    fr: { name: 'French' },
+    zh: { name: 'Chinese' },
+    de: { name: 'German' },
+    en: { name: 'English' },
+  },
+};
+
+/**
+ * The raw export whose types file also holds an empty entry (36) and one
+ * that is a bare number (37), neither of them a record.
+ */
+export const NON_RECORD_SDE_FILES: Record<string, unknown> = {
+  ...RAW_SDE_FILES,
+  'types.yaml': {
+    ...(RAW_SDE_FILES['types.yaml'] as Record<number, unknown>),
+    36: null,
+    37: 5,
+  },
+};
+
 /** The YAML files a `listFiles` over `RAW_SDE_FILES` reports, in archive order. */
 export const RAW_YAML_FILES = Object.keys(RAW_SDE_FILES);
 
