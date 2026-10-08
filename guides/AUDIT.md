@@ -89,7 +89,7 @@ file sets no floor for that directory.
 | `src/core/requestPipeline` |                                          75.2 |                                             38.5 |
 | `src/core/util`            |                                          95.4 |                                             42.8 |
 | `src/schemas`              |                                             — |                                              0.0 |
-| `src/sde`                  |                                          85.6 |                                             29.2 |
+| `src/sde`                  |                                          85.6 |                                             93.0 |
 | `src/sde/ingestion`        |                                          98.0 |                                             56.0 |
 | `src/sde/providers`        |                                          98.0 |                                             56.5 |
 

@@ -258,7 +258,7 @@ export const INVALID_EVE_TYPE: Record<string, unknown> = {
  */
 export function validateEveType(
   data: Record<string, unknown>,
-  entityId: number,
+  entityId?: number,
 ): SdeValidationError | null {
   try {
     EveTypeSchema.parse(data);
