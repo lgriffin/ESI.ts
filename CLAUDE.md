@@ -132,7 +132,7 @@ Key middleware in the pipeline:
 - **nightly-mutation.yml** — runs nightly: unit mutation testing (Stryker) with a 4-hour timeout, the BDD-only run as one job per shard, and type mutation
 - **nightly-examples.yml** — runs nightly and on PRs touching examples: type-checks every example, runs the public ones against live ESI, opens/closes one issue per failing example
 - **nightly-sde.yml** — runs nightly: downloads CCP's current SDE export (cached per build), runs the real-data integration suite, `sde:drift` against the registry and schemas, the SDE examples, then the `sde/` benchmarks and the SDE heap soak; keeps one issue open while red
-- **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: skill eval suite with thresholds and a cost budget
+- **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: the deterministic skill eval judges on recorded outputs (no live, LLM-judged tier; `skill-eval.ts --live` is local only)
 - **spec-refresh.yml** — on push to `spec-refresh/**` or manual dispatch: re-vendors the ESI OpenAPI document at `COMPATIBILITY_DATE` and regenerates every generated file from it
 
 These are the ones an agent meets most. `.github/workflows/` holds 28 workflow files; `guides/QUALITY-GATES.md` lists every one and what it gates.
