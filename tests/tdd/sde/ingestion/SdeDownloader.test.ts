@@ -45,6 +45,24 @@ describe('SdeDownloader', () => {
       expect(info.buildNumber).toBe('2025-09-15.1');
     });
 
+    it('ignores whitespace-only lines, including a trailing one', async () => {
+      mockFetch(
+        async () =>
+          new Response('{"buildNumber":"42"}\n   \n', { status: 200 }),
+      );
+
+      const info = await downloader.getLatestBuild();
+      expect(info.buildNumber).toBe('42');
+    });
+
+    it('treats a body of whitespace-only lines as no data', async () => {
+      mockFetch(async () => new Response('  \n\t\n', { status: 200 }));
+
+      await expect(downloader.getLatestBuild()).rejects.toThrow(
+        'SDE build info response contained no data',
+      );
+    });
+
     it('should handle missing releaseDate', async () => {
       mockFetch(
         async () => new Response('{"buildNumber":"42"}\n', { status: 200 }),
@@ -134,6 +152,23 @@ describe('SdeDownloader', () => {
       await expect(
         downloader.download({ outputPath: '/tmp/sde.zip' }),
       ).rejects.toThrow(SdeError);
+    });
+
+    it('passes the caller signal to fetch', async () => {
+      const controller = new AbortController();
+      const seen: Array<RequestInit | undefined> = [];
+      mockFetch(async (_url, init) => {
+        seen.push(init);
+        throw new TypeError('stop here');
+      });
+
+      await expect(
+        downloader.download({
+          outputPath: '/tmp/sde.zip',
+          signal: controller.signal,
+        }),
+      ).rejects.toThrow(SdeError);
+      expect(seen[0]?.signal).toBe(controller.signal);
     });
 
     it('should throw SdeError on network failure', async () => {

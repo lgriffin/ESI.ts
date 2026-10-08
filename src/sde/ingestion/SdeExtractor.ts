@@ -14,20 +14,23 @@ export interface ParsedSdeFile {
   records: Map<string | number, Record<string, unknown>>;
 }
 
+/** The last path segment, whichever separator the archive used. */
+function baseName(name: string): string {
+  return name.slice(
+    Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1,
+  );
+}
+
+/**
+ * The entry whose file name matches, at any depth. A directory entry ends in a
+ * separator, so its base name is empty and never matches.
+ */
 function findEntry(
   zip: AdmZip,
   filename: string,
 ): AdmZip.IZipEntry | undefined {
-  const basename = filename.replace(/^.*[\\/]/, '');
-  return zip.getEntries().find((entry) => {
-    if (entry.isDirectory) return false;
-    const entryBasename = entry.entryName.replace(/^.*[\\/]/, '');
-    return (
-      entryBasename === basename ||
-      entry.entryName === filename ||
-      entry.entryName === `sde/${filename}`
-    );
-  });
+  const wanted = baseName(filename);
+  return zip.getEntries().find((entry) => baseName(entry.entryName) === wanted);
 }
 
 function openZip(zipPath: string): AdmZip {

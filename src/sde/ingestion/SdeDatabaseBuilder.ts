@@ -40,6 +40,14 @@ export interface SdeDatabaseBuilderOptions {
   clock?: Clock;
 }
 
+/**
+ * SDE keys become column names as they are, so any of them may start with a
+ * digit or be an SQL keyword; a quoted identifier is valid in every case.
+ */
+function quoteIdentifier(name: string): string {
+  return `"${name.replace(/"/g, '""')}"`;
+}
+
 export class SdeDatabaseBuilder {
   private readonly clock: Clock;
 
@@ -65,14 +73,12 @@ export class SdeDatabaseBuilder {
     try {
       db = new Database(options.outputPath);
       db.pragma('journal_mode = WAL');
-      db.pragma('foreign_keys = OFF');
+      // Stryker disable next-line CallExpression: durability during a one-off bulk load; the file reads the same either way.
       db.pragma('synchronous = OFF');
 
       this.createSchema(db, options.parsedFiles);
       this.insertData(db, options);
       this.writeMetadata(db, options);
-
-      db.pragma('foreign_keys = ON');
     } catch (err) {
       if (err instanceof SdeError) throw err;
       throw new SdeDatabaseError('Failed to build SDE database', err);
@@ -130,7 +136,7 @@ export class SdeDatabaseBuilder {
     const pkType = spec.idType === 'string' ? 'TEXT' : 'INTEGER';
 
     for (const [col, sqlType] of columnTypes) {
-      const qcol = /^\d/.test(col) ? `"${col}"` : col;
+      const qcol = quoteIdentifier(col);
       if (col === spec.idAttribute) {
         columns.push(`  ${qcol} ${pkType} PRIMARY KEY`);
       } else {
@@ -143,18 +149,12 @@ export class SdeDatabaseBuilder {
 
   private insertData(db: DatabaseLike, options: SdeBuildOptions): void {
     const fileMap = new Map(options.parsedFiles.map((f) => [f.filename, f]));
-    const registryMap = new Map(SDE_FILE_REGISTRY.map((s) => [s.yamlFile, s]));
 
     for (const spec of SDE_FILE_REGISTRY) {
       const parsed = fileMap.get(spec.yamlFile);
       if (!parsed || parsed.records.size === 0) continue;
 
       this.insertTable(db, spec, parsed, options.onProgress);
-    }
-
-    for (const parsed of options.parsedFiles) {
-      if (registryMap.has(parsed.filename)) continue;
-      // Files not in registry are skipped
     }
   }
 
@@ -168,7 +168,6 @@ export class SdeDatabaseBuilder {
     let inserted = 0;
 
     const entries = Array.from(parsed.records.entries());
-    if (entries.length === 0) return;
 
     const allColumns = new Set<string>();
     const sampleCount = Math.min(entries.length, 50);
@@ -180,7 +179,7 @@ export class SdeDatabaseBuilder {
       }
     }
     const columns = Array.from(allColumns);
-    const quotedColumns = columns.map((c) => (/^\d/.test(c) ? `"${c}"` : c));
+    const quotedColumns = columns.map(quoteIdentifier);
     const placeholders = columns.map(() => '?').join(', ');
     const sql = `INSERT OR REPLACE INTO ${spec.tableName} (${quotedColumns.join(', ')}) VALUES (${placeholders})`;
 

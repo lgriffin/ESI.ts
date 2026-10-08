@@ -37,6 +37,15 @@ describe('extractLocale', () => {
     expect(extractLocale([1, 2, 3])).toBe('');
   });
 
+  it('returns the fallback for a number or a boolean', () => {
+    expect(extractLocale(5, 'en', '-')).toBe('-');
+    expect(extractLocale(true, 'en', '-')).toBe('-');
+  });
+
+  it('does not read an array as a locale map, even by index', () => {
+    expect(extractLocale(['Tritanium'], '0')).toBe('');
+  });
+
   it('should extract a non-en locale', () => {
     expect(extractLocale({ en: 'Tritanium', de: 'Tritanium' }, 'de')).toBe(
       'Tritanium',
@@ -65,6 +74,11 @@ describe('normalizeSdeFieldName', () => {
 
   it('should not change already-camelCase id fields', () => {
     expect(normalizeSdeFieldName('typeId')).toBe('typeId');
+  });
+
+  it('leaves ID alone when a lower-case letter follows it', () => {
+    expect(normalizeSdeFieldName('typeIDs')).toBe('typeIDs');
+    expect(normalizeSdeFieldName('groupIDList')).toBe('groupIdList');
   });
 
   it('should handle marketGroupID', () => {
@@ -98,6 +112,10 @@ describe('toSqliteValue', () => {
     expect(toSqliteValue(undefined)).toBeNull();
   });
 
+  it('stores a function as null, not undefined', () => {
+    expect(toSqliteValue(() => 1)).toBeNull();
+  });
+
   it('should JSON.stringify objects', () => {
     expect(toSqliteValue({ a: 1 })).toBe('{"a":1}');
   });
@@ -118,12 +136,24 @@ describe('transformRecord', () => {
   });
 
   it('should not inject entity ID when injectId is false', () => {
-    const raw = { attributeId: 9, name: { en: 'hp' } };
+    const raw = { name: { en: 'hp' } };
     const result = transformRecord(9, raw, {
       idAttribute: 'attributeId',
       injectId: false,
     });
-    expect(result).not.toHaveProperty('attributeId_injected');
+    expect(result).toEqual({ name: 'hp' });
+  });
+
+  it('stores a null field as null', () => {
+    const result = transformRecord(
+      9,
+      { iconID: null },
+      {
+        idAttribute: 'attributeId',
+        injectId: false,
+      },
+    );
+    expect(result).toEqual({ iconId: null });
   });
 
   it('should extract locale from name fields', () => {

@@ -46,10 +46,8 @@ function createParsedFile(
   });
 
   afterEach(() => {
-    try {
-      fs.unlinkSync(dbPath);
-    } catch {
-      // ignore
+    for (const file of [dbPath, `${dbPath}-wal`, `${dbPath}-shm`]) {
+      fs.rmSync(file, { force: true });
     }
   });
 
@@ -247,13 +245,192 @@ function createParsedFile(
       onProgress: progress,
     });
 
-    const calls = progress.mock.calls as Array<[string, number, number]>;
-    const intervalCall = calls.find(([, inserted]) => inserted === 1000);
-    expect(intervalCall).toBeDefined();
-    expect(intervalCall![0]).toBe('eve_categories');
-    const finalCall = calls[calls.length - 1]!;
-    expect(finalCall[0]).toBe('eve_categories');
-    expect(finalCall[1]).toBe(1001);
+    expect(progress.mock.calls).toEqual([
+      ['eve_categories', 1000, 1001],
+      ['eve_categories', 1001, 1001],
+    ]);
+  });
+
+  describe('schema', () => {
+    type Column = { name: string; type: string; pk: number };
+
+    function build(parsedFiles: ParsedSdeFile[]): void {
+      builder.build({
+        outputPath: dbPath,
+        parsedFiles,
+        sdeVersion: '12345',
+        buildDate: '2026-01-15',
+      });
+    }
+
+    function columnsOf(table: string): Column[] {
+      const db = new Database(dbPath, { readonly: true });
+      const columns = db
+        .prepare(`PRAGMA table_info(${table})`)
+        .all() as Column[];
+      db.close();
+      return columns.map(({ name, type, pk }) => ({ name, type, pk }));
+    }
+
+    it('types each column from the first value seen: whole numbers INTEGER, fractions REAL, the rest TEXT', () => {
+      build([
+        createParsedFile('categories.yaml', {
+          4: { name: { en: 'Material' }, ratio: 0.5, iconID: 22 },
+          6: { name: { en: 'Ship' }, ratio: 'n/a', iconID: 'none' },
+        }),
+      ]);
+      expect(columnsOf('eve_categories')).toEqual([
+        { name: 'categoryId', type: 'INTEGER', pk: 1 },
+        { name: 'name', type: 'TEXT', pk: 0 },
+        { name: 'ratio', type: 'REAL', pk: 0 },
+        { name: 'iconId', type: 'INTEGER', pk: 0 },
+      ]);
+    });
+
+    it('takes the columns from the first 50 records only', () => {
+      const records: Record<number, Record<string, unknown>> = {};
+      for (let i = 1; i <= 50; i++) records[i] = { name: { en: `C${i}` } };
+      records[51] = { name: { en: 'C51' }, late: 1 };
+      build([createParsedFile('categories.yaml', records)]);
+      expect(columnsOf('eve_categories').map((c) => c.name)).toEqual([
+        'categoryId',
+        'name',
+      ]);
+    });
+
+    it('reads a column found in the 50th record', () => {
+      const records: Record<number, Record<string, unknown>> = {};
+      for (let i = 1; i <= 49; i++) records[i] = { name: { en: `C${i}` } };
+      records[50] = { name: { en: 'C50' }, late: 1 };
+      build([createParsedFile('categories.yaml', records)]);
+      expect(columnsOf('eve_categories').map((c) => c.name)).toEqual([
+        'categoryId',
+        'name',
+        'late',
+      ]);
+    });
+
+    it('gives a table keyed by string a TEXT primary key', () => {
+      build([
+        createParsedFile('characterTitles.yaml', {
+          abc: { characterTitleID: 'abc', name: { en: 'Pilot' } },
+        }),
+      ]);
+      expect(columnsOf('eve_character_titles')).toEqual([
+        { name: 'characterTitleId', type: 'TEXT', pk: 1 },
+        { name: 'name', type: 'TEXT', pk: 0 },
+      ]);
+    });
+
+    it('stores a column whose name starts with a digit or is an SQL keyword', () => {
+      build([
+        createParsedFile('categories.yaml', {
+          4: { name: { en: 'Material' }, '3dModel': 'a.gr2', order: 2 },
+        }),
+      ]);
+      const db = new Database(dbPath, { readonly: true });
+      const row = db
+        .prepare('SELECT "3dModel", "order" FROM eve_categories')
+        .get();
+      db.close();
+      expect(row).toEqual({ '3dModel': 'a.gr2', order: 2 });
+    });
+
+    it('creates no table for a file with no records', () => {
+      build([
+        createParsedFile('categories.yaml', {}),
+        createParsedFile('groups.yaml', { 18: { name: { en: 'Mineral' } } }),
+      ]);
+      expect(columnsOf('eve_categories')).toEqual([]);
+      expect(columnsOf('eve_groups').map((c) => c.name)).toEqual([
+        'groupId',
+        'name',
+      ]);
+    });
+
+    it('leaves the database in WAL mode and closed, with no write-ahead file left over', () => {
+      build([
+        createParsedFile('categories.yaml', { 4: { name: { en: 'M' } } }),
+      ]);
+      expect(fs.existsSync(`${dbPath}-wal`)).toBe(false);
+      const db = new Database(dbPath, { readonly: true });
+      expect(db.pragma('journal_mode')).toEqual([{ journal_mode: 'wal' }]);
+      db.close();
+    });
+  });
+
+  describe('failures', () => {
+    it('wraps a database that cannot be opened in SdeDatabaseError', () => {
+      const missing = path.join(
+        os.tmpdir(),
+        'sde-no-such-dir',
+        'x',
+        'db.sqlite',
+      );
+      expect(() =>
+        builder.build({
+          outputPath: missing,
+          parsedFiles: [],
+          sdeVersion: '1',
+          buildDate: '2026-01-15',
+        }),
+      ).toThrow(
+        expect.objectContaining({
+          name: 'SdeDatabaseError',
+          message: 'Failed to build SDE database',
+        }),
+      );
+    });
+
+    it('names the table when the insert cannot be prepared, as when the file already holds other columns', () => {
+      const first = [
+        createParsedFile('categories.yaml', { 4: { name: { en: 'M' } } }),
+      ];
+      builder.build({
+        outputPath: dbPath,
+        parsedFiles: first,
+        sdeVersion: '1',
+        buildDate: '2026-01-15',
+      });
+      expect(() =>
+        builder.build({
+          outputPath: dbPath,
+          parsedFiles: [
+            createParsedFile('categories.yaml', { 4: { iconID: 22 } }),
+          ],
+          sdeVersion: '1',
+          buildDate: '2026-01-15',
+        }),
+      ).toThrow(
+        expect.objectContaining({
+          name: 'SdeDatabaseError',
+          message: expect.stringMatching(
+            /^Failed to prepare insert for eve_categories: /,
+          ),
+        }),
+      );
+    });
+
+    it('names the table and the record when a row cannot be inserted', () => {
+      expect(() =>
+        builder.build({
+          outputPath: dbPath,
+          parsedFiles: [
+            createParsedFile('categories.yaml', {
+              4: { name: { en: 'M' } },
+              6: { categoryID: 'six', name: { en: 'S' } },
+            }),
+          ],
+          sdeVersion: '1',
+          buildDate: '2026-01-15',
+        }),
+      ).toThrow(
+        expect.objectContaining({
+          name: 'SdeDatabaseError',
+          message: 'Failed to insert into eve_categories (id=6)',
+        }),
+      );
+    });
   });
 });
 
