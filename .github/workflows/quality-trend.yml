@@ -1,0 +1,60 @@
+name: Quality trend
+
+# A weekly report, not a gate. npm run quality:trend measures the last N
+# weekly commits of master in temporary worktrees (complexity, `any`,
+# eslint-disable comments, the lint warning baseline) and ranks hotspots by
+# churn × complexity. Every number is recomputed from git, so nothing is
+# stored and no job needs a write scope. The report is the run's step summary
+# (with mermaid charts) and the `quality-trend` artifact (Markdown, CSV, JSON).
+
+on:
+  schedule:
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+    inputs:
+      weeks:
+        description: 'Weekly points to measure'
+        required: false
+        default: '12'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  trend:
+    name: Quality trend
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # Full history: the points are past commits and churn reads git log.
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Measure the trend
+        env:
+          WEEKS: ${{ inputs.weeks || '12' }}
+        run: npm run quality:trend -- --weeks "$WEEKS"
+
+      - name: Publish the report to the step summary
+        run: cat reports/quality/trend.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: quality-trend
+          path: reports/quality/
+          retention-days: 90

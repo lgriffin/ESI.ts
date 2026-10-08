@@ -21,6 +21,7 @@ npm run size           # size-limit budget per exports sub-path, ESM and CJS (.s
 npm run format:check   # Prettier check
 npm run validate       # lint + format + build + coverage + knip
 npm run check:all      # validate + ESI endpoint validation + spec lint + version check + EARS spec audit
+npm run quality:trend  # Weekly trend of complexity, any, eslint-disable and lint warnings, plus churn × complexity hotspots (reports/quality/; --weeks N)
 npm run check:local    # Every CI tier that runs offline, in one go (--fast: no build; --all: adds type mutation)
 ```
 
@@ -135,7 +136,7 @@ Key middleware in the pipeline:
 - **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: skill eval suite with thresholds and a cost budget
 - **spec-refresh.yml** — on push to `spec-refresh/**` or manual dispatch: re-vendors the ESI OpenAPI document at `COMPATIBILITY_DATE` and regenerates every generated file from it
 
-These are the ones an agent meets most. `.github/workflows/` holds 28 workflow files; `guides/QUALITY-GATES.md` lists every one and what it gates.
+These are the ones an agent meets most. `.github/workflows/` holds 29 workflow files; `guides/QUALITY-GATES.md` lists every one and what it gates.
 
 ## Semantic Versioning (enforced)
 
