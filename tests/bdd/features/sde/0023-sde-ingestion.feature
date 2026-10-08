@@ -120,6 +120,17 @@ Feature: SDE Ingestion
       And the database table "eve_types" row 34 shall have groupId 18
       And the database table "eve_types" row 34 shall have published 1
 
+  Rule: When a database is built, the SdeDatabaseBuilder shall give a table a column for every field any of its records carries.
+    CCP leaves optional fields out of a record rather than writing null, so
+    a field can first appear deep into a file. Taking the columns from a
+    sample of leading records dropped such a field from every row.
+
+    Scenario: A field only the 60th type carries is stored
+      Given an SDE directory whose types file holds 60 types, only the last with a basePrice of 5
+      And a ZIP archive of that SDE directory
+      When I build a SQLite database from the archive
+      Then the database table "eve_types" row 60 shall have basePrice 5
+
   # ── The transforms ───────────────────────────────────────────────────
 
   Rule: When a field name is normalised, the SDE field-name transform shall replace an ID that ends the name or precedes a capital letter with Id, and leave every other name unchanged.

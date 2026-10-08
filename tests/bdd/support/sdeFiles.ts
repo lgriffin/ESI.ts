@@ -91,6 +91,22 @@ export const UNREGISTERED_INVALID_YAML: Record<string, string> = {
   'futureTable.yaml': 'records: [unclosed\n',
 };
 
+/**
+ * `count` types named after their IDs 1 to `count`, where only the last one
+ * carries `basePrice`, so a column taken from leading records alone misses it.
+ */
+export function typesWithLateField(
+  count: number,
+  basePrice: number,
+): Record<string, unknown> {
+  const types: Record<number, Record<string, unknown>> = {};
+  for (let id = 1; id <= count; id++) {
+    types[id] = { name: { en: `Type ${id}` }, groupID: 18 };
+  }
+  types[count] = { ...types[count], basePrice };
+  return { '_sde.yaml': { sde: BUILD }, 'types.yaml': types };
+}
+
 /** The YAML files a `listFiles` over `RAW_SDE_FILES` reports, in archive order. */
 export const RAW_YAML_FILES = Object.keys(RAW_SDE_FILES);
 
