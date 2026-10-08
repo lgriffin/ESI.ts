@@ -193,9 +193,9 @@ export function workflowJobs(yaml: string): string[] {
       continue;
     }
     if (!inJobs) continue;
-    const id = /^  ([A-Za-z0-9_-]+):\s*(#.*)?$/.exec(line);
+    const id = /^ {2}([A-Za-z0-9_-]+):\s*(#.*)?$/.exec(line);
     if (id) jobs.push(id[1]!);
-    const name = /^    name:\s*(['"]?)(.+?)\1\s*(#.*)?$/.exec(line);
+    const name = /^ {4}name:\s*(['"]?)(.+?)\1\s*(#.*)?$/.exec(line);
     if (name) jobs.push(name[2]!);
   }
   return jobs;

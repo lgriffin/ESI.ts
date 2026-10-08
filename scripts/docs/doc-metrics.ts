@@ -64,6 +64,7 @@ function endpointDefs(files: readonly string[]): EndpointDef[] {
   for (const file of files.filter((f) =>
     /^src\/core\/endpoints\/\w+Endpoints\.ts$/.test(f),
   )) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- loads the TypeScript module through ts-node's require hook
     const mod = require(path.join(ROOT, file)) as Record<string, unknown>;
     for (const map of Object.values(mod)) {
       if (!map || typeof map !== 'object') continue;
@@ -91,6 +92,7 @@ function clientMethods(files: readonly string[]): ClientMethods[] {
       /^src\/clients\/\w+Client\.ts$/.test(f) &&
       !f.endsWith('/BaseEsiClient.ts'),
   )) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- loads the TypeScript module through ts-node's require hook
     const mod = require(path.join(ROOT, file)) as Record<string, unknown>;
     const classes = Object.entries(mod).filter(
       ([name, value]) =>
@@ -113,6 +115,7 @@ function clientMethods(files: readonly string[]): ClientMethods[] {
 export function gatherMetrics(): Metrics {
   const files = COUNTED_DIRS.flatMap(walk).sort();
   const pkg = JSON.parse(read('package.json')) as { version: string };
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- loads the TypeScript module through ts-node's require hook
   const generated = require(
     path.join(ROOT, 'src/generated/operations.generated.ts'),
   ) as Record<string, unknown>;

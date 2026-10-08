@@ -6,7 +6,7 @@
 # scripts/quality/skill-eval.ts:
 #
 #   npx ts-node scripts/quality/skill-eval.ts                  # offline, deterministic
-#   npx ts-node scripts/quality/skill-eval.ts --live           # needs ANTHROPIC_API_KEY
+#   npx ts-node scripts/quality/skill-eval.ts --live           # local only, needs ANTHROPIC_API_KEY
 #   npx ts-node scripts/quality/skill-eval.ts --check-version origin/master
 #
 # Bump skill.version whenever SKILL.md changes; CI fails otherwise.
@@ -14,7 +14,7 @@ schema_version: 1
 
 skill:
   name: ears-gherkin-dev
-  version: 1.0.2
+  version: 1.0.3
 
 native:
   eval_dir: eval

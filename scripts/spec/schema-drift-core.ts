@@ -626,7 +626,7 @@ export interface DriftBaseline {
   unmatched: Record<string, string>;
 }
 
-const BEAD_ID = /^esi-[a-z0-9]+(\.[0-9]+)*$/;
+const BEAD_ID = /^esi-[a-z\d]+(\.\d+)*$/;
 
 export function findingKey(finding: DriftFinding): string {
   return `${finding.endpoint} ${finding.field} ${finding.kind}`;

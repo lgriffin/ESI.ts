@@ -103,7 +103,7 @@ function extractEndpoints(spec: OpenApiSpec): ScaffoldEndpoint[] {
 
   for (const [routePath, methods] of Object.entries(spec.paths)) {
     for (const method of httpMethods) {
-      const op = methods[method] as OpenApiOperation | undefined;
+      const op = methods[method];
       if (!op) continue;
 
       const tag = op.tags?.[0] ?? 'Uncategorized';
@@ -209,7 +209,7 @@ function generateScaffoldFile(endpoints: ScaffoldEndpoint[], specVersion: string
     lines.push('');
     lines.push(`export const ${varName} = {`);
 
-    for (const ep of group.sort((a, b) => a.operationId.localeCompare(b.operationId))) {
+    for (const ep of [...group].sort((a, b) => a.operationId.localeCompare(b.operationId))) {
       // Generate a readable method name from operationId
       const methodName = snakeToCamel(ep.operationId.replace(/^(get|post|put|delete)_/i, ''));
 

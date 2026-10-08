@@ -144,7 +144,7 @@ async function serve(request: MockRequest) {
     throw new Error(`No queued HTTP response for ${description}`);
   }
 
-  const entry = queue[index];
+  const entry = queue[index]!;
   entry.remaining -= 1;
   if (entry.remaining === 0) queue.splice(index, 1);
 

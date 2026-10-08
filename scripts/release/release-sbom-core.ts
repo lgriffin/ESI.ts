@@ -249,12 +249,13 @@ export function sbomProblems(sbom: unknown, manifest: Manifest): string[] {
   ]);
   const byRef = new Map(components.map((c) => [String(c['bom-ref']), c]));
   for (const ref of dependsOn) {
-    const name = byRef.get(ref)?.name;
+    const rawName = byRef.get(ref)?.name;
+    const name = typeof rawName === 'string' ? rawName : undefined;
     if (name === undefined) {
       problems.push(`the package depends on ${ref}, which is not a component`);
-    } else if (!declared.has(String(name))) {
+    } else if (!declared.has(name)) {
       problems.push(
-        `the package depends on ${String(name)}, which package.json declares only for development`,
+        `the package depends on ${name}, which package.json declares only for development`,
       );
     }
   }

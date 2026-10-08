@@ -47,6 +47,11 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'typecheck:scripts',
+    covers: 'the repository scripts compile',
+    stage: 'quick',
+  },
+  {
     script: 'typecheck:isolated',
     covers: 'isolatedDeclarations holds for the exposed layers',
     stage: 'quick',
@@ -66,7 +71,12 @@ export const TIERS: Tier[] = [
     covers: 'every JSON-returning endpoint declares a responseSchema',
     stage: 'quick',
   },
-  { script: 'lint', covers: 'src lint', stage: 'quick' },
+  {
+    script: 'lint:ratchet',
+    covers:
+      'src, tests and scripts lint clean, warnings no higher than the baseline',
+    stage: 'quick',
+  },
   {
     script: 'lint:suite-health',
     covers: 'no skipped or assertion-free tests',
@@ -90,6 +100,11 @@ export const TIERS: Tier[] = [
   {
     script: 'lint:bdd-seam',
     covers: 'BDD mocks only at the transport seam',
+    stage: 'quick',
+  },
+  {
+    script: 'knip',
+    covers: 'no unused files, exports or dependencies in src',
     stage: 'quick',
   },
   {
@@ -211,10 +226,10 @@ export const TOOLS_RUN_BY: Record<string, string> = {
 /** Tools CI invokes directly that `check:local` deliberately does not run. */
 export const TOOLS_NOT_RUN_LOCALLY: Record<string, string> = {
   npm: 'ci.yml pins npm itself for one step - `npx --yes npm@11.17.0 pack` - because npm 10 runs `prepare` on `npm pack` even with --ignore-scripts and rebuilds dist/, which would defeat that job. A workaround for the npm the runner bundles, not a gate; esi-23g.43 tracks it',
-  knip: 'ci.yml runs it with --no-exit-code, so it gates no pull request; it blocks only at release (release.yml) and in `npm run validate` and `npm run check:all`, which are the local release checks',
 };
 
 export const NOT_RUN_LOCALLY: Record<string, string> = {
+  lint: '`lint:ratchet` runs the same ESLint pass and fails on its errors too',
   bdd: 'a subset of `test`, which runs the same Jest config unfiltered',
   'bdd:report': 'reporting only; `test` already executes every scenario',
   coverage:
@@ -224,6 +239,8 @@ export const NOT_RUN_LOCALLY: Record<string, string> = {
   'api-report': 'rewrites a committed generated file',
   'api-report:semver': 'needs the base branch to diff the report against',
   'audit:diff': 'queries the advisory database over the network',
+  'audit:signatures':
+    "fetches the registry's signing keys and attestations over the network",
   'bench:ab':
     'needs a second commit built on the same machine, and a quiet one',
   'bench:compare': 'reads a baseline the benchmark job produces',
@@ -306,6 +323,7 @@ export function scriptsInWorkflow(yaml: string): string[] {
 export function toolsInWorkflow(yaml: string): string[] {
   const found = new Set<string>();
   for (const match of yaml.matchAll(
+    // eslint-disable-next-line sonarjs/regex-complexity -- runner, its flags, then an optionally scoped package name
     /\b(?:npx|uvx|pipx|bunx)(?:\s+(?:--?[\w-]+|run))*\s+((?:@[\w./-]+\/)?[\w.-]+)/g,
   )) {
     const raw = match[1];

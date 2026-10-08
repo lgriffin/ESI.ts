@@ -97,6 +97,7 @@
     "build": "tsup && tsc --emitDeclarationOnly && node scripts/package/esm-declarations.cjs",
     "typecheck": "tsc --noEmit",
     "typecheck:examples": "tsc -p tsconfig.examples.json",
+    "typecheck:scripts": "tsc -p tsconfig.scripts.json",
     "typecheck:isolated": "ts-node scripts/package/isolated-declarations.ts",
     "examples:nightly": "ts-node scripts/docs/examples-nightly.ts",
     "help": "ts-node scripts/quality/npm-help.ts",
@@ -163,8 +164,9 @@
     "example:write-ops": "ts-node examples/write-operations.ts",
     "token:create": "ts-node scripts/auth/create-token.ts",
     "token:refresh": "ts-node scripts/auth/refresh-token.ts",
-    "lint": "eslint src tests",
-    "lint:fix": "eslint src tests --fix",
+    "lint": "eslint src tests scripts",
+    "lint:fix": "eslint src tests scripts --fix",
+    "lint:ratchet": "ts-node scripts/quality/warning-ratchet.ts",
     "lint:bdd-seam": "eslint --config config/eslint/bdd-seam.config.mjs tests/bdd",
     "lint:determinism": "ts-node scripts/quality/determinism-lint.ts",
     "lint:cycles": "ts-node scripts/quality/import-cycles.ts",
@@ -312,7 +314,8 @@
     "schema:drift": "ts-node scripts/spec/generate-schema-drift-report.ts",
     "schema:drift:ci": "ts-node scripts/spec/generate-schema-drift-report.ts --ci",
     "audit:check": "ts-node scripts/quality/audit-check.ts --check",
-    "audit:diff": "ts-node scripts/quality/audit-check.ts --diff"
+    "audit:diff": "ts-node scripts/quality/audit-check.ts --diff",
+    "audit:signatures": "npm audit signatures"
   },
   "lint-staged": {
     "src/**/*.ts": [
@@ -322,6 +325,9 @@
     "tests/**/*.ts": [
       "eslint --fix",
       "prettier --write"
+    ],
+    "scripts/**/*.ts": [
+      "eslint --fix"
     ],
     "*.{json,md,yml,yaml}": [
       "prettier --write"

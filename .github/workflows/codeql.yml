@@ -34,6 +34,11 @@ jobs:
         uses: github/codeql-action/init@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
         with:
           languages: ${{ matrix.language }}
+          # The default suite plus the lower-precision security queries: more
+          # taint sources and sinks for a library that builds request URLs and
+          # parses untrusted JSON. security-and-quality was not chosen because
+          # its maintainability queries duplicate sonarjs in ESLint.
+          queries: security-extended
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1

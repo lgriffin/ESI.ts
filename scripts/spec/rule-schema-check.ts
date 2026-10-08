@@ -48,6 +48,7 @@ const DEFAULT_PATHS = ['tests/bdd/features'];
 // @cucumber/gherkin and @cucumber/messages are ESM-only. Loading them with a
 // dynamic import that TypeScript cannot downlevel to require() keeps this
 // check working on every supported Node; spec-audit.ts explains the shim.
+// eslint-disable-next-line @typescript-eslint/no-implied-eval -- a constant body: the ESM-only import shim described above
 const dynamicImport = new Function('specifier', 'return import(specifier)') as (
   specifier: string,
 ) => Promise<unknown>;
