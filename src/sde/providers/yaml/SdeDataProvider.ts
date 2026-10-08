@@ -131,7 +131,7 @@ export class SdeDataProvider implements IStaticDataProvider {
         string | number,
         Record<string, unknown>
       > | null;
-      if (!parsed || typeof parsed !== 'object') continue;
+      if (!parsed) continue;
 
       provider.loadRecords(spec, parsed);
     }
@@ -204,6 +204,7 @@ export class SdeDataProvider implements IStaticDataProvider {
   ): T[] {
     const indexKey = `${tableName}:${fkField}`;
     let index = this.fkIndexes.get(indexKey);
+    // Stryker disable next-line ConditionalExpression: rebuilding the index on every call returns the same rows; the cache only saves time.
     if (!index) {
       index = new Map();
       const table = this.entities.get(tableName);
@@ -216,6 +217,7 @@ export class SdeDataProvider implements IStaticDataProvider {
           else index.set(val, [row]);
         }
       }
+      // Stryker disable next-line CallExpression: dropping the cache rebuilds the index next call; same rows, only slower.
       this.fkIndexes.set(indexKey, index);
     }
     return (index.get(fkValue) ?? []) as T[];

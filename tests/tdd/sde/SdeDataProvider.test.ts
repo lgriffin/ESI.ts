@@ -224,6 +224,32 @@ describe('SdeDataProvider', () => {
   });
 
   describe('fromDirectory', () => {
+    it('skips a YAML file whose document is null and keeps loading the other tables', () => {
+      const dir = createTempDir();
+      fs.writeFileSync(path.join(dir, 'groups.yaml'), '~\n', 'utf-8');
+      writeYaml(dir, 'types.yaml', {
+        34: { name: { en: 'Tritanium' }, groupID: 18 },
+      });
+      const p = SdeDataProvider.fromDirectory(dir);
+      expect(p.getAllEntities('eve_groups')).toEqual([]);
+      expect(p.getType(34)?.name).toBe('Tritanium');
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
+    it('skips entries whose value is null or not a mapping', () => {
+      const dir = createTempDir();
+      writeYaml(dir, 'types.yaml', {
+        34: { name: { en: 'Tritanium' }, groupID: 18 },
+        35: null,
+        36: 7,
+      });
+      const p = SdeDataProvider.fromDirectory(dir);
+      expect(
+        p.getAllEntities<{ typeId: number }>('eve_types').map((t) => t.typeId),
+      ).toEqual([34]);
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
     it('should throw SdeError for nonexistent directory', () => {
       expect(() => SdeDataProvider.fromDirectory('/nonexistent/path')).toThrow(
         SdeError,
@@ -633,11 +659,34 @@ describe('SdeDataProvider', () => {
       expect(provider.getMarketGroupsByParent(1031)).toHaveLength(1);
     });
 
+    it('never returns a row that lacks the foreign key, even for an undefined key', () => {
+      // A fresh provider, so this lookup builds the foreign-key index itself.
+      const dir = createSdeDirectory();
+      const fresh = SdeDataProvider.fromDirectory(dir);
+      expect(
+        fresh.getMarketGroupsByParent(undefined as unknown as number),
+      ).toEqual([]);
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
+    it('keeps string keys as strings for a table keyed by string', () => {
+      const dir = createTempDir();
+      writeYaml(dir, 'characterTitles.yaml', {
+        abc: { name: { en: 'Pilot' } },
+      });
+      const p = SdeDataProvider.fromDirectory(dir);
+      expect(p.getAllEntities('eve_character_titles')).toEqual([
+        { name: 'Pilot' },
+      ]);
+      expect(p.getEntity('eve_character_titles', 'abc')).toEqual({
+        name: 'Pilot',
+      });
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
     it('should get root market groups (no parent)', () => {
       const roots = provider.getRootMarketGroups();
-      expect(roots.length).toBeGreaterThanOrEqual(1);
-      const rootNames = roots.map((r) => r.name);
-      expect(rootNames).toContain('Materials & Research');
+      expect(roots.map((r) => r.name)).toEqual(['Materials & Research']);
     });
 
     it('should search market groups by name', () => {
@@ -793,8 +842,10 @@ describe('SdeDataProvider', () => {
       });
       const p = SdeDataProvider.fromDirectory(dir);
       expect(p.getType(34)).not.toBeNull();
+      expect(p.getTypesByGroup(18)).toHaveLength(1);
       p.close();
       expect(p.getType(34)).toBeNull();
+      expect(p.getTypesByGroup(18)).toEqual([]);
       expect(p.getAllEntities('eve_types')).toEqual([]);
       fs.rmSync(dir, { recursive: true, force: true });
     });

@@ -32,6 +32,25 @@ describe('MemorySdeProvider', () => {
     });
   });
 
+  describe('search limit', () => {
+    const provider = new MemorySdeProvider({
+      types: [34, 35, 36].map((typeId) =>
+        SdeTestDataFactory.createEveType({ typeId, name: `Ore ${typeId}` }),
+      ),
+    });
+    const ids = (limit: number) =>
+      provider.searchTypesByName('ore', limit).map((t) => t.typeId);
+
+    it('stops at the limit when more items match', () => {
+      expect(ids(2)).toEqual([34, 35]);
+    });
+
+    it('returns every match when the limit equals or exceeds the matches', () => {
+      expect(ids(3)).toEqual([34, 35, 36]);
+      expect(ids(4)).toEqual([34, 35, 36]);
+    });
+  });
+
   describe('empty state', () => {
     it('should return null for all single lookups when empty', () => {
       const provider = new MemorySdeProvider();
