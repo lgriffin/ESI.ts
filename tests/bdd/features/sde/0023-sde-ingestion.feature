@@ -21,6 +21,20 @@ Feature: SDE Ingestion
       Then the build number shall be "2026-09-15.1"
       And the release date shall be "2026-09-15"
 
+    Scenario: A line of spaces after the newest build is passed over
+      Given the latest-build feed lists build "2026-09-15.1" released "2026-09-15" then a line of spaces
+      When I ask the downloader for the latest build
+      Then the build number shall be "2026-09-15.1"
+
+  Rule: If the latest-build feed holds no line with text on it, then the SdeDownloader shall throw an SdeError saying the response held no data.
+    An empty feed names no build at all. Reading it as one would hand a
+    caller a build number of "undefined" to compare against.
+
+    Scenario: A feed of blank lines is an SDE error
+      Given the latest-build feed holds only blank lines
+      When I ask the downloader for the latest build
+      Then the call shall fail with an SDE error naming "SDE build info response contained no data"
+
   Rule: If the latest-build feed answers with an HTTP error status, then the SdeDownloader shall throw an SdeError naming the status.
     A feed outage must not read as "no new build"; the error names the
     status so an operator can tell a CCP outage from a bug.
@@ -49,6 +63,43 @@ Feature: SDE Ingestion
       Given the archive download answers with HTTP 404
       When I download the archive to a temporary file
       Then the call shall fail with an SDE error naming "HTTP 404"
+
+  Rule: If the archive download answers with no body, then the SdeDownloader shall throw an SdeError saying the response body is empty.
+    A success status with nothing to stream would otherwise leave an empty
+    file where the archive should be.
+
+    Scenario: A 204 from the download is an SDE error
+      Given the archive download answers with HTTP 204
+      When I download the archive to a temporary file
+      Then the call shall fail with an SDE error naming "response body is empty"
+
+  Rule: While the archive download carries no content length, the SdeDownloader shall make no progress report.
+    Progress is a share of a known total. Without one there is nothing to
+    report against, so the download goes ahead silently.
+
+    Scenario: A download with no content length reports no progress
+      Given the archive download serves 4096 bytes with no content length
+      When I download the archive to a temporary file
+      Then the downloaded file shall hold 4096 bytes
+      And no progress report shall have been made
+
+  Rule: If the caller aborts the archive download, then the SdeDownloader shall throw an SdeError naming the abort.
+    The archive is large, so a caller passes an AbortSignal to give up on a
+    slow download. The signal reaches the request itself.
+
+    Scenario: Aborting while the response is delayed fails the download
+      Given the archive download serves 4096 bytes after 1000 ms
+      When I download the archive and abort it after 20 ms
+      Then the call shall fail with an SDE error naming "This operation was aborted"
+
+  Rule: If the archive cannot be written to the output path, then the SdeDownloader shall throw an SdeError naming the write failure.
+    A missing or read-only directory is found only when the first byte is
+    written. The error says it was the write that failed, not the download.
+
+    Scenario: A download into a missing directory is an SDE error
+      Given the archive download serves 4096 bytes
+      When I download the archive into a directory that does not exist
+      Then the call shall fail with an SDE error naming "Failed to write SDE file"
 
   # ── The extractor ────────────────────────────────────────────────────
 
@@ -83,6 +134,12 @@ Feature: SDE Ingestion
       When I list the YAML files in the archive
       Then the listed files shall be "_sde.yaml, groups.yaml, types.yaml"
 
+    Scenario: A folder entry and a text file are left out of the listing
+      Given an SDE directory holding the raw export files
+      And a ZIP archive of that SDE directory inside a folder, with a text file beside it
+      When I list the YAML files in the archive
+      Then the listed files shall be "sde/_sde.yaml, sde/groups.yaml, sde/types.yaml"
+
   Rule: When named files are parsed from an archive, the SdeExtractor shall return one parsed file per name the archive holds, its records keyed by ID, and skip a name the archive lacks.
     A build may lack a table the registry knows; parsing skips it so the
     rest of the export still loads.
@@ -93,6 +150,25 @@ Feature: SDE Ingestion
       When I parse "types.yaml, blueprints.yaml, groups.yaml" from the archive
       Then the parsed files shall be "types.yaml, groups.yaml"
       And the parsed file "types.yaml" shall hold 2 records
+
+    Scenario: A file inside a folder of the archive is found by its name
+      Given an SDE directory holding the raw export files
+      And a ZIP archive of that SDE directory inside a folder, with a text file beside it
+      When I parse "types.yaml" from the archive
+      Then the parsed files shall be "types.yaml"
+      And the parsed file "types.yaml" shall hold 2 records
+
+  Rule: When an archive is extracted to a directory, the SdeExtractor shall write every entry of the archive there, replacing a file of the same name.
+    A consumer that keeps an extracted export refreshes it in place. An
+    older copy of a file must not survive the extraction of a newer one.
+
+    Scenario: An older types file is replaced by the archive's
+      Given an SDE directory holding the raw export files
+      And a ZIP archive of that SDE directory
+      And an extraction directory already holding "types.yaml" reading "stale"
+      When I extract the archive to that directory
+      Then the extracted "types.yaml" shall hold the bytes of the SDE directory's copy
+      And the extracted "groups.yaml" shall hold the bytes of the SDE directory's copy
 
   # ── The database builder ─────────────────────────────────────────────
 
@@ -130,6 +206,104 @@ Feature: SDE Ingestion
       And a ZIP archive of that SDE directory
       When I build a SQLite database from the archive
       Then the database table "eve_types" row 60 shall have basePrice 5
+
+  Rule: When a database is built, the SdeDatabaseBuilder shall type each column after the first value any record holds for it, as INTEGER, REAL or TEXT, and make the ID attribute the primary key.
+    SQLite only advises a column type, so the declared one is what a tool
+    reading the file goes by. A whole number first makes the column INTEGER
+    even when a later record holds a fraction; a column first seen as null
+    or as text is TEXT.
+
+    Scenario: The types table is typed from type 34's values
+      Given an SDE directory holding the schema export files
+      And a ZIP archive of that SDE directory
+      When I build a SQLite database from the archive
+      Then the database table "eve_types" shall have columns "typeId INTEGER PRIMARY KEY, name TEXT, groupId INTEGER, volume INTEGER, basePrice TEXT, traits TEXT"
+      And the database table "eve_types" row 35 shall have volume 0.01
+
+  Rule: When a table whose IDs are strings is built, the SdeDatabaseBuilder shall store its IDs in a TEXT primary key.
+    Translation languages, character titles and military campaigns are keyed
+    by codes. An INTEGER key would refuse every one of them.
+
+    Scenario: Translation languages are keyed by their codes
+      Given an SDE directory holding the schema export files
+      And a ZIP archive of that SDE directory
+      When I build a SQLite database from the archive
+      Then the database table "eve_translation_languages" shall have columns "translationLanguageId TEXT PRIMARY KEY, name TEXT"
+      And the database table "eve_translation_languages" shall hold 2 rows
+
+  Rule: When a file whose records keep their own IDs is built, the SdeDatabaseBuilder shall add no column for the record's key.
+    The registry marks a few files as not injecting the key: their records
+    are stored with the fields CCP wrote and nothing more.
+
+    Scenario: Character titles are stored without their key
+      Given an SDE directory holding the schema export files
+      And a ZIP archive of that SDE directory
+      When I build a SQLite database from the archive
+      Then the database table "eve_character_titles" shall have columns "name TEXT"
+
+  Rule: When a record is written to the database, the SdeDatabaseBuilder shall store a null field as NULL and a nested field as its JSON text.
+    SQLite has no map or list type. A nested value is kept whole as JSON a
+    reader can parse, with CCP's own keys; a null stays a null, not the
+    text "null".
+
+    Scenario: Type 34's null base price and nested traits are stored
+      Given an SDE directory holding the schema export files
+      And a ZIP archive of that SDE directory
+      When I build a SQLite database from the archive
+      Then the database table "eve_types" row 34 shall have a null basePrice
+      And the database table "eve_types" row 34 shall hold traits as the JSON '{"iconID":7,"roleBonuses":[{"bonus":5}]}'
+
+  Rule: If a parsed file holds no records, then the SdeDatabaseBuilder shall create no table for it.
+    An empty file says nothing about the columns a table would need, and a
+    table with none is not valid SQL.
+
+    Scenario: An empty market groups file leaves no market groups table
+      Given an SDE directory holding the schema export files
+      And a ZIP archive of that SDE directory
+      When I build a SQLite database from the archive
+      Then the database shall have no table "eve_market_groups"
+
+  Rule: When a database is built, the SdeDatabaseBuilder shall leave the file in WAL journal mode with no write-ahead file beside it.
+    WAL lets tools read the file while another process holds it open.
+    Closing the database at the end folds the write-ahead file back in, so
+    the one file holds every row and can be copied on its own.
+
+    Scenario: The built file is in WAL mode and stands alone
+      Given an SDE directory holding the raw export files
+      And a ZIP archive of that SDE directory
+      When I build a SQLite database from the archive
+      Then the database shall be in WAL journal mode with no write-ahead file beside it
+
+  Rule: While a table is being written, the SdeDatabaseBuilder shall report progress after every 1000 records and once more when the table is done.
+    A full export writes hundreds of thousands of rows. The reports give the
+    rows written so far and the table's total.
+
+    Scenario: 1001 types are reported at 1000 and at 1001
+      Given an SDE directory whose types file holds 1001 types
+      And a ZIP archive of that SDE directory
+      When I build a SQLite database from the archive
+      Then the progress reports for "eve_types" shall be "1000 of 1001, 1001 of 1001"
+
+  Rule: If a record cannot be stored, then the SdeDatabaseBuilder shall throw an SdeDatabaseError naming the table and the record's ID.
+    A record that breaks its table's types fails the whole build. The error
+    names where the bad record is, so it can be found in a file of
+    thousands.
+
+    Scenario: A type whose typeID is not a number fails the build
+      Given an SDE directory whose type 34 carries a typeID that is not a number
+      And a ZIP archive of that SDE directory
+      When I build a SQLite database from the archive
+      Then the call shall fail with an SDE database error naming "Failed to insert into eve_types (id=34)"
+
+  Rule: If the database file cannot be created, then the SdeDatabaseBuilder shall throw an SdeDatabaseError saying the build failed.
+    SQLite's own error is kept as the cause. The message says it was the
+    database build, not the download or the parse, that failed.
+
+    Scenario: A build into a missing directory fails
+      Given an SDE directory holding the raw export files
+      And a ZIP archive of that SDE directory
+      When I build a SQLite database from the archive into a directory that does not exist
+      Then the call shall fail with an SDE database error naming "Failed to build SDE database"
 
   # ── The transforms ───────────────────────────────────────────────────
 
@@ -177,6 +351,16 @@ Feature: SDE Ingestion
       When the metadata text with build "2020-01-01.1" at the top level is parsed
       Then the build number shall be "2020-01-01.1"
 
+  Rule: When a build field of _sde.yaml is a number, the SDE metadata parser shall read it as its digits, and a field of any other type than text or a number as empty text.
+    YAML reads an unquoted build such as 3141592 as a number. The version
+    record is text either way; a value that is neither, such as a stray
+    boolean, gives nothing rather than "true".
+
+    Scenario: A numeric build is read as digits and a boolean date as empty
+      When the metadata text with build number 3141592 and a release date of true is parsed
+      Then the build number shall be "3141592"
+      And the release date shall be ""
+
   Rule: When a raw record is transformed for a registry file that injects its ID, the SDE record transform shall set the ID attribute from the record's key, rename ID-suffixed fields, and extract English text.
     Both the provider and the SQLite build reshape records through this
     transform; the SQLite one additionally flattens booleans to integers.
@@ -192,3 +376,27 @@ Feature: SDE Ingestion
       Then the returned record shall carry type 34
       And the returned record shall be named "Tritanium"
       And the returned record shall carry published 1
+
+  Rule: When a raw record is transformed for the provider, the SDE record transform shall reshape a nested field at every depth and keep a null field as null.
+    The provider serves nested values as objects, not JSON text, so the
+    renaming and the English text reach inside them: an iconID two levels
+    down reads iconId like a top-level one.
+
+    Scenario: Type 34's nested traits and null base price are reshaped
+      When record 34 of the schema export's types.yaml file is transformed for the provider
+      Then the returned record shall have traits equal to the JSON '{"iconId":7,"roleBonuses":[{"bonus":5}]}'
+      And the returned record shall have basePrice equal to the JSON 'null'
+
+  Rule: When a raw record of a registry file whose records keep their own IDs is transformed, the SDE record transform shall add no ID attribute.
+    The registry marks a few files as not injecting the key. Their records
+    carry the fields CCP wrote and no ID field built from the key.
+
+    Scenario: A character title is reshaped for the provider without its key
+      When record captain of the schema export's characterTitles.yaml file is transformed for the provider
+      Then the returned record shall be named "Captain"
+      And the returned record shall have no field "characterTitleId"
+
+    Scenario: A character title is reshaped for the SQLite build without its key
+      When record captain of the schema export's characterTitles.yaml file is transformed for the SQLite build
+      Then the returned record shall be named "Captain"
+      And the returned record shall have no field "characterTitleId"
