@@ -165,6 +165,34 @@ export function ratchetProblems(
   return problems;
 }
 
+/** Every ESLint error as one problem; errors fail outright, as in npm run lint. */
+export function errorProblems(errors: string[]): string[] {
+  if (errors.length === 0) return [];
+  const lines = errors.map((e) => `  ${e}`).join('\n');
+  return [`${errors.length} ESLint errors:\n${lines}`];
+}
+
+/**
+ * What `--update` still fails on after writing the lowered baseline: ESLint
+ * errors, and warnings above their entry, which an update never adds.
+ */
+export function updateProblems(
+  current: SiteCounts,
+  lowered: WarningBaseline,
+  outcome: WarningOutcome,
+): string[] {
+  // A resolved ref with no base baseline skips the base-branch comparison,
+  // which the pull request run still makes.
+  const result = applyRatchet(current, lowered, {
+    ref: 'update',
+    baseline: null,
+  });
+  return [
+    ...errorProblems(outcome.errors),
+    ...ratchetProblems(result, outcome.warnings),
+  ];
+}
+
 /** Problems that mean the check itself did not run properly, or lint failed outright. */
 export function integrityProblems(outcome: WarningOutcome): string[] {
   const problems: string[] = [];

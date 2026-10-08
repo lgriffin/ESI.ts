@@ -18,6 +18,7 @@ import {
   ratchetProblems,
   serializeBaseline,
   totalsByRule,
+  updateProblems,
 } from '../../../scripts/quality/warning-ratchet-core';
 
 const ROOT = '/repo';
@@ -145,6 +146,43 @@ describe('the ratchet', () => {
   it('never raises an entry on update', () => {
     const lowered = lowerBaseline(counts, { sites: { 'src/a.ts': { r1: 1 } } });
     expect(lowered).toEqual({ sites: { 'src/a.ts': { r1: 1 } } });
+  });
+
+  describe('--update', () => {
+    const outcome = (errors: string[] = []) => ({
+      warnings: [{ file: 'src/a.ts', construct: 'r1', line: 2, column: 1 }],
+      errors,
+      fatal: [],
+      filesLinted: 2,
+    });
+
+    it('passes when it only lowered entries', () => {
+      const lowered = lowerBaseline(counts, {
+        sites: { ...counts, 'src/c.ts': { r3: 1 } },
+      });
+      expect(updateProblems(counts, lowered, outcome())).toEqual([]);
+    });
+
+    it('still fails a warning it could not add to the baseline', () => {
+      const lowered = lowerBaseline(counts, {
+        sites: { 'src/a.ts': { r1: 1 }, 'tests/b.ts': { r2: 1 } },
+      });
+      const problems = updateProblems(counts, lowered, outcome());
+      expect(problems).toHaveLength(1);
+      expect(problems[0]).toContain('src/a.ts r1: 2 (baseline 1)');
+    });
+
+    it('still fails an ESLint error', () => {
+      const lowered = lowerBaseline(counts, { sites: counts });
+      const problems = updateProblems(
+        counts,
+        lowered,
+        outcome(['src/a.ts:1:1 no-undef x is not defined']),
+      );
+      expect(problems).toEqual([
+        '1 ESLint errors:\n  src/a.ts:1:1 no-undef x is not defined',
+      ]);
+    });
   });
 });
 

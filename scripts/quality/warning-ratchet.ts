@@ -23,12 +23,14 @@ import {
   collectWarnings,
   countWarnings,
   emptyBaseline,
+  errorProblems,
   integrityProblems,
   lowerBaseline,
   parseBaseline,
   ratchetProblems,
   serializeBaseline,
   totalsByRule,
+  updateProblems,
 } from './warning-ratchet-core';
 
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -42,9 +44,9 @@ function loadBaseline(): WarningBaseline | null {
 }
 
 /**
- * The baseline on the integration branch. WARNING_BASE_REF comes first, then
- * origin/master and master; CI fetches origin/master explicitly because a
- * pull request checkout is shallow.
+ * The baseline on the integration branch. WARNING_BASE_REF comes first (CI
+ * sets it to the pull request's fetched target branch, since the checkout is
+ * shallow), then origin/master and master for local runs.
  */
 function loadBaseBaseline(): BaseBaseline {
   const refs = [process.env.WARNING_BASE_REF, 'origin/master', 'master'].filter(
@@ -93,21 +95,23 @@ async function main(): Promise<number> {
   const baseline = loadBaseline();
 
   if (process.argv.includes('--update')) {
-    writeFileSync(
-      BASELINE_PATH,
-      serializeBaseline(lowerBaseline(current, baseline)),
-    );
+    const lowered = lowerBaseline(current, baseline);
+    writeFileSync(BASELINE_PATH, serializeBaseline(lowered));
     console.log(`Baseline written to ${BASELINE_REL}.`);
+    const left = updateProblems(current, lowered, outcome);
+    if (left.length > 0) {
+      console.error(`\n${left.join('\n\n')}`);
+      return 1;
+    }
     return 0;
   }
 
   const base = loadBaseBaseline();
   const result = applyRatchet(current, baseline ?? emptyBaseline(), base);
-  const problems = ratchetProblems(result, outcome.warnings);
-  if (outcome.errors.length > 0) {
-    const errors = outcome.errors.map((e) => `  ${e}`).join('\n');
-    problems.unshift(`${outcome.errors.length} ESLint errors:\n${errors}`);
-  }
+  const problems = [
+    ...errorProblems(outcome.errors),
+    ...ratchetProblems(result, outcome.warnings),
+  ];
 
   const top = totalsByRule(current)
     .slice(0, 5)
