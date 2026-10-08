@@ -32,7 +32,7 @@ interface DriftReport {
   extra: { method: string; path: string; name: string; file: string }[];
 }
 
-function parseCompatibilityDate(): string | 'latest' {
+function parseCompatibilityDate(): string {
   for (const arg of process.argv.slice(2)) {
     if (arg === '--latest') return 'latest';
     const match = arg.match(/^--compatibility-date=(\d{4}-\d{2}-\d{2})$/);
@@ -42,7 +42,7 @@ function parseCompatibilityDate(): string | 'latest' {
 }
 
 async function resolveCompatibilityDate(
-  requested: string | 'latest',
+  requested: string, // a YYYY-MM-DD date or 'latest'
 ): Promise<string> {
   if (requested !== 'latest') return requested;
   const response = await fetch(ESI_COMPATIBILITY_DATES_URL);
@@ -73,8 +73,12 @@ function parseEndpointFiles(): {
   name: string;
   file: string;
 }[] {
-  const entries: { path: string; method: string; name: string; file: string }[] =
-    [];
+  const entries: {
+    path: string;
+    method: string;
+    name: string;
+    file: string;
+  }[] = [];
   const files = fs
     .readdirSync(ENDPOINTS_DIR)
     .filter((f) => f.endsWith('Endpoints.ts'));
@@ -115,7 +119,7 @@ async function checkDrift(): Promise<DriftReport> {
   for (const [routePath, methods] of Object.entries(spec.paths)) {
     for (const method of ['get', 'post', 'put', 'delete']) {
       if (methods[method]) {
-        const op = methods[method] as { tags?: string[] };
+        const op = methods[method];
         specEntries.push({
           method: method.toUpperCase(),
           path: routePath,
@@ -163,4 +167,7 @@ async function main(): Promise<void> {
   }
 }
 
-main();
+main().catch((err: unknown) => {
+  console.error(err);
+  process.exit(2);
+});

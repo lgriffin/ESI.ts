@@ -1,0 +1,527 @@
+{
+  "sites": {
+    "scripts/auth/create-token.ts": {
+      "@typescript-eslint/restrict-template-expressions": 2,
+      "sonarjs/cognitive-complexity": 3,
+      "sonarjs/prefer-regexp-exec": 1
+    },
+    "scripts/auth/refresh-token.ts": {
+      "@typescript-eslint/no-unsafe-assignment": 1,
+      "@typescript-eslint/no-unsafe-member-access": 3,
+      "sonarjs/cognitive-complexity": 1
+    },
+    "scripts/bench/bench-compare-core.ts": {
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/no-nested-conditional": 1,
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "scripts/bench/bench-trend.ts": {
+      "sonarjs/no-nested-conditional": 1
+    },
+    "scripts/docs/doc-examples-core.ts": {
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/no-nested-conditional": 1,
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "scripts/docs/doc-examples.ts": {
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "scripts/docs/examples-core.ts": {
+      "sonarjs/no-nested-conditional": 1
+    },
+    "scripts/docs/examples-showcase-core.ts": {
+      "sonarjs/no-nested-template-literals": 2
+    },
+    "scripts/docs/generate-okf.ts": {
+      "@typescript-eslint/restrict-template-expressions": 1,
+      "sonarjs/cognitive-complexity": 2,
+      "sonarjs/no-nested-template-literals": 1,
+      "sonarjs/prefer-regexp-exec": 1
+    },
+    "scripts/mutation/mutation-fixture.ts": {
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "scripts/mutation/mutation-merge-core.ts": {
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "scripts/mutation/mutation-pr-gate.ts": {
+      "sonarjs/different-types-comparison": 1
+    },
+    "scripts/mutation/mutation-pr.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 1,
+      "sonarjs/no-nested-template-literals": 3
+    },
+    "scripts/mutation/mutation-ratchet-core.ts": {
+      "@typescript-eslint/no-unused-vars": 3,
+      "sonarjs/cognitive-complexity": 2,
+      "sonarjs/different-types-comparison": 3,
+      "sonarjs/no-dead-store": 3,
+      "sonarjs/no-nested-template-literals": 3
+    },
+    "scripts/mutation/type-mutation-core.ts": {
+      "sonarjs/cognitive-complexity": 2,
+      "sonarjs/no-nested-conditional": 2,
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "scripts/package/export-coverage-core.ts": {
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/different-types-comparison": 1
+    },
+    "scripts/package/package-lint-core.ts": {
+      "sonarjs/no-nested-conditional": 1
+    },
+    "scripts/package/validate-versions.ts": {
+      "sonarjs/prefer-regexp-exec": 1
+    },
+    "scripts/quality/bdd-report-core.ts": {
+      "sonarjs/cognitive-complexity": 1
+    },
+    "scripts/quality/charter-audit-core.ts": {
+      "sonarjs/cognitive-complexity": 3,
+      "sonarjs/no-nested-template-literals": 2
+    },
+    "scripts/quality/consumer-contract-core.ts": {
+      "sonarjs/no-nested-conditional": 1,
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "scripts/quality/consumer-contract.ts": {
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/no-nested-conditional": 2
+    },
+    "scripts/quality/determinism-lint-core.ts": {
+      "sonarjs/different-types-comparison": 2,
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "scripts/quality/ears-core.ts": {
+      "sonarjs/cognitive-complexity": 2,
+      "sonarjs/no-nested-conditional": 1
+    },
+    "scripts/quality/live-health.ts": {
+      "sonarjs/no-nested-conditional": 2,
+      "sonarjs/no-nested-template-literals": 2
+    },
+    "scripts/quality/skill-eval-judges.ts": {
+      "sonarjs/cognitive-complexity": 1
+    },
+    "scripts/quality/verify-local-core.ts": {
+      "sonarjs/no-nested-conditional": 1,
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "scripts/quality/verify-local.ts": {
+      "@typescript-eslint/no-unsafe-member-access": 1
+    },
+    "scripts/quality/workflow-lint.ts": {
+      "sonarjs/no-nested-conditional": 1
+    },
+    "scripts/release/release-canary-core.ts": {
+      "sonarjs/no-nested-conditional": 3
+    },
+    "scripts/release/release-sbom-core.ts": {
+      "sonarjs/cognitive-complexity": 1
+    },
+    "scripts/sde/sde-drift-core.ts": {
+      "sonarjs/cognitive-complexity": 1
+    },
+    "scripts/sde/sde-spec-coverage-core.ts": {
+      "sonarjs/cognitive-complexity": 1
+    },
+    "scripts/spec/check-spec-drift.ts": {
+      "@typescript-eslint/restrict-template-expressions": 1,
+      "sonarjs/prefer-regexp-exec": 1
+    },
+    "scripts/spec/client-spec-coverage-core.ts": {
+      "sonarjs/cognitive-complexity": 2
+    },
+    "scripts/spec/generate-endpoint-scaffold.ts": {
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "scripts/spec/generate-esi-types.ts": {
+      "@typescript-eslint/restrict-template-expressions": 1,
+      "sonarjs/cognitive-complexity": 2,
+      "sonarjs/prefer-regexp-exec": 3
+    },
+    "scripts/spec/method-coverage-core.ts": {
+      "sonarjs/different-types-comparison": 1
+    },
+    "scripts/spec/rule-schema-check.ts": {
+      "sonarjs/cognitive-complexity": 1
+    },
+    "scripts/spec/rule-schema-checks.ts": {
+      "sonarjs/no-nested-conditional": 1
+    },
+    "scripts/spec/schema-drift-core.ts": {
+      "sonarjs/cognitive-complexity": 2,
+      "sonarjs/different-types-comparison": 2,
+      "sonarjs/no-nested-conditional": 1
+    },
+    "scripts/spec/snapshot-openapi.ts": {
+      "@typescript-eslint/no-explicit-any": 1,
+      "@typescript-eslint/no-unsafe-argument": 4,
+      "@typescript-eslint/no-unsafe-assignment": 1,
+      "@typescript-eslint/no-unsafe-member-access": 3
+    },
+    "scripts/spec/spec-audit-checks.ts": {
+      "sonarjs/prefer-regexp-exec": 1
+    },
+    "scripts/spec/spec-audit-steps.ts": {
+      "sonarjs/cognitive-complexity": 1
+    },
+    "scripts/spec/spec-audit.ts": {
+      "sonarjs/cognitive-complexity": 1
+    },
+    "scripts/spec/spec-coverage-core.ts": {
+      "@typescript-eslint/no-unsafe-argument": 2,
+      "@typescript-eslint/no-unsafe-assignment": 3,
+      "@typescript-eslint/no-unsafe-call": 1,
+      "@typescript-eslint/no-unsafe-member-access": 6,
+      "@typescript-eslint/no-unsafe-return": 1
+    },
+    "scripts/spec/spec-generate-core.ts": {
+      "@typescript-eslint/no-explicit-any": 1,
+      "@typescript-eslint/no-unsafe-argument": 16,
+      "@typescript-eslint/no-unsafe-assignment": 10,
+      "@typescript-eslint/no-unsafe-call": 1,
+      "@typescript-eslint/no-unsafe-member-access": 12,
+      "@typescript-eslint/no-unsafe-return": 1,
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/no-nested-conditional": 5,
+      "sonarjs/no-nested-template-literals": 7
+    },
+    "scripts/spec/spec-response-schemas-core.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 1
+    },
+    "scripts/spec/spec-scope-tree.ts": {
+      "sonarjs/no-nested-conditional": 2,
+      "sonarjs/no-nested-template-literals": 2
+    },
+    "scripts/spec/validate-auth-scopes.ts": {
+      "@typescript-eslint/no-unsafe-assignment": 1,
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/prefer-regexp-exec": 4
+    },
+    "scripts/spec/validate-esi-endpoints.ts": {
+      "@typescript-eslint/restrict-template-expressions": 2,
+      "sonarjs/cognitive-complexity": 3,
+      "sonarjs/no-nested-template-literals": 1,
+      "sonarjs/prefer-regexp-exec": 2
+    },
+    "src/EsiClient.ts": {
+      "@typescript-eslint/no-unused-vars": 4
+    },
+    "src/adapters/PipelineTransport.ts": {
+      "security/detect-object-injection": 1
+    },
+    "src/auth/EsiTokenManager.ts": {
+      "security/detect-object-injection": 1
+    },
+    "src/auth/storage/FileTokenStorage.ts": {
+      "security/detect-non-literal-fs-filename": 4
+    },
+    "src/clients/AssetsClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 2
+    },
+    "src/clients/BaseEsiClient.ts": {
+      "@typescript-eslint/no-unused-vars": 1,
+      "security/detect-object-injection": 2
+    },
+    "src/clients/CharacterClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 2
+    },
+    "src/clients/ClientRegistry.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "src/clients/ContactsClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 1
+    },
+    "src/clients/DogmaClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 5
+    },
+    "src/clients/FittingsClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 1
+    },
+    "src/clients/FleetClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 2
+    },
+    "src/clients/IncursionsClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 1
+    },
+    "src/clients/InsuranceClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 1
+    },
+    "src/clients/LocationClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 3
+    },
+    "src/clients/MailClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 2
+    },
+    "src/clients/SearchClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 1
+    },
+    "src/clients/SovereigntyClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 2
+    },
+    "src/clients/StatusClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 1
+    },
+    "src/clients/UniverseClient.ts": {
+      "@typescript-eslint/no-unnecessary-type-assertion": 31
+    },
+    "src/core/BatchRequestHandler.ts": {
+      "security/detect-object-injection": 1
+    },
+    "src/core/RetryStrategy.ts": {
+      "sonarjs/cognitive-complexity": 1
+    },
+    "src/core/endpoints/corporationEndpoints.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "src/core/endpoints/mailEndpoints.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "src/core/logger/ConsoleLogger.ts": {
+      "security/detect-object-injection": 1
+    },
+    "src/core/logger/DefaultLogger.ts": {
+      "security/detect-object-injection": 7
+    },
+    "src/core/logger/clientLog.ts": {
+      "security/detect-object-injection": 1
+    },
+    "src/core/logger/loggerUtil.ts": {
+      "security/detect-object-injection": 1
+    },
+    "src/core/logger/redactLog.ts": {
+      "security/detect-object-injection": 5
+    },
+    "src/core/rateLimiter/RateLimiter.ts": {
+      "security/detect-object-injection": 2
+    },
+    "src/core/requestPipeline/cachePolicy.ts": {
+      "security/detect-object-injection": 1
+    },
+    "src/core/requestPipeline/fetchExecution.ts": {
+      "sonarjs/cognitive-complexity": 1
+    },
+    "src/core/util/concurrency.ts": {
+      "security/detect-object-injection": 3
+    },
+    "src/core/util/error.ts": {
+      "security/detect-non-literal-regexp": 1
+    },
+    "src/sde/ingestion/SdeDatabaseBuilder.ts": {
+      "security/detect-object-injection": 1,
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/no-nested-conditional": 1
+    },
+    "src/sde/ingestion/SdeDownloader.ts": {
+      "@typescript-eslint/no-unsafe-assignment": 2,
+      "@typescript-eslint/no-unsafe-member-access": 3,
+      "security/detect-non-literal-fs-filename": 1
+    },
+    "src/sde/ingestion/transforms.ts": {
+      "security/detect-object-injection": 2
+    },
+    "src/sde/providers/memory/MemorySdeProvider.ts": {
+      "security/detect-object-injection": 2
+    },
+    "src/sde/providers/yaml/SdeDataProvider.ts": {
+      "security/detect-non-literal-fs-filename": 6,
+      "security/detect-object-injection": 3
+    },
+    "src/testing/mockTransport.ts": {
+      "security/detect-non-literal-regexp": 1,
+      "security/detect-object-injection": 2
+    },
+    "tests/bdd/step-definitions/core/token-management.steps.ts": {
+      "sonarjs/deprecation": 1
+    },
+    "tests/bdd/steps/then/the-returned-record-shall-list-dogma-attributes-materials-role-bonus-es.ts": {
+      "sonarjs/no-nested-conditional": 1
+    },
+    "tests/bdd/steps/when/the-client-gathers-complete-alliance-information.ts": {
+      "sonarjs/deprecation": 1
+    },
+    "tests/bdd/steps/when/the-client-requests-contact-list-for-the-alliance.ts": {
+      "sonarjs/deprecation": 1
+    },
+    "tests/bdd/steps/when/the-client-requests-contact-list.ts": {
+      "sonarjs/deprecation": 1
+    },
+    "tests/bdd/support/transport.ts": {
+      "sonarjs/no-nested-template-literals": 2
+    },
+    "tests/contract/helpers.ts": {
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/prefer-regexp-exec": 10
+    },
+    "tests/contract/record.ts": {
+      "no-console": 4,
+      "sonarjs/cognitive-complexity": 2,
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "tests/contract/recorded/catalogue.ts": {
+      "sonarjs/different-types-comparison": 1,
+      "sonarjs/no-nested-conditional": 1
+    },
+    "tests/contract/recorded/fixture.ts": {
+      "sonarjs/cognitive-complexity": 1
+    },
+    "tests/contract/recorded/replay.ts": {
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/no-nested-conditional": 1,
+      "sonarjs/no-nested-template-literals": 3
+    },
+    "tests/contract/replay/coverage.test.ts": {
+      "sonarjs/different-types-comparison": 1
+    },
+    "tests/contract/shape-diff.ts": {
+      "no-console": 2
+    },
+    "tests/faults/catalogue.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "tests/faults/payload-fuzz.nightly.test.ts": {
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/no-nested-conditional": 1
+    },
+    "tests/faults/runner.ts": {
+      "sonarjs/no-nested-conditional": 1,
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "tests/faults/validate.ts": {
+      "sonarjs/cognitive-complexity": 2
+    },
+    "tests/fuzz/cache-key.property.test.ts": {
+      "sonarjs/different-types-comparison": 2
+    },
+    "tests/fuzz/circuit-breaker-model.property.test.ts": {
+      "sonarjs/different-types-comparison": 1
+    },
+    "tests/fuzz/etag-cache-model.property.test.ts": {
+      "sonarjs/cognitive-complexity": 1,
+      "sonarjs/no-nested-template-literals": 4
+    },
+    "tests/integration/esi-spec-contract.test.ts": {
+      "sonarjs/cognitive-complexity": 2
+    },
+    "tests/integration/full-stack.test.ts": {
+      "sonarjs/deprecation": 1
+    },
+    "tests/integration/gated-auth.test.ts": {
+      "sonarjs/prefer-regexp-exec": 1
+    },
+    "tests/tdd/alliances/AllianceClient.test.ts": {
+      "sonarjs/deprecation": 2
+    },
+    "tests/tdd/auth/EsiTokenManager.test.ts": {
+      "sonarjs/deprecation": 2
+    },
+    "tests/tdd/benchmark/bench-compare.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "tests/tdd/composition/dedupeRejection.test.ts": {
+      "sonarjs/no-nested-conditional": 1
+    },
+    "tests/tdd/composition/errorLimit.test.ts": {
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "tests/tdd/composition/etagOrdering.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "tests/tdd/composition/staleRefresh.test.ts": {
+      "sonarjs/no-nested-template-literals": 1
+    },
+    "tests/tdd/composition/support/interleave.ts": {
+      "sonarjs/different-types-comparison": 1,
+      "sonarjs/no-nested-template-literals": 4
+    },
+    "tests/tdd/composition/writeInvalidation.test.ts": {
+      "sonarjs/no-nested-conditional": 1,
+      "sonarjs/no-nested-template-literals": 2
+    },
+    "tests/tdd/core/AsyncPaginationIterator.test.ts": {
+      "sonarjs/prefer-regexp-exec": 1
+    },
+    "tests/tdd/core/CursorPaginationHandler.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1,
+      "sonarjs/no-dead-store": 1
+    },
+    "tests/tdd/core/ETagCacheManager.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "tests/tdd/core/ETagIntegration.test.ts": {
+      "@typescript-eslint/no-unused-vars": 3,
+      "sonarjs/no-dead-store": 3
+    },
+    "tests/tdd/core/EsiClientBuilder.test.ts": {
+      "sonarjs/deprecation": 10
+    },
+    "tests/tdd/core/circuitBreaker.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1,
+      "sonarjs/parameterized-tests": 1
+    },
+    "tests/tdd/core/configValidation.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1,
+      "sonarjs/deprecation": 9,
+      "sonarjs/parameterized-tests": 1
+    },
+    "tests/tdd/core/coverageBranches.test.ts": {
+      "sonarjs/deprecation": 5
+    },
+    "tests/tdd/core/esiScopes.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1,
+      "sonarjs/no-dead-store": 1,
+      "sonarjs/parameterized-tests": 1
+    },
+    "tests/tdd/core/requestPipeline/cachePolicy.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "tests/tdd/core/utilFunctions.test.ts": {
+      "sonarjs/parameterized-tests": 1
+    },
+    "tests/tdd/helpers/InMemoryFetch.ts": {
+      "sonarjs/no-nested-conditional": 1
+    },
+    "tests/tdd/mercenary/MercenaryClient.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "tests/tdd/schemas/common-schemas.test.ts": {
+      "sonarjs/parameterized-tests": 1
+    },
+    "tests/tdd/schemas/schemaRejection.test.ts": {
+      "sonarjs/deprecation": 2
+    },
+    "tests/tdd/schemas/specOptionalFields.test.ts": {
+      "sonarjs/different-types-comparison": 1
+    },
+    "tests/tdd/sde/SdeTestDataFactory.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1,
+      "sonarjs/no-dead-store": 1
+    },
+    "tests/tdd/sde/ingestion/SdeDatabaseBuilder.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1,
+      "sonarjs/no-dead-store": 1
+    },
+    "tests/tdd/sde/schemas.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "tests/tdd/skyhooks/SkyhooksClient.test.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "tests/types/global.d.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    },
+    "tests/typetests/domain-responses.test-d.ts": {
+      "@typescript-eslint/no-unused-vars": 2,
+      "sonarjs/deprecation": 4
+    },
+    "tests/typetests/endpoint-args.test-d.ts": {
+      "@typescript-eslint/no-unused-vars": 2
+    },
+    "tests/typetests/result-type.test-d.ts": {
+      "@typescript-eslint/no-unused-vars": 1
+    }
+  }
+}

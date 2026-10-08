@@ -252,7 +252,7 @@ function extractEndpoints(spec: OpenApiSpec): EndpointConcept[] {
 
   for (const [routePath, methods] of Object.entries(spec.paths)) {
     for (const method of httpMethods) {
-      const op = methods[method] as OpenApiOperation | undefined;
+      const op = methods[method];
       if (!op) continue;
 
       const operationId = op.operationId ?? `${method}_${routePath.replace(/\//g, '_')}`;
@@ -457,7 +457,7 @@ function generateBundleIndex(
     '',
   ];
 
-  for (const tag of tags.sort()) {
+  for (const tag of [...tags].sort()) {
     lines.push(`* [${titleCase(tag)}](domains/${kebab(tag)}/index.md) - ${titleCase(tag)} API endpoints`);
   }
 
@@ -501,7 +501,7 @@ function generateDomainIndex(
     '',
   ];
 
-  const sorted = endpoints.sort((a, b) => a.slug.localeCompare(b.slug));
+  const sorted = [...endpoints].sort((a, b) => a.slug.localeCompare(b.slug));
   for (const ep of sorted) {
     const authBadge = ep.requiresAuth ? ' (auth)' : '';
     lines.push(`* [${ep.title}](${ep.slug}.md) - \`${ep.method} /${ep.path}\`${authBadge}`);
@@ -519,7 +519,7 @@ function generateDomainsIndex(tags: string[]): string {
     '',
   ];
 
-  for (const tag of tags.sort()) {
+  for (const tag of [...tags].sort()) {
     lines.push(`* [${titleCase(tag)}](${kebab(tag)}/index.md)`);
   }
 
@@ -677,7 +677,7 @@ function generateSchemasIndex(schemas: SchemaConcept[]): string {
 
   for (const [tag, group] of Array.from(byTag.entries()).sort((a, b) => a[0].localeCompare(b[0]))) {
     lines.push(`## ${titleCase(tag)}`, '');
-    for (const s of group.sort((a, b) => a.slug.localeCompare(b.slug))) {
+    for (const s of [...group].sort((a, b) => a.slug.localeCompare(b.slug))) {
       lines.push(`* [${s.title}](${s.slug}.md) - ${s.description}`);
     }
     lines.push('');
@@ -720,7 +720,7 @@ async function main(): Promise<void> {
   console.log(`Extracted ${schemas.length} response schemas`);
 
   const tags = [...new Set(endpoints.map((e) => e.tag))];
-  console.log(`Found ${tags.length} domains: ${tags.sort().join(', ')}`);
+  console.log(`Found ${tags.length} domains: ${[...tags].sort().join(', ')}`);
 
   const timestamp = generateTimestamp();
 
@@ -793,4 +793,7 @@ async function main(): Promise<void> {
   console.log(`  ${endpointFiles + schemaFiles + tags.length + 3} total files`);
 }
 
-main();
+main().catch((err: unknown) => {
+  console.error(err);
+  process.exit(1);
+});

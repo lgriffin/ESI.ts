@@ -62,9 +62,6 @@ jobs:
       - name: Verify registry signatures of installed packages
         run: npm run audit:signatures
 
-      - name: Run ESLint
-        run: npm run lint
-
       # The determinism baseline only shrinks against master's copy; without
       # the ref the lint fails closed.
       - name: Fetch the determinism baseline
@@ -72,6 +69,21 @@ jobs:
 
       - name: Time and randomness only through the clock module
         run: npm run lint:determinism
+
+      # The warning baseline only shrinks against the target branch's copy.
+      - name: Fetch the warning baseline's target branch
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
+      # npm run lint over src, tests and scripts, failing on any error, plus
+      # the warning ratchet: warnings per file and rule may not exceed
+      # config/eslint/warning-baseline.json, which only shrinks against the
+      # pull request's target branch (fetched in the step above).
+      - name: Run ESLint (errors fail, warnings ratchet)
+        env:
+          WARNING_BASE_REF: origin/${{ github.base_ref }}
+        run: npm run lint:ratchet
 
       - name: Imports point inward (layer rule)
         run: npm run lint:layers
@@ -87,6 +99,12 @@ jobs:
 
       - name: Type check the examples
         run: npm run typecheck:examples
+
+      # scripts/ holds the gates themselves (audit, ratchets, release, spec
+      # checks). Compiled the way ts-node runs them: the root options with
+      # exactOptionalPropertyTypes off.
+      - name: Type check the repository scripts
+        run: npm run typecheck:scripts
 
       - name: Type check isolatedDeclarations for the exposed layers
         run: npm run typecheck:isolated

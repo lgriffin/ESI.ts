@@ -47,6 +47,11 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'typecheck:scripts',
+    covers: 'the repository scripts compile',
+    stage: 'quick',
+  },
+  {
     script: 'typecheck:isolated',
     covers: 'isolatedDeclarations holds for the exposed layers',
     stage: 'quick',
@@ -66,7 +71,12 @@ export const TIERS: Tier[] = [
     covers: 'every JSON-returning endpoint declares a responseSchema',
     stage: 'quick',
   },
-  { script: 'lint', covers: 'src lint', stage: 'quick' },
+  {
+    script: 'lint:ratchet',
+    covers:
+      'src, tests and scripts lint clean, warnings no higher than the baseline',
+    stage: 'quick',
+  },
   {
     script: 'lint:suite-health',
     covers: 'no skipped or assertion-free tests',
@@ -214,6 +224,7 @@ export const TOOLS_NOT_RUN_LOCALLY: Record<string, string> = {
 };
 
 export const NOT_RUN_LOCALLY: Record<string, string> = {
+  lint: '`lint:ratchet` runs the same ESLint pass and fails on its errors too',
   bdd: 'a subset of `test`, which runs the same Jest config unfiltered',
   'bdd:report': 'reporting only; `test` already executes every scenario',
   coverage:
@@ -307,6 +318,7 @@ export function scriptsInWorkflow(yaml: string): string[] {
 export function toolsInWorkflow(yaml: string): string[] {
   const found = new Set<string>();
   for (const match of yaml.matchAll(
+    // eslint-disable-next-line sonarjs/regex-complexity -- runner, its flags, then an optionally scoped package name
     /\b(?:npx|uvx|pipx|bunx)(?:\s+(?:--?[\w-]+|run))*\s+((?:@[\w./-]+\/)?[\w.-]+)/g,
   )) {
     const raw = match[1];

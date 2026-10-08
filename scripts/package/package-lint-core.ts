@@ -314,7 +314,7 @@ export function runAttw(tarball: string, cli = ATTW_CLI): Finding[] {
 /** Finding key → bead id. */
 export type Baseline = Record<string, string>;
 
-const BEAD_ID = /^esi-[a-z0-9]+(\.[0-9]+)*$/;
+const BEAD_ID = /^esi-[a-z\d]+(\.\d+)*$/;
 
 export function parseBaseline(raw: string): Baseline {
   const parsed = JSON.parse(raw) as { findings?: unknown };

@@ -119,6 +119,8 @@ interface Directives {
  * when the text is not a directive this checker knows, so a typo cannot
  * silently turn a check off.
  */
+// A parsed directive or the message that rejects it; callers branch on typeof.
+// eslint-disable-next-line sonarjs/function-return-type
 export function parseDirectives(text: string): Directives | string {
   const trimmed = text.trim();
   if (trimmed === '') return { mode: 'check' };

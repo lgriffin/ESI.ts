@@ -313,7 +313,7 @@ export function analyseDrift(
     observed: present.size,
     unknownFiles,
     missingFiles,
-    unmappedFiles: unmappedFiles.sort(),
+    unmappedFiles: [...unmappedFiles].sort(),
     fields,
     hasDrift:
       unknownFiles.length > 0 ||

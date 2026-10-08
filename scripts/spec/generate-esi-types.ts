@@ -39,7 +39,7 @@ const ESI_OPENAPI_BASE = 'https://esi.evetech.net/meta/openapi.json';
 const ESI_COMPATIBILITY_DATES_URL =
   'https://esi.evetech.net/meta/compatibility-dates';
 
-function parseCompatibilityDate(): string | 'latest' {
+function parseCompatibilityDate(): string {
   for (const arg of process.argv.slice(2)) {
     if (arg === '--latest') return 'latest';
     const match = arg.match(/^--compatibility-date=(\d{4}-\d{2}-\d{2})$/);
@@ -49,7 +49,7 @@ function parseCompatibilityDate(): string | 'latest' {
 }
 
 async function resolveCompatibilityDate(
-  requested: string | 'latest',
+  requested: string, // a YYYY-MM-DD date or 'latest'
 ): Promise<string> {
   if (requested !== 'latest') return requested;
   const response = await fetch(ESI_COMPATIBILITY_DATES_URL);
@@ -349,7 +349,7 @@ function extractCacheTtls(spec: OpenApiSpec): CacheTtlEntry[] {
 
   for (const [routePath, methods] of Object.entries(spec.paths)) {
     for (const method of httpMethods) {
-      const op = methods[method] as OpenApiOperation | undefined;
+      const op = methods[method];
       if (!op) continue;
 
       const seconds = op['x-cache-age'];
@@ -400,7 +400,9 @@ function writeTypesFile(
     const group = byTag.get(tag)!;
     lines.push(`// --- ${tag} ---`);
     lines.push('');
-    for (const iface of group.sort((a, b) => a.name.localeCompare(b.name))) {
+    for (const iface of [...group].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    )) {
       lines.push(iface.body);
       lines.push('');
     }
@@ -437,7 +439,7 @@ function writeTtlFile(
     'export const esiCacheTtls: Record<string, number> = {',
   ];
 
-  const sorted = entries.sort((a, b) => a.path.localeCompare(b.path));
+  const sorted = [...entries].sort((a, b) => a.path.localeCompare(b.path));
   for (const entry of sorted) {
     const key = `${entry.method}:${entry.path}`;
     lines.push(`  '${key}': ${entry.seconds},`);
@@ -482,7 +484,7 @@ function extractRateLimitGroups(spec: OpenApiSpec): RateLimitGroupEntry[] {
 
   for (const [routePath, methods] of Object.entries(spec.paths)) {
     for (const method of httpMethods) {
-      const op = methods[method] as OpenApiOperation | undefined;
+      const op = methods[method];
       if (!op) continue;
 
       const rateLimit = op['x-rate-limit'];
@@ -519,7 +521,7 @@ function writeRateLimitGroupsFile(
     'export const esiRateLimitGroups: Record<string, RateLimitGroupSpec> = {',
   ];
 
-  const sorted = entries.sort((a, b) => a.path.localeCompare(b.path));
+  const sorted = [...entries].sort((a, b) => a.path.localeCompare(b.path));
   for (const entry of sorted) {
     const key = `${entry.method}:${entry.path}`;
     lines.push(
@@ -567,7 +569,7 @@ function extractEndpointScopes(spec: OpenApiSpec): EndpointScopeEntry[] {
 
   for (const [routePath, methods] of Object.entries(spec.paths)) {
     for (const method of httpMethods) {
-      const op = methods[method] as OpenApiOperation | undefined;
+      const op = methods[method];
       if (!op?.security?.length) continue;
 
       const scopes = new Set<string>();
@@ -614,7 +616,7 @@ function writeScopesFile(
 
   lines.push('export const esiEndpointScopes: Record<string, EsiScope[]> = {');
 
-  const sorted = entries.sort((a, b) => a.path.localeCompare(b.path));
+  const sorted = [...entries].sort((a, b) => a.path.localeCompare(b.path));
   for (const entry of sorted) {
     const key = `${entry.method}:${entry.path}`;
     const scopeArray = entry.scopes.map((s) => `'${s}'`).join(', ');
@@ -698,7 +700,7 @@ async function main(): Promise<void> {
 
   for (const [routePath, methods] of Object.entries(spec.paths)) {
     for (const method of httpMethods) {
-      const op = methods[method] as OpenApiOperation | undefined;
+      const op = methods[method];
       if (!op) continue;
 
       const iface = generateInterface(routePath, method, op, spec);
@@ -737,4 +739,7 @@ async function main(): Promise<void> {
   console.log(`Scopes written to ${SCOPES_OUTPUT}`);
 }
 
-main();
+main().catch((err: unknown) => {
+  console.error(err);
+  process.exit(1);
+});

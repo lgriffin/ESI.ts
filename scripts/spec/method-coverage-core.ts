@@ -568,7 +568,7 @@ export function runCoverageCommand<R>(
             (ref): ref is string => Boolean(ref),
           ),
           words.baselineFile,
-          command.parse,
+          (raw) => command.parse(raw),
         )
       : { ref: null, baseline: {} };
     if (hasEntries && base.ref !== null && base.baseline === null) {
