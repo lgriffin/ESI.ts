@@ -88,6 +88,11 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'knip',
+    covers: 'no unused files, exports or dependencies in src',
+    stage: 'quick',
+  },
+  {
     script: 'lint:workflows',
     covers: 'zizmor over .github/, the audit ci.yml runs',
     stage: 'quick',
@@ -206,7 +211,6 @@ export const TOOLS_RUN_BY: Record<string, string> = {
 /** Tools CI invokes directly that `check:local` deliberately does not run. */
 export const TOOLS_NOT_RUN_LOCALLY: Record<string, string> = {
   npm: 'ci.yml pins npm itself for one step - `npx --yes npm@11.17.0 pack` - because npm 10 runs `prepare` on `npm pack` even with --ignore-scripts and rebuilds dist/, which would defeat that job. A workaround for the npm the runner bundles, not a gate; esi-23g.43 tracks it',
-  knip: 'ci.yml runs it with --no-exit-code, so it gates no pull request; it blocks only at release (release.yml) and in `npm run validate` and `npm run check:all`, which are the local release checks',
 };
 
 export const NOT_RUN_LOCALLY: Record<string, string> = {
@@ -219,6 +223,8 @@ export const NOT_RUN_LOCALLY: Record<string, string> = {
   'api-report': 'rewrites a committed generated file',
   'api-report:semver': 'needs the base branch to diff the report against',
   'audit:diff': 'queries the advisory database over the network',
+  'audit:signatures':
+    "fetches the registry's signing keys and attestations over the network",
   'bench:ab':
     'needs a second commit built on the same machine, and a quiet one',
   'bench:compare': 'reads a baseline the benchmark job produces',
