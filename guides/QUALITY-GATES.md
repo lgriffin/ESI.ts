@@ -192,7 +192,7 @@ Test files and repository scripts are linted at commit and in CI with the `src/`
 
 ## Workflows
 
-All 28 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the directory's `README.md` points here). Every action is pinned to a full commit SHA and every workflow declares read-only top-level permissions with per-job escalation (`SEC-03`, see [SECURITY.md](SECURITY.md)).
+All 29 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the directory's `README.md` points here). Every action is pinned to a full commit SHA and every workflow declares read-only top-level permissions with per-job escalation (`SEC-03`, see [SECURITY.md](SECURITY.md)).
 
 | Workflow                        | Trigger                                                            | Blocks                        | Output                                                                                                              |
 | ------------------------------- | ------------------------------------------------------------------ | ----------------------------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -217,6 +217,7 @@ All 28 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the
 | `nightly-recorded-payloads.yml` | Daily 06:30 UTC; manual                                            | No                            | Pull request with the shape diff; `recorded-payloads-check-failed` issue                                            |
 | `scorecard.yml`                 | Mondays 04:00 UTC; manual; branch protection rule change           | No                            | SARIF to code scanning, public score                                                                                |
 | `maintenance.yml`               | Mondays 09:00 UTC; manual                                          | No                            | Artifacts                                                                                                           |
+| `quality-trend.yml`             | Mondays 07:00 UTC; manual                                          | No                            | Step summary and artifact (`quality-trend`): weekly complexity, `any`, hotspots                                     |
 | `release-please.yml`            | Push to `master`                                                   | —                             | Release PR, tag, GitHub release                                                                                     |
 | `release.yml`                   | Tag `v*.*.*` pushed; GitHub release published                      | Publishing                    | npm, GitHub Packages, gh-pages, signed assets                                                                       |
 | `docs-site.yml`                 | Called by `release.yml` `deploy-docs`; manual on master or a tag   | Publishing the site           | The documentation site on the `gh-pages` branch                                                                     |
@@ -353,6 +354,16 @@ Daily at 05:45 UTC and on manual dispatch. `npm run health:live` (`scripts/quali
 Weekly on Mondays at 04:00 UTC, on manual dispatch, and whenever a branch protection rule changes. Runs `ossf/scorecard-action`, publishes the results to the public Scorecard API, and uploads the SARIF to code scanning. Scorecard scores the controls described in [SECURITY.md](SECURITY.md).
 
 Two of its checks are held in the repository on every `npm test`: `tests/tdd/workflows/workflow-permissions.test.ts` fails when a workflow's top-level permissions are missing or writable, when a job gains a write scope not in its list (Token-Permissions), or when `release.yml` stops signing, attesting or uploading the release assets (Signed-Releases). Branch-Protection, Code-Review and CII-Best-Practices are repository and account settings; what the maintainer changes for each is in [SECURITY.md](SECURITY.md#5-settings-only-the-maintainer-can-change).
+
+### `quality-trend.yml` — Quality trend
+
+Weekly on Mondays at 07:00 UTC, and manually (`weeks` input, default 12). A report, never a gate, and it needs no write scope. `npm run quality:trend` (`scripts/quality/quality-trend.ts`) checks out each of the last N weekly commits of master into a temporary worktree and measures hand-written `src/` (generated files left out):
+
+- the lines and the total cognitive complexity of every function (sonarjs), with the complexity per 1,000 lines and the functions over 20;
+- the identifiers in value positions that the checker types as `any`;
+- the `eslint-disable` comments, and the lint warning total where `config/eslint/warning-baseline.json` exists.
+
+For the newest commit it also ranks hotspots, which are files by commits in the last 90 days × complexity, and lists every function over 20 and every `any` site. Everything is recomputed from git, so the trend needs no stored state and reproduces locally. The step summary carries the table and mermaid charts, and the `quality-trend` artifact carries `trend.md`, `trend.csv` and `trend.json`.
 
 ### `maintenance.yml` — Maintenance & Security
 
