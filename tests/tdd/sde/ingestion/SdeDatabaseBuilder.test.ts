@@ -287,26 +287,26 @@ function createParsedFile(
       ]);
     });
 
-    it('takes the columns from the first 50 records only', () => {
+    it('gives a column to a field only a late record carries, leaving earlier rows null', () => {
       const records: Record<number, Record<string, unknown>> = {};
-      for (let i = 1; i <= 50; i++) records[i] = { name: { en: `C${i}` } };
-      records[51] = { name: { en: 'C51' }, late: 1 };
-      build([createParsedFile('categories.yaml', records)]);
-      expect(columnsOf('eve_categories').map((c) => c.name)).toEqual([
-        'categoryId',
-        'name',
-      ]);
-    });
-
-    it('reads a column found in the 50th record', () => {
-      const records: Record<number, Record<string, unknown>> = {};
-      for (let i = 1; i <= 49; i++) records[i] = { name: { en: `C${i}` } };
-      records[50] = { name: { en: 'C50' }, late: 1 };
+      for (let i = 1; i <= 60; i++) records[i] = { name: { en: `C${i}` } };
+      records[60] = { name: { en: 'C60' }, late: 7 };
       build([createParsedFile('categories.yaml', records)]);
       expect(columnsOf('eve_categories').map((c) => c.name)).toEqual([
         'categoryId',
         'name',
         'late',
+      ]);
+      const db = new Database(dbPath, { readonly: true });
+      const rows = db
+        .prepare(
+          'SELECT categoryId, late FROM eve_categories WHERE categoryId IN (1, 60) ORDER BY categoryId',
+        )
+        .all();
+      db.close();
+      expect(rows).toEqual([
+        { categoryId: 1, late: null },
+        { categoryId: 60, late: 7 },
       ]);
     });
 
