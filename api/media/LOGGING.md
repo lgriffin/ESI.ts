@@ -38,6 +38,7 @@ All from the root entry point `@lgriffin/esi.ts`.
 | `createDefaultLogger(level)`   | function  | A new pino-backed `ILogger`. Level: argument, then `ESI_LOG_LEVEL`, then `'warn'`             |
 | `toPinoLogger(sink)`           | function  | Adapts any object with the six pino-style methods to `ILogger`                                |
 | `createNoopLogger()`           | function  | An `ILogger` that discards everything                                                         |
+| `createConsoleLogger(level)`   | function  | A human-readable console `ILogger`. Level: argument, then `ESI_LOG_LEVEL`, then `'warn'`      |
 | `setLogger(logger)`            | function  | Installs the global fallback logger                                                           |
 | `getLogger()`                  | function  | Returns the global fallback logger (the pino default until `setLogger` is called)             |
 | `logFatal` … `logTrace`        | functions | `(message, context?)` helpers that write to the **global** logger. Six of them, one per level |
@@ -130,6 +131,24 @@ const esi = new EsiClient({
   clientId: 'my-app',
   logger: toPinoLogger(root.child({ component: 'esi' })),
 });
+```
+
+### Readable console output
+
+`createConsoleLogger(level?)` is an `ILogger` for scripts and command-line tools, where pino's JSON lines get in the way. It resolves its level the way `createDefaultLogger` does (argument, `ESI_LOG_LEVEL`, `'warn'`), accepts `'silent'`, and falls back to `'warn'` on an unknown value instead of throwing.
+
+`info` lines are written as they are; every other level is prefixed with its name (`warn: ...`). `info` and below go to `console.log`, `warn` to `console.warn`, `error` and `fatal` to `console.error`. Context becomes `[key=value]` tokens after the message: an `Error` shows its message, a string as is, anything else as JSON.
+
+The programs in `examples/` all use it the same way: one logger at `info` for the program's own output, and one at `ESI_LOG_LEVEL` passed to the client, so library diagnostics share the console format without crowding the output. The code blocks in the README and the guides follow the same pattern; fragments use the `log` built in the README Quick Start. None of them calls `console` directly; `tests/tdd/scripts/examples-logging.test.ts` holds the examples and the documentation blocks to that, and `no-console` is an error in `src/`, where `ConsoleLogger.ts` is the one exemption.
+
+```ts
+import { EsiClient, createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
+const client = new EsiClient({ logger: createConsoleLogger() });
+
+const status = await client.status.getStatus();
+log.info(`Players online: ${status.players}`);
 ```
 
 ### Anything else

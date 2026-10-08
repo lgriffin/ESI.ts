@@ -327,6 +327,7 @@ Once Runs 2, 3 and 5 to 7 are merged, the SDE has enough test surface for the sa
 - **Brief.** Pick the SDE directory with the highest points-per-kill (100 / valid mutants) below 90. Follow "Mutation testing" in `guides/TESTING.md`: NoCoverage first, then survivors grouped by function, boundary tests at n-1, n, n+1, exact-value assertions instead of `toBeDefined`, side-effect assertions for emptied blocks. Prefer one sharp scenario in the EARS feature over a unit test where the behaviour is caller-visible; unit tests for internals such as index building. Delete redundant tests you make obsolete. Never touch `tests/mutation-fixture`.
 - **PR.** `test(sde): raise <directory> mutation score to <n>`
 - **Marker.** any SDE directory below 90 in the latest mutation report.
+- **Status.** Done 2026-10-08 ([#458](https://github.com/lgriffin/ESI.ts/issues/458)): every SDE directory at 90 or above on both the unit and the BDD-only run, in #607, #608 and #610 to #612; scores, floors and the survivors left with a reason are in [sde/TESTING.md](sde/TESTING.md#where-the-scores-stand).
 
 ### Nightly CI after the programme
 
@@ -388,9 +389,9 @@ The table is the gate. A row moves to Yes only by citing the merged pull request
 
 **Mutation is not on the release path** (decided 2026-09-28 by the maintainer). The nightly mutation runs keep ratcheting and filing issues, but 11.0.0 does not wait for them. These follow the release, in 11.x:
 
-- Every directory in `config/mutation/unit-thresholds.json` at 60 or above and every directory in `config/mutation/bdd-thresholds.json` at 20 or above, `src/schemas` excepted in the BDD file (CHARTER TEST-07). Below today: unit `src/core/logger`; BDD `src`, `src/clients`, `src/core/pagination`, `src/core/rateLimiter`, `src/sde`.
+- Every directory in `config/mutation/unit-thresholds.json` at 60 or above and every directory in `config/mutation/bdd-thresholds.json` at 20 or above, `src/schemas` excepted in the BDD file (CHARTER TEST-07). Below today: unit `src/core/logger`; BDD `src`, `src/clients`, `src/core/pagination`, `src/core/rateLimiter`.
 - `mutation-pr` back in `ci.yml` and needed by `ci-success` (advisory in `mutation-pr.yml` since 2026-09-27).
-- Every SDE directory at 90, or with every survivor carrying an equivalence reason (Run M).
+- ~~Every SDE directory at 90, or with every survivor carrying an equivalence reason (Run M).~~ Done 2026-10-08.
 
 ## Executing this plan
 

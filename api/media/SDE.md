@@ -67,7 +67,7 @@ for (const kill of kills) {
   const system = sde.getSolarSystem(kill.system_id);
   if (!system) continue;
   const region = sde.getRegion(system.regionId);
-  console.log(
+  log.info(
     `${system.name} (${system.securityStatus.toFixed(1)}, ${region?.name}): ${kill.ship_kills} ship kills`,
   );
 }
@@ -358,11 +358,14 @@ The two families do not share a base class, and that is the point. An `EsiError`
 ```typescript
 import { isEsiError } from '@lgriffin/esi.ts/errors';
 import { isSdeError } from '@lgriffin/esi.ts/sde';
+import { createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 try {
   const orders = await client.market.getMarketOrders(regionId);
   const named = orders.map((o) => sde.getType(o.type_id)?.name);
-  console.log(named.length);
+  log.info(`${named.length} orders named`);
 } catch (err) {
   if (isEsiError(err)) {
     // transient or not, per ERRORS.md; the pipeline has already retried what it should
@@ -387,6 +390,9 @@ import {
   MemorySdeProvider,
   SdeTestDataFactory,
 } from '@lgriffin/esi.ts/sde/memory';
+import { createConsoleLogger } from '@lgriffin/esi.ts';
+
+const log = createConsoleLogger('info');
 
 const sde = new MemorySdeProvider({
   categories: [
@@ -413,7 +419,12 @@ const sde = new MemorySdeProvider({
   ],
 });
 
-console.log(sde.getTypesByGroup(18).map((t) => t.name)); // ["Tritanium", "Pyerite"]
+log.info(
+  sde
+    .getTypesByGroup(18)
+    .map((t) => t.name)
+    .join(', '),
+); // Tritanium, Pyerite
 ```
 
 The ESI side is stubbed at the transport seam the same way it is in the library's own tests (`createMockTransport()` from `./testing`, see [TESTING.md](TESTING.md#testing-your-application)). A test of a join therefore has two doubles that know nothing of each other, mirroring production, and no third thing to mock.
@@ -476,7 +487,7 @@ The client pins a **compatibility date** on every request: CCP serves the API sh
 
 ```typescript
 const version = sde.getVersion();
-console.log(
+log.info(
   `SDE build ${version.version}, built ${version.buildDate}, loaded ${version.importedAt}`,
 );
 ```
