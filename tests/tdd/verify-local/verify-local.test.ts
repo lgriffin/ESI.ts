@@ -97,7 +97,12 @@ describe('the tier list covers what CI runs', () => {
       'bundle',
     ]);
     expect(
-      uncoveredCiScripts(['bundle'], TIERS, { bundle: ['lint', 'test'] }, {}),
+      uncoveredCiScripts(
+        ['bundle'],
+        TIERS,
+        { bundle: ['lint:ratchet', 'test'] },
+        {},
+      ),
     ).toEqual([]);
   });
 

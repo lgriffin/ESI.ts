@@ -54,9 +54,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run ESLint
-        run: npm run lint
-
       # The determinism baseline only shrinks against master's copy; without
       # the ref the lint fails closed.
       - name: Fetch the determinism baseline
@@ -64,6 +61,13 @@ jobs:
 
       - name: Time and randomness only through the clock module
         run: npm run lint:determinism
+
+      # npm run lint over src, tests and scripts, failing on any error, plus
+      # the warning ratchet: warnings per file and rule may not exceed
+      # config/eslint/warning-baseline.json, which only shrinks against
+      # master's copy (fetched in the step above).
+      - name: Run ESLint (errors fail, warnings ratchet)
+        run: npm run lint:ratchet
 
       - name: Imports point inward (layer rule)
         run: npm run lint:layers

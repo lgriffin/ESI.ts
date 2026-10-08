@@ -13,6 +13,7 @@ npm run typecheck:isolated  # isolatedDeclarations over the exposed layers only 
 npm run clean          # Remove dist/, coverage/ and the generated docs (TypeDoc, site pages, site build)
 npm run docs:site      # Build the documentation site (TypeDoc, guides, examples) into docs-site/.vitepress/dist; needs `npm ci --prefix docs-site` once
 npm run lint           # ESLint (src/, tests/ and scripts/; test and script relaxations declared in eslint.config.mjs)
+npm run lint:ratchet   # lint, plus warnings per file and rule held to config/eslint/warning-baseline.json (shrink-only; -- --update lowers it)
 npm run lint:bdd-seam  # BDD scenarios mock only at the transport seam (tests/bdd)
 npm run lint:determinism  # Time/timers/Math.random in src/ only via the clock module (shrink-only baseline)
 npm run lint:layers    # Imports in src/ point inward: core, ports, generated (shrink-only baseline)

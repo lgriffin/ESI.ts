@@ -166,6 +166,7 @@
     "token:refresh": "ts-node scripts/auth/refresh-token.ts",
     "lint": "eslint src tests scripts",
     "lint:fix": "eslint src tests scripts --fix",
+    "lint:ratchet": "ts-node scripts/quality/warning-ratchet.ts",
     "lint:bdd-seam": "eslint --config config/eslint/bdd-seam.config.mjs tests/bdd",
     "lint:determinism": "ts-node scripts/quality/determinism-lint.ts",
     "lint:layers": "eslint --config config/eslint/layers.config.mjs --no-inline-config src",
