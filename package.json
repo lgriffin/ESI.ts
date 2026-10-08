@@ -313,7 +313,8 @@
     "schema:drift": "ts-node scripts/spec/generate-schema-drift-report.ts",
     "schema:drift:ci": "ts-node scripts/spec/generate-schema-drift-report.ts --ci",
     "audit:check": "ts-node scripts/quality/audit-check.ts --check",
-    "audit:diff": "ts-node scripts/quality/audit-check.ts --diff"
+    "audit:diff": "ts-node scripts/quality/audit-check.ts --diff",
+    "audit:signatures": "npm audit signatures"
   },
   "lint-staged": {
     "src/**/*.ts": [
