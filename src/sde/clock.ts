@@ -10,5 +10,6 @@ import type { Clock } from '../core/ports/Clock';
 
 export const systemClock: Clock = {
   now: () => Date.now(),
+  // Stryker disable next-line ArrowFunction: no SDE code sleeps; the Clock port requires the member, and the unit suite covers it.
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 };

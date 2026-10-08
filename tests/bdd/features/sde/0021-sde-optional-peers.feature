@@ -22,6 +22,13 @@ Feature: Optional Peer Dependencies
       Then the call shall fail with an SDE error naming "js-yaml is required to parse SDE YAML files"
       And the call shall fail with an SDE error naming "npm install js-yaml"
 
+    Scenario: js-yaml missing under ES module resolution names the install command
+      Given an SDE directory holding the raw export files
+      And the js-yaml package fails to load with the "missing as an ES module" failure
+      When I open the SDE from the directory
+      Then the call shall fail with an SDE error naming "js-yaml is required to parse SDE YAML files"
+      And the call shall fail with an SDE error naming "npm install js-yaml"
+
   Rule: If adm-zip is not installed when the SDE is opened from a ZIP archive, then the SdeDataProvider shall throw an SdeError naming the package, what it is needed for, and the command that installs it.
     The archive route opens the ZIP before it parses anything, so adm-zip is
     the peer it fails on.
@@ -33,6 +40,31 @@ Feature: Optional Peer Dependencies
       When I open the SDE from the ZIP archive
       Then the call shall fail with an SDE error naming "adm-zip is required to read SDE ZIP archives"
       And the call shall fail with an SDE error naming "npm install adm-zip"
+
+  # ── A peer that is installed but fails ───────────────────────────────
+
+  Rule: If an installed optional peer fails while it loads, then the SdeDataProvider shall rethrow what the peer threw, unchanged.
+    Only the peer's own absence gets the install message. A peer that is
+    present but broken, or that cannot find a module of its own, needs a
+    different fix, and the original failure is what names it.
+
+    Scenario: js-yaml that cannot find a module of its own fails with that error
+      Given an SDE directory holding the raw export files
+      And the js-yaml package fails to load with the "missing a module of its own" failure
+      When I open the SDE from the directory
+      Then the call shall fail with what the peer threw
+
+    Scenario: An error that names js-yaml without a missing-module code is rethrown
+      Given an SDE directory holding the raw export files
+      And the js-yaml package fails to load with the "an error naming it" failure
+      When I open the SDE from the directory
+      Then the call shall fail with what the peer threw
+
+    Scenario: A string js-yaml throws is rethrown
+      Given an SDE directory holding the raw export files
+      And the js-yaml package fails to load with the "a thrown string" failure
+      When I open the SDE from the directory
+      Then the call shall fail with what the peer threw
 
   # ── Neither peer needed ──────────────────────────────────────────────
 

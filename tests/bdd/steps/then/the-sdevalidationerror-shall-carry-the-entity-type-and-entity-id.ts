@@ -10,5 +10,6 @@ Then(
     expect(error!.entityType).toBe('EveType');
     expect(error!.entityId).toBe(TRITANIUM.typeId);
     expect(error!.message).toContain('EveType');
+    expect(error!.message).toContain(`(id: ${TRITANIUM.typeId})`);
   },
 );
