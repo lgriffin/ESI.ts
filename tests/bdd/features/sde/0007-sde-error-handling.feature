@@ -10,7 +10,7 @@ Feature: SDE Error Handling
 
   # ── Error context ────────────────────────────────────────────────────
 
-  Rule: When an SdeValidationError is constructed for an entity type and an entity ID, the SdeValidationError shall expose both values as fields and name the entity type in its message.
+  Rule: When an SdeValidationError is constructed for an entity type and an entity ID, the SdeValidationError shall expose both values as fields and name both in its message.
     A schema failure on a single record must say which record: the entity
     type alone narrows it to a table, and the entity ID pinpoints the row.
     The message repeats them so an unhandled error is still diagnosable from
@@ -20,6 +20,16 @@ Feature: SDE Error Handling
       Given invalid SDE data for an EveType
       When the data is validated against the EveType schema
       Then the SdeValidationError shall carry the entity type and entity ID
+
+  Rule: If an SdeValidationError is constructed without an entity ID, then the SdeValidationError shall name the entity type in its message with no ID after it.
+    A failure found before a record's ID is known, such as a whole file that
+    does not parse, still names the table. The message leaves the ID out
+    rather than printing a placeholder for it.
+
+    Scenario: Validation failure on an EveType with no ID names only the type
+      Given invalid SDE data for an EveType
+      When the data is validated against the EveType schema without an entity ID
+      Then the SdeValidationError message shall be "SDE validation failed for EveType"
 
   Rule: When an SdeVersionMismatchError is constructed from an expected version and an actual version, the SdeVersionMismatchError shall expose both versions as fields and include both in its message.
     A version mismatch is only actionable when the caller can see the gap it

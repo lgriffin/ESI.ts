@@ -345,20 +345,52 @@ function moduleNotFound(peer: string): Error {
 }
 
 /**
- * Make a peer unresolvable for the rest of the scenario, the way an install
- * without it behaves: requiring it raises Node's module-not-found error.
+ * How a peer can fail to load, and what requiring it throws in each case:
+ *
+ * - `missing`: Node's CommonJS module-not-found error, as without the peer.
+ * - `missing as an ES module`: the ESM resolver's error for the same absence.
+ * - `missing a module of its own`: the peer is installed but something it
+ *   requires is not, so the module-not-found error names that module.
+ * - `an error naming it`: an Error whose message quotes the peer's name but
+ *   carries no module-not-found code.
+ * - `a thrown string`: the peer throws something that is not an Error.
+ */
+export const PEER_FAILURES = {
+  missing: (peer: string): unknown => moduleNotFound(peer),
+  'missing as an ES module': (peer: string): unknown =>
+    Object.assign(
+      new Error(`Cannot find package '${peer}' imported from /app/index.mjs`),
+      { code: 'ERR_MODULE_NOT_FOUND' },
+    ),
+  'missing a module of its own': (): unknown => moduleNotFound('argparse'),
+  'an error naming it': (peer: string): unknown =>
+    new Error(`'${peer}' failed to initialise`),
+  'a thrown string': (peer: string): unknown => `${peer} is broken`,
+} as const;
+
+export type PeerFailure = keyof typeof PEER_FAILURES;
+
+/**
+ * Make a peer fail to load for the rest of the scenario, throwing what
+ * `PEER_FAILURES[failure]` builds, and keep that value as `world.values.peerFailure`.
  *
  * Both routes a module can take to the peer are closed. Jest's registry
  * answers a plain `require` or `import`; `createRequire`, which
  * `src/sde/optionalPeers.ts` loads the peers through, is replaced for any
- * module loaded afresh after this step, with a require that refuses every
- * uninstalled peer and resolves everything else as Node would.
+ * module loaded afresh after this step, with a require that fails every
+ * closed peer and resolves everything else as Node would.
  */
-export function uninstallPeer(world: World, peer: OptionalPeer): void {
-  const missing: Set<string> = (world.values.uninstalledPeers ??= new Set());
-  missing.add(peer);
+export function failPeer(
+  world: World,
+  peer: OptionalPeer,
+  failure: PeerFailure,
+): void {
+  const thrown = PEER_FAILURES[failure](peer);
+  world.values.peerFailure = thrown;
+  const closed: Map<string, unknown> = (world.values.closedPeers ??= new Map());
+  closed.set(peer, thrown);
   jest.doMock(peer, () => {
-    throw moduleNotFound(peer);
+    throw thrown;
   });
   jest.doMock('node:module', () => {
     const actual =
@@ -368,7 +400,7 @@ export function uninstallPeer(world: World, peer: OptionalPeer): void {
       createRequire: (from: string | URL) => {
         const real = actual.createRequire(from);
         return Object.assign((id: string): unknown => {
-          if (missing.has(id)) throw moduleNotFound(id);
+          if (closed.has(id)) throw closed.get(id);
           return real(id);
         }, real);
       },
@@ -378,6 +410,14 @@ export function uninstallPeer(world: World, peer: OptionalPeer): void {
     jest.dontMock(peer);
     jest.dontMock('node:module');
   });
+}
+
+/**
+ * Make a peer unresolvable for the rest of the scenario, the way an install
+ * without it behaves: requiring it raises Node's module-not-found error.
+ */
+export function uninstallPeer(world: World, peer: OptionalPeer): void {
+  failPeer(world, peer, 'missing');
 }
 
 // ---------------------------------------------------------------------------
