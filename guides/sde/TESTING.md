@@ -2,15 +2,15 @@
 
 What protects `src/sde`, measured. The Static Data Export module ships as its own sub-paths (`./sde`, `./sde/memory`), shares no code with the HTTP pipeline, and is scored, ratcheted and restored on its own in every tier the core has. This page is the SDE's copy of the core's [Where the suite stands](../TESTING.md#where-the-suite-stands) and [Where the scores stand](../TESTING.md#where-the-scores-stand): one table per tier, the command that reproduces it, and the floor that holds it.
 
-Measured on `master` at `e4daf989` on 2026-09-28. The mutation rows cite the nightly run that produced them; every other row was re-run for this page. The SDE's own docs, the module's role and its isolation rule are in [SDE.md](../SDE.md).
+The first three suite rows, the coverage and the specification counts were re-measured on 2026-10-08 after Run M merged; the mutation section says where each score comes from, and the remaining rows were measured on `e4daf989` on 2026-09-28. The SDE's own docs, the module's role and its isolation rule are in [SDE.md](../SDE.md).
 
 ## Where the suite stands
 
 | Command                                                       | Config                               | Suites | Tests | Result                                                                                                                                                  |
 | ------------------------------------------------------------- | ------------------------------------ | -----: | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npx jest --config config/jest/unit.config.cjs tests/tdd/sde` | `config/jest/unit.config.cjs`        |     17 |   580 | All pass, about 23 s                                                                                                                                    |
-| `npm run bdd:sde`                                             | same                                 |     23 |   192 | All pass, about 12 s; every scenario executes (`bdd:report`)                                                                                            |
-| `npx jest --config config/jest/unit.config.cjs sde`           | same                                 |     43 |   932 | The two above plus `sde-bench`, `sde-drift` and `sde-spec-coverage` under `tests/tdd/`, about 39 s                                                      |
+| `npx jest --config config/jest/unit.config.cjs tests/tdd/sde` | `config/jest/unit.config.cjs`        |     17 |   609 | All pass but one, about 7 s; the `./sde/memory` bundle test skips until `npm run build` has made `dist/`                                                |
+| `npm run bdd:sde`                                             | same                                 |     23 |   227 | All pass, about 9 s; every scenario executes (`bdd:report`)                                                                                             |
+| `npx jest --config config/jest/unit.config.cjs sde`           | same                                 |     43 | 1,001 | The two above plus `sde-bench`, `sde-drift` and `sde-spec-coverage` under `tests/tdd/`, about 22 s                                                      |
 | `npx jest --config config/jest/fuzz.config.cjs sde`           | `config/jest/fuzz.config.cjs`        |      3 |   249 | All pass, about 18 s; 100 runs per property on a pull request, 10,000 in `nightly-properties.yml`                                                       |
 | `npx jest --config config/jest/integration.config.cjs sde`    | `config/jest/integration.config.cjs` |      1 |   114 | Skip without `sde-data/`; all 114 pass against CCP's current export in [`nightly-sde.yml`](https://github.com/lgriffin/ESI.ts/actions/runs/36404108879) |
 | `npm run test:types`                                          | tsd                                  |      2 |     — | `sde.test-d.ts` and `sde-memory.test-d.ts`, 801 and 603 lines of `expectType` / `expectError` assertions over the two entry points                      |
@@ -20,22 +20,22 @@ The unit suites are one per module: the `IStaticDataProvider` contract (94 tests
 
 | Coverage over `src/sde/**` (excluding `src/sde/testing/`) | Unit suites alone | Unit and BDD together | Floor (`config/jest/unit.config.cjs`) |
 | --------------------------------------------------------- | ----------------: | --------------------: | ------------------------------------: |
-| Statements                                                |            97.64% |                99.03% |                                   90% |
-| Branches                                                  |            94.11% |                94.11% |                                   80% |
+| Statements                                                |            98.45% |                99.88% |                                   90% |
+| Branches                                                  |            98.26% |                98.26% |                                   80% |
 | Functions                                                 |            97.28% |                97.28% |                                   75% |
-| Lines                                                     |            98.09% |                99.40% |                                   90% |
+| Lines                                                     |            98.65% |               100.00% |                                   90% |
 
 Reproduce with `npx jest --config config/jest/unit.config.cjs --coverage --collectCoverageFrom='src/sde/**/*.ts' --collectCoverageFrom='!src/sde/testing/**' tests/tdd/sde tests/bdd/specs/sde`. The floors are the repository's; the SDE has no separate ones, and its numbers sit above the core's on every line. Coverage says a line ran; the mutation table below says whether a test would notice it changing.
 
 | Specification (`npm run spec:audit:verbose`, `features/sde/`) | Count                                                                                                                                                                      |
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Feature files                                                 | <!-- metric:featureFilesSde -->23<!-- /metric -->, all on the step library (`tests/bdd/specs/sde/`, `tests/bdd/steps/`); none on legacy `defineFeature` files              |
-| `Rule:` requirements                                          | <!-- metric:requirementsSde -->138<!-- /metric -->, one EARS `shall` each                                                                                                  |
-| Scenarios                                                     | <!-- metric:scenariosSde -->193<!-- /metric --> `Scenario`, no `Scenario Outline`                                                                                          |
+| `Rule:` requirements                                          | <!-- metric:requirementsSde -->162<!-- /metric -->, one EARS `shall` each                                                                                                  |
+| Scenarios                                                     | <!-- metric:scenariosSde -->227<!-- /metric --> `Scenario`, no `Scenario Outline`                                                                                          |
 | Audit result                                                  | 23 of 23 pass; `scripts/spec/spec-audit-exceptions.json` lists no SDE file                                                                                                 |
 | Method coverage (`npm run spec:coverage:sde:ci`)              | 96 of 96 `IStaticDataProvider` methods reached by a Rule or a bound step; `scripts/sde/sde-spec-coverage-baseline.json` is empty, so a method that loses its Rule fails CI |
 
-The feature files run from `0001-static-data-lookup` to `0023-sde-ingestion`: the entity families in the interface's order (types, universe, market, dogma, characters, NPC organisations, presentation tables, industry, mission content, generic access), then loading, the optional peers, the `./sde/memory` entry and ingestion. The largest are `0014-sde-npc-organisations` (16 Rules, 25 scenarios), `0023-sde-ingestion` (14, 20) and `0013-sde-character-reference` (11, 15).
+The feature files run from `0001-static-data-lookup` to `0023-sde-ingestion`: the entity families in the interface's order (types, universe, market, dogma, characters, NPC organisations, presentation tables, industry, mission content, generic access), then loading, the optional peers, the `./sde/memory` entry and ingestion. The largest are `0023-sde-ingestion` (33 Rules, 43 scenarios), `0014-sde-npc-organisations` (16, 25) and `0020-sde-loading` (14, 19).
 
 ## Where the scores stand
 
