@@ -76,8 +76,8 @@ export class SdeDatabaseBuilder {
       // Stryker disable next-line CallExpression: durability during a one-off bulk load; the file reads the same either way.
       db.pragma('synchronous = OFF');
 
-      this.createSchema(db, options.parsedFiles);
-      this.insertData(db, options);
+      const columns = this.createSchema(db, options.parsedFiles);
+      this.insertData(db, options, columns);
       this.writeMetadata(db, options);
     } catch (err) {
       if (err instanceof SdeError) throw err;
@@ -87,9 +87,18 @@ export class SdeDatabaseBuilder {
     }
   }
 
-  private createSchema(db: DatabaseLike, parsedFiles: ParsedSdeFile[]): void {
+  /**
+   * Creates one table per registered file that has records, with a column for
+   * every field any record carries; a column's type comes from the first
+   * value seen. Returns each table's column names in that order.
+   */
+  private createSchema(
+    db: DatabaseLike,
+    parsedFiles: ParsedSdeFile[],
+  ): Map<string, string[]> {
     const fileMap = new Map(parsedFiles.map((f) => [f.filename, f]));
     const tableSql: string[] = [];
+    const columnsByTable = new Map<string, string[]>();
 
     tableSql.push(`
       CREATE TABLE IF NOT EXISTS sde_metadata (
@@ -103,10 +112,7 @@ export class SdeDatabaseBuilder {
       if (!parsed || parsed.records.size === 0) continue;
 
       const mergedColumns = new Map<string, string>();
-      const sampleCount = Math.min(parsed.records.size, 50);
-      let i = 0;
       for (const [entityId, raw] of parsed.records) {
-        if (i++ >= sampleCount) break;
         const transformed = transformRecord(entityId, raw, spec);
         for (const [col, val] of Object.entries(transformed)) {
           if (!mergedColumns.has(col)) {
@@ -123,9 +129,11 @@ export class SdeDatabaseBuilder {
       }
 
       tableSql.push(this.generateCreateTableFromColumns(spec, mergedColumns));
+      columnsByTable.set(spec.tableName, Array.from(mergedColumns.keys()));
     }
 
     db.exec(tableSql.join('\n'));
+    return columnsByTable;
   }
 
   private generateCreateTableFromColumns(
@@ -147,14 +155,19 @@ export class SdeDatabaseBuilder {
     return `CREATE TABLE IF NOT EXISTS ${spec.tableName} (\n${columns.join(',\n')}\n);`;
   }
 
-  private insertData(db: DatabaseLike, options: SdeBuildOptions): void {
+  private insertData(
+    db: DatabaseLike,
+    options: SdeBuildOptions,
+    columnsByTable: Map<string, string[]>,
+  ): void {
     const fileMap = new Map(options.parsedFiles.map((f) => [f.filename, f]));
 
     for (const spec of SDE_FILE_REGISTRY) {
       const parsed = fileMap.get(spec.yamlFile);
-      if (!parsed || parsed.records.size === 0) continue;
+      const columns = columnsByTable.get(spec.tableName);
+      if (!parsed || !columns) continue;
 
-      this.insertTable(db, spec, parsed, options.onProgress);
+      this.insertTable(db, spec, parsed, columns, options.onProgress);
     }
   }
 
@@ -162,23 +175,13 @@ export class SdeDatabaseBuilder {
     db: DatabaseLike,
     spec: SdeFileSpec,
     parsed: ParsedSdeFile,
+    columns: string[],
     onProgress?: (tableName: string, inserted: number, total: number) => void,
   ): void {
     const total = parsed.records.size;
     let inserted = 0;
 
     const entries = Array.from(parsed.records.entries());
-
-    const allColumns = new Set<string>();
-    const sampleCount = Math.min(entries.length, 50);
-    for (let i = 0; i < sampleCount; i++) {
-      const [id, raw] = entries[i]!;
-      const row = transformRecord(id, raw, spec);
-      for (const col of Object.keys(row)) {
-        allColumns.add(col);
-      }
-    }
-    const columns = Array.from(allColumns);
     const quotedColumns = columns.map(quoteIdentifier);
     const placeholders = columns.map(() => '?').join(', ');
     const sql = `INSERT OR REPLACE INTO ${spec.tableName} (${quotedColumns.join(', ')}) VALUES (${placeholders})`;
