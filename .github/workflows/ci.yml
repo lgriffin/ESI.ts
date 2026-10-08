@@ -80,6 +80,12 @@ jobs:
       - name: Type check the examples
         run: npm run typecheck:examples
 
+      # scripts/ holds the gates themselves (audit, ratchets, release, spec
+      # checks). Compiled the way ts-node runs them: the root options with
+      # exactOptionalPropertyTypes off.
+      - name: Type check the repository scripts
+        run: npm run typecheck:scripts
+
       - name: Type check isolatedDeclarations for the exposed layers
         run: npm run typecheck:isolated
 

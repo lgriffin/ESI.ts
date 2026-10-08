@@ -21,7 +21,7 @@ import ts from 'typescript';
 
 const root = process.cwd();
 const configPath = path.join(root, 'tsconfig.isolated.json');
-const read = ts.readConfigFile(configPath, ts.sys.readFile);
+const read = ts.readConfigFile(configPath, (file) => ts.sys.readFile(file));
 if (read.error) {
   console.error(ts.flattenDiagnosticMessageText(read.error.messageText, '\n'));
   process.exit(2);

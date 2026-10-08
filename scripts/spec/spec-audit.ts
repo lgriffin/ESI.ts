@@ -89,6 +89,7 @@ const IS_CI = process.env.GITHUB_ACTIONS === 'true';
  * `--experimental-vm-modules`, which is why the fixture suite drives this
  * file as a child process.
  */
+// eslint-disable-next-line @typescript-eslint/no-implied-eval -- a constant body: the ESM-only import shim described above
 const dynamicImport = new Function('specifier', 'return import(specifier)') as (
   specifier: string,
 ) => Promise<unknown>;

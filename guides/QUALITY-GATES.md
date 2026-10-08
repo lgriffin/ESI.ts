@@ -18,6 +18,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | commitlint (conventional commits)          |   ●    |            ·             |        ·         |       ·       |         ·          |    ●     |
 | ESLint, Prettier check, build, typecheck   |   ·    |            ●             |        ●         |       ·       |       ● (1)        |    ●     |
 | Examples type-check (`typecheck:examples`) |   ·    |            ●             |        ●         | ◐ files issue |         ·          |    ●     |
+| Scripts type-check (`typecheck:scripts`)   |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | Unit tests (includes BDD and composition)  |   ·    |            ●             |    ● 18/20/22    |       ·       |         ●          |    ●     |
 | Coverage thresholds + PR comment           |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | BDD suite                                  |   ·    |          ● (2)           |        ●         |       ·       |         ●          |    ●     |
@@ -111,7 +112,7 @@ To add a blocking job: add the job, add its id to `ci-success.needs`. To add an 
 
 ### GATE-02 · Every push gets fast feedback
 
-`ci-fast.yml` runs on a push to any branch (`'**'`) on Node 22: ESLint, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, `npm test`. It has one unconditional job, so it has no gate of its own; everything it checks is also inside `ci-success`.
+`ci-fast.yml` runs on a push to any branch (`'**'`) on Node 22: ESLint, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `npm test`. It has one unconditional job, so it has no gate of its own; everything it checks is also inside `ci-success`.
 
 ### GATE-03 · The public API surface is diffed
 
@@ -182,7 +183,7 @@ Installed by husky through the `prepare` script (which also runs a build after `
 | `pre-commit` | `npx lint-staged`                    | Staged `src/**/*.ts` and `tests/**/*.ts`: `eslint --fix` then `prettier --write`. Staged `*.{json,md,yml,yaml}`: `prettier --write` |
 | `commit-msg` | `npx --no -- commitlint --edit "$1"` | Rejects messages that do not follow `@commitlint/config-conventional`                                                               |
 
-Test files are linted at commit and in CI with the `src/` rule set (`npm run lint` is `eslint src tests`), under the relaxations the `tests/**` block of `eslint.config.mjs` declares, each with its reason; `no-floating-promises`, `no-misused-promises` and `await-thenable` stay errors (`TEST-09`). Two narrower configs, `lint:bdd-seam` and `lint:suite-health` ([Suite-health lint](#suite-health-lint)), add test-only rules. Commit types map to changelog sections through `release-please-config.json`; see [RELEASE.md](RELEASE.md).
+Test files and repository scripts are linted at commit and in CI with the `src/` rule set (`npm run lint` is `eslint src tests scripts`), under the relaxations the `tests/**` block of `eslint.config.mjs` declares, each with its reason; `no-floating-promises`, `no-misused-promises` and `await-thenable` stay errors (`TEST-09`). `scripts/` is parsed against `tsconfig.scripts.json` under the relaxations its own block declares (console output, repository file paths, commands from PATH), and `npm run typecheck:scripts` compiles it the way ts-node runs it, with `exactOptionalPropertyTypes` off; before 2026-10-08 neither checked it. Two narrower configs, `lint:bdd-seam` and `lint:suite-health` ([Suite-health lint](#suite-health-lint)), add test-only rules. Commit types map to changelog sections through `release-please-config.json`; see [RELEASE.md](RELEASE.md).
 
 ---
 
@@ -728,7 +729,8 @@ The same "explicit, reasoned exception" pattern appears in ten more places:
 | ------------------------- | ---------------------------------------------------------------------------------------------- |
 | `build`                   | `tsup` then `tsc --emitDeclarationOnly`                                                        |
 | `typecheck`               | `tsc --noEmit`                                                                                 |
-| `lint` / `lint:fix`       | ESLint over `src` and `tests` (test relaxations declared in `eslint.config.mjs`)               |
+| `typecheck:scripts`       | `tsc -p tsconfig.scripts.json`: `scripts/` the way ts-node runs them                           |
+| `lint` / `lint:fix`       | ESLint over `src`, `tests` and `scripts` (relaxations declared in `eslint.config.mjs`)         |
 | `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`config/eslint/bdd-seam.rules.cjs`) |
 | `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline                   |
 | `lint:layers`             | Imports in `src` point inward (`config/eslint/layers.rules.cjs`); shrink-only baseline         |

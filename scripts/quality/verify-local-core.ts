@@ -47,6 +47,11 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'typecheck:scripts',
+    covers: 'the repository scripts compile',
+    stage: 'quick',
+  },
+  {
     script: 'typecheck:isolated',
     covers: 'isolatedDeclarations holds for the exposed layers',
     stage: 'quick',
@@ -66,7 +71,7 @@ export const TIERS: Tier[] = [
     covers: 'every JSON-returning endpoint declares a responseSchema',
     stage: 'quick',
   },
-  { script: 'lint', covers: 'src lint', stage: 'quick' },
+  { script: 'lint', covers: 'src, tests and scripts lint', stage: 'quick' },
   {
     script: 'lint:suite-health',
     covers: 'no skipped or assertion-free tests',
@@ -301,6 +306,7 @@ export function scriptsInWorkflow(yaml: string): string[] {
 export function toolsInWorkflow(yaml: string): string[] {
   const found = new Set<string>();
   for (const match of yaml.matchAll(
+    // eslint-disable-next-line sonarjs/regex-complexity -- runner, its flags, then an optionally scoped package name
     /\b(?:npx|uvx|pipx|bunx)(?:\s+(?:--?[\w-]+|run))*\s+((?:@[\w./-]+\/)?[\w.-]+)/g,
   )) {
     const raw = match[1];
