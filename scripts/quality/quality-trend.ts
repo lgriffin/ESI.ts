@@ -38,11 +38,14 @@ import {
   FunctionComplexity,
   TrendPoint,
   churnFromLog,
+  churnSince,
   complexityFromMessage,
+  optionProblem,
   rankHotspots,
   renderReport,
   summariseComplexity,
   toCsv,
+  weeklyCommits,
 } from './quality-trend-core';
 
 interface Measurement {
@@ -207,25 +210,6 @@ async function measure(
   };
 }
 
-/** One commit per week, newest last, deduplicated. */
-function weeklyCommits(ref: string, weeks: number): string[] {
-  const head = git(['rev-parse', ref]).trim();
-  const headTime = Number(git(['show', '-s', '--format=%ct', head]).trim());
-  const shas: string[] = [];
-  for (let i = weeks - 1; i >= 0; i -= 1) {
-    const before = new Date((headTime - i * 7 * 86400) * 1000).toISOString();
-    const sha = git([
-      'rev-list',
-      '-1',
-      '--first-parent',
-      `--before=${before}`,
-      head,
-    ]).trim();
-    if (sha !== '' && !shas.includes(sha)) shas.push(sha);
-  }
-  return shas;
-}
-
 async function measureCommit(sha: string): Promise<Measurement> {
   const dir = mkdtempSync(path.join(os.tmpdir(), 'quality-trend-'));
   git(['worktree', 'add', '--detach', dir, sha]);
@@ -247,12 +231,23 @@ async function main(): Promise<number> {
   const weeks = Number(option('weeks', '12'));
   const churnDays = Number(option('churn-days', '90'));
   const ref = option('ref', 'HEAD');
-  if (!Number.isInteger(weeks) || weeks < 1 || !Number.isInteger(churnDays)) {
-    console.error('--weeks and --churn-days must be positive integers');
+  const problem = optionProblem(weeks, churnDays);
+  if (problem !== null) {
+    console.error(problem);
     return 2;
   }
 
-  const shas = weeklyCommits(ref, weeks);
+  const head = git(['rev-parse', ref]).trim();
+  const headTime = Number(git(['show', '-s', '--format=%ct', head]).trim());
+  const shas = weeklyCommits(head, headTime, weeks, (before) =>
+    git([
+      'rev-list',
+      '-1',
+      '--first-parent',
+      `--before=${before}`,
+      head,
+    ]).trim(),
+  );
   if (shas.length === 0) {
     console.error(`No commits found on ${ref}.`);
     return 2;
@@ -270,14 +265,13 @@ async function main(): Promise<number> {
   }
   if (latest === null) return 2;
 
-  const since = `${churnDays} days ago`;
   const churn = churnFromLog(
     git([
       'log',
-      `--since=${since}`,
+      `--since=${churnSince(headTime, churnDays)}`,
       '--name-only',
       '--format=',
-      ref,
+      head,
       '--',
       'src',
     ]),

@@ -7,13 +7,16 @@ import {
   COMPLEXITY_LIMIT,
   TrendPoint,
   churnFromLog,
+  churnSince,
   complexityDensity,
   complexityFromMessage,
+  optionProblem,
   rankHotspots,
   renderReport,
   summariseComplexity,
   toCsv,
   typeCoverage,
+  weeklyCommits,
   xyChart,
 } from '../../../scripts/quality/quality-trend-core';
 
@@ -142,5 +145,41 @@ describe('rendering', () => {
 
   it('says so when nothing was measured', () => {
     expect(renderReport([], [], [], 90)).toContain('No commits were measured');
+  });
+});
+
+describe('which commits are measured', () => {
+  const headTime = Date.parse('2026-10-08T08:00:00Z') / 1000;
+
+  it('measures the ref itself in a one-week run', () => {
+    const lookup = jest.fn(() => 'older');
+    expect(weeklyCommits('head', headTime, 1, lookup)).toEqual(['head']);
+    expect(lookup).not.toHaveBeenCalled();
+  });
+
+  it('takes one commit per earlier week, oldest first, without repeats', () => {
+    const byCutoff: Record<string, string> = {
+      '2026-09-24T08:00:00.000Z': 'a',
+      '2026-10-01T08:00:00.000Z': 'a',
+    };
+    expect(
+      weeklyCommits('head', headTime, 3, (d) => byCutoff[d] ?? ''),
+    ).toEqual(['a', 'head']);
+  });
+
+  it('counts churn back from the ref, not from today', () => {
+    expect(churnSince(headTime, 90)).toBe('2026-07-10T08:00:00.000Z');
+  });
+
+  it.each([
+    [12, 90, null],
+    [0, 90, 'positive'],
+    [12, 0, 'positive'],
+    [12, -5, 'positive'],
+    [1.5, 90, 'positive'],
+  ])('checks --weeks %p and --churn-days %p', (weeks, days, expected) => {
+    const problem = optionProblem(weeks, days);
+    if (expected === null) expect(problem).toBeNull();
+    else expect(problem).toContain(expected);
   });
 });

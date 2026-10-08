@@ -118,6 +118,41 @@ export function rankHotspots(
   return hotspots.slice(0, limit);
 }
 
+const DAY_SECONDS = 86400;
+
+/**
+ * One first-parent commit per week, oldest first, deduplicated. The newest
+ * point is the ref itself; each earlier one is the last commit at or before
+ * a whole number of weeks earlier, which `commitAtOrBefore` looks up.
+ */
+export function weeklyCommits(
+  head: string,
+  headTime: number,
+  weeks: number,
+  commitAtOrBefore: (isoDate: string) => string,
+): string[] {
+  const shas: string[] = [];
+  for (let i = weeks - 1; i >= 0; i -= 1) {
+    const cutoff = new Date((headTime - i * 7 * DAY_SECONDS) * 1000);
+    const sha = i === 0 ? head : commitAtOrBefore(cutoff.toISOString());
+    if (sha !== '' && !shas.includes(sha)) shas.push(sha);
+  }
+  return shas;
+}
+
+/** The start of the churn window: `days` before the measured ref, not now. */
+export function churnSince(headTime: number, days: number): string {
+  return new Date((headTime - days * DAY_SECONDS) * 1000).toISOString();
+}
+
+/** Why the options cannot run, or null. */
+export function optionProblem(weeks: number, churnDays: number): string | null {
+  const positive = (n: number) => Number.isInteger(n) && n >= 1;
+  return positive(weeks) && positive(churnDays)
+    ? null
+    : '--weeks and --churn-days must be positive integers';
+}
+
 export function typeCoverage(point: TrendPoint): number {
   if (point.identifiers === 0) return 100;
   return (
