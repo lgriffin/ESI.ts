@@ -179,7 +179,10 @@ export function lowerBaseline(
   for (const [file, perFile] of Object.entries(baseline.sites)) {
     for (const [construct, allowed] of Object.entries(perFile)) {
       const kept = Math.min(allowed, current[file]?.[construct] ?? 0);
-      if (kept > 0) (sites[file] ??= {})[construct] = kept;
+      if (kept > 0) {
+        const fileSites = (sites[file] ??= {});
+        fileSites[construct] = kept;
+      }
     }
   }
   return { sites: sortCounts(sites) };

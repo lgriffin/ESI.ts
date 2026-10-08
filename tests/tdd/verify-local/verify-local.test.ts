@@ -97,7 +97,12 @@ describe('the tier list covers what CI runs', () => {
       'bundle',
     ]);
     expect(
-      uncoveredCiScripts(['bundle'], TIERS, { bundle: ['lint', 'test'] }, {}),
+      uncoveredCiScripts(
+        ['bundle'],
+        TIERS,
+        { bundle: ['lint:ratchet', 'test'] },
+        {},
+      ),
     ).toEqual([]);
   });
 
@@ -122,7 +127,7 @@ describe('the tier list covers the tools CI runs directly', () => {
     // meant, matched nothing, and every assertion below passed vacuously.
     expect(tools.length).toBeGreaterThan(0);
     expect(tools).toContain('zizmor');
-    expect(tools).toContain('knip');
+    expect(tools).toContain('npm');
   });
 
   it('runs or explains every tool ci.yml invokes directly', () => {

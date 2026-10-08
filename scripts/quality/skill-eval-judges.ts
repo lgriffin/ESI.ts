@@ -514,6 +514,13 @@ const mean = (xs: number[]): number | null =>
 
 const LLM_TYPES = new Set(['llm', 'baseline']);
 
+/** A run's error as text: the native result records a string, an Error or an object. */
+function describeRunError(error: unknown): string {
+  if (typeof error === 'string') return error;
+  if (error instanceof Error) return error.message;
+  return JSON.stringify(error);
+}
+
 /**
  * Apply the manifest thresholds and budget to a native eval result.
  *
@@ -563,7 +570,9 @@ export function gateNativeResult(input: GateInput): GateReport {
     const typeOf = new Map(c.graders.map((g) => [g.name, g.type]));
     for (const run of c.arms.with) {
       if (run.error) {
-        failures.push(`case ${c.name}: a run errored: ${String(run.error)}`);
+        failures.push(
+          `case ${c.name}: a run errored: ${describeRunError(run.error)}`,
+        );
       }
       for (const verdict of run.graders) {
         if (verdict.scored === false) continue;

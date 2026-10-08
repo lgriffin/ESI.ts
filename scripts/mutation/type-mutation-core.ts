@@ -250,7 +250,11 @@ export function symbolPathOf(node: ts.Node): string {
       parts.push('new()');
     }
   }
-  return parts.reverse().join('.').replace(/\.\(/g, '(').replace(/\.</g, '<');
+  return [...parts]
+    .reverse()
+    .join('.')
+    .replace(/\.\(/g, '(')
+    .replace(/\.</g, '<');
 }
 
 const KEYWORD_TYPES_NOT_WORTH_WIDENING = new Set([
@@ -426,7 +430,7 @@ export function mutationsIn(root: ts.Node, sf: ts.SourceFile): RawMutant[] {
     // optional one, so each direction only applies where that holds.
     if (ts.isParameter(node) && !node.dotDotDotToken) {
       const isThis = ts.isIdentifier(node.name) && node.name.text === 'this';
-      const params = (node.parent as ts.SignatureDeclaration).parameters;
+      const params = (node.parent).parameters;
       const index = params.indexOf(node);
       if (node.questionToken) {
         const allEarlierRequired = params

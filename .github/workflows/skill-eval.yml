@@ -1,9 +1,9 @@
 name: Skill Eval
 
 # R14: skills are versioned, evaluated and gated. A change to a skill, its
-# eval suite, or the eval runner runs the deterministic judges offline and then
-# the live `claude plugin eval` suite with thresholds and a cost budget taken
-# from .claude/skills/<skill>/eval/eval.yaml.
+# eval suite, or the eval runner runs the deterministic judges offline against
+# each case's recorded outputs. There is no live, LLM-judged tier in CI: no
+# model calls and no API key; `skill-eval.ts --live` remains a local option.
 
 on:
   pull_request:
@@ -22,10 +22,6 @@ permissions:
 concurrency:
   group: skill-eval-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
-
-env:
-  # Pinned so eval scores stay comparable between runs; bump deliberately.
-  CLAUDE_CODE_VERSION: '2.1.273'
 
 jobs:
   deterministic:
@@ -67,55 +63,4 @@ jobs:
         with:
           name: skill-eval-offline
           path: skill-eval-offline.json
-          if-no-files-found: ignore
-
-  live:
-    name: Skill eval (live, LLM-judged)
-    needs: deterministic
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-
-    steps:
-      - name: Require ANTHROPIC_API_KEY
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          if [ -z "$ANTHROPIC_API_KEY" ]; then
-            echo "::error::ANTHROPIC_API_KEY secret is not available. The live skill eval gates every skill change and is never skipped. Add the repository secret, or for a fork PR have a maintainer run this workflow via workflow_dispatch on a branch in this repository."
-            exit 1
-          fi
-
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      # claude plugin eval confines agent shells with the OS sandbox; on Linux
-      # that needs bubblewrap and socat.
-      - name: Install sandbox dependencies
-        run: sudo apt-get update && sudo apt-get install --yes bubblewrap socat
-
-      - name: Install Claude Code
-        run: npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
-
-      - name: Run live skill eval
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: npx ts-node scripts/quality/skill-eval.ts --live --json skill-eval-live.json
-
-      - name: Upload live report
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: skill-eval-live
-          path: skill-eval-live.json
           if-no-files-found: ignore

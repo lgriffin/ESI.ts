@@ -8,12 +8,15 @@ TypeScript wrapper for the EVE Online ESI (EVE Swagger Interface) API. Published
 npm run build          # Dual CJS/ESM bundle (tsup) + declarations (tsc)
 npm run typecheck      # Type-check without emitting (tsc --noEmit)
 npm run typecheck:examples  # Type-check examples/ against src (tsconfig.examples.json)
+npm run typecheck:scripts   # Type-check scripts/ the way ts-node runs them (tsconfig.scripts.json)
 npm run typecheck:isolated  # isolatedDeclarations over the exposed layers only (tsconfig.isolated.json; schemas and endpoint maps stay inferred)
 npm run clean          # Remove dist/, coverage/ and the generated docs (TypeDoc, site pages, site build)
 npm run docs:site      # Build the documentation site (TypeDoc, guides, examples) into docs-site/.vitepress/dist; needs `npm ci --prefix docs-site` once
-npm run lint           # ESLint (src/ and tests/; test relaxations declared in eslint.config.mjs)
+npm run lint           # ESLint (src/, tests/ and scripts/; test and script relaxations declared in eslint.config.mjs)
+npm run lint:ratchet   # lint, plus warnings per file and rule held to config/eslint/warning-baseline.json (shrink-only; -- --update lowers it)
 npm run lint:bdd-seam  # BDD scenarios mock only at the transport seam (tests/bdd)
 npm run lint:determinism  # Time/timers/Math.random in src/ only via the clock module (shrink-only baseline)
+npm run lint:cycles    # No runtime import cycles in src/ (import type edges excluded)
 npm run lint:layers    # Imports in src/ point inward: core, ports, generated (shrink-only baseline)
 npm run lint:suite-health  # tests/: no .only/.skip/.todo, no assertion-free tests or Then steps, no swallowed assertions or unrestored console mocks
 npm run lint:package   # publint + attw on the npm pack tarball (known findings: scripts/package/package-lint-baseline.json)
@@ -133,7 +136,7 @@ Key middleware in the pipeline:
 - **nightly-mutation.yml** — runs nightly: unit mutation testing (Stryker) with a 4-hour timeout, the BDD-only run as one job per shard, and type mutation
 - **nightly-examples.yml** — runs nightly and on PRs touching examples: type-checks every example, runs the public ones against live ESI, opens/closes one issue per failing example
 - **nightly-sde.yml** — runs nightly: downloads CCP's current SDE export (cached per build), runs the real-data integration suite, `sde:drift` against the registry and schemas, the SDE examples, then the `sde/` benchmarks and the SDE heap soak; keeps one issue open while red
-- **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: skill eval suite with thresholds and a cost budget
+- **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: the deterministic skill eval judges on recorded outputs (no live, LLM-judged tier; `skill-eval.ts --live` is local only)
 - **spec-refresh.yml** — on push to `spec-refresh/**` or manual dispatch: re-vendors the ESI OpenAPI document at `COMPATIBILITY_DATE` and regenerates every generated file from it
 
 These are the ones an agent meets most. `.github/workflows/` holds 29 workflow files; `guides/QUALITY-GATES.md` lists every one and what it gates.

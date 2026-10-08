@@ -254,7 +254,7 @@ function checkMode(threshold: string, exceptions: Map<string, AuditException>) {
   }
 
   console.error(`Unaccepted advisories at or above "${threshold}":\n`);
-  for (const a of blocking.sort(
+  for (const a of [...blocking].sort(
     (x, y) => severityRank(y.severity) - severityRank(x.severity),
   )) {
     console.error(describe(a));
@@ -304,7 +304,7 @@ function diffMode(
   }
 
   console.error('This PR introduces new advisories:\n');
-  for (const a of introduced.sort(
+  for (const a of [...introduced].sort(
     (x, y) => severityRank(y.severity) - severityRank(x.severity),
   )) {
     console.error(describe(a));

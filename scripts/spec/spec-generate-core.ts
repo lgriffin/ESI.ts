@@ -138,6 +138,7 @@ export function generateOperations(
         throw new SpecGenerateError(`$ref to missing schema "${name}"`);
       }
       declared.set(name, ''); // reserve before recursing, for cycles
+      // eslint-disable-next-line sonarjs/no-element-overwrite -- replaces the reservation above once the recursion returns
       declared.set(
         name,
         `${jsdoc([schema.description])}export type ${name} = ${inlineType(schema)};\n`,

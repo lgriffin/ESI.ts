@@ -58,7 +58,7 @@ function parseSpecFile(): string | undefined {
   return undefined;
 }
 
-function parseCompatibilityDate(): string | 'latest' {
+function parseCompatibilityDate(): string {
   for (const arg of process.argv.slice(2)) {
     if (arg === '--latest') return 'latest';
     const match = arg.match(/^--compatibility-date=(\d{4}-\d{2}-\d{2})$/);
@@ -68,7 +68,7 @@ function parseCompatibilityDate(): string | 'latest' {
 }
 
 async function resolveCompatibilityDate(
-  requested: string | 'latest',
+  requested: string, // a YYYY-MM-DD date or 'latest'
 ): Promise<string> {
   if (requested !== 'latest') return requested;
   const response = await fetch(ESI_COMPATIBILITY_DATES_URL);
@@ -633,4 +633,7 @@ async function main(): Promise<void> {
   process.exit(exitCode);
 }
 
-main();
+main().catch((err: unknown) => {
+  console.error(err);
+  process.exit(1);
+});

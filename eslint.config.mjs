@@ -11,7 +11,6 @@ export default tseslint.config(
       'node_modules/',
       'coverage/',
       'docs-site/',
-      'scripts/',
       '**/*.cjs',
       '**/*.js',
       '**/*.mjs',
@@ -75,6 +74,43 @@ export default tseslint.config(
       'sonarjs/sonar-no-unused-vars': 'off',
       'sonarjs/todo-tag': 'off',
       'sonarjs/fixme-tag': 'off',
+    },
+  },
+
+  // Repository scripts: the release, audit, ratchet and mutation gates. They
+  // are compiled under tsconfig.scripts.json, which the root project service
+  // does not cover.
+  {
+    files: ['scripts/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
+        project: './tsconfig.scripts.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      // Relaxations, each for something a repository CLI does and src/ does
+      // not. Scripts report to the terminal and the CI step summary.
+      'no-console': 'off',
+      // No untrusted input reaches a script: it reads and writes repository
+      // files at computed paths, indexes its own tables and runs its own
+      // regexes over repository data.
+      'security/detect-object-injection': 'off',
+      'security/detect-non-literal-fs-filename': 'off',
+      'security/detect-non-literal-regexp': 'off',
+      'security/detect-non-literal-require': 'off',
+      'security/detect-unsafe-regex': 'off',
+      'security/detect-child-process': 'off',
+      'sonarjs/super-linear-regex': 'off',
+      'sonarjs/slow-regex': 'off',
+      // Scripts spawn node, npx, npm and git from PATH, as CI does.
+      'sonarjs/no-os-command-from-path': 'off',
+      // Default sorts order keys, paths and names, where code-point order is
+      // what makes the output deterministic; numeric sorts pass a comparator.
+      'sonarjs/no-alphabetical-sort': 'off',
+      // Line parsers advance the loop index past a block they consumed.
+      'sonarjs/updated-loop-counter': 'off',
     },
   },
 

@@ -17,7 +17,9 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | lint-staged: ESLint fix + Prettier         |   ●    |            ·             |        ·         |       ·       |         ·          |    ●     |
 | commitlint (conventional commits)          |   ●    |            ·             |        ·         |       ·       |         ·          |    ●     |
 | ESLint, Prettier check, build, typecheck   |   ·    |            ●             |        ●         |       ·       |       ● (1)        |    ●     |
+| ESLint warning ratchet (`lint:ratchet`)    |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | Examples type-check (`typecheck:examples`) |   ·    |            ●             |        ●         | ◐ files issue |         ·          |    ●     |
+| Scripts type-check (`typecheck:scripts`)   |   ·    |            ●             |        ●         |       ·       |         ·          |    ●     |
 | Unit tests (includes BDD and composition)  |   ·    |            ●             |    ● 18/20/22    |       ·       |         ●          |    ●     |
 | Coverage thresholds + PR comment           |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | BDD suite                                  |   ·    |          ● (2)           |        ●         |       ·       |         ●          |    ●     |
@@ -25,6 +27,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | EARS verdict per Rule (`ears.yml`)         |   ·    |            ·             |      ◐ (9)       |       ·       |         ·          |    ◐     |
 | Determinism lint (time in `src/`)          |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | Layer lint (`lint:layers`)                 |   ·    |            ●             |        ●         |       ·       |         ·          |    ●     |
+| Import cycles (`lint:cycles`)              |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | Test lints: transport seam, suite health   |   ·    |            ●             |        ●         |       ·       |         ·          |    ●     |
 | Generated types fresh, schema drift        |   ·    |            ·             |     ● (3)(7)     | ◐ files issue |         ●          |    ·     |
 | Generated operations fresh                 |   ·    |            ·             |        ●         |       ·       |         ●          |    ·     |
@@ -41,11 +44,12 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | API surface diff (api-extractor)           |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | Breaking API change declared (SemVer gate) |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | Lockfile consistency                       |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
+| Registry signatures (`audit:signatures`)   |   ·    |            ·             |        ●         |       ·       |         ·          |    ·     |
 | publint, attw, size budgets (packed)       |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | Consumer contract (packed tarball)         |   ·    |            ·             |  ● 18/20/22/24   |       ◐       |         ●          |    ●     |
 | Documentation examples (packed tarball)    |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | Dependency audit (diff-aware / allowlist)  |   ·    |            ·             | ● new advisories | ◐ files issue |    ● ≥ high (6)    |    ●     |
-| knip dead-code                             |   ·    |            ·             |        ◐         | ◐ weekly (4)  |         ●          |    ●     |
+| knip dead-code                             |   ·    |            ·             |        ●         | ◐ weekly (4)  |         ●          |    ●     |
 | CodeQL                                     |   ·    | ◐ protected branches (5) |      ◐ (5)       |   ◐ weekly    |         ·          |    ◐     |
 | zizmor (workflow security)                 |   ·    |            ·             |        ●         |       ·       |         ·          |    ●     |
 | Benchmarks, head against base (8)          |   ·    |            ·             |        ●         | ◐ files issue |         ·          |    ●     |
@@ -111,7 +115,7 @@ To add a blocking job: add the job, add its id to `ci-success.needs`. To add an 
 
 ### GATE-02 · Every push gets fast feedback
 
-`ci-fast.yml` runs on a push to any branch (`'**'`) on Node 22: ESLint, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, `npm test`. It has one unconditional job, so it has no gate of its own; everything it checks is also inside `ci-success`.
+`ci-fast.yml` runs on a push to any branch (`'**'`) on Node 22: ESLint, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `npm test`. It has one unconditional job, so it has no gate of its own; everything it checks is also inside `ci-success`.
 
 ### GATE-03 · The public API surface is diffed
 
@@ -132,7 +136,7 @@ Locally, on a feature branch: `npm run api-report:semver -- --base $(git merge-b
 
 ### GATE-04 · knip blocks the release
 
-`release.yml` (`validate-release`) runs `npx knip`, so an unused file, export or dependency under `src/` stops the publish. `npm run validate` and `npm run check:all` block on it too. On pull requests it only reports: `ci.yml` (`static-analysis`) runs it with `--no-exit-code` to keep friction low, and `maintenance.yml` runs it weekly with `|| true`. Configuration is `knip.jsonc`: tests, scripts and examples are entry points, `project` is `src/`, and each exception carries its reason as a comment. Run `npm run knip` before tagging.
+`release.yml` (`validate-release`) runs `npx knip`, so an unused file, export or dependency under `src/` stops the publish. `npm run validate` and `npm run check:all` block on it too. On pull requests `ci.yml` (`static-analysis`) blocks on it too (`npm run knip`, since 2026-10-08), and `maintenance.yml` runs it weekly with `|| true` for the report. Configuration is `knip.jsonc`: tests, scripts and examples are entry points, `project` is `src/`, and each exception carries its reason as a comment. Run `npm run knip` before tagging.
 
 ### GATE-05 · Nightlies file issues
 
@@ -182,7 +186,7 @@ Installed by husky through the `prepare` script (which also runs a build after `
 | `pre-commit` | `npx lint-staged`                    | Staged `src/**/*.ts` and `tests/**/*.ts`: `eslint --fix` then `prettier --write`. Staged `*.{json,md,yml,yaml}`: `prettier --write` |
 | `commit-msg` | `npx --no -- commitlint --edit "$1"` | Rejects messages that do not follow `@commitlint/config-conventional`                                                               |
 
-Test files are linted at commit and in CI with the `src/` rule set (`npm run lint` is `eslint src tests`), under the relaxations the `tests/**` block of `eslint.config.mjs` declares, each with its reason; `no-floating-promises`, `no-misused-promises` and `await-thenable` stay errors (`TEST-09`). Two narrower configs, `lint:bdd-seam` and `lint:suite-health` ([Suite-health lint](#suite-health-lint)), add test-only rules. Commit types map to changelog sections through `release-please-config.json`; see [RELEASE.md](RELEASE.md).
+Test files and repository scripts are linted at commit and in CI with the `src/` rule set (`npm run lint` is `eslint src tests scripts`), under the relaxations the `tests/**` block of `eslint.config.mjs` declares, each with its reason; `no-floating-promises`, `no-misused-promises` and `await-thenable` stay errors (`TEST-09`). `scripts/` is parsed against `tsconfig.scripts.json` under the relaxations its own block declares (console output, repository file paths, commands from PATH), and `npm run typecheck:scripts` compiles it the way ts-node runs it, with `exactOptionalPropertyTypes` off; before 2026-10-08 neither checked it. Two narrower configs, `lint:bdd-seam` and `lint:suite-health` ([Suite-health lint](#suite-health-lint)), add test-only rules. Commit types map to changelog sections through `release-please-config.json`; see [RELEASE.md](RELEASE.md).
 
 ---
 
@@ -224,7 +228,7 @@ All 29 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the
 
 ### `ci-fast.yml` — CI Fast
 
-One job, `Lint, Build & Test`, on Node 22: `npm ci`, `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `typecheck:examples`, `typecheck:isolated`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
+One job, `Lint, Build & Test`, on Node 22: `npm ci`, `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
 
 ### `ci.yml` — CI/CD Pipeline
 
@@ -233,8 +237,8 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | Job (display name)                       | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | In gate |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: |
 | `pr-info` (PR Information)               | Writes title, author, branches and change size to the step summary. Runs on drafts too                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |   yes   |
-| `lint-and-build` (Lint & Build)          | ESLint, `lint:determinism` (fetches master for its baseline), `lint:layers`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, `spec:generate:check`, `spec:coverage`, `spec:response-schemas`; uploads `dist/`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |   yes   |
-| `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and every `src/core/endpoints/esi-*.generated.ts` (TTLs, rate-limit groups, scopes); knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`; `validate:esi`; `validate:spec`. The four live-spec checks block only when the pull request touches their inputs (below)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |   yes   |
+| `lint-and-build` (Lint & Build)          | `audit:signatures` (registry signatures and provenance of every installed package), `lint:determinism` (fetches master for its baseline), ESLint through `lint:ratchet` (errors fail; warnings per file and rule held to `config/eslint/warning-baseline.json`, shrink-only against the target branch), `lint:layers`, `lint:cycles`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `spec:generate:check`, `spec:coverage`, `spec:response-schemas`; uploads `dist/`                                                                                                                                                                                                                                                                                                                                                                                                          |   yes   |
+| `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and every `src/core/endpoints/esi-*.generated.ts` (TTLs, rate-limit groups, scopes); knip (blocking since 2026-10-08); `schema:drift:ci`; `validate:auth-scopes`; `validate:esi`; `validate:spec`. The four live-spec checks block only when the pull request touches their inputs (below)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |   yes   |
 | `unit-tests` (Unit Tests)                | `npm test` (unit, composition and BDD) on Node 22 and 24                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |   yes   |
 | `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `config/jest/unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |   yes   |
 | `bdd-tests` (BDD Scenarios)              | `npm run bdd -- --json`, then `npm run bdd:report`, which fails when a scenario did not execute; uploads the `bdd-junit` artifact                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |   yes   |
@@ -274,7 +278,7 @@ The lockfile check skips Dependabot because Dependabot's npm version produces by
 
 ### `codeql.yml` — CodeQL
 
-GitHub CodeQL analysis for `javascript-typescript` on pushes and pull requests to `master`, `main` and `develop`, and weekly on Mondays at 06:00 UTC. Findings go to the repository's code scanning alerts. Not a required check.
+GitHub CodeQL analysis for `javascript-typescript` with the `security-extended` query suite (the default suite plus lower-precision security queries; `security-and-quality` was passed over because its maintainability queries repeat sonarjs) on pushes and pull requests to `master`, `main` and `develop`, and weekly on Mondays at 06:00 UTC. Findings go to the repository's code scanning alerts. Not a required check.
 
 ### zizmor — Workflow Security
 
@@ -284,7 +288,7 @@ The `zizmor` job in `ci.yml` runs `zizmor` (pinned version, via `uvx`) over `.gi
 
 ### `skill-eval.yml` — Skill Eval
 
-Gates changes to agent skills (`R14`). `deterministic` unit-tests the judges, fails if a skill's `SKILL.md` changed without a `skill.version` bump in its `eval/eval.yaml`, and runs `scripts/quality/skill-eval.ts` offline against each case's recorded outputs: one `shall` per Rule, scenarios under Rules, no `spyOn(client…)`, transport-seam mocking, step bindings, and the spec audit. `live` then runs the native `claude plugin eval` suite through the same script, which enforces the manifest's per-case score, LLM-grader `min_mean`, deterministic pass rate and `max_cost_usd` budget. `live` fails rather than skips when the `ANTHROPIC_API_KEY` secret is absent — including on fork PRs, where a maintainer re-runs it via `workflow_dispatch`. Not a required check yet.
+Gates changes to agent skills (`R14`). `deterministic` unit-tests the judges, fails if a skill's `SKILL.md` changed without a `skill.version` bump in its `eval/eval.yaml`, and runs `scripts/quality/skill-eval.ts` offline against each case's recorded outputs: one `shall` per Rule, scenarios under Rules, no `spyOn(client…)`, transport-seam mocking, step bindings, and the spec audit. There is no live, LLM-judged tier in CI (removed 2026-10-08): nothing calls a model and no API key is needed. The native `claude plugin eval` run with the manifest's score and cost thresholds is still available locally as `skill-eval.ts --live`. Not a required check yet.
 
 ### `ears.yml` — EARS Requirements
 
@@ -735,24 +739,27 @@ The same "explicit, reasoned exception" pattern appears in ten more places:
 
 ### Build and static checks
 
-| Script                    | Runs                                                                                           |
-| ------------------------- | ---------------------------------------------------------------------------------------------- |
-| `build`                   | `tsup` then `tsc --emitDeclarationOnly`                                                        |
-| `typecheck`               | `tsc --noEmit`                                                                                 |
-| `lint` / `lint:fix`       | ESLint over `src` and `tests` (test relaxations declared in `eslint.config.mjs`)               |
-| `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`config/eslint/bdd-seam.rules.cjs`) |
-| `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline                   |
-| `lint:layers`             | Imports in `src` point inward (`config/eslint/layers.rules.cjs`); shrink-only baseline         |
-| `lint:suite-health`       | ESLint over `tests/` with only the suite-health rules (`config/eslint/suite-health.rules.cjs`) |
-| `lint:package`            | Build, `npm pack`, then publint and attw on the tarball (`-- --skip-build`)                    |
-| `size`                    | size-limit budget per `exports` sub-path, ESM and CJS (`.size-limit.cjs`)                      |
-| `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                                |
-| `knip`                    | Dead code and unused exports (`knip.jsonc`)                                                    |
-| `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                        |
-| `api-report:check`        | api-extractor, check mode                                                                      |
-| `api-report:semver`       | Fails if the report lost a line without a breaking-change commit (GATE-03)                     |
-| `clean` / `clean:docs`    | Remove `dist`, `coverage`, and the generated docs (`public/api`, pages, sidebar, build)        |
-| `prepare`                 | Install husky hooks, then build                                                                |
+| Script                    | Runs                                                                                                                         |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `build`                   | `tsup` then `tsc --emitDeclarationOnly`                                                                                      |
+| `typecheck`               | `tsc --noEmit`                                                                                                               |
+| `typecheck:scripts`       | `tsc -p tsconfig.scripts.json`: `scripts/` the way ts-node runs them                                                         |
+| `lint` / `lint:fix`       | ESLint over `src`, `tests` and `scripts` (relaxations declared in `eslint.config.mjs`)                                       |
+| `lint:ratchet`            | `lint` that also fails when warnings per file and rule exceed `config/eslint/warning-baseline.json`; `-- --update` lowers it |
+| `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`config/eslint/bdd-seam.rules.cjs`)                               |
+| `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline                                                 |
+| `lint:cycles`             | No runtime import cycle among `src/` files; `import type` edges do not count (`scripts/quality/import-cycles.ts`)            |
+| `lint:layers`             | Imports in `src` point inward (`config/eslint/layers.rules.cjs`); shrink-only baseline                                       |
+| `lint:suite-health`       | ESLint over `tests/` with only the suite-health rules (`config/eslint/suite-health.rules.cjs`)                               |
+| `lint:package`            | Build, `npm pack`, then publint and attw on the tarball (`-- --skip-build`)                                                  |
+| `size`                    | size-limit budget per `exports` sub-path, ESM and CJS (`.size-limit.cjs`)                                                    |
+| `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                                                              |
+| `knip`                    | Dead code and unused exports (`knip.jsonc`)                                                                                  |
+| `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                                                      |
+| `api-report:check`        | api-extractor, check mode                                                                                                    |
+| `api-report:semver`       | Fails if the report lost a line without a breaking-change commit (GATE-03)                                                   |
+| `clean` / `clean:docs`    | Remove `dist`, `coverage`, and the generated docs (`public/api`, pages, sidebar, build)                                      |
+| `prepare`                 | Install husky hooks, then build                                                                                              |
 
 ### Tests
 
@@ -818,10 +825,11 @@ The same "explicit, reasoned exception" pattern appears in ten more places:
 
 ### Security
 
-| Script        | Runs                                      |
-| ------------- | ----------------------------------------- |
-| `audit:check` | `audit-check.ts --check` (default `high`) |
-| `audit:diff`  | `audit-check.ts --diff`                   |
+| Script             | Runs                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `audit:check`      | `audit-check.ts --check` (default `high`)                                             |
+| `audit:diff`       | `audit-check.ts --diff`                                                               |
+| `audit:signatures` | `npm audit signatures`: registry signatures and provenance of every installed package |
 
 ### Aggregates
 
@@ -883,10 +891,11 @@ npm run validate:spec                             # Redocly downloads and lints 
 npm run api-report && git diff etc/esi.ts.api.md  # rewrites a committed file; commit any change
 npm run api-report:semver                         # needs the base branch
 npm run audit:diff                                # queries the advisory database
+npm run audit:signatures                          # fetches the registry's signing keys
 npm run mutation:pr                               # needs a base ref; the nightly owns the full run
 npm run bench:ab                                  # needs a second tree and a quiet machine
 ```
 
-`bdd` and `coverage` are left out because `test` already runs the same suites, `docs` because it asserts nothing, and `knip` because only the release gate blocks on it (`validate` and `check:all` run it).
+`bdd` and `coverage` are left out because `test` already runs the same suites and `docs` because it asserts nothing.
 
 `validate:versions` runs in `static-analysis` and in `release.yml`: `release-please` keeps `src/core/constants.ts` in step with `package.json` through its `extra-files` setting, and the check is what catches a hand edit of either. The docs-site version selector is read from `package.json` when the site builds; the check fails if `docs-site/.vitepress/config.ts` stops doing that, and `validate:versions -- --site` fails on a built site showing another version (the `documentation` job and `docs-site.yml` run it).

@@ -504,4 +504,7 @@ async function main(): Promise<void> {
   }
 }
 
-main();
+main().catch((err: unknown) => {
+  console.error(err);
+  process.exit(1);
+});

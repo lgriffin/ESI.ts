@@ -2690,7 +2690,7 @@ const CorporationInfoSchema: z.ZodObject<{
     }, z.core.$loose>>;
     war_eligible: z.ZodOptional<z.ZodBoolean>;
     friendly_fire: z.ZodOptional<z.ZodType<(string & {}) | "legal" | "illegal", unknown, z.core.$ZodTypeInternals<(string & {}) | "legal" | "illegal", unknown>>>;
-    state: z.ZodOptional<z.ZodType<(string & {}) | "closed" | "active", unknown, z.core.$ZodTypeInternals<(string & {}) | "closed" | "active", unknown>>>;
+    state: z.ZodOptional<z.ZodType<"closed" | (string & {}) | "active", unknown, z.core.$ZodTypeInternals<"closed" | (string & {}) | "active", unknown>>>;
     type: z.ZodOptional<z.ZodType<(string & {}) | "player_owned" | "npc_owned", unknown, z.core.$ZodTypeInternals<(string & {}) | "player_owned" | "npc_owned", unknown>>>;
     palette: z.ZodOptional<z.ZodObject<{
         main_color: z.ZodString;
