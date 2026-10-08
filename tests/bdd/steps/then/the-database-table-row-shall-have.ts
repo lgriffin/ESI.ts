@@ -3,7 +3,7 @@ import { openBuiltDatabase } from '../../support/sdeFiles';
 
 // A stored column of one row: quoted for text, bare for a number.
 Then(
-  /^the database table "([^"]*)" row (\d+) shall have (\w+) (?:"([^"]*)"|(-?\d+))$/,
+  /^the database table "([^"]*)" row (\d+) shall have (\w+) (?:"([^"]*)"|(-?\d+(?:\.\d+)?))$/,
   function (
     table: string,
     id: string,

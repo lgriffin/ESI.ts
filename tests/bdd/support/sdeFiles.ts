@@ -126,6 +126,69 @@ export const NON_RECORD_SDE_FILES: Record<string, unknown> = {
   },
 };
 
+/**
+ * `count` types named after their IDs 1 to `count`, where only the last one
+ * carries `basePrice`, so a column taken from leading records alone misses it.
+ */
+export function typesWithLateField(
+  count: number,
+  basePrice: number,
+): Record<string, unknown> {
+  const types: Record<number, Record<string, unknown>> = {};
+  for (let id = 1; id <= count; id++) {
+    types[id] = { name: { en: `Type ${id}` }, groupID: 18 };
+  }
+  types[count] = { ...types[count], basePrice };
+  return { '_sde.yaml': { sde: BUILD }, 'types.yaml': types };
+}
+
+/**
+ * An export that exercises the SQLite build's schema: type 34 carries a null
+ * field and a nested object, type 35 a fractional volume where type 34's is
+ * whole; a table keyed by strings; a file whose records keep their own IDs
+ * (characterTitles); and a market groups file with no records at all.
+ */
+export const SCHEMA_SDE_FILES: Record<string, unknown> = {
+  '_sde.yaml': { sde: BUILD },
+  'types.yaml': {
+    34: {
+      name: { en: 'Tritanium' },
+      groupID: 18,
+      volume: 1,
+      basePrice: null,
+      traits: { iconID: 7, roleBonuses: [{ bonus: 5 }] },
+    },
+    35: { name: { en: 'Pyerite' }, groupID: 18, volume: 0.01 },
+  },
+  'translationLanguages.yaml': {
+    de: { name: 'German' },
+    en: { name: 'English' },
+  },
+  'characterTitles.yaml': { captain: { name: { en: 'Captain' } } },
+  'marketGroups.yaml': {},
+};
+
+/**
+ * The raw export, but type 34 also carries a typeID that is not a number, so
+ * its row cannot go into the INTEGER primary key.
+ */
+export const UNSTORABLE_SDE_FILES: Record<string, unknown> = {
+  ...RAW_SDE_FILES,
+  'types.yaml': {
+    ...(RAW_SDE_FILES['types.yaml'] as Record<number, Record<string, unknown>>),
+    34: { name: { en: 'Tritanium' }, typeID: 'not-a-number' },
+  },
+};
+
+/** `count` types named after their IDs 1 to `count`, all in group 18. */
+export function manyTypes(count: number): Record<string, unknown> {
+  const types: Record<number, Record<string, unknown>> = {};
+  for (let id = 1; id <= count; id++) {
+    types[id] = { name: { en: `Type ${id}` }, groupID: 18 };
+  }
+  return { '_sde.yaml': { sde: BUILD }, 'types.yaml': types };
+}
+
 /** The YAML files a `listFiles` over `RAW_SDE_FILES` reports, in archive order. */
 export const RAW_YAML_FILES = Object.keys(RAW_SDE_FILES);
 
@@ -165,6 +228,52 @@ export function zipSdeDirectory(world: World): string {
   zip.writeZip(zipPath);
   world.values.sdeZip = zipPath;
   return zipPath;
+}
+
+/**
+ * Archive the scenario's directory inside a `folder/` entry, with a
+ * `README.txt` beside the folder, and remember the ZIP as the scenario's.
+ */
+export function zipSdeDirectoryInFolder(world: World, folder: string): string {
+  const dir = sdeDirectory(world);
+  const zip = new AdmZip();
+  zip.addFile(`${folder}/`, Buffer.alloc(0));
+  for (const name of fs.readdirSync(dir)) {
+    zip.addFile(`${folder}/${name}`, fs.readFileSync(path.join(dir, name)));
+  }
+  zip.addFile('README.txt', Buffer.from('Not part of the export.\n'));
+  const zipPath = tempPath(world, 'sde.zip');
+  zip.writeZip(zipPath);
+  world.values.sdeZip = zipPath;
+  return zipPath;
+}
+
+/** A fresh directory holding `name` with `content`, remembered as the extraction target. */
+export function extractionDirectoryHolding(
+  world: World,
+  name: string,
+  content: string,
+): void {
+  const dir = tempDir(world);
+  fs.writeFileSync(path.join(dir, name), content, 'utf-8');
+  world.values.extractDir = dir;
+}
+
+export function extractArchive(world: World): void {
+  new SdeExtractor().extractAll(
+    sdeArchive(world),
+    world.values.extractDir as string,
+  );
+}
+
+/** Whether the extracted `name` holds the same bytes as the SDE directory's. */
+export function extractedMatchesSource(world: World, name: string): boolean {
+  const extracted = fs.readFileSync(
+    path.join(world.values.extractDir as string, name),
+  );
+  return extracted.equals(
+    fs.readFileSync(path.join(sdeDirectory(world), name)),
+  );
 }
 
 /** A directory and archive path that nothing was ever written to. */
@@ -353,6 +462,34 @@ export function queueArchiveDownload(world: World, bytes: number): void {
   });
 }
 
+/**
+ * Serve an archive of `bytes` known bytes with no content-length header, so
+ * the downloader cannot know the total; `delayMs` holds the response back.
+ */
+export function queueArchiveDownloadWithoutLength(
+  world: World,
+  bytes: number,
+  delayMs?: number,
+): void {
+  const body = archiveBytes(bytes);
+  world.values.archiveBody = body;
+  queueResponse({
+    match: 'static-data-latest-yaml.zip',
+    body,
+    headers: { 'content-type': 'application/zip' },
+    ...(delayMs === undefined ? {} : { delayMs }),
+  });
+}
+
+/** Serve the latest-build feed as exactly this text. */
+export function queueLatestBuildFeedText(text: string): void {
+  queueResponse({
+    match: 'latest.jsonl',
+    body: text,
+    headers: { 'content-type': 'application/x-ndjson' },
+  });
+}
+
 export function queueArchiveDownloadFailure(status: number): void {
   queueResponse({ match: 'static-data-latest-yaml.zip', status, body: '' });
 }
@@ -365,18 +502,34 @@ export async function fetchLatestBuild(world: World): Promise<void> {
   }
 }
 
-/** Download to a temp file, recording every progress report. */
-export async function downloadArchive(world: World): Promise<void> {
-  const outputPath = tempPath(world, 'download.zip');
+/**
+ * Download to a temp file, recording every progress report. `outputPath`
+ * overrides the file; `abortAfterMs` aborts the download's signal that long
+ * after it starts.
+ */
+export async function downloadArchive(
+  world: World,
+  options: { outputPath?: string; abortAfterMs?: number } = {},
+): Promise<void> {
+  const outputPath = options.outputPath ?? tempPath(world, 'download.zip');
+  world.values.downloadPath = outputPath;
   const progress: Array<[number, number]> = [];
   world.values.progress = progress;
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  if (options.abortAfterMs !== undefined) {
+    timer = setTimeout(() => controller.abort(), options.abortAfterMs);
+  }
   try {
     world.result = await new SdeDownloader().download({
       outputPath,
       onProgress: (downloaded, total) => progress.push([downloaded, total]),
+      signal: controller.signal,
     });
   } catch (err) {
     world.error = err;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -421,9 +574,18 @@ function parseRegistryFiles(world: World): ParsedSdeFile[] {
 }
 
 /** Build a SQLite database from the archive and remember its path. */
-export function buildDatabase(world: World): void {
-  const outputPath = tempPath(world, 'sde.sqlite');
+/**
+ * Build a database from the scenario's archive, recording every progress
+ * report. `outputPath` overrides the file the build writes.
+ */
+export function buildDatabase(
+  world: World,
+  options: { outputPath?: string } = {},
+): void {
+  const outputPath = options.outputPath ?? tempPath(world, 'sde.sqlite');
   world.values.database = outputPath;
+  const progress: Array<[string, number, number]> = [];
+  world.values.progress = progress;
   const metadata = new SdeExtractor().readMetadata(sdeArchive(world));
   try {
     new SdeDatabaseBuilder({ clock: fixedClock }).build({
@@ -431,13 +593,21 @@ export function buildDatabase(world: World): void {
       parsedFiles: parseRegistryFiles(world),
       sdeVersion: metadata.buildNumber,
       buildDate: metadata.releaseDate,
+      onProgress: (table, inserted, total) =>
+        progress.push([table, inserted, total]),
     });
   } catch (err) {
     world.error = err;
   }
 }
 
+/** Whether SQLite left a write-ahead file beside the built database. */
+export function writeAheadFileLeft(world: World): boolean {
+  return fs.existsSync(`${world.values.database as string}-wal`);
+}
+
 interface SqliteDatabase {
+  pragma(pragma: string, options?: { simple?: boolean }): unknown;
   prepare(sql: string): {
     get(...params: unknown[]): unknown;
     all(...params: unknown[]): unknown[];
@@ -455,8 +625,18 @@ function loadSqlite(): SqliteConstructor {
   return require('better-sqlite3') as SqliteConstructor;
 }
 
+/** One column as `PRAGMA table_info` reports it. */
+export interface BuiltColumn {
+  name: string;
+  type: string;
+  pk: number;
+}
+
 export interface BuiltDatabase {
   metadata: Record<string, string>;
+  journalMode: string;
+  /** The table's columns in order, or null when there is no such table. */
+  columns(table: string): BuiltColumn[] | null;
   rowCount(table: string): number;
   column(table: string, id: number, column: string): unknown;
 }
@@ -474,6 +654,13 @@ export function openBuiltDatabase(world: World): BuiltDatabase {
   }
   return {
     metadata,
+    journalMode: db.pragma('journal_mode', { simple: true }) as string,
+    columns: (table) => {
+      const columns = db
+        .prepare('SELECT name, type, pk FROM pragma_table_info(?)')
+        .all(table) as BuiltColumn[];
+      return columns.length === 0 ? null : columns;
+    },
     rowCount: (table) =>
       (db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number })
         .n,
@@ -494,6 +681,11 @@ export function openBuiltDatabase(world: World): BuiltDatabase {
 // The transforms
 // ---------------------------------------------------------------------------
 
+/** `_sde.yaml` text whose build number is a bare number and release date a boolean. */
+export function untypedMetadataText(buildNumber: number): string {
+  return yaml.dump({ buildNumber, releaseDate: true });
+}
+
 /** `_sde.yaml` text with the build nested under `sde`, at the top level, or both. */
 export function metadataText(builds: {
   nested?: string;
@@ -511,6 +703,24 @@ export function metadataText(builds: {
     };
   }
   return yaml.dump(document);
+}
+
+/** Reshape one raw record of `files` the way the provider or the SQLite build does. */
+export function transformRawRecord(
+  files: Record<string, unknown>,
+  yamlFile: string,
+  id: number | string,
+  target: 'provider' | 'sqlite',
+): Record<string, unknown> {
+  const spec = SDE_FILE_REGISTRY.find((s) => s.yamlFile === yamlFile);
+  if (!spec) throw new Error(`${yamlFile} is not in the SDE file registry`);
+  const raw = (files[yamlFile] as Record<string, Record<string, unknown>>)[
+    String(id)
+  ];
+  if (!raw) throw new Error(`No raw record ${id} in ${yamlFile}`);
+  return target === 'provider'
+    ? transformRecordNative(id, raw, spec)
+    : transformRecord(id, raw, spec);
 }
 
 /** Reshape one raw type of `RAW_SDE_FILES` the way the provider or the SQLite build does. */
