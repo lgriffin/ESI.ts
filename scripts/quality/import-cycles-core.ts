@@ -84,7 +84,9 @@ export function resolveSpecifier(
   exists: (absolute: string) => boolean = existsSync,
 ): string | null {
   const base = path.resolve(root, path.dirname(fromFile), specifier);
-  const candidates = [base, `${base}.ts`, path.join(base, 'index.ts')].filter(
+  // A NodeNext-style './x.js' names the source file './x.ts'.
+  const stem = base.replace(/\.js$/, '');
+  const candidates = [base, `${stem}.ts`, path.join(stem, 'index.ts')].filter(
     (c) => c.endsWith('.ts'),
   );
   const hit = candidates.find((c) => exists(c));
@@ -102,15 +104,16 @@ export function buildGraph(
   for (const file of files) {
     const targets = runtimeSpecifiers(file, read(file))
       .map((s) => resolveSpecifier(root, file, s, exists))
-      .filter((t): t is string => t !== null && t !== file);
+      .filter((t): t is string => t !== null);
     graph.set(file, [...new Set(targets)].sort());
   }
   return graph;
 }
 
 /**
- * Strongly connected components with more than one file (Tarjan), each sorted,
- * the list sorted by first file: every import cycle, once.
+ * Strongly connected components with more than one file, or one file that
+ * imports itself (Tarjan), each sorted, the list sorted by first file: every
+ * import cycle, once.
  */
 export function findCycles(graph: ImportGraph): string[][] {
   let index = 0;
@@ -143,7 +146,8 @@ export function findCycles(graph: ImportGraph): string[][] {
         component.push(member);
       } while (member !== node);
       component.sort();
-      if (component.length > 1) components.push(component);
+      const selfLoop = (graph.get(node) ?? []).includes(node);
+      if (component.length > 1 || selfLoop) components.push(component);
     }
   };
 
