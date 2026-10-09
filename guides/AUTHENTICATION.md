@@ -208,6 +208,37 @@ With `lock` on, `FileTokenStorage` takes an advisory lock file next to the token
 
 Each timing must be a positive, finite number, or the constructor throws a `RangeError`. The lock file only works between processes that see the same file system with working hard links, so a local disk rather than a network share. A holder that keeps the lock longer than `staleMs` can lose it to a waiter, and a refresh then behaves as it did without the lock. SSO calls have no timeout of their own, so an SSO request that hangs holds that character's lock until it ends. For processes on different machines, implement `withLock` over the shared store itself, for example Redis `SET key value NX PX` with a token you check before deleting the key. Adapters without `withLock` behave exactly as before.
 
+### Verifying tokens from a third party
+
+A token that reaches your code from anywhere but SSO's token endpoint (a reverse proxy, a browser login that hands the token to a backend) has not been vouched for by TLS. Verify it before trusting its `sub`, `name`, `scp` or `owner` claims. `verifyAccessToken` fetches SSO's key set from `https://login.eveonline.com/oauth/jwks`, checks the RS256 signature with Node's `crypto`, then checks `iss` (EVE SSO), `aud` (your client id and `EVE Online`) and `exp`:
+
+```typescript
+import {
+  SsoJwks,
+  verifyAccessToken,
+  isTokenVerificationError,
+} from '@lgriffin/esi.ts';
+
+// One instance per process: it caches the key set for an hour and refetches
+// when a token names a key it has not seen (SSO rotated its key).
+const jwks = new SsoJwks();
+
+async function characterFromBearer(token: string): Promise<number | null> {
+  try {
+    const verified = await verifyAccessToken(token, {
+      clientId: process.env.ESI_SSO_CLIENT_ID!,
+      jwks,
+    });
+    return verified.characterId;
+  } catch (err) {
+    if (isTokenVerificationError(err)) return null; // err.reason names the failed check
+    throw err;
+  }
+}
+```
+
+`EsiTokenManager` does the same for every token it is handed when it is built with `verifyTokens: true`. `addCharacter` and `importToken` then reject a token that fails with `TokenVerificationError` and store nothing. An expired access token fails too, so a migration that imports stale tokens leaves the flag off for the import. Refreshes are not re-verified: those tokens come straight from SSO.
+
 ### Guarantees and limits
 
 - **One token per character.** Re-authorising replaces the stored token. A warning is logged if the new consent drops scopes.
@@ -215,7 +246,7 @@ Each timing must be a positive, finite number, or the constructor throws a `Rang
 - **Coalescing.** Concurrent refreshes for one character share one SSO call. This matters because SSO rotates the refresh token on every use.
 - **Revocation.** An `invalid_grant` from SSO marks the character revoked. Later calls throw `TokenRevokedError` locally without calling SSO.
 - **Hooks.** `onRefresh`, `onRefreshError` and `onRevoked` are there for logging, metrics or prompting a re-login.
-- **No JWT signature verification.** Tokens are trusted because they arrive straight from SSO over TLS. Do not use `decodeAccessToken` to authenticate a token a third party hands you. Opt-in JWKS verification is tracked in [#256](https://github.com/lgriffin/ESI.ts/issues/256).
+- **No JWT signature verification by default.** Tokens are trusted because they arrive straight from SSO over TLS. Do not use `decodeAccessToken` to authenticate a token a third party hands you; use `verifyAccessToken`, or `verifyTokens: true` on the manager (see [Verifying tokens from a third party](#verifying-tokens-from-a-third-party)).
 - **One process per store, unless the store locks.** Two processes sharing a store without `withLock` would each rotate refresh tokens the other cannot see. Use `FileTokenStorage` with `lock: true`, or an adapter of your own that implements `withLock`; see [Sharing a store between processes](#sharing-a-store-between-processes).
 
 ## 4. What 11.0.0 changes

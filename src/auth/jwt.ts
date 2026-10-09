@@ -39,7 +39,8 @@ function base64UrlDecode(segment: string): string {
  *
  * Tokens reach the manager directly from SSO over TLS, so the payload is
  * trusted for the purpose of learning which character it belongs to. Do not
- * use this to authenticate tokens presented by third parties.
+ * use this to authenticate tokens presented by third parties; use
+ * `verifyAccessToken` for those.
  */
 export function decodeJwtPayload(token: string): EveJwtClaims {
   const parts = token.split('.');

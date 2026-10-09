@@ -11,8 +11,11 @@ import {
 import type { ILogger } from '../../../src/core/logger/ILogger';
 import type { ITokenStorage } from '../../../src/auth/types';
 import {
+  jwksBody,
   makeJwt,
+  makeSignedJwt,
   makeStoredToken,
+  signingKey,
   readFormBody,
   readHeader,
   ssoCallCount,
@@ -77,6 +80,20 @@ describe('EsiTokenManager', () => {
   });
 
   describe('addCharacter and importToken', () => {
+    it('verifies the audience against an injected SSO client id', async () => {
+      fetchMock.mockResponseOnce(
+        ssoTokenBody({
+          accessToken: makeSignedJwt({ characterId: 1, clientId: 'injected' }),
+        }),
+      );
+      fetchMock.mockResponseOnce(jwksBody([signingKey()]));
+      const sso = new EveSsoClient({ clientId: 'injected' });
+      await manager({ ssoClient: sso, verifyTokens: true }).addCharacter(
+        'code',
+      );
+      expect(await storage.get(1)).not.toBeNull();
+    });
+
     it('sends the PKCE verifier through to SSO', async () => {
       fetchMock.mockResponseOnce(ssoTokenBody({ characterId: 1 }));
       await manager({ clientSecret: undefined }).addCharacter('code', {

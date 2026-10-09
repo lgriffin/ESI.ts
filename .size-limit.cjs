@@ -13,7 +13,8 @@
  * PR 11 added it: the generated operations and the pipeline make it the
  * largest sub-path after the root. `./testing` was re-measured when PR 12
  * added `createMockTransport`. `.` was re-measured when #258 added the
- * `FileTokenStorage` cross-process lock.
+ * `FileTokenStorage` cross-process lock (with room for #256's JWKS
+ * verifier), and `./errors` (ESM) when #256 added `TokenVerificationError`.
  *
  * Raising a budget: run `npm run build && npm run size`, set the new
  * measurement plus 5%, update the comment, and say in the pull request body
@@ -36,8 +37,9 @@ const budgets = {
   },
   './errors': {
     // Raised for the typed error family (EsiNetworkError, CircuitOpenError,
-    // the EsiFaultError classes and their guards).
-    import: '5.2 kB', // measured 4940 B
+    // the EsiFaultError classes and their guards), then for
+    // TokenVerificationError.
+    import: '5.5 kB', // measured 5224 B
     require: '9.8 kB', // measured 9246 B
   },
   './testing': {

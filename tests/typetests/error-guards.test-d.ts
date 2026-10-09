@@ -117,3 +117,32 @@ if (isTokenRefreshError(err)) {
   expectType<unknown>(err.cause);
 }
 expectAssignable<EsiError>(new CircuitOpenError('/x', 1, 1000));
+
+// --- TokenVerificationError narrows to its reason union, from both entries ---
+
+import {
+  TokenVerificationError as EntryTokenVerificationError,
+  TokenVerificationFailure as EntryTokenVerificationFailure,
+  isTokenVerificationError as entryIsTokenVerificationError,
+} from '../../src/errors';
+import type {
+  TokenVerificationFailure,
+  SsoJwksOptions,
+  VerifyAccessTokenOptions,
+} from '../../src';
+import { SsoJwks, verifyAccessToken, DecodedAccessToken } from '../../src';
+
+if (entryIsTokenVerificationError(err)) {
+  expectType<EntryTokenVerificationError>(err);
+  expectType<EntryTokenVerificationFailure>(err.reason);
+  expectType<TokenVerificationFailure>(err.reason);
+}
+
+const jwksOptions: SsoJwksOptions = { cacheTtlMs: 60_000 };
+const verifyOptions: VerifyAccessTokenOptions = {
+  clientId: 'client',
+  jwks: new SsoJwks(jwksOptions),
+};
+expectType<Promise<DecodedAccessToken>>(
+  verifyAccessToken('token', verifyOptions),
+);

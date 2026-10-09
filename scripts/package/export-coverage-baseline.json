@@ -71,7 +71,6 @@
       "CursorOptions",
       "CursorTokens",
       "CustomsOffice",
-      "DecodedAccessToken",
       "DeprecationInfo",
       "DogmaAttribute",
       "DogmaDynamicItem",
@@ -192,9 +191,7 @@
       "WarId",
       "WithSafeMode"
     ],
-    "./errors": [
-      "ValidationDirection"
-    ],
+    "./errors": ["ValidationDirection"],
     "./schemas": [
       "CharacterSkinrComponentsSchema",
       "CharacterSkinrSchema",

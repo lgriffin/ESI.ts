@@ -11,6 +11,7 @@ import {
   CharacterNotFoundError,
   SsoError,
   TokenRevokedError,
+  TokenVerificationError,
 } from '../../../../src/auth/errors';
 import type { SsoTokenResponse } from '../../../../src/auth/EveSsoClient';
 import type { RefreshResult } from '../../../../src/auth/EsiTokenManager';
@@ -20,8 +21,13 @@ import {
   SSO_TOKEN_URL,
   DEFAULT_CHARACTER_ID,
   isSsoTokenRequest,
+  jwksCallCount,
+  makeSignedJwt,
   makeStoredToken,
   makeJwt,
+  queueJwksResponse,
+  signingKey,
+  withEditedPayload,
   queueSsoErrorResponse,
   queueSsoTokenResponse,
   readFormBody,
@@ -284,6 +290,278 @@ defineFeature(feature, (test) => {
     and('the token manager sent the token exchange request alone', () => {
       expect(fetchMock.mock.calls).toHaveLength(1);
       expect(ssoCallCount()).toBe(1);
+    });
+  });
+
+  // ── Token manager: opt-in JWKS verification ─────────────────────────
+
+  /** A manager with verifyTokens on, the store it writes to, and a settable clock. */
+  function verifyingManager(): {
+    storage: MemoryTokenStorage;
+    manager: EsiTokenManager;
+    clock: { now: number };
+  } {
+    const storage = new MemoryTokenStorage();
+    const clock = { now: Date.now() };
+    const manager = new EsiTokenManager({
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
+      storage,
+      verifyTokens: true,
+      now: () => clock.now,
+    });
+    return { storage, manager, clock };
+  }
+
+  async function captureRejection(
+    run: () => Promise<unknown>,
+  ): Promise<unknown> {
+    try {
+      await run();
+    } catch (err: unknown) {
+      return err;
+    }
+    throw new Error('expected the call to reject');
+  }
+
+  test("A token signed by SSO's published key is stored", ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let ctx: ReturnType<typeof verifyingManager>;
+
+    given('a token manager with token verification enabled', () => {
+      ctx = verifyingManager();
+    });
+
+    and('EVE SSO publishes its current signing key', () => {
+      // The exchange is answered first, the key set second.
+      queueSsoTokenResponse({
+        accessToken: makeSignedJwt({
+          characterId: DEFAULT_CHARACTER_ID,
+          characterName: 'Aurora Vale',
+        }),
+      });
+      queueJwksResponse([signingKey()]);
+    });
+
+    and(
+      /^the SSO token endpoint returns a token for character (\d+) "([^"]+)" signed by SSO's current key$/,
+      (id: string, name: string) => {
+        expect(Number(id)).toBe(DEFAULT_CHARACTER_ID);
+        expect(name).toBe('Aurora Vale');
+      },
+    );
+
+    when(
+      /^the character is added from the authorization code "([^"]+)"$/,
+      async (code: string) => {
+        await ctx.manager.addCharacter(code);
+      },
+    );
+
+    then(
+      /^the storage shall hold a token for character (\d+) named "([^"]+)"$/,
+      async (id: string, name: string) => {
+        const stored = await ctx.storage.get(Number(id));
+        expect(stored).not.toBeNull();
+        expect(stored!.characterName).toBe(name);
+      },
+    );
+
+    and("the token manager fetched EVE SSO's key set once", () => {
+      expect(jwksCallCount()).toBe(1);
+    });
+  });
+
+  test('An imported token whose payload was edited after signing is rejected', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let ctx: ReturnType<typeof verifyingManager>;
+    let error: unknown;
+
+    given('a token manager with token verification enabled', () => {
+      ctx = verifyingManager();
+    });
+
+    and('EVE SSO publishes its current signing key', () => {
+      queueJwksResponse([signingKey()]);
+    });
+
+    when(
+      /^a token signed by SSO's current key is imported with its character id changed to (\d+)$/,
+      async (id: string) => {
+        const forged = withEditedPayload(makeSignedJwt(), (claims) => ({
+          ...claims,
+          sub: `CHARACTER:EVE:${id}`,
+        }));
+        error = await captureRejection(() =>
+          ctx.manager.importToken({
+            accessToken: forged,
+            refreshToken: 'stolen-refresh',
+          }),
+        );
+      },
+    );
+
+    then(
+      /^the import shall be rejected with TokenVerificationError for reason "([^"]+)"$/,
+      (reason: string) => {
+        expect(error).toBeInstanceOf(TokenVerificationError);
+        expect((error as TokenVerificationError).reason).toBe(reason);
+      },
+    );
+
+    and('the storage shall hold no tokens', async () => {
+      expect(await ctx.storage.list()).toHaveLength(0);
+    });
+  });
+
+  test('A token signed by a rotated key is accepted after a refetch', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let ctx: ReturnType<typeof verifyingManager>;
+
+    given('a token manager with token verification enabled', () => {
+      ctx = verifyingManager();
+    });
+
+    and(
+      "the token manager cached EVE SSO's key set before SSO rotated its signing key",
+      async () => {
+        queueSsoTokenResponse({ accessToken: makeSignedJwt() });
+        queueJwksResponse([signingKey()]);
+        await ctx.manager.addCharacter('earlier-login');
+        // Past the refetch cooldown, well inside the cache lifetime.
+        ctx.clock.now += 5 * 60_000;
+      },
+    );
+
+    and(
+      /^the SSO token endpoint returns a token for character (\d+) "([^"]+)" signed by SSO's rotated key$/,
+      (id: string, name: string) => {
+        const rotated = signingKey('JWT-Signature-Key-rotated');
+        queueSsoTokenResponse({
+          accessToken: makeSignedJwt(
+            { characterId: Number(id), characterName: name },
+            rotated,
+          ),
+        });
+        queueJwksResponse([signingKey(), rotated]);
+      },
+    );
+
+    when(
+      /^the character is added from the authorization code "([^"]+)"$/,
+      async (code: string) => {
+        await ctx.manager.addCharacter(code);
+      },
+    );
+
+    then(
+      /^the storage shall hold a token for character (\d+) named "([^"]+)"$/,
+      async (id: string, name: string) => {
+        const stored = await ctx.storage.get(Number(id));
+        expect(stored).not.toBeNull();
+        expect(stored!.characterName).toBe(name);
+      },
+    );
+
+    and("the token manager fetched EVE SSO's key set twice", () => {
+      expect(jwksCallCount()).toBe(2);
+    });
+  });
+
+  test('An imported token that expired is rejected', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let ctx: ReturnType<typeof verifyingManager>;
+    let error: unknown;
+
+    given('a token manager with token verification enabled', () => {
+      ctx = verifyingManager();
+    });
+
+    and('EVE SSO publishes its current signing key', () => {
+      queueJwksResponse([signingKey()]);
+    });
+
+    when(
+      /^a token signed by SSO's current key that expired (\d+) seconds ago is imported$/,
+      async (seconds: string) => {
+        const expired = makeSignedJwt({ expiresInSeconds: -Number(seconds) });
+        error = await captureRejection(() =>
+          ctx.manager.importToken({
+            accessToken: expired,
+            refreshToken: 'old-refresh',
+          }),
+        );
+      },
+    );
+
+    then(
+      /^the import shall be rejected with TokenVerificationError for reason "([^"]+)"$/,
+      (reason: string) => {
+        expect(error).toBeInstanceOf(TokenVerificationError);
+        expect((error as TokenVerificationError).reason).toBe(reason);
+      },
+    );
+
+    and('the storage shall hold no tokens', async () => {
+      expect(await ctx.storage.list()).toHaveLength(0);
+    });
+  });
+
+  test('A token issued to another application is rejected', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let ctx: ReturnType<typeof verifyingManager>;
+    let error: unknown;
+
+    given('a token manager with token verification enabled', () => {
+      ctx = verifyingManager();
+    });
+
+    and('EVE SSO publishes its current signing key', () => {
+      queueJwksResponse([signingKey()]);
+    });
+
+    when(
+      /^a token signed by SSO's current key for the client id "([^"]+)" is imported$/,
+      async (clientId: string) => {
+        error = await captureRejection(() =>
+          ctx.manager.importToken({
+            accessToken: makeSignedJwt({ clientId }),
+            refreshToken: 'their-refresh',
+          }),
+        );
+      },
+    );
+
+    then(
+      /^the import shall be rejected with TokenVerificationError for reason "([^"]+)"$/,
+      (reason: string) => {
+        expect(error).toBeInstanceOf(TokenVerificationError);
+        expect((error as TokenVerificationError).reason).toBe(reason);
+      },
+    );
+
+    and('the storage shall hold no tokens', async () => {
+      expect(await ctx.storage.list()).toHaveLength(0);
     });
   });
 

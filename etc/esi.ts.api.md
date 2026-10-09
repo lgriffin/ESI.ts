@@ -6,6 +6,7 @@
 
 import { $loose } from 'zod/v4/core';
 import { $ZodTypeInternals } from 'zod/v4/core';
+import { KeyObject } from 'crypto';
 import { z } from 'zod';
 import { ZodArray } from 'zod';
 import { ZodBoolean } from 'zod';
@@ -4371,6 +4372,9 @@ export function decodeJwtPayload(token: string): EveJwtClaims;
 // @public (undocumented)
 export const DEFAULT_SSO_BASE_URL = "https://login.eveonline.com";
 
+// @public
+export const DEFAULT_SSO_JWKS_URL = "https://login.eveonline.com/oauth/jwks";
+
 // @public (undocumented)
 export interface DeprecationInfo {
     // (undocumented)
@@ -5562,6 +5566,7 @@ export interface EsiTokenManagerConfig {
     refreshSkewMs?: number | undefined;
     ssoClient?: EveSsoClient | undefined;
     storage?: ITokenStorage | undefined;
+    verifyTokens?: boolean | undefined;
 }
 
 // @public
@@ -5641,6 +5646,7 @@ export class EveSsoClient {
     get authorizeUrl(): string;
     exchangeCode(code: string, options?: ExchangeCodeOptions): Promise<SsoTokenResponse>;
     getAuthorizationUrl(options: AuthorizationUrlOptions): string;
+    getClientId(): string;
     isConfidential(): boolean;
     refresh(refreshToken: string, options?: RefreshOptions): Promise<SsoTokenResponse>;
     revoke(token: string, tokenTypeHint?: 'refresh_token' | 'access_token'): Promise<void>;
@@ -6965,6 +6971,9 @@ export function isTokenRefreshError(error: unknown): error is EsiTokenRefreshErr
 
 // @public (undocumented)
 export function isTokenRevoked(error: unknown): error is TokenRevokedError;
+
+// @public (undocumented)
+export function isTokenVerificationError(error: unknown): error is TokenVerificationError;
 
 // @public (undocumented)
 export function isUnauthorized(error: unknown): error is EsiError;
@@ -9385,6 +9394,21 @@ export class SsoError extends AuthError {
 }
 
 // @public
+export class SsoJwks {
+    constructor(options?: SsoJwksOptions);
+    getKey(kid: string): Promise<KeyObject>;
+}
+
+// @public (undocumented)
+export interface SsoJwksOptions {
+    cacheTtlMs?: number | undefined;
+    fetch?: FetchLike | undefined;
+    jwksUrl?: string | undefined;
+    now?: (() => number) | undefined;
+    refetchCooldownMs?: number | undefined;
+}
+
+// @public
 export interface SsoTokenResponse {
     // (undocumented)
     accessToken: string;
@@ -9582,6 +9606,32 @@ export class TokenRevokedError extends AuthError {
     // (undocumented)
     readonly characterId?: number | undefined;
 }
+
+// @public
+export class TokenVerificationError extends AuthError {
+    constructor(reason: TokenVerificationFailure, message: string);
+    // (undocumented)
+    readonly reason: TokenVerificationFailure;
+}
+
+// @public
+export type TokenVerificationFailure =
+/** Not a JWT, or the header or payload is not a JSON object. */
+'malformed'
+/** The header names an algorithm other than RS256 (including `none`). */
+| 'algorithm'
+/** No key in EVE SSO's key set carries the token's `kid`, even after a refetch. */
+| 'unknown-key'
+/** The signature does not match the header and payload. */
+| 'signature'
+/** The `iss` claim is not EVE SSO. */
+| 'issuer'
+/** The `aud` claim does not name the client id and `EVE Online`. */
+| 'audience'
+/** The `exp` claim is missing or in the past. */
+| 'expired'
+/** The key set could not be fetched or parsed. */
+| 'jwks-unavailable';
 
 // @public
 export function toPinoLogger(p: {
@@ -10146,6 +10196,18 @@ export type UnwrapArray<T> = T extends readonly (infer E)[] ? E : T;
 
 // @public (undocumented)
 export type ValidationDirection = 'request' | 'response';
+
+// @public
+export function verifyAccessToken(token: string, options: VerifyAccessTokenOptions): Promise<DecodedAccessToken>;
+
+// @public (undocumented)
+export interface VerifyAccessTokenOptions {
+    clientId: string;
+    clockToleranceSeconds?: number | undefined;
+    fetch?: FetchLike | undefined;
+    jwks?: SsoJwks | undefined;
+    now?: (() => number) | undefined;
+}
 
 // Warning: (ae-forgotten-export) The symbol "walletEndpoints" needs to be exported by the entry point index.d.ts
 //

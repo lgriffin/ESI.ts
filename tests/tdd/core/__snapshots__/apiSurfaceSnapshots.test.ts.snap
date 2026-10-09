@@ -66,6 +66,7 @@ exports[`API surface snapshots public API exports should match snapshot 1`] = `
   "CosmeticsClient",
   "CustomEsiClient",
   "DEFAULT_SSO_BASE_URL",
+  "DEFAULT_SSO_JWKS_URL",
   "DogmaClient",
   "ETagCacheManager",
   "EsiApiFactory",
@@ -110,10 +111,12 @@ exports[`API surface snapshots public API exports should match snapshot 1`] = `
   "SkyhooksClient",
   "SovereigntyClient",
   "SsoError",
+  "SsoJwks",
   "StatusClient",
   "TimeoutError",
   "TokenDecodeError",
   "TokenRevokedError",
+  "TokenVerificationError",
   "UiClient",
   "UniverseClient",
   "WalletClient",
@@ -156,6 +159,7 @@ exports[`API surface snapshots public API exports should match snapshot 1`] = `
   "isTimeout",
   "isTokenRefreshError",
   "isTokenRevoked",
+  "isTokenVerificationError",
   "isUnauthorized",
   "isValidationError",
   "logDebug",
@@ -170,6 +174,7 @@ exports[`API surface snapshots public API exports should match snapshot 1`] = `
   "schemas",
   "setLogger",
   "toPinoLogger",
+  "verifyAccessToken",
 ]
 `;
 

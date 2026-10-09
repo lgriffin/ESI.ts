@@ -33,12 +33,15 @@ export {
   SsoError,
   TokenRevokedError,
   TokenDecodeError,
+  TokenVerificationError,
   CharacterNotFoundError,
   isAuthError,
   isSsoError,
   isTokenRevoked,
+  isTokenVerificationError,
   isCharacterNotFound,
 } from './errors';
+export type { TokenVerificationFailure } from './errors';
 
 export {
   decodeAccessToken,
@@ -47,6 +50,9 @@ export {
   parseScopes,
 } from './jwt';
 export type { DecodedAccessToken, EveJwtClaims } from './jwt';
+
+export { SsoJwks, verifyAccessToken, DEFAULT_SSO_JWKS_URL } from './jwks';
+export type { SsoJwksOptions, VerifyAccessTokenOptions } from './jwks';
 
 export {
   generatePkcePair,

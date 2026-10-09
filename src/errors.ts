@@ -34,9 +34,12 @@ export {
   SsoError,
   TokenRevokedError,
   TokenDecodeError,
+  TokenVerificationError,
   CharacterNotFoundError,
   isAuthError,
   isSsoError,
   isTokenRevoked,
+  isTokenVerificationError,
   isCharacterNotFound,
 } from './auth/errors';
+export type { TokenVerificationFailure } from './auth/errors';

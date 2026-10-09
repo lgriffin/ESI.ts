@@ -131,13 +131,12 @@ Feature: Token Management
       Then the storage shall hold a token for character 2114794365 named "Aurora Vale"
       And the stored scopes shall be "esi-wallet.read_character_wallet.v1 esi-assets.read_assets.v1"
 
-  Rule: If an access token from SSO carries a signature that EVE SSO's published keys do not verify, then the token manager shall not reject the token.
-    The token manager decodes the claims without verifying the signature:
-    the token arrives straight from SSO's token endpoint over TLS, which is
-    what vouches for it (AUTHENTICATION.md, "Guarantees and limits"). A token
-    a third party hands over is not authenticated by decoding it. Opt-in JWKS
-    verification is tracked in #256; until it lands, fetching keys is not
-    part of adding a character.
+  Rule: If token verification is not enabled and an access token from SSO carries a signature that EVE SSO's published keys do not verify, then the token manager shall not reject the token.
+    By default the token manager decodes the claims without verifying the
+    signature: the token arrives straight from SSO's token endpoint over TLS,
+    which is what vouches for it (AUTHENTICATION.md, "Guarantees and limits").
+    Verification is opt-in through verifyTokens, so the default path never
+    fetches keys when a character is added.
 
     Scenario: A token whose signature SSO never made is stored under its character
       Given a token manager backed by in-memory storage
@@ -145,6 +144,76 @@ Feature: Token Management
       When the character is added from the authorization code "abc123"
       Then the storage shall hold a token for character 2114794365 named "Aurora Vale"
       And the token manager sent the token exchange request alone
+
+  # ── Token manager: opt-in JWKS verification ─────────────────────────
+
+  Rule: Where token verification is enabled, the token manager shall store a character whose access token signature verifies against a key in EVE SSO's published key set.
+    Applications that accept tokens from a third party (a proxy, a browser
+    login handing the token to a backend) cannot rely on TLS to SSO, so they
+    turn on verifyTokens. The manager fetches the key set from
+    login.eveonline.com/oauth/jwks and checks the RS256 signature before it
+    trusts the sub, name, scp and owner claims.
+
+    Scenario: A token signed by SSO's published key is stored
+      Given a token manager with token verification enabled
+      And EVE SSO publishes its current signing key
+      And the SSO token endpoint returns a token for character 2114794365 "Aurora Vale" signed by SSO's current key
+      When the character is added from the authorization code "abc123"
+      Then the storage shall hold a token for character 2114794365 named "Aurora Vale"
+      And the token manager fetched EVE SSO's key set once
+
+  Rule: If token verification is enabled and an imported access token's signature does not match its header and payload, then the token manager shall reject the import with TokenVerificationError and store nothing.
+    A tampered payload is the attack verification exists for: someone edits
+    the sub claim to claim another character and keeps the original
+    signature. The signature no longer covers the bytes, so the import fails
+    before anything reaches storage.
+
+    Scenario: An imported token whose payload was edited after signing is rejected
+      Given a token manager with token verification enabled
+      And EVE SSO publishes its current signing key
+      When a token signed by SSO's current key is imported with its character id changed to 90000001
+      Then the import shall be rejected with TokenVerificationError for reason "signature"
+      And the storage shall hold no tokens
+
+  Rule: When token verification is enabled and an access token names a key id absent from the cached key set, the token manager shall fetch EVE SSO's key set again before verifying the token.
+    SSO rotates its signing key. A cached key set that predates the rotation
+    does not hold the new key id, so the manager refetches once instead of
+    rejecting a token SSO signed legitimately. Refetches are limited to one
+    per minute so a stream of made-up key ids cannot hammer the endpoint.
+
+    Scenario: A token signed by a rotated key is accepted after a refetch
+      Given a token manager with token verification enabled
+      And the token manager cached EVE SSO's key set before SSO rotated its signing key
+      And the SSO token endpoint returns a token for character 2114794365 "Aurora Vale" signed by SSO's rotated key
+      When the character is added from the authorization code "abc123"
+      Then the storage shall hold a token for character 2114794365 named "Aurora Vale"
+      And the token manager fetched EVE SSO's key set twice
+
+  Rule: If token verification is enabled and an imported access token's exp claim is in the past, then the token manager shall reject the import with TokenVerificationError and store nothing.
+    A validly signed token stops being evidence of a login once it expires,
+    so it cannot vouch for the refresh token handed over with it. Callers
+    migrating stale tokens from another tool leave verification off for the
+    import, or refresh first.
+
+    Scenario: An imported token that expired is rejected
+      Given a token manager with token verification enabled
+      And EVE SSO publishes its current signing key
+      When a token signed by SSO's current key that expired 300 seconds ago is imported
+      Then the import shall be rejected with TokenVerificationError for reason "expired"
+      And the storage shall hold no tokens
+
+  Rule: If token verification is enabled and an imported access token's aud claim does not name the configured client id, then the token manager shall reject the import with TokenVerificationError.
+    SSO signs tokens for every application with the same key, so a valid
+    signature alone does not show the token was issued to this application.
+    A token issued to another client id is the case a backend accepting
+    third-party tokens has to refuse.
+
+    Scenario: A token issued to another application is rejected
+      Given a token manager with token verification enabled
+      And EVE SSO publishes its current signing key
+      When a token signed by SSO's current key for the client id "someone-elses-app" is imported
+      Then the import shall be rejected with TokenVerificationError for reason "audience"
+      And the storage shall hold no tokens
 
   Rule: When a character that already has a stored token is added again, the token manager shall replace the stored token rather than storing a second entry.
     Storage is keyed by character id, so a re-authorization never accumulates
