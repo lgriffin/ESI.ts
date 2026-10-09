@@ -29,6 +29,12 @@ describe('auth errors', () => {
     );
   });
 
+  it('SsoError is retryable for a timeout, but not for another status 0 code', () => {
+    expect(new SsoError(0, 'timeout').isRetryable()).toBe(true);
+    expect(new SsoError(0, 'unknown').isRetryable()).toBe(false);
+    expect(new SsoError(400, 'timeout').isRetryable()).toBe(false);
+  });
+
   it('SsoError is retryable for 429 and 5xx only', () => {
     expect(new SsoError(429, 'rate_limited').isRetryable()).toBe(true);
     expect(new SsoError(500, 'server_error').isRetryable()).toBe(true);

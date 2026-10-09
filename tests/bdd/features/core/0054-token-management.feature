@@ -115,6 +115,51 @@ Feature: Token Management
       When the client refreshes the refresh token "any-refresh"
       Then the client shall throw SsoError with status 429 and error code "rate_limited"
 
+  Rule: Where a request timeout is configured, if SSO does not respond within it, then the SSO client shall reject with a retryable SsoError.
+    A request that SSO never answers would otherwise keep a refresh pending
+    for as long as the connection stays open. Under a locking store the hung
+    refresh holds the character's lock, so a waiter breaks it after staleMs
+    and spends a refresh token SSO may already have rotated. Status 0 means
+    no HTTP status arrived; the error code is timeout.
+
+    Scenario: Refresh that SSO never answers is rejected as a retryable timeout
+      Given an SSO client configured with a request timeout of 50 ms
+      And the SSO token endpoint never responds
+      When the client refreshes the refresh token "any-refresh"
+      Then the client shall throw SsoError with status 0 and error code "timeout"
+      And the error shall be retryable
+
+  Rule: Where a request timeout is configured, if SSO answers a token request with a 2xx status but the body does not arrive within the timeout, then the SSO client shall reject with a non-retryable SsoError carrying that status and the error code timeout.
+    A 2xx status means SSO accepted the request, so a refresh has most likely
+    rotated the refresh token already. Sending the old one again would be
+    refused as invalid_grant and mark the character revoked, so the late body
+    is reported with the status that arrived and is not offered as retryable.
+
+    Scenario: Token response whose body stalls is rejected as a timeout that is not retryable
+      Given an SSO client configured with a request timeout of 50 ms
+      And the SSO token endpoint responds 200 but never finishes the body
+      When the client refreshes the refresh token "any-refresh"
+      Then the client shall throw SsoError with status 200 and error code "timeout"
+      And the error shall not be retryable
+
+  Rule: Where no request timeout is configured, the SSO client shall send token requests without an abort signal.
+    The timeout is opt-in so that existing callers see no change: a slow SSO
+    is waited for exactly as before.
+
+    Scenario: Refresh without a configured timeout carries no abort signal
+      Given an SSO client configured with a client id and client secret
+      And the SSO token endpoint returns a token
+      When the client refreshes the refresh token "any-refresh"
+      Then the token request shall carry no abort signal
+
+  Rule: If the configured request timeout is not a positive, finite number, then the SSO client shall throw RangeError when constructed.
+    A zero, negative or NaN timeout would abort every request at once or
+    never; both are configuration mistakes better reported up front.
+
+    Scenario: Zero request timeout is rejected at construction
+      When an SSO client is constructed with a request timeout of 0 ms
+      Then construction shall throw RangeError naming timeoutMs
+
   # ── Token manager: registration ─────────────────────────────────────
 
   Rule: When a character is added from an authorization code, the token manager shall decode the character id, name and scopes from the access token and persist the token under that character id.
@@ -407,6 +452,19 @@ Feature: Token Management
       And the SSO token endpoint responds 429 with error code "rate_limited"
       When refreshAll runs with a concurrency of 3
       Then the result for the first character shall have status "failed" and be retryable
+
+  Rule: Where an SSO timeout is configured on the token manager, if SSO does not answer a refresh within it during a bulk refresh, then the token manager shall flag that result as retryable.
+    The manager passes ssoTimeoutMs to the SSO client it builds, so a hung
+    refresh ends and is reported like an SSO outage: the caller can retry the
+    character later.
+
+    Scenario: SSO that never answers during bulk refresh yields a retryable failure
+      Given a token manager backed by in-memory storage with an SSO timeout of 50 ms
+      And 1 character is stored with an access token expiring in 30 seconds
+      And the SSO token endpoint never responds
+      When refreshAll runs with a concurrency of 3
+      Then the result for the first character shall have status "failed" and be retryable
+      And the failure shall be an SsoError with error code "timeout"
 
   Rule: Where an expiringWithinMs threshold is given, the token manager shall refresh only tokens whose expiry falls within that window and report the others as skipped.
     Refreshing a token that has fifteen minutes left wastes an SSO call and a

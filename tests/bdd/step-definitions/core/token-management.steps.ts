@@ -1,4 +1,5 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
+import type { StepDefinitions } from 'jest-cucumber';
 import fetchMock from 'jest-fetch-mock';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -26,6 +27,8 @@ import {
   makeStoredToken,
   makeJwt,
   queueJwksResponse,
+  queueSsoNoResponse,
+  queueSsoStalledBody,
   signingKey,
   withEditedPayload,
   queueSsoErrorResponse,
@@ -238,6 +241,123 @@ defineFeature(feature, (test) => {
         expect((caught as SsoError).errorCode).toBe(code);
       },
     );
+  });
+
+  const timeoutScenario =
+    (endpointStep: string, queue: () => void): StepDefinitions =>
+    ({ given, when, then, and }) => {
+      let sso: EveSsoClient;
+      let caught: unknown;
+
+      given(
+        /^an SSO client configured with a request timeout of (\d+) ms$/,
+        (ms: string) => {
+          sso = new EveSsoClient({
+            clientId: CLIENT_ID,
+            clientSecret: CLIENT_SECRET,
+            timeoutMs: Number(ms),
+          });
+        },
+      );
+
+      and(endpointStep, () => {
+        queue();
+      });
+
+      when(
+        /^the client refreshes the refresh token "([^"]+)"$/,
+        async (token: string) => {
+          try {
+            await sso.refresh(token);
+          } catch (e) {
+            caught = e;
+          }
+        },
+      );
+
+      then(
+        /^the client shall throw SsoError with status (\d+) and error code "([^"]+)"$/,
+        (status: string, code: string) => {
+          expect(caught).toBeInstanceOf(SsoError);
+          expect((caught as SsoError).statusCode).toBe(Number(status));
+          expect((caught as SsoError).errorCode).toBe(code);
+        },
+      );
+
+      and(/^the error shall (not )?be retryable$/, (not?: string) => {
+        expect((caught as SsoError).isRetryable()).toBe(!not);
+      });
+    };
+
+  test(
+    'Refresh that SSO never answers is rejected as a retryable timeout',
+    timeoutScenario(
+      'the SSO token endpoint never responds',
+      queueSsoNoResponse,
+    ),
+  );
+
+  test(
+    'Token response whose body stalls is rejected as a timeout that is not retryable',
+    timeoutScenario(
+      'the SSO token endpoint responds 200 but never finishes the body',
+      queueSsoStalledBody,
+    ),
+  );
+
+  test('Refresh without a configured timeout carries no abort signal', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let sso: EveSsoClient;
+
+    given('an SSO client configured with a client id and client secret', () => {
+      sso = new EveSsoClient({
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+      });
+    });
+
+    and('the SSO token endpoint returns a token', () => {
+      queueSsoTokenResponse();
+    });
+
+    when(
+      /^the client refreshes the refresh token "([^"]+)"$/,
+      async (token: string) => {
+        await sso.refresh(token);
+      },
+    );
+
+    then('the token request shall carry no abort signal', () => {
+      const call = fetchMock.mock.calls.find(([input]) =>
+        isSsoTokenRequest(String(input)),
+      );
+      expect(call).toBeDefined();
+      expect(call?.[1]?.signal).toBeUndefined();
+    });
+  });
+
+  test('Zero request timeout is rejected at construction', ({ when, then }) => {
+    let caught: unknown;
+
+    when(
+      /^an SSO client is constructed with a request timeout of (\d+) ms$/,
+      (ms: string) => {
+        try {
+          new EveSsoClient({ clientId: CLIENT_ID, timeoutMs: Number(ms) });
+        } catch (e) {
+          caught = e;
+        }
+      },
+    );
+
+    then('construction shall throw RangeError naming timeoutMs', () => {
+      expect(caught).toBeInstanceOf(RangeError);
+      expect((caught as RangeError).message).toContain('timeoutMs');
+    });
   });
 
   // ── Token manager: registration ─────────────────────────────────────
@@ -1301,6 +1421,70 @@ defineFeature(feature, (test) => {
         expect(first?.status).toBe(status);
         expect(first?.retryable).toBe(true);
         expect(first?.error).toBeInstanceOf(SsoError);
+      },
+    );
+  });
+
+  test('SSO that never answers during bulk refresh yields a retryable failure', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let storage: MemoryTokenStorage;
+    let manager: EsiTokenManager;
+    let results: RefreshResult[];
+    let ids: number[];
+
+    given(
+      /^a token manager backed by in-memory storage with an SSO timeout of (\d+) ms$/,
+      (ms: string) => {
+        storage = new MemoryTokenStorage();
+        manager = new EsiTokenManager({
+          clientId: CLIENT_ID,
+          clientSecret: CLIENT_SECRET,
+          storage,
+          ssoTimeoutMs: Number(ms),
+        });
+      },
+    );
+
+    and(
+      /^(\d+) character is stored with an access token expiring in (\d+) seconds$/,
+      async (count: string, secs: string) => {
+        ids = await storeMany(storage, Number(count), Number(secs));
+      },
+    );
+
+    and('the SSO token endpoint never responds', () => {
+      queueSsoNoResponse();
+    });
+
+    when(
+      /^refreshAll runs with a concurrency of (\d+)$/,
+      async (concurrency: string) => {
+        results = await manager.refreshAll({
+          concurrency: Number(concurrency),
+        });
+      },
+    );
+
+    then(
+      /^the result for the first character shall have status "([^"]+)" and be retryable$/,
+      (status: string) => {
+        const first = results.find((r) => r.characterId === ids[0]);
+        expect(first?.status).toBe(status);
+        expect(first?.retryable).toBe(true);
+      },
+    );
+
+    and(
+      /^the failure shall be an SsoError with error code "([^"]+)"$/,
+      (code: string) => {
+        const first = results.find((r) => r.characterId === ids[0]);
+        const error = first?.error;
+        expect(error).toBeInstanceOf(SsoError);
+        expect((error as SsoError).errorCode).toBe(code);
       },
     );
   });

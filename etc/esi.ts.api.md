@@ -5565,6 +5565,7 @@ export interface EsiTokenManagerConfig {
     onRevoked?: ((characterId: number) => void) | undefined;
     refreshSkewMs?: number | undefined;
     ssoClient?: EveSsoClient | undefined;
+    ssoTimeoutMs?: number | undefined;
     storage?: ITokenStorage | undefined;
     verifyTokens?: boolean | undefined;
 }
@@ -5663,6 +5664,7 @@ export interface EveSsoClientConfig {
     clientSecret?: string | undefined;
     fetch?: FetchLike | undefined;
     ssoBaseUrl?: string | undefined;
+    timeoutMs?: number | undefined;
 }
 
 // @public (undocumented)

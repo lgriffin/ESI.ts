@@ -18,6 +18,17 @@ export interface EveSsoClientConfig {
   ssoBaseUrl?: string | undefined;
   /** Custom fetch implementation. Defaults to `globalThis.fetch` resolved at call time. */
   fetch?: FetchLike | undefined;
+  /**
+   * Give up on a token, refresh or revoke request that SSO has not answered,
+   * body included, within this many milliseconds. The request then rejects
+   * with an {@link SsoError} with error code `timeout`: status 0 and
+   * retryable when no status arrived; the status SSO sent when only the body
+   * was late, so a late 2xx is not retryable (the refresh token has probably
+   * been rotated). Fractions of a millisecond round up.
+   * Unset by default: requests wait as long as the connection stays open.
+   * Must be a positive, finite number.
+   */
+  timeoutMs?: number | undefined;
 }
 
 /** A successful response from the SSO token endpoint. */
@@ -67,8 +78,34 @@ interface SsoErrorJson {
   error_description?: unknown;
 }
 
+/** An SSO answer with its body already read, so the timeout covers the body too. */
+interface SsoReply {
+  status: number;
+  ok: boolean;
+  body: string;
+}
+
 /** Which OAuth2 grant a token request carried; decides how `invalid_grant` is classified. */
 type GrantType = 'authorization_code' | 'refresh_token';
+
+/**
+ * Rejects once the signal aborts and never settles otherwise. Raced against
+ * each await, it ends the wait even when a custom fetch ignores the signal.
+ */
+function rejectOnAbort(signal: AbortSignal): Promise<never> {
+  const aborted = new Promise<never>((_resolve, reject) => {
+    signal.addEventListener(
+      'abort',
+      () => reject(new Error('SSO request timed out')),
+      {
+        once: true,
+      },
+    );
+  });
+  // Nothing may be racing it when the deadline passes after the reply.
+  aborted.catch(() => undefined);
+  return aborted;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -89,6 +126,7 @@ export class EveSsoClient {
   private readonly callbackUrl?: string | undefined;
   private readonly baseUrl: string;
   private readonly fetchFn?: FetchLike | undefined;
+  private readonly timeoutMs?: number | undefined;
 
   constructor(config: EveSsoClientConfig) {
     if (!config.clientId) {
@@ -102,6 +140,15 @@ export class EveSsoClient {
       '',
     );
     this.fetchFn = config.fetch;
+    if (
+      config.timeoutMs !== undefined &&
+      !(Number.isFinite(config.timeoutMs) && config.timeoutMs > 0)
+    ) {
+      throw new RangeError(
+        `EveSsoClient timeoutMs must be a positive, finite number (got ${String(config.timeoutMs)})`,
+      );
+    }
+    this.timeoutMs = config.timeoutMs;
   }
 
   /** The application's SSO client id; tokens it obtains carry it in `aud`. */
@@ -192,9 +239,11 @@ export class EveSsoClient {
       token_type_hint: tokenTypeHint,
       token,
     });
-    const response = await this.post(this.revokeUrl, form);
-    if (!response.ok) {
-      throw await this.errorFromResponse(response);
+    // A successful revoke carries nothing the caller needs, so its body is
+    // not waited for.
+    const reply = await this.post(this.revokeUrl, form, false);
+    if (!reply.ok) {
+      throw this.errorFromReply(reply);
     }
   }
 
@@ -202,26 +251,26 @@ export class EveSsoClient {
     form: URLSearchParams,
     grant: GrantType,
   ): Promise<SsoTokenResponse> {
-    const response = await this.post(this.tokenUrl, form);
-    if (!response.ok) {
-      throw await this.errorFromResponse(response, grant);
+    const reply = await this.post(this.tokenUrl, form);
+    if (!reply.ok) {
+      throw this.errorFromReply(reply, grant);
     }
     // A proxy or outage page can answer 2xx with HTML, an empty body, or a
     // JSON value that is not an object. All of those are SSO faults to the
     // caller, so they surface as SsoError rather than a raw parser error.
     let parsed: unknown;
     try {
-      parsed = await response.json();
+      parsed = JSON.parse(reply.body);
     } catch {
       throw new SsoError(
-        response.status,
+        reply.status,
         'invalid_response',
         'Token response body was not valid JSON',
       );
     }
     if (!isRecord(parsed)) {
       throw new SsoError(
-        response.status,
+        reply.status,
         'invalid_response',
         'Token response body was not a JSON object',
       );
@@ -232,7 +281,7 @@ export class EveSsoClient {
       typeof json.refresh_token !== 'string'
     ) {
       throw new SsoError(
-        response.status,
+        reply.status,
         'invalid_response',
         'Token response did not include access_token and refresh_token',
       );
@@ -246,7 +295,20 @@ export class EveSsoClient {
     };
   }
 
-  private async post(url: string, form: URLSearchParams): Promise<Response> {
+  /**
+   * POST the form and read the whole body (on success only when
+   * `readSuccessBody`). With a timeout configured, the request and the body
+   * read share one deadline, which also cuts off a custom fetch that ignores
+   * the abort signal. Missing the deadline becomes an `SsoError` with error
+   * code `timeout` and status 0 when no status arrived (retryable), or the
+   * status SSO sent before the body stalled. A 2xx with a stalled body is not
+   * retryable: SSO has probably rotated the refresh token already.
+   */
+  private async post(
+    url: string,
+    form: URLSearchParams,
+    readSuccessBody = true,
+  ): Promise<SsoReply> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/x-www-form-urlencoded',
       Accept: 'application/json',
@@ -261,7 +323,56 @@ export class EveSsoClient {
       form.set('client_id', this.clientId);
     }
     const fetchFn = this.fetchFn ?? globalThis.fetch;
-    return fetchFn(url, { method: 'POST', headers, body: form.toString() });
+    const init: RequestInit = {
+      method: 'POST',
+      headers,
+      body: form.toString(),
+    };
+    // AbortSignal.timeout does not keep the process alive. It takes whole
+    // milliseconds, so a fractional timeout rounds up.
+    const signal =
+      this.timeoutMs === undefined
+        ? undefined
+        : AbortSignal.timeout(Math.ceil(this.timeoutMs));
+    if (signal) init.signal = signal;
+    const deadline = signal ? rejectOnAbort(signal) : undefined;
+    const beforeDeadline = <T>(work: Promise<T>): Promise<T> =>
+      deadline ? Promise.race([work, deadline]) : work;
+
+    let response: Response;
+    try {
+      response = await beforeDeadline(fetchFn(url, init));
+    } catch (err) {
+      if (signal?.aborted) {
+        throw this.timeoutError(0, 'No response from EVE SSO');
+      }
+      throw err;
+    }
+    if (response.ok && !readSuccessBody) {
+      return { status: response.status, ok: true, body: '' };
+    }
+    let body = '';
+    try {
+      body = await beforeDeadline(response.text());
+    } catch {
+      if (signal?.aborted) {
+        throw this.timeoutError(
+          response.status,
+          `EVE SSO answered ${String(response.status)} but the body did not arrive`,
+        );
+      }
+      // A body that breaks off otherwise reads as empty: invalid_response on
+      // a 2xx, `unknown` on an error status.
+    }
+    return { status: response.status, ok: response.ok, body };
+  }
+
+  private timeoutError(status: number, what: string): SsoError {
+    return new SsoError(
+      status,
+      'timeout',
+      `${what} within ${String(this.timeoutMs)} ms`,
+    );
   }
 
   /**
@@ -270,14 +381,11 @@ export class EveSsoClient {
    * a revoke) it describes the login code or request, so it stays an
    * `SsoError` and does not trigger the re-authentication path.
    */
-  private async errorFromResponse(
-    response: Response,
-    grant?: GrantType,
-  ): Promise<Error> {
+  private errorFromReply(reply: SsoReply, grant?: GrantType): Error {
     let errorCode = 'unknown';
     let description: string | undefined;
     try {
-      const json: unknown = await response.json();
+      const json: unknown = JSON.parse(reply.body);
       if (isRecord(json)) {
         const body = json as SsoErrorJson;
         if (typeof body.error === 'string') errorCode = body.error;
@@ -295,6 +403,6 @@ export class EveSsoClient {
         }`,
       );
     }
-    return new SsoError(response.status, errorCode, description);
+    return new SsoError(reply.status, errorCode, description);
   }
 }
