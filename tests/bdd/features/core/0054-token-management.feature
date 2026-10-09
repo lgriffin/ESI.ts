@@ -119,9 +119,8 @@ Feature: Token Management
     A request that SSO never answers would otherwise keep a refresh pending
     for as long as the connection stays open. Under a locking store the hung
     refresh holds the character's lock, so a waiter breaks it after staleMs
-    and spends a refresh token SSO may already have rotated. The timeout
-    covers the response body as well as the headers. Status 0 means no HTTP
-    response arrived; the error code is timeout.
+    and spends a refresh token SSO may already have rotated. Status 0 means
+    no HTTP status arrived; the error code is timeout.
 
     Scenario: Refresh that SSO never answers is rejected as a retryable timeout
       Given an SSO client configured with a request timeout of 50 ms
@@ -130,12 +129,18 @@ Feature: Token Management
       Then the client shall throw SsoError with status 0 and error code "timeout"
       And the error shall be retryable
 
-    Scenario: Token response whose body stalls is rejected as a retryable timeout
+  Rule: Where a request timeout is configured, if SSO answers a token request with a 2xx status but the body does not arrive within the timeout, then the SSO client shall reject with a non-retryable SsoError carrying that status and the error code timeout.
+    A 2xx status means SSO accepted the request, so a refresh has most likely
+    rotated the refresh token already. Sending the old one again would be
+    refused as invalid_grant and mark the character revoked, so the late body
+    is reported with the status that arrived and is not offered as retryable.
+
+    Scenario: Token response whose body stalls is rejected as a timeout that is not retryable
       Given an SSO client configured with a request timeout of 50 ms
       And the SSO token endpoint responds 200 but never finishes the body
       When the client refreshes the refresh token "any-refresh"
-      Then the client shall throw SsoError with status 0 and error code "timeout"
-      And the error shall be retryable
+      Then the client shall throw SsoError with status 200 and error code "timeout"
+      And the error shall not be retryable
 
   Rule: Where no request timeout is configured, the SSO client shall send token requests without an abort signal.
     The timeout is opt-in so that existing callers see no change: a slow SSO

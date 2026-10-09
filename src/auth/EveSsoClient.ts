@@ -21,7 +21,10 @@ export interface EveSsoClientConfig {
   /**
    * Give up on a token, refresh or revoke request that SSO has not answered,
    * body included, within this many milliseconds. The request then rejects
-   * with a retryable {@link SsoError} (status 0, error code `timeout`).
+   * with an {@link SsoError} with error code `timeout`: status 0 and
+   * retryable when no status arrived; the status SSO sent when only the body
+   * was late, so a late 2xx is not retryable (the refresh token has probably
+   * been rotated). Fractions of a millisecond round up.
    * Unset by default: requests wait as long as the connection stays open.
    * Must be a positive, finite number.
    */
@@ -84,6 +87,25 @@ interface SsoReply {
 
 /** Which OAuth2 grant a token request carried; decides how `invalid_grant` is classified. */
 type GrantType = 'authorization_code' | 'refresh_token';
+
+/**
+ * Rejects once the signal aborts and never settles otherwise. Raced against
+ * each await, it ends the wait even when a custom fetch ignores the signal.
+ */
+function rejectOnAbort(signal: AbortSignal): Promise<never> {
+  const aborted = new Promise<never>((_resolve, reject) => {
+    signal.addEventListener(
+      'abort',
+      () => reject(new Error('SSO request timed out')),
+      {
+        once: true,
+      },
+    );
+  });
+  // Nothing may be racing it when the deadline passes after the reply.
+  aborted.catch(() => undefined);
+  return aborted;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -217,7 +239,9 @@ export class EveSsoClient {
       token_type_hint: tokenTypeHint,
       token,
     });
-    const reply = await this.post(this.revokeUrl, form);
+    // A successful revoke carries nothing the caller needs, so its body is
+    // not waited for.
+    const reply = await this.post(this.revokeUrl, form, false);
     if (!reply.ok) {
       throw this.errorFromReply(reply);
     }
@@ -272,11 +296,19 @@ export class EveSsoClient {
   }
 
   /**
-   * POST the form and read the whole body. With a timeout configured, the
-   * request and the body read share one abort signal, and an abort becomes a
-   * retryable `SsoError` with status 0 and error code `timeout`.
+   * POST the form and read the whole body (on success only when
+   * `readSuccessBody`). With a timeout configured, the request and the body
+   * read share one deadline, which also cuts off a custom fetch that ignores
+   * the abort signal. Missing the deadline becomes an `SsoError` with error
+   * code `timeout` and status 0 when no status arrived (retryable), or the
+   * status SSO sent before the body stalled. A 2xx with a stalled body is not
+   * retryable: SSO has probably rotated the refresh token already.
    */
-  private async post(url: string, form: URLSearchParams): Promise<SsoReply> {
+  private async post(
+    url: string,
+    form: URLSearchParams,
+    readSuccessBody = true,
+  ): Promise<SsoReply> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/x-www-form-urlencoded',
       Accept: 'application/json',
@@ -296,33 +328,51 @@ export class EveSsoClient {
       headers,
       body: form.toString(),
     };
-    // AbortSignal.timeout does not keep the process alive.
+    // AbortSignal.timeout does not keep the process alive. It takes whole
+    // milliseconds, so a fractional timeout rounds up.
     const signal =
       this.timeoutMs === undefined
         ? undefined
-        : AbortSignal.timeout(this.timeoutMs);
+        : AbortSignal.timeout(Math.ceil(this.timeoutMs));
     if (signal) init.signal = signal;
+    const deadline = signal ? rejectOnAbort(signal) : undefined;
+    const beforeDeadline = <T>(work: Promise<T>): Promise<T> =>
+      deadline ? Promise.race([work, deadline]) : work;
+
+    let response: Response;
     try {
-      const response = await fetchFn(url, init);
-      let body = '';
-      try {
-        body = await response.text();
-      } catch (err) {
-        // A body that breaks off reads as empty (invalid_response on a 2xx,
-        // `unknown` otherwise), unless the timeout broke it off.
-        if (signal?.aborted) throw err;
-      }
-      return { status: response.status, ok: response.ok, body };
+      response = await beforeDeadline(fetchFn(url, init));
     } catch (err) {
       if (signal?.aborted) {
-        throw new SsoError(
-          0,
-          'timeout',
-          `No response from EVE SSO within ${String(this.timeoutMs)} ms`,
-        );
+        throw this.timeoutError(0, 'No response from EVE SSO');
       }
       throw err;
     }
+    if (response.ok && !readSuccessBody) {
+      return { status: response.status, ok: true, body: '' };
+    }
+    let body = '';
+    try {
+      body = await beforeDeadline(response.text());
+    } catch {
+      if (signal?.aborted) {
+        throw this.timeoutError(
+          response.status,
+          `EVE SSO answered ${String(response.status)} but the body did not arrive`,
+        );
+      }
+      // A body that breaks off otherwise reads as empty: invalid_response on
+      // a 2xx, `unknown` on an error status.
+    }
+    return { status: response.status, ok: response.ok, body };
+  }
+
+  private timeoutError(status: number, what: string): SsoError {
+    return new SsoError(
+      status,
+      'timeout',
+      `${what} within ${String(this.timeoutMs)} ms`,
+    );
   }
 
   /**

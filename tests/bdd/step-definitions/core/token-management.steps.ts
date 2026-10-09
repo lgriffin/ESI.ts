@@ -284,8 +284,8 @@ defineFeature(feature, (test) => {
         },
       );
 
-      and('the error shall be retryable', () => {
-        expect((caught as SsoError).isRetryable()).toBe(true);
+      and(/^the error shall (not )?be retryable$/, (not?: string) => {
+        expect((caught as SsoError).isRetryable()).toBe(!not);
       });
     };
 
@@ -298,7 +298,7 @@ defineFeature(feature, (test) => {
   );
 
   test(
-    'Token response whose body stalls is rejected as a retryable timeout',
+    'Token response whose body stalls is rejected as a timeout that is not retryable',
     timeoutScenario(
       'the SSO token endpoint responds 200 but never finishes the body',
       queueSsoStalledBody,

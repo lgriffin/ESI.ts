@@ -314,6 +314,58 @@ describe('EveSsoClient', () => {
       }
     });
 
+    it('cuts off a custom fetch that ignores the abort signal', async () => {
+      const deaf = jest.fn(() => new Promise<Response>(() => undefined));
+      const sso = new EveSsoClient({
+        clientId: 'cid',
+        timeoutMs: 20,
+        fetch: deaf,
+      });
+      const err = await sso.refresh('old').catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(SsoError);
+      expect((err as SsoError).statusCode).toBe(0);
+      expect((err as SsoError).errorCode).toBe('timeout');
+    });
+
+    it('keeps the status of an error response whose body is late, and its retryability', async () => {
+      const late = {
+        ok: false,
+        status: 503,
+        text: () => new Promise<string>(() => undefined),
+      } as unknown as Response;
+      const sso = new EveSsoClient({
+        clientId: 'cid',
+        timeoutMs: 20,
+        fetch: jest.fn(() => Promise.resolve(late)),
+      });
+      const err = await sso.refresh('old').catch((e: unknown) => e);
+      expect((err as SsoError).statusCode).toBe(503);
+      expect((err as SsoError).errorCode).toBe('timeout');
+      expect((err as SsoError).isRetryable()).toBe(true);
+    });
+
+    it('rounds a fractional timeout up instead of failing on the first request', async () => {
+      const sso = new EveSsoClient({
+        clientId: 'cid',
+        timeoutMs: 10.5,
+        fetch: hangingFetch,
+      });
+      const err = await sso.refresh('old').catch((e: unknown) => e);
+      expect((err as SsoError).errorCode).toBe('timeout');
+      expect((err as SsoError).message).toContain('10.5 ms');
+    });
+
+    it('does not wait for the body of a successful revoke', async () => {
+      const text = jest.fn(() => new Promise<string>(() => undefined));
+      const ok = { ok: true, status: 200, text } as unknown as Response;
+      const sso = new EveSsoClient({
+        clientId: 'cid',
+        fetch: jest.fn(() => Promise.resolve(ok)),
+      });
+      await expect(sso.revoke('tok')).resolves.toBeUndefined();
+      expect(text).not.toHaveBeenCalled();
+    });
+
     it('passes a fetch failure that is not the timeout through unchanged', async () => {
       const failure = new TypeError('fetch failed');
       const sso = new EveSsoClient({

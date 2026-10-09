@@ -13,7 +13,8 @@ export class AuthError extends Error {
  * `errorCode` is the OAuth2 `error` field from the response body
  * (`invalid_client`, `invalid_request`, ...) or `unknown` when the body could
  * not be parsed. `statusCode` is the HTTP status. A timeout has status 0 and
- * error code `timeout`.
+ * error code `timeout` when no status arrived in time, or the status SSO sent
+ * when only the body was late.
  */
 export class SsoError extends AuthError {
   public readonly statusCode: number;
