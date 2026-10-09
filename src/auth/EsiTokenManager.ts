@@ -312,7 +312,7 @@ export class EsiTokenManager {
       );
     }
     if (this.autoRefresh && this.isStale(stored)) {
-      const refreshed = await this.refresh(characterId);
+      const refreshed = await this.startRefresh(characterId, stored);
       return refreshed.accessToken;
     }
     return stored.accessToken;
@@ -323,10 +323,21 @@ export class EsiTokenManager {
    * calls for the same character share one SSO request.
    */
   refresh(characterId: number): Promise<StoredToken> {
+    return this.startRefresh(characterId);
+  }
+
+  /**
+   * Start a refresh, or join the one in flight. `seen` is the record the
+   * caller judged stale, when it has one; see `doRefresh`.
+   */
+  private startRefresh(
+    characterId: number,
+    seen?: StoredToken,
+  ): Promise<StoredToken> {
     const pending = this.inFlight.get(characterId);
     if (pending) return pending;
 
-    const run: Promise<StoredToken> = this.doRefresh(characterId).finally(
+    const run: Promise<StoredToken> = this.doRefresh(characterId, seen).finally(
       () => {
         // Only clear our own slot: a newer refresh may have replaced it.
         if (this.inFlight.get(characterId) === run) {
@@ -470,14 +481,52 @@ export class EsiTokenManager {
     return current;
   }
 
-  private async doRefresh(characterId: number): Promise<StoredToken> {
-    const stored = await this.requireStored(characterId);
+  private requireLive(stored: StoredToken): StoredToken {
     if (stored.revokedAt !== undefined) {
       throw new TokenRevokedError(
-        `Refresh token for character ${characterId} was revoked; add the character again`,
-        characterId,
+        `Refresh token for character ${stored.characterId} was revoked; add the character again`,
+        stored.characterId,
       );
     }
+    return stored;
+  }
+
+  /**
+   * Without a storage lease this is the whole refresh. With one, the record
+   * is read again once the lease is held: a refresh token that differs from
+   * the one in `seen` means another process (or another manager on the same
+   * store) rotated it meanwhile, and its result is returned instead of
+   * spending the new refresh token on a second SSO call. `seen` is the
+   * record that made the caller refresh, such as the stale one `getToken`
+   * read, so a rotation that lands before this method's own read still
+   * counts; without one, the record is read here.
+   */
+  private async doRefresh(
+    characterId: number,
+    seenByCaller?: StoredToken,
+  ): Promise<StoredToken> {
+    if (!this.storage.withLock) {
+      const stored = this.requireLive(await this.requireStored(characterId));
+      return this.refreshStored(characterId, stored);
+    }
+    const seen =
+      seenByCaller ?? this.requireLive(await this.requireStored(characterId));
+    return this.storage.withLock(characterId, async () => {
+      const current = this.requireLive(await this.requireStored(characterId));
+      if (current.refreshToken !== seen.refreshToken) {
+        this.logger.debug(
+          `Token for character ${characterId} was rotated by another holder of the storage lock; using it`,
+        );
+        return current;
+      }
+      return this.refreshStored(characterId, current);
+    });
+  }
+
+  private async refreshStored(
+    characterId: number,
+    stored: StoredToken,
+  ): Promise<StoredToken> {
     const generation = this.generationOf(characterId);
     let response: SsoTokenResponse;
     try {
@@ -542,7 +591,7 @@ export class EsiTokenManager {
       return { characterId, status: 'skipped', reason: 'not-stale' };
     }
     try {
-      const refreshed = await this.refresh(characterId);
+      const refreshed = await this.startRefresh(characterId, token);
       return {
         characterId,
         status: 'refreshed',

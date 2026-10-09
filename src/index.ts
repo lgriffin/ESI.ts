@@ -251,6 +251,7 @@ export type {
   CharacterSummary,
   ManagedClientConfig,
   FileTokenStorageOptions,
+  FileTokenStorageLockOptions,
   DecodedAccessToken,
   EveJwtClaims,
   PkcePair,

@@ -216,9 +216,6 @@
     "src/auth/EsiTokenManager.ts": {
       "security/detect-object-injection": 1
     },
-    "src/auth/storage/FileTokenStorage.ts": {
-      "security/detect-non-literal-fs-filename": 4
-    },
     "src/clients/AssetsClient.ts": {
       "@typescript-eslint/no-unnecessary-type-assertion": 2
     },

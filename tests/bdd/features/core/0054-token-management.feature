@@ -323,6 +323,33 @@ Feature: Token Management
       Then the stored refresh token for character 2114794365 shall be "new-login"
       And the refresh shall resolve with the refresh token "new-login"
 
+  Rule: Where the storage adapter provides a lock, when a refresh acquires the lock after another holder has rotated the stored refresh token, the token manager shall return the stored token without calling SSO.
+    Coalescing only reaches callers inside one manager. Two processes on one
+    store each have their own manager, and whichever persisted its rotation
+    second would leave the other holding a refresh token SSO has already
+    spent. Under the lock the second refresh reads the store again, sees the
+    rotation and hands out that token instead of spending it.
+
+    Scenario: Two managers on one locked file store produce a single SSO call
+      Given two token managers each opening the same file token storage with locking enabled
+      And character 2114794365 is stored with an access token expiring in 30 seconds
+      And the SSO token endpoint returns a token for character 2114794365 with access token "fresh-access" after a delay
+      When both managers request a token for character 2114794365 at the same time
+      Then both managers shall return the access token "fresh-access"
+      And the SSO token endpoint shall have been called 1 time
+
+  Rule: Where the storage adapter provides no lock, the token manager shall refresh through SSO without reading the stored token a second time.
+    The lock is an optional part of the storage contract. Adapters written
+    before it existed keep their behaviour and their number of storage reads.
+
+    Scenario: Refresh on a storage without a lock reads the token once
+      Given a token manager backed by storage without a lock that counts reads
+      And character 2114794365 is stored with an access token expiring in 30 seconds
+      And the SSO token endpoint returns a token for character 2114794365 with access token "fresh-access"
+      When the token manager refreshes character 2114794365
+      Then the storage shall have been read 1 time
+      And the SSO token endpoint shall have been called 1 time
+
   # ── Token manager: client integration ───────────────────────────────
 
   Rule: When a client is created for a character, the token manager shall configure that client with the character's current access token and a refresh provider bound to that character.
@@ -471,3 +498,37 @@ Feature: Token Management
       And the file read is delayed
       When a list is started, the storage is invalidated and the file gains a token for character 95465499 before the read finishes
       Then the next list shall return 2 tokens
+
+  Rule: Where locking is enabled, the file token storage shall keep every token that another instance on the same path wrote when it writes a different character.
+    A process that wrote from its own copy of the file would put back the
+    refresh token another process had just rotated. With locking on, each
+    write reads the file under the lock and changes only its own entry.
+
+    Scenario: Locked instances writing different characters keep both tokens
+      Given two file token storages on the same temporary path with locking enabled
+      When the first storage writes character 2114794365 and the second writes character 95465499 at the same time
+      Then a new file token storage on that path shall list 2 tokens
+
+  Rule: If the lock file is older than the stale timeout, then the file token storage shall break the lock and complete the write.
+    A process that crashes while holding the lock leaves the lock file
+    behind. Without a timeout every other process would wait on it forever;
+    the timeout must exceed the longest time a live holder keeps the lock.
+
+    Scenario: Lock left by a crashed holder is broken
+      Given a file token storage on a temporary path with locking enabled and a stale timeout of 1000 ms
+      And a lock file acquired 5000 ms ago is present
+      When a token for character 2114794365 is written to the locked storage
+      Then the locked storage shall return the token for character 2114794365
+      And no lock file shall remain
+
+  Rule: If the lock is held by a live holder for longer than the lock timeout, then the file token storage shall reject the write with an error naming the lock file.
+    A caller blocked indefinitely on a lock cannot report anything. Failing
+    after the timeout surfaces the stuck holder, and the token file is left
+    as it was.
+
+    Scenario: Write gives up on a lock that stays held
+      Given a file token storage on a temporary path with locking enabled and a lock timeout of 100 ms
+      And a lock file acquired just now is present
+      When a token for character 2114794365 is written to the locked storage and the error is captured
+      Then the write shall have rejected with a message naming the lock file
+      And the token file shall not exist
