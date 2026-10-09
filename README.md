@@ -15,7 +15,7 @@ A TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), buil
 
 **Documentation site: [lgriffin.github.io/ESI.ts](https://lgriffin.github.io/ESI.ts/)**, with these guides, a page for every runnable example, and the [API reference](https://lgriffin.github.io/ESI.ts/api/) generated from the TSDoc.
 
-> **Release line.** Version <!-- metric:version -->11.2.0<!-- /metric --> <!-- x-release-please-version -->
+> **Release line.** Version <!-- metric:version -->11.3.0<!-- /metric --> <!-- x-release-please-version -->
 > is current on npm, released on 2026-09-28. It raises the floor to Node 22.12 and adds a new client built on one shared runtime, with typed public and per-character views. The 10.x line stays available for Node 18 and 20. [What 11.0 changes](guides/USAGE.md#9-what-1100-changes) · [Changelog](CHANGELOG.md)
 
 ## Install
