@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [11.3.0](https://github.com/lgriffin/ESI.ts/compare/v11.2.0...v11.3.0) (2026-10-09)
+
+
+### Added
+
+* **auth:** opt-in JWKS signature verification for SSO access tokens ([bbaa0ce](https://github.com/lgriffin/ESI.ts/commit/bbaa0ce55cc0511b982a24c98446525c34038a59)), closes [#256](https://github.com/lgriffin/ESI.ts/issues/256)
+* **auth:** optional storage lock for multi-process token sharing ([a643d7e](https://github.com/lgriffin/ESI.ts/commit/a643d7ee8f7966dabd7544556fc40fd6d7e3ee37)), closes [#258](https://github.com/lgriffin/ESI.ts/issues/258)
+* **auth:** optional timeout for EVE SSO requests ([4f536e8](https://github.com/lgriffin/ESI.ts/commit/4f536e8750e4bb689d8e32e9886c25ff10271ceb)), closes [#623](https://github.com/lgriffin/ESI.ts/issues/623)
+
+
+### Fixed
+
+* **auth:** bound JWKS fetches and keep stale keys through an SSO outage ([a20b06d](https://github.com/lgriffin/ESI.ts/commit/a20b06de62dc1fea021f9789caa30388e58fbfc1))
+* **auth:** keep late SSO bodies honest under the timeout ([d13da3f](https://github.com/lgriffin/ESI.ts/commit/d13da3fab6373b2b3684e8241de1a558f60d1a4d)), closes [#623](https://github.com/lgriffin/ESI.ts/issues/623)
+* **deps:** bump handlebars to 4.7.10 for critical audit advisory ([54f7b20](https://github.com/lgriffin/ESI.ts/commit/54f7b209e00085352ddf4f017b0c0471738eb910)), closes [#620](https://github.com/lgriffin/ESI.ts/issues/620)
+* **quality:** count self-imports and .js specifiers in lint:cycles ([120df27](https://github.com/lgriffin/ESI.ts/commit/120df27771f5f3b0b0629dd918734ede1069cf21))
+
+
+### Changed
+
+* break the core import cycles and gate them ([6ad096e](https://github.com/lgriffin/ESI.ts/commit/6ad096e2487a8fcd7ded64f48f35c1886f11deaf))
+
 ## [11.2.0](https://github.com/lgriffin/ESI.ts/compare/v11.1.1...v11.2.0) (2026-10-08)
 
 
