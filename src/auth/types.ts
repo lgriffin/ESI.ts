@@ -39,4 +39,18 @@ export interface ITokenStorage {
   set(characterId: number, token: StoredToken): Promise<void>;
   delete(characterId: number): Promise<void>;
   list(): Promise<StoredToken[]>;
+  /**
+   * Optional cross-process lease, for a store that several processes share.
+   * When present, the token manager runs every refresh inside it and reads
+   * the stored token again once the lease is held, so a refresh token that
+   * another process has already spent is never sent to SSO a second time.
+   *
+   * `fn` must not start until no other holder of the lease for this store is
+   * running, and the lease must be released when `fn` settles, whether it
+   * resolves or rejects. `get`, `set` and `delete` called from inside `fn`
+   * must not wait for the lease, and `get` must return what the last holder
+   * wrote rather than a cached copy. Adapters without this method behave as
+   * single-process stores.
+   */
+  withLock?<T>(characterId: number, fn: () => Promise<T>): Promise<T>;
 }

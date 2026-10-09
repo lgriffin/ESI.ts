@@ -1765,4 +1765,328 @@ defineFeature(feature, (test) => {
       expect(await storage.list()).toHaveLength(Number(count));
     });
   });
+
+  // ── Cross-process lock ──────────────────────────────────────────────
+
+  const tempTokenPath = (): { dir: string; filePath: string } => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'esi-lock-'));
+    return { dir, filePath: path.join(dir, 'tokens.json') };
+  };
+
+  const writeLockFile = (filePath: string, acquiredAt: number): void => {
+    fs.writeFileSync(
+      `${filePath}.lock`,
+      JSON.stringify({ pid: 1, nonce: 'other-holder', acquiredAt }),
+    );
+  };
+
+  test('Two managers on one locked file store produce a single SSO call', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let dir: string;
+    let storages: FileTokenStorage[];
+    let managers: EsiTokenManager[];
+    let returned: string[];
+
+    afterAll(() => {
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
+    given(
+      'two token managers each opening the same file token storage with locking enabled',
+      () => {
+        const temp = tempTokenPath();
+        dir = temp.dir;
+        storages = [0, 1].map(
+          () => new FileTokenStorage(temp.filePath, { lock: { retryMs: 5 } }),
+        );
+        managers = storages.map(
+          (storage) =>
+            new EsiTokenManager({
+              clientId: CLIENT_ID,
+              clientSecret: CLIENT_SECRET,
+              storage,
+              refreshSkewMs: 60_000,
+            }),
+        );
+      },
+    );
+
+    and(
+      /^character (\d+) is stored with an access token expiring in (\d+) seconds$/,
+      async (id: string, secs: string) => {
+        await storages[0]!.set(
+          Number(id),
+          makeStoredToken({
+            characterId: Number(id),
+            expiresInSeconds: Number(secs),
+          }),
+        );
+      },
+    );
+
+    and(
+      /^the SSO token endpoint returns a token for character (\d+) with access token "([^"]+)" after a delay$/,
+      (id: string, accessToken: string) => {
+        // One response only: a second SSO call would fail on an empty body.
+        fetchMock.mockResponseOnce(async () => {
+          await sleep(30); // long enough for the other manager to be waiting on the lock
+          return jsonResponse(
+            ssoTokenBody({
+              characterId: Number(id),
+              accessToken,
+              refreshToken: 'rotated-refresh',
+            }),
+          );
+        });
+      },
+    );
+
+    when(
+      /^both managers request a token for character (\d+) at the same time$/,
+      async (id: string) => {
+        returned = await Promise.all(
+          managers.map((manager) => manager.getToken(Number(id))),
+        );
+      },
+    );
+
+    then(
+      /^both managers shall return the access token "([^"]+)"$/,
+      (expected: string) => {
+        expect(returned).toEqual([expected, expected]);
+      },
+    );
+
+    and(
+      /^the SSO token endpoint shall have been called (\d+) times?$/,
+      (count: string) => {
+        expect(ssoCallCount()).toBe(Number(count));
+      },
+    );
+  });
+
+  test('Refresh on a storage without a lock reads the token once', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let storage: MemoryTokenStorage;
+    let manager: EsiTokenManager;
+    let reads = 0;
+
+    given(
+      'a token manager backed by storage without a lock that counts reads',
+      () => {
+        storage = new MemoryTokenStorage();
+        const counting: ITokenStorage = {
+          get: (id) => {
+            reads++;
+            return storage.get(id);
+          },
+          set: (id, token) => storage.set(id, token),
+          delete: (id) => storage.delete(id),
+          list: () => storage.list(),
+        };
+        manager = new EsiTokenManager({
+          clientId: CLIENT_ID,
+          clientSecret: CLIENT_SECRET,
+          storage: counting,
+        });
+      },
+    );
+
+    and(
+      /^character (\d+) is stored with an access token expiring in (\d+) seconds$/,
+      async (id: string, secs: string) => {
+        await storage.set(
+          Number(id),
+          makeStoredToken({
+            characterId: Number(id),
+            expiresInSeconds: Number(secs),
+          }),
+        );
+      },
+    );
+
+    and(
+      /^the SSO token endpoint returns a token for character (\d+) with access token "([^"]+)"$/,
+      (id: string, accessToken: string) => {
+        queueSsoTokenResponse({ characterId: Number(id), accessToken });
+      },
+    );
+
+    when(
+      /^the token manager refreshes character (\d+)$/,
+      async (id: string) => {
+        await manager.refresh(Number(id));
+      },
+    );
+
+    then(/^the storage shall have been read (\d+) times?$/, (count: string) => {
+      expect(reads).toBe(Number(count));
+    });
+
+    and(
+      /^the SSO token endpoint shall have been called (\d+) times?$/,
+      (count: string) => {
+        expect(ssoCallCount()).toBe(Number(count));
+      },
+    );
+  });
+
+  test('Locked instances writing different characters keep both tokens', ({
+    given,
+    when,
+    then,
+  }) => {
+    let dir: string;
+    let filePath: string;
+    let storages: FileTokenStorage[];
+
+    afterAll(() => {
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
+    given(
+      'two file token storages on the same temporary path with locking enabled',
+      () => {
+        ({ dir, filePath } = tempTokenPath());
+        storages = [0, 1].map(
+          () => new FileTokenStorage(filePath, { lock: { retryMs: 5 } }),
+        );
+      },
+    );
+
+    when(
+      /^the first storage writes character (\d+) and the second writes character (\d+) at the same time$/,
+      async (first: string, second: string) => {
+        await Promise.all(
+          [first, second].map((id, i) =>
+            storages[i]!.set(
+              Number(id),
+              makeStoredToken({ characterId: Number(id) }),
+            ),
+          ),
+        );
+      },
+    );
+
+    then(
+      /^a new file token storage on that path shall list (\d+) tokens$/,
+      async (count: string) => {
+        expect(await new FileTokenStorage(filePath).list()).toHaveLength(
+          Number(count),
+        );
+      },
+    );
+  });
+
+  test('Lock left by a crashed holder is broken', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let dir: string;
+    let filePath: string;
+    let storage: FileTokenStorage;
+
+    afterAll(() => {
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
+    given(
+      /^a file token storage on a temporary path with locking enabled and a stale timeout of (\d+) ms$/,
+      (staleMs: string) => {
+        ({ dir, filePath } = tempTokenPath());
+        storage = new FileTokenStorage(filePath, {
+          lock: { staleMs: Number(staleMs), timeoutMs: 2_000, retryMs: 5 },
+        });
+      },
+    );
+
+    and(/^a lock file acquired (\d+) ms ago is present$/, (ago: string) => {
+      writeLockFile(filePath, Date.now() - Number(ago));
+    });
+
+    when(
+      /^a token for character (\d+) is written to the locked storage$/,
+      async (id: string) => {
+        await storage.set(
+          Number(id),
+          makeStoredToken({ characterId: Number(id) }),
+        );
+      },
+    );
+
+    then(
+      /^the locked storage shall return the token for character (\d+)$/,
+      async (id: string) => {
+        expect((await storage.get(Number(id)))?.characterId).toBe(Number(id));
+      },
+    );
+
+    and('no lock file shall remain', () => {
+      expect(fs.readdirSync(dir)).toEqual(['tokens.json']);
+    });
+  });
+
+  test('Write gives up on a lock that stays held', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let dir: string;
+    let filePath: string;
+    let storage: FileTokenStorage;
+    let error: unknown;
+
+    afterAll(() => {
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
+    given(
+      /^a file token storage on a temporary path with locking enabled and a lock timeout of (\d+) ms$/,
+      (timeoutMs: string) => {
+        ({ dir, filePath } = tempTokenPath());
+        storage = new FileTokenStorage(filePath, {
+          lock: { timeoutMs: Number(timeoutMs), retryMs: 10 },
+        });
+      },
+    );
+
+    and('a lock file acquired just now is present', () => {
+      writeLockFile(filePath, Date.now());
+    });
+
+    when(
+      /^a token for character (\d+) is written to the locked storage and the error is captured$/,
+      async (id: string) => {
+        error = await storage
+          .set(Number(id), makeStoredToken({ characterId: Number(id) }))
+          .then(
+            () => undefined,
+            (err: unknown) => err,
+          );
+      },
+    );
+
+    then(
+      'the write shall have rejected with a message naming the lock file',
+      () => {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain(`${filePath}.lock`);
+      },
+    );
+
+    and('the token file shall not exist', () => {
+      expect(fs.existsSync(filePath)).toBe(false);
+    });
+  });
 });

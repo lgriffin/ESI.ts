@@ -5962,13 +5962,23 @@ export class FileTokenStorage implements ITokenStorage {
     invalidate(): void;
     // (undocumented)
     list(): Promise<StoredToken[]>;
+    get lockPath(): string;
     get path(): string;
     // (undocumented)
     set(characterId: number, token: StoredToken): Promise<void>;
+    readonly withLock?: <T>(characterId: number, fn: () => Promise<T>) => Promise<T>;
+}
+
+// @public (undocumented)
+export interface FileTokenStorageLockOptions {
+    retryMs?: number | undefined;
+    staleMs?: number | undefined;
+    timeoutMs?: number | undefined;
 }
 
 // @public (undocumented)
 export interface FileTokenStorageOptions {
+    lock?: boolean | FileTokenStorageLockOptions | undefined;
     mode?: number | undefined;
 }
 
@@ -6995,6 +7005,7 @@ export interface ITokenStorage {
     list(): Promise<StoredToken[]>;
     // (undocumented)
     set(characterId: number, token: StoredToken): Promise<void>;
+    withLock?<T>(characterId: number, fn: () => Promise<T>): Promise<T>;
 }
 
 // @public (undocumented)
