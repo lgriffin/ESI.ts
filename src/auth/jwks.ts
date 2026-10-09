@@ -44,8 +44,11 @@ interface RsaJsonWebKey {
 
 /**
  * Fetches and caches EVE SSO's JSON Web Key Set. The set is reused for
- * `cacheTtlMs`; a `kid` missing from the cached set triggers one refetch,
- * at most once per `refetchCooldownMs`. Concurrent fetches share one request.
+ * `cacheTtlMs`; a `kid` missing from the cached set triggers one refetch.
+ * Fetches start at most once per `refetchCooldownMs` whatever triggers them
+ * (an unknown `kid`, an expired cache, a failed earlier fetch), and
+ * concurrent fetches share one request. When a refetch fails, the last good
+ * key set stays in use.
  *
  * Share one instance across verifications; a fresh instance fetches the key
  * set on its first use.
@@ -57,7 +60,12 @@ export class SsoJwks {
   private readonly refetchCooldownMs: number;
   private readonly now: () => number;
   private keys = new Map<string, KeyObject>();
+  /** When the key set was last fetched successfully. */
   private fetchedAt: number | undefined;
+  /** When the last fetch started, successful or not. */
+  private attemptedAt: number | undefined;
+  /** Why the last fetch failed, thrown while no key set has loaded. */
+  private lastError: TokenVerificationError | undefined;
   private pending: Promise<void> | undefined;
 
   constructor(options: SsoJwksOptions = {}) {
@@ -72,17 +80,26 @@ export class SsoJwks {
    * The RS256 public key for `kid`.
    *
    * @throws TokenVerificationError `unknown-key` when the key set lacks `kid`
-   *   after any refetch it allows, `jwks-unavailable` when it cannot be fetched
+   *   after any refetch it allows, `jwks-unavailable` when no key set has
+   *   been fetched
    */
   async getKey(kid: string): Promise<KeyObject> {
-    if (this.fetchedAt === undefined || this.isExpired()) {
+    if (this.isExpired()) {
       await this.refresh();
     }
-    let key = this.keys.get(kid);
-    if (!key && this.canRefetch()) {
-      await this.refresh();
-      key = this.keys.get(kid);
+    if (this.keys.size === 0) {
+      throw (
+        this.lastError ??
+        new TokenVerificationError(
+          'jwks-unavailable',
+          `EVE SSO's key set at ${this.jwksUrl} has not been fetched`,
+        )
+      );
     }
+    if (!this.keys.has(kid)) {
+      await this.refresh();
+    }
+    const key = this.keys.get(kid);
     if (!key) {
       throw new TokenVerificationError(
         'unknown-key',
@@ -93,17 +110,37 @@ export class SsoJwks {
   }
 
   private isExpired(): boolean {
-    return this.now() - (this.fetchedAt ?? 0) >= this.cacheTtlMs;
+    return (
+      this.fetchedAt === undefined ||
+      this.now() - this.fetchedAt >= this.cacheTtlMs
+    );
   }
 
-  private canRefetch(): boolean {
-    return this.now() - (this.fetchedAt ?? 0) >= this.refetchCooldownMs;
-  }
-
+  /**
+   * Fetch the key set when the cooldown since the last attempt allows it.
+   * A failure is recorded, not thrown: the caller keeps the last good set.
+   */
   private refresh(): Promise<void> {
-    this.pending ??= this.load().finally(() => {
-      this.pending = undefined;
-    });
+    if (this.pending) return this.pending;
+    if (
+      this.attemptedAt !== undefined &&
+      this.now() - this.attemptedAt < this.refetchCooldownMs
+    ) {
+      return Promise.resolve();
+    }
+    this.attemptedAt = this.now();
+    this.pending = this.load()
+      .then(
+        () => {
+          this.lastError = undefined;
+        },
+        (err: unknown) => {
+          this.lastError = err as TokenVerificationError;
+        },
+      )
+      .finally(() => {
+        this.pending = undefined;
+      });
     return this.pending;
   }
 
@@ -181,9 +218,9 @@ export interface VerifyAccessTokenOptions {
   /** The application's SSO client id; the `aud` claim must contain it. */
   clientId: string;
   /**
-   * Key set cache to verify against. Pass one shared instance so keys are
-   * fetched once, not per call. Defaults to a new {@link SsoJwks} built from
-   * `fetch` and `now`.
+   * Key set cache to verify against. Defaults to one process-wide
+   * {@link SsoJwks}, or, when `fetch` or `now` is given, a new one built
+   * from them for this call only; pass a shared instance in that case.
    */
   jwks?: SsoJwks | undefined;
   /** Custom fetch for the key set when `jwks` is not given. */
@@ -210,8 +247,7 @@ export async function verifyAccessToken(
   options: VerifyAccessTokenOptions,
 ): Promise<DecodedAccessToken> {
   const now = options.now ?? (() => systemClock.now());
-  const jwks =
-    options.jwks ?? new SsoJwks({ fetch: options.fetch, now: options.now });
+  const jwks = options.jwks ?? defaultJwks(options);
   const parts = token.split('.');
   if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) {
     throw new TokenVerificationError(
@@ -263,6 +299,21 @@ export async function verifyAccessToken(
   }
 }
 
+let sharedJwks: SsoJwks | undefined;
+
+/**
+ * The key set cache for a call that passes no `jwks`. Calls with the default
+ * fetch and clock share one process-wide cache, so its cooldown limits
+ * fetches across calls; a custom `fetch` or `now` gets a cache of its own.
+ */
+function defaultJwks(options: VerifyAccessTokenOptions): SsoJwks {
+  if (options.fetch !== undefined || options.now !== undefined) {
+    return new SsoJwks({ fetch: options.fetch, now: options.now });
+  }
+  sharedJwks ??= new SsoJwks();
+  return sharedJwks;
+}
+
 function parseSegment(
   segment: string,
   name: 'header' | 'payload',
@@ -304,10 +355,10 @@ function checkClaims(
       `Access token audience does not name client id ${clientId} and ${SSO_AUDIENCE}`,
     );
   }
-  if (typeof claims.exp !== 'number') {
+  if (typeof claims.exp !== 'number' || !Number.isFinite(claims.exp)) {
     throw new TokenVerificationError(
       'expired',
-      'Access token has no exp claim',
+      'Access token has no finite exp claim',
     );
   }
   if (nowMs / 1000 >= claims.exp + clockToleranceSeconds) {

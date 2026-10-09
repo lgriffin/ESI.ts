@@ -104,6 +104,11 @@ export class EveSsoClient {
     this.fetchFn = config.fetch;
   }
 
+  /** The application's SSO client id; tokens it obtains carry it in `aud`. */
+  getClientId(): string {
+    return this.clientId;
+  }
+
   /** True when a client secret is configured (confidential client). */
   isConfidential(): boolean {
     return this.clientSecret !== undefined && this.clientSecret !== '';

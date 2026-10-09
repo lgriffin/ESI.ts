@@ -137,7 +137,6 @@ export class EsiTokenManager {
   private readonly sso: EveSsoClient;
   private readonly refreshSkewMs: number;
   private readonly autoRefresh: boolean;
-  private readonly clientId: string;
   /** Present when `verifyTokens` is on. */
   private readonly jwks: SsoJwks | undefined;
   /** The logger passed in config, if any; see `logger` below. */
@@ -179,7 +178,6 @@ export class EsiTokenManager {
       });
     this.refreshSkewMs = config.refreshSkewMs ?? 60_000;
     this.autoRefresh = config.autoRefresh ?? true;
-    this.clientId = config.clientId;
     this.jwks = config.verifyTokens
       ? new SsoJwks({ fetch: config.fetch, now: config.now })
       : undefined;
@@ -570,7 +568,8 @@ export class EsiTokenManager {
   ): Promise<StoredToken> {
     if (this.jwks) {
       await verifyAccessToken(response.accessToken, {
-        clientId: this.clientId,
+        // The client that exchanged the code, which an injected ssoClient decides.
+        clientId: this.sso.getClientId(),
         jwks: this.jwks,
         now: this.now,
       });

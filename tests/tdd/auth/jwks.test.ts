@@ -1,4 +1,5 @@
 import { generateKeyPairSync, sign } from 'crypto';
+import fetchMock from 'jest-fetch-mock';
 import {
   DEFAULT_SSO_JWKS_URL,
   SsoJwks,
@@ -11,6 +12,7 @@ import {
 } from '../../../src/auth/errors';
 import {
   jwksBody,
+  jwksCallCount,
   makeSignedJwt,
   signingKey,
   withEditedPayload,
@@ -52,7 +54,9 @@ function signRaw(
   header: Record<string, unknown>,
   payload: Record<string, unknown>,
 ): string {
-  const input = `${b64(header)}.${b64(payload)}`;
+  // JSON.stringify cannot write 1e999, which JSON.parse reads as Infinity.
+  const body = JSON.stringify(payload).replace('"INFINITY"', '1e999');
+  const input = `${b64(header)}.${b64(body)}`;
   const signature = sign(
     'RSA-SHA256',
     Buffer.from(input),
@@ -196,6 +200,7 @@ describe('verifyAccessToken', () => {
     ['a string audience', { aud: CLIENT_ID }, 'audience'],
     ['no audience', { aud: undefined }, 'audience'],
     ['no exp', { exp: undefined }, 'expired'],
+    ['an exp that overflowed to Infinity', { exp: 'INFINITY' }, 'expired'],
     ['a past exp', { exp: Math.floor(Date.now() / 1000) - 1 }, 'expired'],
   ])('rejects a token with %s', async (_label, overrides, reason) => {
     const token = signRaw(
@@ -337,13 +342,49 @@ describe('SsoJwks', () => {
     expect((error as TokenVerificationError).reason).toBe('jwks-unavailable');
   });
 
-  it('retries the fetch on the next call after a failure', async () => {
+  it('retries a failed fetch only once the cooldown has passed', async () => {
     const fetch = jest
       .fn<ReturnType<FetchLike>, Parameters<FetchLike>>()
       .mockRejectedValueOnce(new Error('down'))
-      .mockResolvedValueOnce(jsonResponse(jwksBody([signingKey()])));
-    const jwks = new SsoJwks({ fetch });
+      .mockResolvedValue(jsonResponse(jwksBody([signingKey()])));
+    let now = 0;
+    const jwks = new SsoJwks({ fetch, now: () => now });
     await expect(jwks.getKey('JWT-Signature-Key')).rejects.toThrow(/down/);
+    await expect(jwks.getKey('JWT-Signature-Key')).rejects.toThrow(/down/);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    now += 60_000;
     await expect(jwks.getKey('JWT-Signature-Key')).resolves.toBeDefined();
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the last good key set when a refetch after expiry fails', async () => {
+    const fetch = jest
+      .fn<ReturnType<FetchLike>, Parameters<FetchLike>>()
+      .mockResolvedValueOnce(jsonResponse(jwksBody([signingKey()])))
+      .mockRejectedValue(new Error('down'));
+    let now = 0;
+    const jwks = new SsoJwks({ fetch, now: () => now });
+    await jwks.getKey('JWT-Signature-Key');
+    now += 60 * 60_000;
+    await expect(jwks.getKey('JWT-Signature-Key')).resolves.toBeDefined();
+    await expect(jwks.getKey('JWT-Signature-Key')).resolves.toBeDefined();
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('verifyAccessToken without a jwks option', () => {
+  it('shares one process-wide key set cache across calls', async () => {
+    fetchMock.mockResponse(jwksBody([signingKey()]));
+    const before = jwksCallCount();
+    await verifyAccessToken(makeSignedJwt(), { clientId: CLIENT_ID });
+    await verifyAccessToken(makeSignedJwt(), { clientId: CLIENT_ID });
+    for (const kid of ['made-up-1', 'made-up-2', 'made-up-3']) {
+      await expect(
+        verifyAccessToken(makeSignedJwt({}, { ...signingKey(), kid }), {
+          clientId: CLIENT_ID,
+        }),
+      ).rejects.toThrow(TokenVerificationError);
+    }
+    expect(jwksCallCount() - before).toBe(1);
   });
 });

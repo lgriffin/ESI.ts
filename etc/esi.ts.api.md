@@ -5646,6 +5646,7 @@ export class EveSsoClient {
     get authorizeUrl(): string;
     exchangeCode(code: string, options?: ExchangeCodeOptions): Promise<SsoTokenResponse>;
     getAuthorizationUrl(options: AuthorizationUrlOptions): string;
+    getClientId(): string;
     isConfidential(): boolean;
     refresh(refreshToken: string, options?: RefreshOptions): Promise<SsoTokenResponse>;
     revoke(token: string, tokenTypeHint?: 'refresh_token' | 'access_token'): Promise<void>;

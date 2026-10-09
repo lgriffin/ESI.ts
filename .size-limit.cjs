@@ -12,7 +12,7 @@
  * grown it past its budget. `./client` was measured when ROADMAP Phase 2
  * PR 11 added it: the generated operations and the pipeline make it the
  * largest sub-path after the root. `./testing` was re-measured when PR 12
- * added `createMockTransport`. `.` (CJS) and `./errors` (ESM) were
+ * added `createMockTransport`. `.` (ESM and CJS) and `./errors` (ESM) were
  * re-measured when #256 added JWKS verification (`SsoJwks`,
  * `verifyAccessToken`, `TokenVerificationError`).
  *
@@ -28,7 +28,7 @@ const { sizeLimitChecks } = require('./scripts/package/size-limit-checks.cjs');
 
 const budgets = {
   '.': {
-    import: '234 kB', // measured 222825 B
+    import: '245.8 kB', // measured 234002 B
     require: '268.8 kB', // measured 255913 B
   },
   './schemas': {
