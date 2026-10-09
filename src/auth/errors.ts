@@ -7,11 +7,13 @@ export class AuthError extends Error {
 }
 
 /**
- * EVE SSO answered a token or revoke request with a non-2xx status.
+ * EVE SSO answered a token or revoke request with a non-2xx status, or did
+ * not answer within the client's configured timeout.
  *
  * `errorCode` is the OAuth2 `error` field from the response body
  * (`invalid_client`, `invalid_request`, ...) or `unknown` when the body could
- * not be parsed. `statusCode` is the HTTP status.
+ * not be parsed. `statusCode` is the HTTP status. A timeout has status 0 and
+ * error code `timeout`.
  */
 export class SsoError extends AuthError {
   public readonly statusCode: number;
@@ -31,8 +33,9 @@ export class SsoError extends AuthError {
     this.errorDescription = errorDescription;
   }
 
-  /** True for statuses where the same request can be retried later. */
+  /** True for a 429, a 5xx or a timeout, where the same request can be retried later. */
   isRetryable(): boolean {
+    if (this.statusCode === 0) return this.errorCode === 'timeout';
     return this.statusCode === 429 || this.statusCode >= 500;
   }
 }

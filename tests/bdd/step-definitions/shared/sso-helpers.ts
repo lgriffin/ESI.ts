@@ -185,6 +185,54 @@ export function queueSsoErrorResponse(status: number, errorCode: string): void {
   });
 }
 
+/** A promise that rejects with the signal's reason once it aborts, and never settles otherwise. */
+function rejectOnAbort(signal: AbortSignal): Promise<never> {
+  return new Promise((_resolve, reject) => {
+    signal.addEventListener('abort', () => reject(signal.reason), {
+      once: true,
+    });
+  });
+}
+
+/**
+ * The next SSO request gets no answer until its abort signal fires. A request
+ * sent without a signal is refused at once, since it would wait forever.
+ */
+export function queueSsoNoResponse(): void {
+  fetchMock.mockImplementationOnce((_input, init) => {
+    const signal = init?.signal;
+    if (!signal) {
+      return Promise.reject(
+        new Error('SSO request carried no abort signal, so it would hang'),
+      );
+    }
+    return rejectOnAbort(signal);
+  });
+}
+
+/**
+ * The next SSO request gets a 200 status whose body never finishes arriving:
+ * reading it waits until the request's abort signal fires.
+ */
+export function queueSsoStalledBody(): void {
+  fetchMock.mockImplementationOnce((_input, init) => {
+    const signal = init?.signal;
+    if (!signal) {
+      return Promise.reject(
+        new Error('SSO request carried no abort signal, so it would hang'),
+      );
+    }
+    const stalled = {
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      text: () => rejectOnAbort(signal),
+      json: () => rejectOnAbort(signal),
+    };
+    return Promise.resolve(stalled as unknown as Response);
+  });
+}
+
 export interface StoredTokenOptions extends FakeJwtClaims {
   accessToken?: string;
   refreshToken?: string;

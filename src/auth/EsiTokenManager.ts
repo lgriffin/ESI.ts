@@ -26,10 +26,17 @@ export interface EsiTokenManagerConfig {
   callbackUrl?: string | undefined;
   /** Where tokens are persisted. Defaults to {@link MemoryTokenStorage}. */
   storage?: ITokenStorage | undefined;
-  /** Pre-built SSO client. When given, `clientId`, `clientSecret`, `callbackUrl` and `fetch` are ignored for SSO calls. */
+  /** Pre-built SSO client. When given, `clientId`, `clientSecret`, `callbackUrl`, `fetch` and `ssoTimeoutMs` are ignored for SSO calls. */
   ssoClient?: EveSsoClient | undefined;
   /** Custom fetch for SSO calls. Defaults to `globalThis.fetch`. */
   fetch?: FetchLike | undefined;
+  /**
+   * Timeout for each SSO call, in milliseconds; see
+   * {@link EveSsoClientConfig.timeoutMs}. Unset by default. With a locking
+   * store, keep it well below the lock's stale timeout so a hung refresh
+   * ends before another process breaks its lock. Ignored with `ssoClient`.
+   */
+  ssoTimeoutMs?: number | undefined;
   /**
    * How long before expiry a token counts as stale, in milliseconds.
    * Defaults to 60 000 (one minute).
@@ -105,7 +112,7 @@ export interface RefreshResult {
   expiresAt?: number;
   /** The error, when failed or revoked. */
   error?: Error;
-  /** True when the failure was an SSO 429 or 5xx and can be retried later. */
+  /** True when the failure was an SSO 429, 5xx or timeout and can be retried later. */
   retryable?: boolean;
   /** Why the token was skipped. */
   reason?: 'not-stale' | 'aborted';
@@ -175,6 +182,7 @@ export class EsiTokenManager {
         clientSecret: config.clientSecret,
         callbackUrl: config.callbackUrl,
         fetch: config.fetch,
+        timeoutMs: config.ssoTimeoutMs,
       });
     this.refreshSkewMs = config.refreshSkewMs ?? 60_000;
     this.autoRefresh = config.autoRefresh ?? true;

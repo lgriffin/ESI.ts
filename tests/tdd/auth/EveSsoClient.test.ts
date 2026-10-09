@@ -274,4 +274,71 @@ describe('EveSsoClient', () => {
       expect(err).not.toBeInstanceOf(TokenRevokedError);
     });
   });
+
+  describe('timeoutMs', () => {
+    /** A fetch that answers only by rejecting once its signal aborts. */
+    const hangingFetch = jest.fn(
+      (_input: RequestInfo | URL, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () =>
+            reject(init.signal?.reason),
+          );
+        }),
+    );
+
+    it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+      'rejects a timeout of %p at construction',
+      (timeoutMs) => {
+        expect(() => new EveSsoClient({ clientId: 'cid', timeoutMs })).toThrow(
+          RangeError,
+        );
+      },
+    );
+
+    it('times out a code exchange and a revoke as retryable SsoErrors', async () => {
+      const sso = new EveSsoClient({
+        clientId: 'cid',
+        timeoutMs: 20,
+        fetch: hangingFetch,
+      });
+      for (const call of [
+        () => sso.exchangeCode('code'),
+        () => sso.revoke('tok'),
+      ]) {
+        const err = await call().catch((e: unknown) => e);
+        expect(err).toBeInstanceOf(SsoError);
+        expect((err as SsoError).statusCode).toBe(0);
+        expect((err as SsoError).errorCode).toBe('timeout');
+        expect((err as SsoError).message).toContain('20 ms');
+        expect((err as SsoError).isRetryable()).toBe(true);
+      }
+    });
+
+    it('passes a fetch failure that is not the timeout through unchanged', async () => {
+      const failure = new TypeError('fetch failed');
+      const sso = new EveSsoClient({
+        clientId: 'cid',
+        timeoutMs: 5_000,
+        fetch: jest.fn(() => Promise.reject(failure)),
+      });
+      await expect(sso.refresh('old')).rejects.toBe(failure);
+    });
+
+    it('reads a 2xx body that breaks off as invalid_response, not a timeout', async () => {
+      const broken = {
+        ok: true,
+        status: 200,
+        text: () => Promise.reject(new TypeError('terminated')),
+      } as unknown as Response;
+      const sso = new EveSsoClient({
+        clientId: 'cid',
+        timeoutMs: 5_000,
+        fetch: jest.fn(() => Promise.resolve(broken)),
+      });
+      const err = await sso.refresh('old').catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(SsoError);
+      expect((err as SsoError).errorCode).toBe('invalid_response');
+      expect((err as SsoError).isRetryable()).toBe(false);
+    });
+  });
 });

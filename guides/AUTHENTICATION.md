@@ -195,6 +195,7 @@ const tokens = new EsiTokenManager({
   clientId: process.env.EVE_CLIENT_ID!,
   clientSecret: process.env.EVE_CLIENT_SECRET!,
   storage: new FileTokenStorage('./tokens.json', { lock: true }),
+  ssoTimeoutMs: 10_000, // well below the lock's staleMs (30 s)
 });
 ```
 
@@ -206,7 +207,7 @@ With `lock` on, `FileTokenStorage` takes an advisory lock file next to the token
 | `timeoutMs` | 60 000  | How long a write or refresh waits for the lock, queueing in this process included, before it rejects.     |
 | `retryMs`   | 25      | Pause between attempts to take the lock.                                                                  |
 
-Each timing must be a positive, finite number, or the constructor throws a `RangeError`. The lock file only works between processes that see the same file system with working hard links, so a local disk rather than a network share. A holder that keeps the lock longer than `staleMs` can lose it to a waiter, and a refresh then behaves as it did without the lock. SSO calls have no timeout of their own, so an SSO request that hangs holds that character's lock until it ends. For processes on different machines, implement `withLock` over the shared store itself, for example Redis `SET key value NX PX` with a token you check before deleting the key. Adapters without `withLock` behave exactly as before.
+Each timing must be a positive, finite number, or the constructor throws a `RangeError`. The lock file only works between processes that see the same file system with working hard links, so a local disk rather than a network share. A holder that keeps the lock longer than `staleMs` can lose it to a waiter, and a refresh then behaves as it did without the lock. SSO calls have no timeout unless you set one, and an SSO request that hangs holds that character's lock until it ends; if that outlasts `staleMs`, a waiter breaks the lock and may spend a refresh token the hung request already rotated. Set `ssoTimeoutMs` on the manager (or `timeoutMs` on an `EveSsoClient` you pass as `ssoClient`) well below `staleMs`. A request that runs past it, body included, rejects with an `SsoError` whose `statusCode` is 0, `errorCode` is `timeout` and `isRetryable()` is true, and `refreshAll` reports it as a retryable failure. For processes on different machines, implement `withLock` over the shared store itself, for example Redis `SET key value NX PX` with a token you check before deleting the key. Adapters without `withLock` behave exactly as before.
 
 ### Verifying tokens from a third party
 
