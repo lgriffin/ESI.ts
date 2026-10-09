@@ -13,10 +13,12 @@ describe('auth module exports', () => {
     'SsoError',
     'TokenRevokedError',
     'TokenDecodeError',
+    'TokenVerificationError',
     'CharacterNotFoundError',
     'isAuthError',
     'isSsoError',
     'isTokenRevoked',
+    'isTokenVerificationError',
     'isCharacterNotFound',
     'decodeAccessToken',
     'decodeJwtPayload',
@@ -26,6 +28,9 @@ describe('auth module exports', () => {
     'generateCodeVerifier',
     'codeChallengeFromVerifier',
     'generateState',
+    'SsoJwks',
+    'verifyAccessToken',
+    'DEFAULT_SSO_JWKS_URL',
   ] as const;
 
   it.each(runtimeExports)(
@@ -41,5 +46,7 @@ describe('auth module exports', () => {
     expect(errors.TokenRevokedError).toBe(auth.TokenRevokedError);
     expect(errors.CharacterNotFoundError).toBe(auth.CharacterNotFoundError);
     expect(errors.isTokenRevoked).toBe(auth.isTokenRevoked);
+    expect(errors.TokenVerificationError).toBe(auth.TokenVerificationError);
+    expect(errors.isTokenVerificationError).toBe(auth.isTokenVerificationError);
   });
 });

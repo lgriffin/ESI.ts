@@ -81,7 +81,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * Supports confidential clients (HTTP Basic with the client secret) and
  * public clients (PKCE with `client_id` in the body). No JWT signature
  * verification is performed; tokens are trusted because they arrive directly
- * from SSO over TLS.
+ * from SSO over TLS. `verifyAccessToken` checks a token against SSO's JWKS.
  */
 export class EveSsoClient {
   private readonly clientId: string;

@@ -12,6 +12,7 @@ import {
   ExchangeCodeOptions,
 } from './EveSsoClient';
 import { CharacterNotFoundError, SsoError, TokenRevokedError } from './errors';
+import { SsoJwks, verifyAccessToken } from './jwks';
 import { decodeAccessToken, DecodedAccessToken } from './jwt';
 import { MemoryTokenStorage } from './storage/MemoryTokenStorage';
 import type { ITokenStorage, StoredToken } from './types';
@@ -52,6 +53,15 @@ export interface EsiTokenManagerConfig {
    * each log call so a later global `setLogger()` applies.
    */
   logger?: ILogger | undefined;
+  /**
+   * Verify the RS256 signature of access tokens against EVE SSO's published
+   * key set (JWKS) in {@link EsiTokenManager.addCharacter} and
+   * {@link EsiTokenManager.importToken}, and check their `iss`, `aud` and
+   * `exp` claims. Turn this on when tokens can reach the manager from
+   * anywhere but SSO's token endpoint. Defaults to false. Keys are fetched
+   * with `fetch` and cached.
+   */
+  verifyTokens?: boolean | undefined;
   /** Clock override for tests. */
   now?: (() => number) | undefined;
 }
@@ -127,6 +137,9 @@ export class EsiTokenManager {
   private readonly sso: EveSsoClient;
   private readonly refreshSkewMs: number;
   private readonly autoRefresh: boolean;
+  private readonly clientId: string;
+  /** Present when `verifyTokens` is on. */
+  private readonly jwks: SsoJwks | undefined;
   /** The logger passed in config, if any; see `logger` below. */
   private readonly configuredLogger: ILogger | undefined;
   private readonly now: () => number;
@@ -166,6 +179,10 @@ export class EsiTokenManager {
       });
     this.refreshSkewMs = config.refreshSkewMs ?? 60_000;
     this.autoRefresh = config.autoRefresh ?? true;
+    this.clientId = config.clientId;
+    this.jwks = config.verifyTokens
+      ? new SsoJwks({ fetch: config.fetch, now: config.now })
+      : undefined;
     this.configuredLogger = config.logger;
     this.now = config.now ?? (() => Date.now());
     this.hooks = {
@@ -194,6 +211,9 @@ export class EsiTokenManager {
    * Exchange an authorization code and store the resulting token under the
    * character it belongs to. An existing token for that character is
    * replaced; storage never holds two entries for one character.
+   *
+   * @throws TokenVerificationError with `verifyTokens` on, when the access
+   *   token fails verification; nothing is stored
    */
   async addCharacter(
     code: string,
@@ -212,6 +232,10 @@ export class EsiTokenManager {
    * Import tokens obtained elsewhere (a previous library version, another
    * tool, a migration). The character identity is decoded from the access
    * token; `expiresIn` is in seconds and defaults to the JWT `exp` claim.
+   *
+   * @throws TokenVerificationError with `verifyTokens` on, when the access
+   *   token fails verification (an expired access token included); nothing
+   *   is stored
    */
   async importToken(token: {
     accessToken: string;
@@ -544,6 +568,13 @@ export class EsiTokenManager {
     response: SsoTokenResponse,
     options: { revokeReplaced?: boolean | undefined } = {},
   ): Promise<StoredToken> {
+    if (this.jwks) {
+      await verifyAccessToken(response.accessToken, {
+        clientId: this.clientId,
+        jwks: this.jwks,
+        now: this.now,
+      });
+    }
     const token = this.buildStoredToken(response);
     const existing = await this.storage.get(token.characterId);
     if (existing) {

@@ -60,6 +60,39 @@ export class TokenDecodeError extends AuthError {
   }
 }
 
+/** Why {@link TokenVerificationError} rejected a token. */
+export type TokenVerificationFailure =
+  /** Not a JWT, or the header or payload is not a JSON object. */
+  | 'malformed'
+  /** The header names an algorithm other than RS256 (including `none`). */
+  | 'algorithm'
+  /** No key in EVE SSO's key set carries the token's `kid`, even after a refetch. */
+  | 'unknown-key'
+  /** The signature does not match the header and payload. */
+  | 'signature'
+  /** The `iss` claim is not EVE SSO. */
+  | 'issuer'
+  /** The `aud` claim does not name the client id and `EVE Online`. */
+  | 'audience'
+  /** The `exp` claim is missing or in the past. */
+  | 'expired'
+  /** The key set could not be fetched or parsed. */
+  | 'jwks-unavailable';
+
+/**
+ * An access token failed JWKS signature verification or claim validation.
+ * `reason` says which check failed; the token's claims must not be trusted.
+ */
+export class TokenVerificationError extends AuthError {
+  public readonly reason: TokenVerificationFailure;
+
+  constructor(reason: TokenVerificationFailure, message: string) {
+    super(message);
+    this.name = 'TokenVerificationError';
+    this.reason = reason;
+  }
+}
+
 /** No token is stored for the requested character. */
 export class CharacterNotFoundError extends AuthError {
   public readonly characterId: number;
@@ -87,4 +120,10 @@ export function isCharacterNotFound(
   error: unknown,
 ): error is CharacterNotFoundError {
   return error instanceof CharacterNotFoundError;
+}
+
+export function isTokenVerificationError(
+  error: unknown,
+): error is TokenVerificationError {
+  return error instanceof TokenVerificationError;
 }

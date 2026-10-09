@@ -183,6 +183,37 @@ for (const r of results) {
 
 Implement the interface over Redis, Postgres or a keychain for anything else. `set` must be durable before it resolves. The manager persists the rotated refresh token before it returns the new access token, and SSO has already invalidated the previous one.
 
+### Verifying tokens from a third party
+
+A token that reaches your code from anywhere but SSO's token endpoint (a reverse proxy, a browser login that hands the token to a backend) has not been vouched for by TLS. Verify it before trusting its `sub`, `name`, `scp` or `owner` claims. `verifyAccessToken` fetches SSO's key set from `https://login.eveonline.com/oauth/jwks`, checks the RS256 signature with Node's `crypto`, then checks `iss` (EVE SSO), `aud` (your client id and `EVE Online`) and `exp`:
+
+```typescript
+import {
+  SsoJwks,
+  verifyAccessToken,
+  isTokenVerificationError,
+} from '@lgriffin/esi.ts';
+
+// One instance per process: it caches the key set for an hour and refetches
+// when a token names a key it has not seen (SSO rotated its key).
+const jwks = new SsoJwks();
+
+async function characterFromBearer(token: string): Promise<number | null> {
+  try {
+    const verified = await verifyAccessToken(token, {
+      clientId: process.env.ESI_SSO_CLIENT_ID!,
+      jwks,
+    });
+    return verified.characterId;
+  } catch (err) {
+    if (isTokenVerificationError(err)) return null; // err.reason names the failed check
+    throw err;
+  }
+}
+```
+
+`EsiTokenManager` does the same for every token it is handed when it is built with `verifyTokens: true`. `addCharacter` and `importToken` then reject a token that fails with `TokenVerificationError` and store nothing. An expired access token fails too, so a migration that imports stale tokens leaves the flag off for the import. Refreshes are not re-verified: those tokens come straight from SSO.
+
 ### Guarantees and limits
 
 - **One token per character.** Re-authorising replaces the stored token. A warning is logged if the new consent drops scopes.
@@ -190,7 +221,7 @@ Implement the interface over Redis, Postgres or a keychain for anything else. `s
 - **Coalescing.** Concurrent refreshes for one character share one SSO call. This matters because SSO rotates the refresh token on every use.
 - **Revocation.** An `invalid_grant` from SSO marks the character revoked. Later calls throw `TokenRevokedError` locally without calling SSO.
 - **Hooks.** `onRefresh`, `onRefreshError` and `onRevoked` are there for logging, metrics or prompting a re-login.
-- **No JWT signature verification.** Tokens are trusted because they arrive straight from SSO over TLS. Do not use `decodeAccessToken` to authenticate a token a third party hands you. Opt-in JWKS verification is tracked in [#256](https://github.com/lgriffin/ESI.ts/issues/256).
+- **No JWT signature verification by default.** Tokens are trusted because they arrive straight from SSO over TLS. Do not use `decodeAccessToken` to authenticate a token a third party hands you; use `verifyAccessToken`, or `verifyTokens: true` on the manager (see [Verifying tokens from a third party](#verifying-tokens-from-a-third-party)).
 - **One process per store.** Two processes sharing one `FileTokenStorage` would each rotate refresh tokens the other cannot see. A locking adapter for shared stores is tracked in [#258](https://github.com/lgriffin/ESI.ts/issues/258), after 11.0.
 
 ## 4. What 11.0.0 changes

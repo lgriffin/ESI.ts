@@ -215,10 +215,12 @@ export {
   SsoError,
   TokenRevokedError,
   TokenDecodeError,
+  TokenVerificationError,
   CharacterNotFoundError,
   isAuthError,
   isSsoError,
   isTokenRevoked,
+  isTokenVerificationError,
   isCharacterNotFound,
   decodeAccessToken,
   decodeJwtPayload,
@@ -228,6 +230,9 @@ export {
   generateCodeVerifier,
   codeChallengeFromVerifier,
   generateState,
+  SsoJwks,
+  verifyAccessToken,
+  DEFAULT_SSO_JWKS_URL,
 } from './auth';
 export type {
   ITokenStorage,
@@ -249,4 +254,7 @@ export type {
   DecodedAccessToken,
   EveJwtClaims,
   PkcePair,
+  SsoJwksOptions,
+  VerifyAccessTokenOptions,
+  TokenVerificationFailure,
 } from './auth';
