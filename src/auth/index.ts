@@ -23,7 +23,10 @@ export type {
 
 export { MemoryTokenStorage } from './storage/MemoryTokenStorage';
 export { FileTokenStorage } from './storage/FileTokenStorage';
-export type { FileTokenStorageOptions } from './storage/FileTokenStorage';
+export type {
+  FileTokenStorageOptions,
+  FileTokenStorageLockOptions,
+} from './storage/FileTokenStorage';
 
 export {
   AuthError,
