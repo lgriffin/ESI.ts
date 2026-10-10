@@ -3,6 +3,9 @@
  * cites a real Rule and asserts a fully specified outcome), the proof that the
  * gate and the runner can fail, and the shrink-only known-gaps ratchet.
  */
+import { readFileSync } from 'fs';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
 import fetchMock from 'jest-fetch-mock';
 import { useHttpTransport } from '../bdd/support/transport';
 import { FAULTS } from './catalogue';
@@ -176,6 +179,37 @@ describe('Fault catalogue self-test', () => {
         'known gap "later-page-unavailable market.getMarketOrders" is not in origin/master\'s list: the list only shrinks; fix the bug instead',
       ]);
       expect(addedGaps([], { ref: 'origin/master', gaps: [gap] })).toEqual([]);
+    });
+  });
+
+  describe('the security model input registry (guides/security-model.yaml)', () => {
+    const registry = yaml.load(
+      readFileSync(
+        path.resolve(__dirname, '../../guides/security-model.yaml'),
+        'utf-8',
+      ),
+    ) as { inputs: { id: string; generators?: string[] }[] };
+    const referenced = registry.inputs.flatMap((input) =>
+      (input.generators ?? [])
+        .filter((g) => g.startsWith('fault:'))
+        .map((g) => ({ input: input.id, fault: g.slice('fault:'.length) })),
+    );
+
+    it('names only faults the catalogue holds', () => {
+      const ids = new Set(FAULTS.map((f) => f.id));
+      expect(referenced.filter((r) => !ids.has(r.fault))).toEqual([]);
+      expect(referenced.length).toBeGreaterThan(0);
+    });
+
+    it('lists every fault specified by the security boundary as a generator of some input', () => {
+      const listed = new Set(referenced.map((r) => r.fault));
+      const boundary = FAULTS.filter(
+        (f) =>
+          'feature' in f.rule &&
+          f.rule.feature === 'core/0062-security-boundary.feature',
+      ).map((f) => f.id);
+      expect(boundary.length).toBeGreaterThan(0);
+      expect(boundary.filter((id) => !listed.has(id))).toEqual([]);
     });
   });
 });

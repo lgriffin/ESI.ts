@@ -145,6 +145,19 @@ const PAGINATION = {
   section: 'Offset: the eager default',
 } as const;
 
+/** The page cap every pagination path applies to X-Pages (security model P8). */
+const MAX_PAGES = 1000;
+
+const SECURITY_BOUNDARY_P8 = {
+  feature: 'core/0062-security-boundary.feature',
+  rule: 'If ESI reports more than 1000 pages, then the client shall request no more than 1000 pages.',
+} as const;
+
+const SECURITY_BOUNDARY_P6 = {
+  feature: 'core/0062-security-boundary.feature',
+  rule: 'If ESI answers with a redirect to another host, then the client shall not send the request or the token to that host.',
+} as const;
+
 // ── The catalogue ──────────────────────────────────────────────────────
 
 export const FAULTS: readonly Fault[] = [
@@ -746,6 +759,61 @@ export const FAULTS: readonly Fault[] = [
   },
 
   // ── Pagination that moves under the client ───────────────────────────
+  {
+    id: 'x-pages-beyond-the-cap',
+    title: 'Page 1 says X-Pages 100000000',
+    appliesTo: (t) => t.paginated,
+    rule: SECURITY_BOUNDARY_P8,
+    // Pages 2 to 1000 each answer with page 2's body; a page 1001 would
+    // find no response and fail the fault.
+    exchange: (ctx) => [
+      withHeaders(first(ctx), { 'x-pages': '100000000' }),
+      {
+        ...repeat(ctx.good.responses[1]!, MAX_PAGES - 1),
+        match: /[?&]page=\d+/,
+      },
+    ],
+    expected: (ctx) => {
+      const page1 = first(ctx).body as unknown[];
+      const page2 = ctx.good.responses[1]!.body as unknown[];
+      return resolvesGood(ctx, {
+        settlement: {
+          resolves: [
+            ...page1,
+            ...Array.from({ length: MAX_PAGES - 1 }, () => page2).flat(),
+          ],
+          stale: false,
+        },
+        requests: MAX_PAGES,
+      });
+    },
+  },
+  {
+    id: 'redirect-to-another-host',
+    title: '302 whose Location names another host',
+    rule: SECURITY_BOUNDARY_P6,
+    exchange: () => [
+      {
+        status: 302,
+        headers: { location: 'https://attacker.example/steal?token=x' },
+        body: '',
+      },
+    ],
+    expected: () => ({
+      settlement: {
+        rejects: {
+          class: 'EsiError',
+          statusCode: 302,
+          message:
+            /^Redirect refused: ESI answered 302 with a redirect to https:\/\/attacker\.example, and the client does not follow redirects$/,
+        },
+      },
+      requests: 1,
+      cache: 'empty',
+      elapsedMs: INSTANT,
+      logs: [],
+    }),
+  },
   {
     id: 'x-pages-grows-between-pages',
     title: 'Page 1 says X-Pages 2; page 2 says X-Pages 3',
