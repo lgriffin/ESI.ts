@@ -72,6 +72,12 @@ export class SdeDownloader {
   }
 
   async download(options: SdeDownloadOptions): Promise<string> {
+    const maxBytes = options.maxBytes ?? SDE_MAX_DOWNLOAD_BYTES;
+    if (!Number.isFinite(maxBytes) || maxBytes < 0) {
+      throw new SdeError(
+        `Failed to download SDE: maxBytes must be a finite, non-negative number, not ${maxBytes}`,
+      );
+    }
     let response: Response;
     try {
       response = await fetch(SDE_DOWNLOAD_URL, {
@@ -91,7 +97,6 @@ export class SdeDownloader {
       throw new SdeError('Failed to download SDE: response body is empty');
     }
 
-    const maxBytes = options.maxBytes ?? SDE_MAX_DOWNLOAD_BYTES;
     const totalBytes = Number(response.headers.get('content-length')) || 0;
     if (totalBytes > maxBytes) {
       throw new SdeError(
@@ -127,6 +132,7 @@ export class SdeDownloader {
     try {
       await pipeline(nodeStream, progressTracker, writeStream);
     } catch (error) {
+      fs.rmSync(options.outputPath, { force: true });
       throw new SdeError(
         `Failed to write SDE file: ${error instanceof Error ? error.message : String(error)}`,
       );

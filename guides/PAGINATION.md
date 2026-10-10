@@ -113,7 +113,7 @@ Semantics:
 - Page 1 is fetched first to learn `x-pages`, capped at 1000 as for `stream*`. The remaining pages are split into waves of `concurrency` and each wave runs with `Promise.all`; the next wave starts when the slowest page of the current one settles.
 - Result order matches page order.
 - Each page is validated individually when `validateResponse` is on.
-- There is no page cap and no early stop on an empty page.
+- There is no early stop on an empty page.
 - If any page fails after its retries, the whole call rejects with that page's error. Pages already fetched are discarded.
 
 Concurrency does not bypass rate limiting. Every page still passes the rate limiter, and a 420 or 429 blocks the whole group, so in-flight pages wait together. Pick `concurrency` against the endpoint's rate-limit group rather than raising it for speed. The limiter is described in [ARCHITECTURE.md](ARCHITECTURE.md).
