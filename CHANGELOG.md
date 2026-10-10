@@ -10,11 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* **auth:** opt-in JWKS signature verification for SSO access tokens ([ac3cc35](https://github.com/lgriffin/ESI.ts/commit/ac3cc35c20d05561917fd99a6efccf9b61a4bb4e))
 * **auth:** opt-in JWKS signature verification for SSO access tokens ([bbaa0ce](https://github.com/lgriffin/ESI.ts/commit/bbaa0ce55cc0511b982a24c98446525c34038a59)), closes [#256](https://github.com/lgriffin/ESI.ts/issues/256)
-* **auth:** optional storage lock for multi-process token sharing ([e3d2ad0](https://github.com/lgriffin/ESI.ts/commit/e3d2ad0e08ab59d4a5ba47a97fbfba8b0af5b4ce))
 * **auth:** optional storage lock for multi-process token sharing ([a643d7e](https://github.com/lgriffin/ESI.ts/commit/a643d7ee8f7966dabd7544556fc40fd6d7e3ee37)), closes [#258](https://github.com/lgriffin/ESI.ts/issues/258)
-* **auth:** optional timeout for EVE SSO requests ([f527e88](https://github.com/lgriffin/ESI.ts/commit/f527e88962e84114aee9dc3f2220897675dbe4cf))
 * **auth:** optional timeout for EVE SSO requests ([4f536e8](https://github.com/lgriffin/ESI.ts/commit/4f536e8750e4bb689d8e32e9886c25ff10271ceb)), closes [#623](https://github.com/lgriffin/ESI.ts/issues/623)
 
 
@@ -22,18 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * **auth:** bound JWKS fetches and keep stale keys through an SSO outage ([a20b06d](https://github.com/lgriffin/ESI.ts/commit/a20b06de62dc1fea021f9789caa30388e58fbfc1))
 * **auth:** keep late SSO bodies honest under the timeout ([d13da3f](https://github.com/lgriffin/ESI.ts/commit/d13da3fab6373b2b3684e8241de1a558f60d1a4d)), closes [#623](https://github.com/lgriffin/ESI.ts/issues/623)
-* **deps:** bump handlebars to 4.7.10 for critical audit advisory ([87fa324](https://github.com/lgriffin/ESI.ts/commit/87fa324dbbad1caac947e08a802c6e84986271f1))
 * **deps:** bump handlebars to 4.7.10 for critical audit advisory ([54f7b20](https://github.com/lgriffin/ESI.ts/commit/54f7b209e00085352ddf4f017b0c0471738eb910)), closes [#620](https://github.com/lgriffin/ESI.ts/issues/620)
 * **quality:** count self-imports and .js specifiers in lint:cycles ([120df27](https://github.com/lgriffin/ESI.ts/commit/120df27771f5f3b0b0629dd918734ede1069cf21))
 * **sde:** refuse an invalid download limit and remove a partial archive ([70ddd92](https://github.com/lgriffin/ESI.ts/commit/70ddd92d176dc41badc7cffcc97ba37dc8cf7f74))
-* **security:** cap pages, refuse redirects, check archive entry names ([0be2cd8](https://github.com/lgriffin/ESI.ts/commit/0be2cd81f9c0e30dbf3c4e01ff29a40ad4bd1aaf))
 * **security:** cap pages, refuse redirects, check archive entry names ([096f9a7](https://github.com/lgriffin/ESI.ts/commit/096f9a7c6da747e7b75da9e0632f07b4dc653f10)), closes [#627](https://github.com/lgriffin/ESI.ts/issues/627)
-* **security:** cap pages, refuse redirects, check archive entry names ([#629](https://github.com/lgriffin/ESI.ts/issues/629)) ([0be2cd8](https://github.com/lgriffin/ESI.ts/commit/0be2cd81f9c0e30dbf3c4e01ff29a40ad4bd1aaf))
 
 
 ### Changed
 
-* break the core import cycles and gate them ([5d7056d](https://github.com/lgriffin/ESI.ts/commit/5d7056d8c0dcfe761af18c5fe137022630d775b9))
 * break the core import cycles and gate them ([6ad096e](https://github.com/lgriffin/ESI.ts/commit/6ad096e2487a8fcd7ded64f48f35c1886f11deaf))
 
 
