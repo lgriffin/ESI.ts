@@ -1,6 +1,7 @@
 # Machine-readable index of guides/SECURITY-MODEL.md, which is canonical.
-# Read by `npm run security:model`, tests/tdd/core/untrusted-input-sites.test.ts,
-# scanners and agents. Edit the prose first, then this file.
+# Read by scanners and agents now, and by the security:model audit and the
+# untrusted-input-sites test once rollout step 3 lands. Edit the prose first,
+# then this file.
 version: 1
 canonical: guides/SECURITY-MODEL.md
 read_against: f527e88
@@ -84,7 +85,7 @@ inputs:
   - id: sde-archive
     name: SDE archive and build info
     trust: untrusted
-    protects: [P9]
+    protects: [P9, P12]
     sites:
       - src/sde/ingestion/SdeDownloader.ts
       - src/sde/ingestion/SdeExtractor.ts
@@ -166,6 +167,10 @@ properties:
     severity: high
     tests: [tests/tdd/workflows/workflow-permissions.test.ts]
     charter: [SEC-03, SEC-04, SEC-05, SEC-06]
+  - id: P12
+    claim: SDE content never alters the structure of the SQL SdeDatabaseBuilder builds
+    severity: high
+    tests: [tests/tdd/sde/ingestion/SdeDatabaseBuilder.test.ts]
 
 disclaimed:
   - id: D1

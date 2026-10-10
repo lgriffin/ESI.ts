@@ -48,23 +48,24 @@ The attacker controls parameter values, any token they hand over, and whatever E
 
 ## Security properties claimed
 
-Eleven properties hold in the default configuration. Severity is the tier a violation starts at, not a score.
+Twelve properties are claimed for the default configuration. A property the index marks `status: gap` is claimed but not yet held: its gap is recorded under [Rollout and open gaps](#rollout-and-open-gaps) with an issue and an expiry date, and a report that reaches it is triaged against that gap. Severity is the tier a violation starts at, not a score.
 
-| ID  | Property                                                                                                                                       | A violation looks like                                                         | Severity | Verified by                                                                                                  |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------ |
-| P1  | A token goes only to the allowlisted HTTPS host, and only on endpoints whose definition sets `requiresAuth`                                    | An Authorization header on a public endpoint or on another host                | Critical | `tests/tdd/core/security.test.ts`, `npm run validate:auth-scopes`                                            |
-| P2  | An untrusted parameter cannot change the route or the host                                                                                     | `..`, `?`, `#` or `@` in a parameter reaching a different ESI route            | High     | `security.test.ts`, `tests/fuzz/parameter-fuzz.test.ts`, feature `0059-path-parameters`                      |
-| P3  | A token never appears in a log line, an error, a URL or a cache key                                                                            | A bearer token or refresh token in output a user would paste into a bug report | High     | CHARTER SEC-02 evidence, `tests/tdd/core/redactLog.test.ts`, feature `0058-logging`                          |
-| P4  | One identity is never served another's cached body or ETag, and an unverified claim grants nothing                                             | A forged token naming a character reads that character's cache                 | Critical | `tests/tdd/core/cacheKey.test.ts`, `tests/fuzz/cache-key.property.test.ts`                                   |
-| P5  | `verifyAccessToken` accepts a token only with an RS256 signature from EVE SSO's key set, the right issuer and audience, and an unexpired `exp` | Algorithm confusion, a missing audience check, a key from another URL          | Critical | `tests/tdd/auth/jwks.test.ts`, `tests/tdd/auth/jwt.test.ts`                                                  |
-| P6  | Values a response supplies (cursor, page count, redirect target) never select a host and never carry the token off the allowlisted host        | A redirect or cursor that sends a request elsewhere                            | High     | Feature `0062-security-boundary` (`@sec-P6`)                                                                 |
-| P7  | With validation on, a body that does not match its schema is an error, never a typed value                                                     | Drifted or hostile JSON returned as a typed object                             | Medium   | Feature `0053-runtime-validation`, `tests/fuzz/schema-fuzz.test.ts`                                          |
-| P8  | A count reported by the remote bounds no more than 1,000 page requests, at every pagination entry point                                        | `X-Pages: 100000000` starting that many requests                               | Medium   | Feature `0062-security-boundary` (`@sec-P8`), `paginationOrchestration.test.ts`, `PaginationHandler.test.ts` |
-| P9  | SDE ingestion writes only inside the directory the caller named                                                                                | An archive entry landing outside the output directory                          | High     | Feature `0062-security-boundary` (`@sec-P9`), `tests/tdd/sde/ingestion/SdeExtractor.test.ts`                 |
-| P10 | The token file is written atomically with mode `0o600`                                                                                         | A world-readable token file, or a torn write                                   | Medium   | `tests/tdd/auth/FileTokenStorage.test.ts`                                                                    |
-| P11 | The published tarball is what this repository's workflow built: provenance, cosign bundle, SBOM                                                | A release asset with no verifiable origin                                      | High     | `release.yml`, `tests/tdd/workflows/workflow-permissions.test.ts` (SEC-03 to SEC-06)                         |
+| ID  | Property                                                                                                                                               | A violation looks like                                                         | Severity | Verified by                                                                                                  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------ |
+| P1  | A token goes only to the allowlisted HTTPS host, and only on endpoints whose definition sets `requiresAuth`                                            | An Authorization header on a public endpoint or on another host                | Critical | `tests/tdd/core/security.test.ts`, `npm run validate:auth-scopes`                                            |
+| P2  | An untrusted parameter cannot change the route or the host                                                                                             | `..`, `?`, `#` or `@` in a parameter reaching a different ESI route            | High     | `security.test.ts`, `tests/fuzz/parameter-fuzz.test.ts`, feature `0059-path-parameters`                      |
+| P3  | A token never appears in a log line, an error, a URL or a cache key                                                                                    | A bearer token or refresh token in output a user would paste into a bug report | High     | CHARTER SEC-02 evidence, `tests/tdd/core/redactLog.test.ts`, feature `0058-logging`                          |
+| P4  | One identity is never served another's cached body or ETag, and an unverified claim grants nothing                                                     | A forged token naming a character reads that character's cache                 | Critical | `tests/tdd/core/cacheKey.test.ts`, `tests/fuzz/cache-key.property.test.ts`                                   |
+| P5  | `verifyAccessToken` accepts a token only with an RS256 signature from EVE SSO's key set, the right issuer and audience, and an unexpired `exp`         | Algorithm confusion, a missing audience check, a key from another URL          | Critical | `tests/tdd/auth/jwks.test.ts`, `tests/tdd/auth/jwt.test.ts`                                                  |
+| P6  | Values a response supplies (cursor, page count, redirect target) never select a host and never carry the token off the allowlisted host                | A redirect or cursor that sends a request elsewhere                            | High     | Feature `0062-security-boundary` (`@sec-P6`)                                                                 |
+| P7  | With validation on, a body that does not match its schema is an error, never a typed value                                                             | Drifted or hostile JSON returned as a typed object                             | Medium   | Feature `0053-runtime-validation`, `tests/fuzz/schema-fuzz.test.ts`                                          |
+| P8  | A count reported by the remote bounds no more than 1,000 page requests, at every pagination entry point                                                | `X-Pages: 100000000` starting that many requests                               | Medium   | Feature `0062-security-boundary` (`@sec-P8`), `paginationOrchestration.test.ts`, `PaginationHandler.test.ts` |
+| P9  | SDE ingestion writes only inside the directory the caller named                                                                                        | An archive entry landing outside the output directory                          | High     | Feature `0062-security-boundary` (`@sec-P9`), `tests/tdd/sde/ingestion/SdeExtractor.test.ts`                 |
+| P10 | The token file is written atomically with mode `0o600`                                                                                                 | A world-readable token file, or a torn write                                   | Medium   | `tests/tdd/auth/FileTokenStorage.test.ts`                                                                    |
+| P11 | The published tarball is what this repository's workflow built: provenance, cosign bundle, SBOM                                                        | A release asset with no verifiable origin                                      | High     | `release.yml`, `tests/tdd/workflows/workflow-permissions.test.ts` (SEC-03 to SEC-06)                         |
+| P12 | SDE content never alters the structure of the SQL `SdeDatabaseBuilder` builds: values are bound through prepared statements and identifiers are quoted | A YAML key or value that changes a statement rather than a bound value         | High     | `tests/tdd/sde/ingestion/SdeDatabaseBuilder.test.ts`                                                         |
 
-All eleven are claimed with zero security configuration. A violation reachable only after the consumer sets an unsafe option is out of model. P6, P8 and P9 had gaps when this document was first read against the code; [Rollout and open gaps](#rollout-and-open-gaps) records them, and `guides/security-model.yaml` marks a property `status: gap` until its fix lands.
+All twelve are claimed with zero security configuration. A violation reachable only after the consumer sets an unsafe option is out of model. P6, P8 and P9 had gaps when this document was first read against the code, and are marked `status: gap` in `guides/security-model.yaml` until their fixes land; feature `0062-security-boundary`, which they cite, lands with those fixes.
 
 ## Properties not provided
 
@@ -92,7 +93,7 @@ Listing what is not claimed is what makes the scope a closed set: a report that 
 
 ## Scope
 
-A report is in scope when it shows the library, in its default configuration, letting an untrusted input break one of P1 to P11.
+A report is in scope when it shows the library, in its default configuration, letting an untrusted input break one of P1 to P12.
 
 ### In-scope classes
 
@@ -101,7 +102,7 @@ A report is in scope when it shows the library, in its default configuration, le
 - **Cross-identity disclosure.** A cached body, ETag or in-flight response served under the wrong identity, including through state shared by two clients in one process (P4).
 - **Verification bypass.** Any way `verifyAccessToken` accepts a token EVE SSO did not sign for this client (P5).
 - **Path traversal.** An archive entry or storage path escaping its directory (P9, P10).
-- **Query injection.** Untrusted SDE content altering the structure of SQL that `SdeDatabaseBuilder` builds, as opposed to its bound values.
+- **Query injection.** Untrusted SDE content altering the structure of SQL that `SdeDatabaseBuilder` builds, as opposed to its bound values (P12).
 - **Insecure default.** Any of the above reachable by constructing a client and making a call, with no option set.
 - **Published artefact integrity.** A release whose provenance, signature or SBOM does not verify (P11).
 
@@ -151,7 +152,7 @@ This list is written to be handed to a scanner or an agent as a suppression set;
 
 ## Technical implementation
 
-The model becomes rigid through seven additions that reuse machinery the repository already has: the spec audit's fixture pattern, the audit-exception expiry rule, the charter, and `ci-success`.
+The model becomes rigid through seven additions that reuse machinery the repository already has: the spec audit's fixture pattern, the audit-exception expiry rule, the charter, and `ci-success`. This document, the index and the triage log land first; the rest are planned, in the order under [Rollout and open gaps](#rollout-and-open-gaps), and until the audit lands nothing gates edits to the index.
 
 | Add                                                                                    | What it does                                                                                                                                     |
 | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -185,7 +186,7 @@ Reading master `f527e88` (v11.2.0) against the model found three gaps. Each gets
 | 2   | No fetch in `src/` sets a redirect option, so redirects are followed; the allowlist is checked on the base URL only | `src/core/requestPipeline/fetchExecution.ts`            | P6       | Refuse redirects. Node's fetch drops `Authorization` on a cross-origin redirect, so this is hardening: the request, not the token, would have left |
 | 3   | The SDE download has no size bound, and `extractAll` hands entry names to adm-zip with a peer floor of 0.4.11       | `src/sde/ingestion/SdeDownloader.ts`, `SdeExtractor.ts` | P9       | Check every entry name against the output directory before extracting, with a hostile-archive fixture; bound the download size                     |
 
-`SdeDatabaseBuilder` reads clean against the query-injection class: values are bound through prepared statements and column names are quoted with doubled quotes.
+`SdeDatabaseBuilder` reads clean against the query-injection class (P12): values are bound through prepared statements and column names are quoted with doubled quotes.
 
 Rollout, tracked by [#627](https://github.com/lgriffin/ESI.ts/issues/627):
 
