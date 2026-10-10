@@ -19,6 +19,7 @@ import { ApiClient } from '../ApiClient';
 import { EsiError, EsiPaginationError } from '../util/error';
 import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { fetchOnePage } from '../requestPipeline/fetchExecution';
+import { MAX_PAGES } from './pageLimit';
 import {
   resolveCache,
   resolveRateLimiter,
@@ -47,7 +48,7 @@ export interface CursorPaginationOptions {
 
 export class CursorPaginationHandler {
   private static readonly DEFAULT_OPTIONS: Required<CursorPaginationOptions> = {
-    maxPages: 1000,
+    maxPages: MAX_PAGES,
   };
 
   /**

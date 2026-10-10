@@ -92,9 +92,9 @@ for await (const page of client.market.streamMarketOrders(10000002)) {
 
 Semantics:
 
-- `totalPages` is read once, from page 1.
+- `totalPages` is read once, from page 1, and capped at 1000, the cap every pagination path applies to the count ESI reports ([security model](SECURITY-MODEL.md) P8).
 - Pages are fetched sequentially and validated individually against the endpoint's `responseSchema` when `validateResponse` is on.
-- Iteration ends after `totalPages`, or earlier at the first empty page. There is no page cap.
+- Iteration ends after `totalPages`, so never past page 1000, or earlier at the first empty page.
 - A failed page throws from the `for await` at that page. Pages already yielded have been delivered; nothing is rolled back.
 
 Try it: `npm run example:streaming`.
@@ -110,7 +110,7 @@ const types = await client.market.fetchAllMarketTypes(10000002);
 
 Semantics:
 
-- Page 1 is fetched first to learn `x-pages`. The remaining pages are split into waves of `concurrency` and each wave runs with `Promise.all`; the next wave starts when the slowest page of the current one settles.
+- Page 1 is fetched first to learn `x-pages`, capped at 1000 as for `stream*`. The remaining pages are split into waves of `concurrency` and each wave runs with `Promise.all`; the next wave starts when the slowest page of the current one settles.
 - Result order matches page order.
 - Each page is validated individually when `validateResponse` is on.
 - There is no page cap and no early stop on an empty page.

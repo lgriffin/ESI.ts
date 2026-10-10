@@ -6,6 +6,7 @@
 import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { resolveRetryStrategy } from '../requestPipeline/dependencies';
+import { MAX_PAGES } from './pageLimit';
 
 export interface PaginationOptions {
   maxPages?: number;
@@ -16,7 +17,7 @@ export type PageFetcher = (paginatedEndpoint: string) => Promise<unknown[]>;
 
 export class PaginationHandler {
   private static readonly DEFAULT_OPTIONS: Required<PaginationOptions> = {
-    maxPages: 1000,
+    maxPages: MAX_PAGES,
     stopOnEmptyPage: true,
   };
 

@@ -15,7 +15,16 @@ export interface SdeDownloadOptions {
   outputPath: string;
   onProgress?: ((downloaded: number, total: number) => void) | undefined;
   signal?: AbortSignal | undefined;
+  /**
+   * The most bytes the download may write before it is abandoned with an
+   * SdeError. Defaults to 2 GiB. The export is
+   * input from the network, and this bounds how much disk it can take.
+   */
+  maxBytes?: number | undefined;
 }
+
+/** The default download bound: 2 GiB, many times the size of the export. */
+const SDE_MAX_DOWNLOAD_BYTES = 2 * 1024 ** 3;
 
 export class SdeDownloader {
   async getLatestBuild(): Promise<SdeBuildInfo> {
@@ -82,7 +91,13 @@ export class SdeDownloader {
       throw new SdeError('Failed to download SDE: response body is empty');
     }
 
+    const maxBytes = options.maxBytes ?? SDE_MAX_DOWNLOAD_BYTES;
     const totalBytes = Number(response.headers.get('content-length')) || 0;
+    if (totalBytes > maxBytes) {
+      throw new SdeError(
+        `Failed to download SDE: the export is ${totalBytes} bytes, over the ${maxBytes}-byte limit`,
+      );
+    }
     let downloadedBytes = 0;
 
     const nodeStream = Readable.fromWeb(
@@ -92,6 +107,14 @@ export class SdeDownloader {
     const progressTracker = new Transform({
       transform(chunk, _encoding, callback) {
         downloadedBytes += chunk.length;
+        if (downloadedBytes > maxBytes) {
+          callback(
+            new SdeError(
+              `the download passed the ${maxBytes}-byte limit before it ended`,
+            ),
+          );
+          return;
+        }
         if (options.onProgress && totalBytes > 0) {
           options.onProgress(downloadedBytes, totalBytes);
         }

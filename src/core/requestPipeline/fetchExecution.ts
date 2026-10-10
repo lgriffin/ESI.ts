@@ -52,6 +52,46 @@ function networkError(err: unknown, url: string): EsiNetworkError {
 }
 
 /**
+ * A redirect the fetch did not follow: a 3xx other than 304, or the opaque
+ * redirect a browser returns for `redirect: 'manual'`.
+ */
+function isRedirect(response: Response): boolean {
+  if (response.type === 'opaqueredirect') return true;
+  return (
+    response.status >= 300 && response.status < 400 && response.status !== 304
+  );
+}
+
+/**
+ * The error a refused redirect is reported with. It names only the target's
+ * origin, so a token or query in the Location header never reaches the
+ * message. An opaque redirect hides its status and target, and is reported
+ * as a 302.
+ */
+function redirectRefused(
+  response: Response,
+  url: string,
+  parsed: ParsedHeaders,
+): EsiError {
+  const status = response.status >= 300 ? response.status : 302;
+  let target = 'a location the runtime did not disclose';
+  const location = response.headers.get('location');
+  if (location) {
+    try {
+      target = new URL(location, url).origin;
+    } catch {
+      target = 'an unparsable location';
+    }
+  }
+  return new EsiError(
+    status,
+    `Redirect refused: ESI answered ${status} with a redirect to ${target}, and the client does not follow redirects`,
+    url,
+    parsed.requestId ?? undefined,
+  );
+}
+
+/**
  * Read the whole body while the request timer is still running, then let
  * `text()` and `json()` answer from that copy. Later stages read the body
  * after this function returns, when a stalled or reset stream would no longer
@@ -107,9 +147,14 @@ export async function executeSingleFetch(
     body,
   );
 
+  // Redirects are never followed: the host allowlist is checked on the base
+  // URL, so a redirect would carry the request, and with it the path and any
+  // body, to a host nothing checked (security model P6). A redirect arrives
+  // as its own 3xx response and is refused below.
   const options: RequestInit = {
     method,
     headers: req.headers,
+    redirect: 'manual',
     ...(req.body ? { body: JSON.stringify(req.body) } : {}),
   };
 
@@ -198,6 +243,8 @@ export async function executeSingleFetch(
         },
       );
     }
+
+    if (isRedirect(response)) throw redirectRefused(response, url, parsed);
 
     return {
       response,
