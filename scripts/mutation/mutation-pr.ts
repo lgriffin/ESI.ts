@@ -166,6 +166,10 @@ function runStryker(mutate: string[], extra: string[], force: boolean): void {
     'run',
     CONFIG,
     '--incremental',
+    // A file with no runtime code (a type-only module) has no mutants, so
+    // the nightly report never records it and every run re-mutates it; alone
+    // in --mutate it finds no tests, which Stryker treats as an error.
+    '--allowEmpty',
     ...(force ? ['--force'] : []),
     '--mutate',
     mutate.join(','),
@@ -319,7 +323,16 @@ function main(): number {
 
   const reportPath = path.join(ROOT, REPORT);
   if (!existsSync(reportPath)) {
-    throw new Broken(`Stryker wrote no report at ${REPORT}.`);
+    // Stryker exited 0 and wrote nothing: every file it was given holds no
+    // mutant, so no score can move.
+    summary(
+      [
+        '## Mutation testing (changed files)',
+        '',
+        `Skipped: the files this run mutated (${plan.mutate.join(', ')}) hold no mutants, so no directory score can change. The nightly run still scores every directory.`,
+      ].join('\n'),
+    );
+    return 0;
   }
   const report = JSON.parse(readFileSync(reportPath, 'utf8')) as MutationReport;
   const { scores, failures } = gatePrRun(report, plan, head);
