@@ -191,11 +191,23 @@ export function stripComments(source: string): string {
     .replace(/(^|[^:'"`\\])\/\/.*$/gm, '$1');
 }
 
+// A bare fetch, one called through a global object, or the injected forms.
 const NETWORK_CALL =
-  /(?:^|[^.\w])fetch\s*\(|\bfetchFn\s*\(|\bgetFetch\(\)\s*\(/;
-const HEADER_LITERAL =
-  /\b(?:headers|raw)\s*(?:\.get\(\s*|\[\s*)(['"])([a-z][a-z0-9-]*)\1\s*[)\]](?!\s*=(?!=))/g;
-const HEADER_DYNAMIC = /\bheaders\.get\(\s*(?!['"])[\w.]+\s*\)/;
+  /(?:^|[^.\w$]|\b(?:globalThis|global|window|self)\.)fetch\s*\(|\bfetchFn\s*\(|\bgetFetch\(\)\s*\(/;
+// A read through any receiver whose name ends in headers (headers,
+// fetchHeaders, responseHeaders) or the raw map; names in any case. The
+// headers of the outgoing request (req.headers, init.headers) are not read
+// from the remote and are left out.
+const NOT_THE_REQUEST = String.raw`(?<!\b(?:req|request|init|options|config)\.)`;
+const RECEIVER = String.raw`\b(?:[\w$]*[hH]eaders|raw)\s*`;
+const ACCESS = String.raw`(?:\.get\(\s*|\[\s*)`;
+const NAME = String.raw`(['"])([A-Za-z][A-Za-z0-9-]*)\1\s*[)\]]`;
+const NOT_ASSIGNED = String.raw`(?!\s*=(?!=))`;
+const HEADER_LITERAL = new RegExp(
+  NOT_THE_REQUEST + RECEIVER + ACCESS + NAME + NOT_ASSIGNED,
+  'g',
+);
+const HEADER_DYNAMIC = /\b[\w$]*[hH]eaders\.get\(\s*(?!['"])[\w.]+\s*\)/;
 
 /** The network calls and header reads in one source file. */
 export function scanSource(
@@ -206,7 +218,7 @@ export function scanSource(
   const code = stripComments(source);
   if (NETWORK_CALL.test(code)) into.network.add(file);
   const names = new Set<string>();
-  for (const m of code.matchAll(HEADER_LITERAL)) names.add(m[2]!);
+  for (const m of code.matchAll(HEADER_LITERAL)) names.add(m[2]!.toLowerCase());
   if (HEADER_DYNAMIC.test(code)) names.add('*');
   if (names.size > 0) into.headers.set(file, names);
 }
@@ -351,7 +363,7 @@ function checkRules(
     const passed = input.ruleResults.get(r.title);
     if (passed === undefined)
       f(`${r.file}:${r.line} (@sec-${p.id}) did not run in the BDD results.`);
-    else if (!passed && !isGap)
+    else if (!passed)
       f(`${r.file}:${r.line} (@sec-${p.id}) has a scenario that did not pass.`);
   }
 }
@@ -422,6 +434,12 @@ function checkHeaderSites(input: AuditInput, f: Report): void {
           `${file} reads the ${name} header, which header_read_sites does not list for it.`,
         );
     }
+    // A file that reads by a computed name may read any listed one.
+    if (names.has('*')) continue;
+    for (const name of difference(listed, names))
+      f(
+        `header_read_sites lists ${name} for ${file}, which no longer reads it.`,
+      );
   }
   for (const file of difference(
     headers.keys(),
@@ -443,6 +461,12 @@ function checkInputs(input: AuditInput, f: Report): void {
       );
     for (const generator of generators) {
       const fault = /^fault:(.+)$/.exec(generator);
+      if (!fault && !/^tests\/.+\.test\.ts$/.test(generator)) {
+        f(
+          `The input ${input_.id} names the generator ${generator}, which is neither a fault:<id> nor a test file under tests/.`,
+        );
+        continue;
+      }
       const found = fault
         ? input.faultIds.has(fault[1]!)
         : input.exists(generator);
@@ -487,8 +511,14 @@ function checkTriage(input: AuditInput, prose: ProseModel): SecurityFinding[] {
   }
 
   input.triageLog.split('\n').forEach((line, i) => {
+    if (!line.trim().startsWith('|')) return;
     const row = cells(line);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(row[0] ?? '')) return;
+    // The header row and the separator row are the only rows not reports.
+    if (row[0] === 'Date' || row.every((c) => /^:?-+:?$/.test(c))) return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(row[0] ?? ''))
+      f(
+        `Triage log line ${i + 1} has the date "${row[0] ?? ''}"; write it as YYYY-MM-DD.`,
+      );
     const disposition = (row[3] ?? '').replace(/`/g, '');
     if (!closed.has(disposition))
       f(

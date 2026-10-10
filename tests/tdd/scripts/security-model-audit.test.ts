@@ -225,6 +225,29 @@ describe('SEC-10: every claimed property is stated and tested', () => {
     ]);
   });
 
+  it('fails a tagged Rule that did not pass even when its property is a gap', () => {
+    const found = variant((i) => {
+      Object.assign(i.index.properties[0]!, {
+        status: 'gap',
+        issue: 627,
+        expires: '2026-12-31',
+      });
+      i.ruleResults = new Map([
+        [
+          'If a request leaves the host, then the client shall not send the token.',
+          false,
+        ],
+        [
+          'If ESI reports more than 1000 pages, then the client shall request no more than 1000 pages.',
+          true,
+        ],
+      ]);
+    });
+    expect(found).toContainEqual(
+      expect.stringMatching(/@sec-P1\) has a scenario that did not pass/),
+    );
+  });
+
   it('accepts a gap with an issue and an unexpired date, and no Rule yet', () => {
     expect(
       variant((i) => {
@@ -294,6 +317,29 @@ describe('SEC-11: every network call and header read is indexed', () => {
     expect(sites.headers.get('src/c.ts')).toEqual(new Set(['*']));
   });
 
+  it('finds fetch called through a global object, but not another method named fetch', () => {
+    const sites: DiscoveredSites = { network: new Set(), headers: new Map() };
+    scanSource('src/a.ts', 'await globalThis.fetch(url);', sites);
+    scanSource('src/b.ts', 'await cache.fetch(key);', sites);
+    expect([...sites.network]).toEqual(['src/a.ts']);
+  });
+
+  it('finds reads through any headers receiver, in any case, but not the outgoing request', () => {
+    const sites: DiscoveredSites = { network: new Set(), headers: new Map() };
+    scanSource(
+      'src/r.ts',
+      [
+        "const a = fetchHeaders.get('Location');",
+        "const b = headers['X-Pages'];",
+        "const c = req.headers['Authorization'];",
+      ].join('\n'),
+      sites,
+    );
+    expect(sites.headers.get('src/r.ts')).toEqual(
+      new Set(['location', 'x-pages']),
+    );
+  });
+
   it('blanks block and line comments but keeps URLs in strings', () => {
     expect(stripComments("/* fetch(x) */ a('https://x'); // fetch(y)")).toBe(
       "               a('https://x'); ",
@@ -332,6 +378,22 @@ describe('SEC-11: every network call and header read is indexed', () => {
       'SEC-11 The input x-pages names src/pages.ts, which does not exist.',
     ]);
   });
+
+  it('fails a listed header a file no longer reads, unless it reads by a computed name', () => {
+    expect(
+      variant((i) => {
+        i.index.header_read_sites[0]!.headers!.push('etag');
+      }),
+    ).toEqual([
+      'SEC-11 header_read_sites lists etag for src/pages.ts, which no longer reads it.',
+    ]);
+    expect(
+      variant((i) => {
+        i.index.header_read_sites[0]!.headers!.push('etag');
+        i.sites.headers.get('src/pages.ts')!.add('*');
+      }),
+    ).toEqual([]);
+  });
 });
 
 describe('SEC-11: every registered input has a hostile-value generator', () => {
@@ -347,12 +409,26 @@ describe('SEC-11: every registered input has a hostile-value generator', () => {
 
   it('fails a generator naming a missing fault or file', () => {
     const found = variant((i) => {
-      i.index.inputs[0]!.generators = ['fault:no-such-fault', 'tests/gone.ts'];
-      i.exists = (f) => f !== 'tests/gone.ts';
+      i.index.inputs[0]!.generators = [
+        'fault:no-such-fault',
+        'tests/gone.test.ts',
+      ];
+      i.exists = (f) => f !== 'tests/gone.test.ts';
     });
     expect(found).toEqual([
       'SEC-11 The input x-pages names the generator fault:no-such-fault, which does not exist.',
-      'SEC-11 The input x-pages names the generator tests/gone.ts, which does not exist.',
+      'SEC-11 The input x-pages names the generator tests/gone.test.ts, which does not exist.',
+    ]);
+  });
+
+  it('fails a generator that is not a fault or a test file under tests/', () => {
+    expect(
+      variant((i) => {
+        i.index.inputs[0]!.generators = ['src/pages.ts', 'guides/FUZZ.md'];
+      }),
+    ).toEqual([
+      'SEC-11 The input x-pages names the generator src/pages.ts, which is neither a fault:<id> nor a test file under tests/.',
+      'SEC-11 The input x-pages names the generator guides/FUZZ.md, which is neither a fault:<id> nor a test file under tests/.',
     ]);
   });
 });
@@ -388,6 +464,18 @@ describe('SEC-12: citations and dispositions are closed', () => {
     expect(found).toEqual([
       'SEC-12 Triage log line 5 has disposition "WONTFIX", outside the closed set.',
       'SEC-12 Triage log line 5 cites #gone, which the prose does not have.',
+    ]);
+  });
+
+  it('checks a triage-log row whose date is malformed', () => {
+    const found = variant((i) => {
+      i.triageLog = i.triageLog
+        .replace('2026-10-10', '10/10/2026')
+        .replace('`KNOWN-NON-FINDING`', '`WONTFIX`');
+    });
+    expect(found).toEqual([
+      'SEC-12 Triage log line 5 has the date "10/10/2026"; write it as YYYY-MM-DD.',
+      'SEC-12 Triage log line 5 has disposition "WONTFIX", outside the closed set.',
     ]);
   });
 });
