@@ -7,9 +7,7 @@
     "AllianceClient": [
       "getContactLabels",
       "getIcons",
-      "fetchAllAlliances",
       "fetchAllCorporations",
-      "streamAlliances",
       "streamCorporations"
     ],
     "AssetsClient": [

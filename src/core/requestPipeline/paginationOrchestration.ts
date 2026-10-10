@@ -8,6 +8,7 @@ import {
 } from '../pagination/PaginationHandler';
 import { CursorTokens } from '../pagination/CursorPaginationHandler';
 import { ICache } from '../cache/ICache';
+import { boundedPageCount } from '../pagination/pageLimit';
 import { cacheResponse, EsiHandlerResponse } from './cachePolicy';
 
 /**
@@ -70,7 +71,7 @@ export async function handleOffsetPagination(
       totalPages,
       body,
       {
-        maxPages: Math.min(totalPages, 1000),
+        maxPages: boundedPageCount(totalPages),
         stopOnEmptyPage: true,
       },
       pageFetch,

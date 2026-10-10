@@ -2,6 +2,7 @@ import { ApiClient } from '../ApiClient';
 import { handleSinglePageRequest } from '../ApiRequestHandler';
 import { logInfo } from '../logger/clientLog';
 import { EsiValidationError } from '../util/error';
+import { boundedPageCount } from './pageLimit';
 import type { EndpointDefinition } from '../endpoints/EndpointDefinition';
 
 export interface PageResult<T = unknown> {
@@ -59,11 +60,13 @@ export async function fetchAllPages<T = unknown>(
     validate,
   );
 
-  const totalPages = parseInt(firstResponse.headers['x-pages'] || '1', 10);
+  const totalPages = boundedPageCount(
+    parseInt(firstResponse.headers['x-pages'] || '1', 10),
+  );
   const result: T[] = extractArray<T>(firstBody);
 
-  // Empty for one page (or an unreadable X-Pages, which parses to NaN), so
-  // the loop below does nothing and the first page is the whole result.
+  // Empty for one page (or an unreadable X-Pages, which bounds to 1), so the
+  // loop below does nothing and the first page is the whole result.
   const remaining = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
 
   // Stryker disable next-line EqualityOperator: `<=` adds one pass over an empty slice, which fetches nothing and pushes nothing.
@@ -132,7 +135,9 @@ export async function* fetchPages<T = unknown>(
     validate,
   );
 
-  const totalPages = parseInt(firstResponse.headers['x-pages'] || '1', 10);
+  const totalPages = boundedPageCount(
+    parseInt(firstResponse.headers['x-pages'] || '1', 10),
+  );
 
   yield { data: extractArray<T>(firstBody), page: 1, totalPages };
 

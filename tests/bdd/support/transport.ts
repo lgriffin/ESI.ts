@@ -70,6 +70,8 @@ export interface RecordedRequest {
   url: URL;
   headers: Record<string, string>;
   body: string | undefined;
+  /** The redirect mode the client asked fetch for: `follow` unless it said otherwise. */
+  redirect: RequestRedirect;
 }
 
 interface QueuedResponse extends HttpResponse {
@@ -82,6 +84,7 @@ interface MockRequest {
   headers: { forEach(cb: (value: string, key: string) => void): void };
   text(): Promise<string>;
   signal?: AbortSignal;
+  redirect?: RequestRedirect;
 }
 
 /**
@@ -133,6 +136,7 @@ async function serve(request: MockRequest) {
     url: new URL(request.url),
     headers,
     body: text === '' ? undefined : text,
+    redirect: request.redirect ?? 'follow',
   };
   recorded.push(entryRecorded);
   if (gate) await gate(entryRecorded);

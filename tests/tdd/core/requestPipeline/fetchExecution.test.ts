@@ -86,6 +86,108 @@ describe('requestPipeline/fetchExecution branch coverage', () => {
     });
   });
 
+  describe('redirects are refused, not followed (security model P6)', () => {
+    const resolveCb = (_c: ApiClient): ICircuitBreaker | null => null;
+    const run = (requiresAuth = false) =>
+      executeSingleFetch(
+        client,
+        'characters/1/wallet/',
+        'GET',
+        undefined,
+        requiresAuth,
+        false,
+        resolveCache,
+        resolveRl,
+        resolveCb,
+      );
+
+    it('asks fetch not to follow redirects', async () => {
+      const seen: RequestInit[] = [];
+      client.setFetch(async (_url, init) => {
+        seen.push(init ?? {});
+        return new Response('[]', { status: 200 });
+      });
+
+      await run();
+
+      expect(seen[0]?.redirect).toBe('manual');
+    });
+
+    it.each([300, 301, 302, 303, 307, 308, 399])(
+      'rejects a %d naming only the target origin, never its path or query',
+      async (status) => {
+        client.setFetch(
+          async () =>
+            new Response(null, {
+              status,
+              headers: {
+                location: 'https://attacker.example/steal?token=secret',
+              },
+            }),
+        );
+
+        const error = await run().catch((e: unknown) => e);
+
+        expect(error).toBeInstanceOf(EsiError);
+        expect((error as EsiError).statusCode).toBe(status);
+        expect((error as EsiError).retryable).toBe(false);
+        expect((error as EsiError).message).toBe(
+          `Redirect refused: ESI answered ${status} with a redirect to https://attacker.example, and the client does not follow redirects`,
+        );
+      },
+    );
+
+    it('resolves a relative Location against the request URL', async () => {
+      client.setFetch(
+        async () =>
+          new Response(null, { status: 302, headers: { location: '/other' } }),
+      );
+
+      const error = (await run().catch((e: unknown) => e)) as EsiError;
+
+      expect(error.message).toContain('a redirect to https://esi.evetech.net,');
+    });
+
+    it('says so when the Location cannot be parsed', async () => {
+      client.setFetch(
+        async () =>
+          new Response(null, {
+            status: 302,
+            headers: { location: 'http://[bad' },
+          }),
+      );
+
+      const error = (await run().catch((e: unknown) => e)) as EsiError;
+
+      expect(error.message).toContain('a redirect to an unparsable location');
+    });
+
+    it('reports an opaque redirect, whose status the runtime hides, as a 302', async () => {
+      const opaque = new Response(null, { status: 200 });
+      Object.defineProperty(opaque, 'type', { value: 'opaqueredirect' });
+      Object.defineProperty(opaque, 'status', { value: 0 });
+      client.setFetch(async () => opaque);
+
+      const error = (await run().catch((e: unknown) => e)) as EsiError;
+
+      expect(error.statusCode).toBe(302);
+      expect(error.message).toContain(
+        'a redirect to a location the runtime did not disclose',
+      );
+    });
+
+    it.each([299, 304, 400])(
+      'does not treat a %d as a redirect',
+      async (status) => {
+        client.setFetch(async () => new Response(null, { status }));
+
+        const result = await run();
+
+        expect(result.response.status).toBe(status);
+      },
+    );
+  });
+
   describe('finally records failure when cb exists but no path recorded', () => {
     it('should record failure in finally when rate limiter throws before fetch', async () => {
       const recordFailureMock = jest.fn();

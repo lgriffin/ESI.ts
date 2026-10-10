@@ -124,6 +124,36 @@ function createParsedFile(
     db.close();
   });
 
+  it('binds a hostile value and quotes a hostile key, so neither alters the SQL (security model P12)', () => {
+    const hostileKey = 'x" INTEGER); DROP TABLE sde_metadata; --';
+    const hostileValue = "'); DROP TABLE eve_categories; --";
+    const parsedFiles = [
+      createParsedFile('categories.yaml', {
+        4: { name: { en: hostileValue }, published: true, [hostileKey]: 7 },
+      }),
+    ];
+
+    builder.build({
+      outputPath: dbPath,
+      parsedFiles,
+      sdeVersion: '12345',
+      buildDate: '2026-01-15',
+    });
+
+    const db = new Database(dbPath, { readonly: true });
+    const rows = db.prepare('SELECT * FROM eve_categories').all() as Array<
+      Record<string, unknown>
+    >;
+    const version = db
+      .prepare('SELECT value FROM sde_metadata WHERE key = ?')
+      .get('version') as { value: string };
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.name).toBe(hostileValue);
+    expect(rows[0]![hostileKey]).toBe(7);
+    expect(version.value).toBe('12345');
+    db.close();
+  });
+
   it('should handle multiple entity types', () => {
     const parsedFiles = [
       createParsedFile('categories.yaml', {

@@ -154,6 +154,79 @@ describe('SdeDownloader', () => {
       ).rejects.toThrow(SdeError);
     });
 
+    it('refuses an export whose Content-Length is over the limit, writing nothing', async () => {
+      const outputPath = path.join(
+        fs.mkdtempSync(path.join(os.tmpdir(), 'sde-dl-')),
+        'sde.zip',
+      );
+      mockFetch(
+        async () =>
+          new Response('0123456789', {
+            status: 200,
+            headers: { 'content-length': '10' },
+          }),
+      );
+
+      await expect(
+        downloader.download({ outputPath, maxBytes: 9 }),
+      ).rejects.toThrow(/10 bytes, over the 9-byte limit/);
+      expect(fs.existsSync(outputPath)).toBe(false);
+    });
+
+    it('abandons a download that passes the limit without declaring its size', async () => {
+      const outputPath = path.join(
+        fs.mkdtempSync(path.join(os.tmpdir(), 'sde-dl-')),
+        'sde.zip',
+      );
+      mockFetch(
+        async () =>
+          new Response(
+            new ReadableStream<Uint8Array>({
+              start(controller) {
+                controller.enqueue(new Uint8Array(6));
+                controller.enqueue(new Uint8Array(6));
+                controller.close();
+              },
+            }),
+            { status: 200 },
+          ),
+      );
+
+      await expect(
+        downloader.download({ outputPath, maxBytes: 10 }),
+      ).rejects.toThrow(/passed the 10-byte limit before it ended/);
+      expect(fs.existsSync(outputPath)).toBe(false);
+    });
+
+    it.each([Number.NaN, -1, Number.POSITIVE_INFINITY])(
+      'refuses a maxBytes of %p before fetching',
+      async (maxBytes) => {
+        mockFetch(async () => new Response('0123456789'));
+
+        await expect(
+          downloader.download({ outputPath: '/tmp/sde.zip', maxBytes }),
+        ).rejects.toThrow(/maxBytes must be a finite, non-negative number/);
+        expect(global.fetch).not.toHaveBeenCalled();
+      },
+    );
+
+    it('writes an export exactly at the limit', async () => {
+      const outputPath = path.join(
+        fs.mkdtempSync(path.join(os.tmpdir(), 'sde-dl-')),
+        'sde.zip',
+      );
+      mockFetch(
+        async () =>
+          new Response('0123456789', {
+            status: 200,
+            headers: { 'content-length': '10' },
+          }),
+      );
+
+      await downloader.download({ outputPath, maxBytes: 10 });
+      expect(fs.readFileSync(outputPath, 'utf-8')).toBe('0123456789');
+    });
+
     it('passes the caller signal to fetch', async () => {
       const controller = new AbortController();
       const seen: Array<RequestInit | undefined> = [];
