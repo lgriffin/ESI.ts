@@ -1,0 +1,4 @@
+// fetch(url) in a comment is not a call
+export async function send(url: string): Promise<Response> {
+  return fetch(url, { redirect: 'manual' });
+}

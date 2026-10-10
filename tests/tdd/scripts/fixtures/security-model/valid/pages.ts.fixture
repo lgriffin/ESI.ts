@@ -1,0 +1,4 @@
+export function pages(headers: Record<string, string>): number {
+  headers['x-written'] = '1';
+  return Number(headers['x-pages']);
+}

@@ -276,6 +276,7 @@
     "spec:response-schemas": "ts-node scripts/spec/spec-response-schemas.ts",
     "spec:audit": "ts-node scripts/spec/spec-audit.ts",
     "charter:audit": "ts-node scripts/quality/charter-audit.ts",
+    "security:model": "ts-node scripts/quality/security-model-audit.ts",
     "spec:audit:verbose": "ts-node scripts/spec/spec-audit.ts --verbose",
     "bdd:report": "ts-node scripts/quality/bdd-report.ts",
     "ears": "ts-node scripts/quality/ears.ts",

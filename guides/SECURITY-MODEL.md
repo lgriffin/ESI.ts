@@ -2,7 +2,7 @@
 
 ESI.ts is a library embedded in someone else's application, so it has one trust boundary: the consumer's code and configuration are trusted, and every byte that arrives from the network is not. The library's job is to stop network data, and end-user values passed through the consumer, from choosing where a request goes, which token it carries, whose cache entry is served, or what reaches a log.
 
-This is the scope statement for reporters, scanners, agents and the maintainer. [`SECURITY.md`](../SECURITY.md) says how to report and [`guides/SECURITY.md`](SECURITY.md) lists the controls; this document adds what both lack: who is trusted, what is claimed, what is disclaimed, and a closed set of triage outcomes. The machine-readable index of this document is [`guides/security-model.yaml`](security-model.yaml); the prose is canonical and the `security:model` audit (rollout step 3) holds the two together.
+This is the scope statement for reporters, scanners, agents and the maintainer. [`SECURITY.md`](../SECURITY.md) says how to report and [`guides/SECURITY.md`](SECURITY.md) lists the controls; this document adds what both lack: who is trusted, what is claimed, what is disclaimed, and a closed set of triage outcomes. The machine-readable index of this document is [`guides/security-model.yaml`](security-model.yaml); the prose is canonical and `npm run security:model` holds the two together.
 
 The structure is distilled from the Apache Camel security model into seven moves:
 
@@ -65,7 +65,7 @@ Twelve properties are claimed for the default configuration. A property the inde
 | P11 | The published tarball is what this repository's workflow built: provenance, cosign bundle, SBOM                                                        | A release asset with no verifiable origin                                      | High     | `release.yml`, `tests/tdd/workflows/workflow-permissions.test.ts` (SEC-03 to SEC-06)                         |
 | P12 | SDE content never alters the structure of the SQL `SdeDatabaseBuilder` builds: values are bound through prepared statements and identifiers are quoted | A YAML key or value that changes a statement rather than a bound value         | High     | `tests/tdd/sde/ingestion/SdeDatabaseBuilder.test.ts`                                                         |
 
-All twelve are claimed with zero security configuration. A violation reachable only after the consumer sets an unsafe option is out of model. P6, P8 and P9 had gaps when this document was first read against the code, and are marked `status: gap` in `guides/security-model.yaml` until their fixes land; feature `0062-security-boundary`, which they cite, lands with those fixes.
+All twelve are claimed with zero security configuration. A violation reachable only after the consumer sets an unsafe option is out of model. P6, P8 and P9 had gaps when this document was first read against the code; they were closed by [#629](https://github.com/lgriffin/ESI.ts/pull/629), and the index holds no gap today.
 
 ## Properties not provided
 
@@ -152,13 +152,13 @@ This list is written to be handed to a scanner or an agent as a suppression set;
 
 ## Technical implementation
 
-The model becomes rigid through seven additions that reuse machinery the repository already has: the spec audit's fixture pattern, the audit-exception expiry rule, the charter, and `ci-success`. This document, the index and the triage log land first; the rest are planned, in the order under [Rollout and open gaps](#rollout-and-open-gaps), and until the audit lands nothing gates edits to the index.
+The model becomes rigid through seven additions that reuse machinery the repository already has: the spec audit's fixture pattern, the audit-exception expiry rule, the charter, and `ci-success`. All seven are in place; [Rollout and open gaps](#rollout-and-open-gaps) records the order they landed in.
 
 | Add                                                                                    | What it does                                                                                                                                     |
 | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `guides/SECURITY-MODEL.md`                                                             | This document. The prose is canonical.                                                                                                           |
 | `guides/security-model.yaml`                                                           | Derived index of roles, inputs, properties, disclaimed properties, non-findings and dispositions. Read by the audit script, scanners and agents. |
-| `scripts/quality/security-model-audit.ts`, run as the `security:model` script          | The gate. Negative fixtures under `tests/tdd/scripts/fixtures/security-model/`, one per rule below.                                              |
+| `scripts/quality/security-model-audit.ts`, run as `npm run security:model`             | The gate. Negative fixtures under `tests/tdd/scripts/fixtures/security-model/`, one per rule below.                                              |
 | `tests/bdd/features/core/0062-security-boundary.feature`                               | One Rule per property it holds, in the unwanted-behaviour form.                                                                                  |
 | `tests/tdd/core/untrusted-input-sites.test.ts`                                         | Discovers every network call and every response-header read under `src/` and fails when one is missing from the index.                           |
 | `guides/security-triage-log.md`                                                        | One line per closed report: date, source, disposition, section cited.                                                                            |
@@ -169,7 +169,7 @@ The model becomes rigid through seven additions that reuse machinery the reposit
 - A property in the prose table that is missing from the index, or the reverse, or a different severity (SEC-09).
 - A claimed property with no Rule tagged with its id in the feature files, no existing test file, or a gap with no issue, no expiry date, or an expired date; the count of gaps may only shrink against `master` (SEC-10).
 - A Rule that claims a disclaimed property.
-- A network call site or response-header read in `src/` that the index does not list (SEC-11).
+- A network call site or response-header read in `src/` that the index does not list, or an input with no hostile-value generator (SEC-11).
 - A non-finding whose cited section does not exist, or a triage-log line whose disposition is outside the closed set (SEC-12).
 
 ### For agents and scanners
@@ -178,7 +178,7 @@ The model becomes rigid through seven additions that reuse machinery the reposit
 
 ## Rollout and open gaps
 
-Reading master `f527e88` (v11.2.0) against the model found three gaps. Each gets a failing scenario before its fix.
+Reading master `f527e88` (v11.2.0) against the model found three gaps. Each got a failing scenario before its fix, and all three are closed ([#629](https://github.com/lgriffin/ESI.ts/pull/629)). A gap found later is recorded here and in the index with `status: gap`, an issue and an expiry date.
 
 | #   | Gap                                                                                                                 | Where                                                   | Property | Handling                                                                                                                                           |
 | --- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -190,7 +190,7 @@ Reading master `f527e88` (v11.2.0) against the model found three gaps. Each gets
 
 Rollout, tracked by [#627](https://github.com/lgriffin/ESI.ts/issues/627):
 
-1. Land this document, the index, a link from `SECURITY.md` and the agent pointer. Documentation only.
-2. Fix gaps 1 to 3, each with its Rule in feature 0062.
-3. Land the audit script, its fixtures and the input-site test, add `security-model` to `ci-success`, and add SEC-09 to SEC-12 to the charter as Enforced.
-4. Point the nightly payload fuzz and the fault catalogue at the input registry, so every registered input has a hostile-value generator.
+1. Land this document, the index, a link from `SECURITY.md` and the agent pointer. Documentation only. Done in [#628](https://github.com/lgriffin/ESI.ts/pull/628).
+2. Fix gaps 1 to 3, each with its Rule in feature 0062. Done in [#629](https://github.com/lgriffin/ESI.ts/pull/629).
+3. Land the audit script, its fixtures and the input-site test, add `security-model` to `ci-success`, and add SEC-09 to SEC-12 to the charter as Enforced. Done, with step 4.
+4. Point the nightly payload fuzz and the fault catalogue at the input registry, so every registered input has a hostile-value generator. Done: each input in the index lists its `generators` (fuzz and unit test files, the nightly payload fuzz, and `fault:<id>` entries of the fault catalogue, which gains `x-pages-beyond-the-cap` and `redirect-to-another-host`); the audit fails an input with none, and the catalogue's self-test fails a reference to a fault it does not hold.

@@ -1,0 +1,31 @@
+version: 1
+properties:
+  - id: P1
+    claim: A token stays on the host
+    severity: critical
+    tests: [tests/unit/token.test.ts]
+  - id: P2
+    claim: A page count is bounded
+    severity: medium
+    tests: [tests/unit/pages.test.ts]
+disclaimed:
+  - id: D1
+non_findings:
+  - id: N1
+    section: known-non-findings
+    disposition: KNOWN-NON-FINDING
+dispositions:
+  - id: VALID
+    section: security-properties-claimed
+  - id: KNOWN-NON-FINDING
+    section: known-non-findings
+inputs:
+  - id: x-pages
+    sites: [src/pages.ts]
+    protects: [P2]
+    generators: ['fault:x-pages-beyond-the-cap', tests/fuzz/pages.test.ts]
+network_call_sites:
+  - file: src/transport.ts
+header_read_sites:
+  - file: src/pages.ts
+    headers: [x-pages]

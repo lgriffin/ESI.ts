@@ -68,6 +68,7 @@ Feature: Per-client tenant and user agent
 
   # ── What the client does not send ────────────────────────────────────
 
+  @sec-P1
   Rule: If a client holding an access token calls an endpoint that declares no scope, then the client shall not send an Authorization header.
     The bearer token goes only where the endpoint definition sets requiresAuth.
     A public route has no use for it, and sending it anyway would hand the
@@ -79,6 +80,7 @@ Feature: Per-client tenant and user agent
       When the client requests the server status
       Then the request shall not carry the header "Authorization"
 
+  @sec-P3
   Rule: If an endpoint that declares a scope is called, then the client shall not put the access token in the request URL.
     ESI accepts a token as a query parameter, but a URL is logged by proxies,
     servers and error reports where a header is not. The token travels only in

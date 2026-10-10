@@ -37,6 +37,7 @@ Feature: Runtime Response Validation
 
   # ── Reporting validation failures ───────────────────────────────────
 
+  @sec-P7
   Rule: If a response fails schema validation, then the EsiClient shall reject the call with an EsiValidationError carrying the underlying Zod issues.
     A mismatch between the spec and the live API is a fault the caller has to
     be able to diagnose, which takes more than a message: the issue list names
