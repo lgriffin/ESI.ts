@@ -227,6 +227,98 @@ describe('SdeExtractor', () => {
     });
   });
 
+  describe('extractAll with entry names from a hostile archive', () => {
+    /**
+     * adm-zip sanitises a name it is asked to add, so each hostile name is
+     * added as a same-length placeholder and patched into the bytes.
+     */
+    function hostileZip(hostile: string): string {
+      const placeholder = 'q'.repeat(Buffer.byteLength(hostile));
+      const zip = new AdmZip();
+      zip.addFile(placeholder, Buffer.from('escaped: true\n'));
+      zip.addFile('types.yaml', Buffer.from('benign: true\n'));
+      const bytes = zip.toBuffer();
+      const from = Buffer.from(placeholder);
+      for (let at = bytes.indexOf(from); at !== -1; at = bytes.indexOf(from)) {
+        Buffer.from(hostile).copy(bytes, at);
+      }
+      const zipPath = path.join(
+        fs.mkdtempSync(path.join(os.tmpdir(), 'sde-hostile-')),
+        'h.zip',
+      );
+      fs.writeFileSync(zipPath, bytes);
+      tempFiles.push(zipPath);
+      return zipPath;
+    }
+
+    it.each([
+      ['a parent-directory climb', '../escaped.yaml'],
+      ['a climb after a folder', 'sde/../../escaped.yaml'],
+      ['a backslash climb', '..\\escaped.yaml'],
+      ['an absolute path', '/tmp/escaped.yaml'],
+      ['a drive letter', 'C:/escaped.yaml'],
+    ])('refuses %s and writes nothing', (_label, name) => {
+      const zipPath = hostileZip(name);
+      const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sde-out-'));
+      const outputDir = path.join(root, 'out');
+      try {
+        let message = '';
+        try {
+          extractor.extractAll(zipPath, outputDir);
+        } catch (error) {
+          expect(error).toBeInstanceOf(SdeError);
+          message = (error as SdeError).message;
+        }
+        expect(message).toContain('1 entry would land outside');
+        expect(message).toContain(JSON.stringify(name));
+        expect(fs.readdirSync(root)).toEqual([]);
+      } finally {
+        fs.rmSync(root, { recursive: true, force: true });
+      }
+    });
+
+    it('extracts a name that climbs and returns inside the directory', () => {
+      const zipPath = hostileZip('sde/../inside.yaml');
+      const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sde-out-'));
+      try {
+        extractor.extractAll(zipPath, outputDir);
+        expect(fs.readdirSync(outputDir).sort()).toEqual([
+          'inside.yaml',
+          'types.yaml',
+        ]);
+      } finally {
+        fs.rmSync(outputDir, { recursive: true, force: true });
+      }
+    });
+
+    it('counts every escaping entry in the refusal', () => {
+      const zip = new AdmZip();
+      zip.addFile('qqqqqqq.yaml', Buffer.from('a: 1\n'));
+      zip.addFile('wwwwwww.yaml', Buffer.from('b: 2\n'));
+      const bytes = zip.toBuffer();
+      for (const from of ['qqqqqqq.yaml', 'wwwwwww.yaml']) {
+        const needle = Buffer.from(from);
+        for (
+          let at = bytes.indexOf(needle);
+          at !== -1;
+          at = bytes.indexOf(needle)
+        ) {
+          Buffer.from(`../${from.slice(3)}`).copy(bytes, at);
+        }
+      }
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sde-hostile-'));
+      const zipPath = path.join(dir, 'two.zip');
+      fs.writeFileSync(zipPath, bytes);
+      try {
+        expect(() =>
+          extractor.extractAll(zipPath, path.join(dir, 'out')),
+        ).toThrow(/2 entries would land outside/);
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+  });
+
   describe('entry lookup by file name', () => {
     it('finds the file at any depth and picks it among others, whichever separator the archive used', () => {
       const zipPath = createTestZip({
