@@ -448,6 +448,41 @@ jobs:
       - name: No focused, skipped, assertion-free or silenced tests
         run: npm run lint:suite-health
 
+  security-model:
+    name: Security Model Audit
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The gap count is held against master's copy of the index.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      # Every Rule tagged @sec-<id> must have run and passed, so the audit
+      # reads a BDD run of its own rather than trusting the tags.
+      - name: Run the BDD scenarios with results
+        run: |
+          mkdir -p reports/security-model
+          npm run bdd -- --json --outputFile=reports/security-model/jest-results.json
+
+      - name: Audit the security model against its index, Rules and sources
+        if: ${{ !cancelled() }}
+        run: npm run security:model -- --results=reports/security-model/jest-results.json
+
   contract-tests:
     name: Contract Tests
     runs-on: ubuntu-latest
@@ -1151,6 +1186,7 @@ jobs:
         coverage,
         bdd-tests,
         spec-audit,
+        security-model,
         contract-tests,
         contract-replay,
         fuzz-tests,

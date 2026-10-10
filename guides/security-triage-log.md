@@ -1,6 +1,6 @@
 # Security triage log
 
-One line per closed security report, scanner finding or agent review, newest first. The disposition is one of the nine in [SECURITY-MODEL.md](SECURITY-MODEL.md#triage), and the section is the one that licenses it. The `security:model` audit fails a line whose disposition is outside that set.
+One line per closed security report, scanner finding or agent review, newest first. The disposition is one of the nine in [SECURITY-MODEL.md](SECURITY-MODEL.md#triage), and the section is the one that licenses it. `npm run security:model` fails a line whose disposition is outside that set.
 
 | Date       | Source                             | Finding                                                                     | Disposition       | Section cited                                                    |
 | ---------- | ---------------------------------- | --------------------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------- |

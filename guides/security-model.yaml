@@ -1,7 +1,8 @@
 # Machine-readable index of guides/SECURITY-MODEL.md, which is canonical.
-# Read by scanners and agents now, and by the security:model audit and the
-# untrusted-input-sites test once rollout step 3 lands. Edit the prose first,
-# then this file.
+# Read by `npm run security:model`, tests/tdd/core/untrusted-input-sites.test.ts,
+# the fault catalogue's self-test, scanners and agents. Edit the prose first,
+# then this file. Each input's `generators` are what feed it hostile values:
+# a test file, or `fault:<id>` for an entry in tests/faults/catalogue.ts.
 version: 1
 canonical: guides/SECURITY-MODEL.md
 read_against: f527e88
@@ -39,6 +40,9 @@ inputs:
     protects: [P2]
     sites:
       - src/core/util/validation.ts
+    generators:
+      - tests/fuzz/parameter-fuzz.test.ts
+      - tests/fuzz/url-construction-fuzz.test.ts
   - id: response-body
     name: Response body
     trust: untrusted
@@ -46,6 +50,11 @@ inputs:
     sites:
       - src/core/endpoints/createClient.ts
       - src/core/pagination/AsyncPaginationIterator.ts
+    generators:
+      - tests/faults/payload-fuzz.nightly.test.ts
+      - tests/fuzz/schema-fuzz.test.ts
+      - 'fault:schema-violating-body'
+      - 'fault:truncated-json-body'
   - id: x-pages
     name: X-Pages
     trust: untrusted
@@ -55,6 +64,11 @@ inputs:
       - src/core/requestPipeline/paginationOrchestration.ts
       - src/core/pagination/PaginationHandler.ts
       - src/core/pagination/AsyncPaginationIterator.ts
+    generators:
+      - 'fault:x-pages-beyond-the-cap'
+      - 'fault:x-pages-grows-between-pages'
+      - 'fault:x-pages-shrinks-to-empty-page'
+      - tests/fuzz/pagination-fuzz.test.ts
   - id: cursor
     name: Cursor tokens
     trust: untrusted
@@ -62,6 +76,9 @@ inputs:
     sites:
       - src/core/util/headersUtil.ts
       - src/core/pagination/CursorPaginationHandler.ts
+    generators:
+      - tests/fuzz/pagination-assembly.property.test.ts
+      - tests/tdd/core/CursorPaginationHandler.test.ts
   - id: etag-expires
     name: ETag, Expires
     trust: untrusted
@@ -69,6 +86,11 @@ inputs:
     sites:
       - src/core/cache/cacheKey.ts
       - src/core/requestPipeline/cachePolicy.ts
+    generators:
+      - 'fault:expires-in-the-past'
+      - 'fault:expires-unparseable'
+      - 'fault:revalidation-304-without-etag'
+      - tests/fuzz/cache-key.property.test.ts
   - id: jwt-claims
     name: JWT claims
     trust: untrusted
@@ -76,12 +98,17 @@ inputs:
     sites:
       - src/auth/jwt.ts
       - src/auth/jwks.ts
+    generators:
+      - tests/tdd/auth/jwks.test.ts
+      - tests/tdd/auth/jwt.test.ts
   - id: redirect
     name: Redirect target
     trust: untrusted
     protects: [P1, P6]
     sites:
       - src/core/requestPipeline/fetchExecution.ts
+    generators:
+      - 'fault:redirect-to-another-host'
   - id: sde-archive
     name: SDE archive and build info
     trust: untrusted
@@ -89,6 +116,9 @@ inputs:
     sites:
       - src/sde/ingestion/SdeDownloader.ts
       - src/sde/ingestion/SdeExtractor.ts
+    generators:
+      - tests/tdd/sde/ingestion/SdeExtractor.test.ts
+      - tests/tdd/sde/ingestion/SdeDownloader.test.ts
   - id: urls-errors
     name: URLs and error text
     trust: untrusted
@@ -96,6 +126,9 @@ inputs:
     sites:
       - src/core/util/error.ts
       - src/core/logger/redactLog.ts
+    generators:
+      - tests/tdd/core/redactLog.test.ts
+      - tests/tdd/core/error.test.ts
 
 properties:
   - id: P1
@@ -132,10 +165,9 @@ properties:
   - id: P6
     claim: Values a response supplies never select a host and never carry the token off the allowlisted host
     severity: high
-    status: gap
-    issue: 627
-    expires: 2026-12-31
-    tests: []
+    tests:
+      - tests/bdd/features/core/0062-security-boundary.feature
+      - tests/tdd/core/requestPipeline/fetchExecution.test.ts
   - id: P7
     claim: With validation on, a body that does not match its schema is an error, never a typed value
     severity: medium
@@ -145,32 +177,36 @@ properties:
   - id: P8
     claim: A count reported by the remote bounds no more than 1000 page requests, at every pagination entry point
     severity: medium
-    status: gap
-    issue: 627
-    expires: 2026-12-31
     tests:
+      - tests/bdd/features/core/0062-security-boundary.feature
+      - tests/tdd/core/pageLimit.test.ts
       - tests/tdd/core/requestPipeline/paginationOrchestration.test.ts
       - tests/tdd/core/PaginationHandler.test.ts
   - id: P9
     claim: SDE ingestion writes only inside the directory the caller named
     severity: high
-    status: gap
-    issue: 627
-    expires: 2026-12-31
-    tests: [tests/tdd/sde/ingestion/SdeExtractor.test.ts]
+    tests:
+      - tests/bdd/features/core/0062-security-boundary.feature
+      - tests/tdd/sde/ingestion/SdeExtractor.test.ts
   - id: P10
     claim: The token file is written atomically with mode 0o600
     severity: medium
     tests: [tests/tdd/auth/FileTokenStorage.test.ts]
+    rule: none
+    rule_reason: File mode and an atomic rename are filesystem facts the BDD transport seam cannot observe; the unit test stats the written file.
   - id: P11
     claim: "The published tarball is what this repository's workflow built: provenance, cosign bundle, SBOM"
     severity: high
     tests: [tests/tdd/workflows/workflow-permissions.test.ts]
     charter: [SEC-03, SEC-04, SEC-05, SEC-06]
+    rule: none
+    rule_reason: A property of the release workflow, not of library behaviour; the workflow test reads release.yml.
   - id: P12
     claim: SDE content never alters the structure of the SQL SdeDatabaseBuilder builds
     severity: high
     tests: [tests/tdd/sde/ingestion/SdeDatabaseBuilder.test.ts]
+    rule: none
+    rule_reason: The SQL a build issues is internal to SdeDatabaseBuilder; the unit test builds a real SQLite database from a hostile key and value.
 
 disclaimed:
   - id: D1
@@ -276,6 +312,8 @@ header_read_sites:
       ]
   - file: src/core/requestPipeline/headers.ts
     headers: [cache-control]
+  - file: src/core/requestPipeline/fetchExecution.ts
+    headers: [location]
   - file: src/core/endpoints/createClient.ts
     headers:
       [

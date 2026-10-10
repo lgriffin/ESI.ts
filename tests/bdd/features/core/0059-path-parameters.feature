@@ -10,6 +10,7 @@ Feature: Path parameter validation
   These scenarios call a real client method and read what reached the
   transport seam.
 
+  @sec-P2
   Rule: If a path parameter's string form is empty, then the client shall reject the call with a VALIDATION_ERROR and send no request.
     An empty ID would leave an empty path segment, and ESI would answer a
     different route.
@@ -19,6 +20,7 @@ Feature: Path parameter validation
       Then the call shall be rejected with a VALIDATION_ERROR saying "must not be empty"
       And no request shall have been sent
 
+  @sec-P2
   Rule: If a path parameter holds a character that has meaning in a URL, then the client shall reject the call with a VALIDATION_ERROR and send no request.
     A slash adds a path segment, and a question mark or hash ends the path,
     so the request would reach a route the caller did not name.
@@ -33,6 +35,7 @@ Feature: Path parameter validation
       Then the call shall be rejected with a VALIDATION_ERROR saying "contains invalid characters"
       And no request shall have been sent
 
+  @sec-P2
   Rule: If a path parameter is a dot segment, then the client shall reject the call with a VALIDATION_ERROR and send no request.
     `.` and `..` survive URL encoding and are collapsed when the URL is
     resolved, so they would climb out of the route.
@@ -47,6 +50,7 @@ Feature: Path parameter validation
       Then the call shall be rejected with a VALIDATION_ERROR saying "must not be a dot segment"
       And no request shall have been sent
 
+  @sec-P2
   Rule: If a numeric path parameter is not a finite number, then the client shall reject the call with a VALIDATION_ERROR and send no request.
     NaN and Infinity stringify to words ESI reads as a malformed ID.
 

@@ -521,6 +521,7 @@ Feature: Resilience and Error Recovery
       Then both calls resolve with the payload
       And the client sent 1 request
 
+  @sec-P4
   Rule: When concurrent GET requests to one authenticated endpoint carry access tokens for different identities, the EsiClient shall issue one HTTP request per identity.
     Deduplication keys on the request path, and a path says nothing about whose
     data comes back: characters/{character_id}/online answers differently for

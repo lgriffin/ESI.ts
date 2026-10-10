@@ -155,6 +155,7 @@ Feature: One runtime, many identities
       And the public view requests the server status
       Then the runtime shall have sent 1 request
 
+  @sec-P4
   Rule: While two views share one runtime, the runtime shall keep each identity's authenticated entries apart.
     Two characters in one corporation ask the same URL and get answers scoped
     to their own roles. Sharing the cached body would show one character the

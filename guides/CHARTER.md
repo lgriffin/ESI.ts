@@ -11,7 +11,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 | Generated operations (`src/generated/operations.generated.ts`) | <!-- metric:operations -->233<!-- /metric -->                                                                     |
 | EARS requirements in the specification                         | <!-- metric:requirements -->619<!-- /metric --> (<!-- metric:featureFiles -->77<!-- /metric --> feature files)    |
 | Gherkin scenarios                                              | <!-- metric:scenarios -->792<!-- /metric -->                                                                      |
-| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->349<!-- /metric -->                                                                      |
+| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->351<!-- /metric -->                                                                      |
 | Statement coverage                                             | 97.8% (`npm run coverage` on master `114a485a`, 2026-09-28; floor 90%)                                            |
 | OpenSSF Scorecard                                              | 8.3 / 10 (`scorecard.yml` run 36409177565 on master `9486fe2c`, 2026-09-28; 8.2 on 2026-09-21, 6.7 on 2026-08-24) |
 
@@ -32,6 +32,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 ### Amendments after revision 2 (the detail behind revision 3)
 
+- **2026-10-10, the security model.** From the maintainer's security model document, distilled from the Apache Camel security model. `guides/SECURITY-MODEL.md` names every role and its trust, the untrusted inputs, twelve claimed properties with severities and tests, the properties not provided, scope, nine closed triage dispositions and the known non-findings; `guides/security-model.yaml` indexes it and `guides/security-triage-log.md` logs closed reports ([#628](https://github.com/lgriffin/ESI.ts/pull/628)). Reading master against it found three gaps, fixed as hardening: the async page iterators read `X-Pages` uncapped, redirects were followed, and SDE archive entry names reached adm-zip unchecked ([#629](https://github.com/lgriffin/ESI.ts/pull/629)). SEC-09 to SEC-12 are new and Enforced: `npm run security:model` runs in the `security-model` job of `ci-success`, and the Rules that state each property carry `@sec-<id>` tags ([#627](https://github.com/lgriffin/ESI.ts/issues/627)).
 - **2026-10-08, a quality trend.** From the static analysis audit of 2026-10-08, which found that each number the gates produce exists only inside one run. `quality-trend.yml` runs `npm run quality:trend` every Monday. It measures the last twelve weekly commits of master in worktrees: hand-written `src/` lines, total and per-1,000-line cognitive complexity, functions over 20, `any` identifiers, `eslint-disable` comments and the lint warning total. It also ranks hotspots by churn × complexity. The trend is recomputed from git, so it needs no stored state and no write scope. It is a report, not a gate. The first run measured complexity per 1,000 lines falling from 40.9 to 38.4 since 2026-07-21 while `src/` doubled, and `createClient` as the top hotspot.
 - **2026-10-08, no import cycles.** From the static analysis audit of 2026-10-08, which found the core's interfaces importing their implementations: `IRetryStrategy` took `RetryContext` from `RetryStrategy`, and `ICircuitBreaker` took `CircuitState` from `CircuitBreaker`, which import `ApiClient`, which imports both interfaces. Each type now lives in its interface module and is re-exported from the old one, so every import path and the API report are unchanged, and the implementations import `ApiClient` with `import type`. `npm run lint:cycles` (`scripts/quality/import-cycles.ts`) builds the runtime import graph of `src/` with the TypeScript parser and fails on any cycle; it runs in `lint-and-build` and `check:local`. `lint:layers` still owns direction between layers; this covers cycles inside one.
 - **2026-10-08, the warning ratchet.** From the static analysis audit of 2026-10-08. `npm run lint` failed on errors only, so warnings grew unseen (258 in `src/` and `tests/`, 470 with `scripts/`). `npm run lint:ratchet` (`scripts/quality/warning-ratchet.ts`) runs the same ESLint pass, fails on any error, and holds warnings per file and rule to `config/eslint/warning-baseline.json` under the determinism lint's shrink-only rules: a new warning fails, a fixed one fails until the baseline is lowered with `-- --update`, and the baseline may not grow against the pull request's target branch. It replaces the plain ESLint step in `lint-and-build` and the `lint` tier of `check:local`.
@@ -552,6 +553,10 @@ Runtime defences live in the pipeline and are proven by `tests/tdd/core/security
 4. **Token gated by declared scope.** Bearer header attached only when the definition says `requiresAuth`; missing token fails before the network.
 5. **Cache isolated per token.** Authenticated cache keys prefix a truncated SHA-256 of the auth header, so two characters never share a cached body.
 6. **URLs sanitised in errors and logs.** Eleven sensitive query names redacted; unparsable URLs truncated.
+7. **Redirects refused.** Requests go out with `redirect: 'manual'` and a 3xx is rejected naming only the target origin, so a redirect cannot carry a request off the allowlisted host.
+8. **Remote counts bounded.** Every pagination path caps `X-Pages` at 1000 pages.
+
+What the library claims, disclaims and who it trusts is the security model, [`guides/SECURITY-MODEL.md`](SECURITY-MODEL.md), indexed by `guides/security-model.yaml`; SEC-09 to SEC-12 hold the two to each other and to the code.
 
 #### SEC-01 · Unwanted · Enforced
 
@@ -608,6 +613,34 @@ Local credentials **shall** be minted by the PKCE script into a git-ignored `.en
 
 - **Why:** The example file is the only one that belongs in git.
 - **Verified by:** `.gitignore`; `scripts/auth/create-token.ts`; consider a secret-scanning pre-commit hook.
+
+#### SEC-09 · Ubiquitous · Enforced
+
+The security model audit **shall** fail when a property, disclaimed property, non-finding or disposition appears in only one of `guides/SECURITY-MODEL.md` and `guides/security-model.yaml`, or when a property's severity differs between them.
+
+- **Why:** The prose is canonical and the index is what scanners and agents read. Two copies that drift tell a reviewer two different things.
+- **Verified by:** `npm run security:model` in the `security-model` job of `ci.yml`; `tests/tdd/scripts/security-model-audit.test.ts` drives each rule with a fixture.
+
+#### SEC-10 · Unwanted · Enforced
+
+If a claimed security property names no existing test file, has no `@sec-<id>` Rule that ran and passed and no stated reason for having none, or is a gap without an issue and an unexpired date, then the security model audit **shall** fail.
+
+- **Why:** A claim with no test is a hope. A gap with no owner or date never closes, so the count of gaps may only shrink against `master`.
+- **Verified by:** `npm run security:model` with `--results` in the `security-model` job of `ci.yml`; `tests/tdd/scripts/security-model-audit.test.ts`.
+
+#### SEC-11 · Unwanted · Enforced
+
+If a file under `src/` makes a network call or reads a response header that `guides/security-model.yaml` does not list, then the security model audit **shall** fail.
+
+- **Why:** The list of untrusted inputs is only useful while it is complete. A new call site or header read is a new input the model must name before it ships.
+- **Verified by:** `tests/tdd/core/untrusted-input-sites.test.ts`; `npm run security:model`.
+
+#### SEC-12 · Unwanted · Enforced
+
+If a non-finding or disposition cites a section the security model does not have, or a line of `guides/security-triage-log.md` carries a disposition outside the closed set, then the security model audit **shall** fail.
+
+- **Why:** The dispositions are a closed set so every report ends in a classified outcome; a report that fits none is a revision of the model, not an ad hoc call.
+- **Verified by:** `npm run security:model`; `tests/tdd/scripts/security-model-audit.test.ts`.
 
 ---
 

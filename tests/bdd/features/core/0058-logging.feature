@@ -9,6 +9,7 @@ Feature: Log redaction
   These scenarios drive the real request pipeline to the transport seam with
   a recording logger configured on the client and read what reached it.
 
+  @sec-P3
   Rule: When the client logs a request whose URL carries a sensitive query parameter, the client logger shall receive that parameter with its value replaced by [REDACTED].
     The sensitive names are the ones `sanitizeUrl` redacts in an EsiError's
     url. The other parameters and the path are logged as sent, so a line still
@@ -29,6 +30,7 @@ Feature: Log redaction
       Then the logged request URL shall carry "refresh_token" with the value "[REDACTED]"
       And no logged line shall contain "r-9f2c"
 
+  @sec-P3
   Rule: If a request carries an access token, then the client logger shall not receive that token.
     The bearer token travels in the Authorization header, and no log call
     includes request headers, so the token has no path to a log line whatever

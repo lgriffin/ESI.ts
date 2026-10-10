@@ -136,6 +136,12 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'security:model',
+    covers:
+      'the security model, its index, the @sec Rules and the src network and header sites agree',
+    stage: 'quick',
+  },
+  {
     script: 'validate:spec-consistency',
     covers: 'Rule titles agree with their schemas',
     stage: 'quick',

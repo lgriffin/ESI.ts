@@ -39,6 +39,7 @@ npm run bdd:steps      # BDD dry run: every step matches one definition, none un
 npm run spec:response-schemas  # Every endpoint definition returning a JSON body declares a responseSchema (DES-02)
 npm run spec:audit     # EARS/Gherkin specification audit (feature files)
 npm run charter:audit  # CHARTER.md requirement blocks: one shall, a named system, EARS form; Enforced rows name a mechanism (PROC-06)
+npm run security:model # guides/SECURITY-MODEL.md, its index, the @sec-<id> Rules and src/ network and header sites agree (SEC-09 to SEC-12)
 npm run ears           # Standalone EARS check: audit + scenarios, one verdict per requirement (reports/ears/; --only=<domain>)
 npm run test:integration  # Integration tests
 npm run contract       # Contract tests against live ESI spec

@@ -192,6 +192,7 @@ Feature: Token Management
 
   # ── Token manager: opt-in JWKS verification ─────────────────────────
 
+  @sec-P5
   Rule: Where token verification is enabled, the token manager shall store a character whose access token signature verifies against a key in EVE SSO's published key set.
     Applications that accept tokens from a third party (a proxy, a browser
     login handing the token to a backend) cannot rely on TLS to SSO, so they
@@ -207,6 +208,7 @@ Feature: Token Management
       Then the storage shall hold a token for character 2114794365 named "Aurora Vale"
       And the token manager fetched EVE SSO's key set once
 
+  @sec-P5
   Rule: If token verification is enabled and an imported access token's signature does not match its header and payload, then the token manager shall reject the import with TokenVerificationError and store nothing.
     A tampered payload is the attack verification exists for: someone edits
     the sub claim to claim another character and keeps the original
@@ -234,6 +236,7 @@ Feature: Token Management
       Then the storage shall hold a token for character 2114794365 named "Aurora Vale"
       And the token manager fetched EVE SSO's key set twice
 
+  @sec-P5
   Rule: If token verification is enabled and an imported access token's exp claim is in the past, then the token manager shall reject the import with TokenVerificationError and store nothing.
     A validly signed token stops being evidence of a login once it expires,
     so it cannot vouch for the refresh token handed over with it. Callers
@@ -247,6 +250,7 @@ Feature: Token Management
       Then the import shall be rejected with TokenVerificationError for reason "expired"
       And the storage shall hold no tokens
 
+  @sec-P5
   Rule: If token verification is enabled and an imported access token's aud claim does not name the configured client id, then the token manager shall reject the import with TokenVerificationError.
     SSO signs tokens for every application with the same key, so a valid
     signature alone does not show the token was issued to this application.

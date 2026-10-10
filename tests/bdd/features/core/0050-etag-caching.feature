@@ -392,6 +392,7 @@ Feature: ETag Caching
       Then the client resolves with the cached structure orders from a 304 revalidation
       And the client sent 3 requests, the last carrying the cached structure orders ETag in If-None-Match
 
+  @sec-P4
   Rule: If two EVE SSO access tokens carry different character ids, then the ETag cache shall keep a separate entry for each character.
     A structure's order book, a corporation's wallet or a character's own
     location answer differently for every character that asks, so an entry
@@ -424,6 +425,7 @@ Feature: ETag Caching
       Then the second structure orders request carried no If-None-Match header
       And the cache holds 2 entries
 
+  @sec-P4
   Rule: If the current access token is one ESI has not yet answered, then the ETag cache shall serve no stored entry for it without a request.
     The character a token names is read without verifying the token, so it is
     a claim until ESI has answered a request under that token with 2xx or
