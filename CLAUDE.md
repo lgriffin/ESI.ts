@@ -153,6 +153,10 @@ Every change is classified by [`guides/SEMVER.md`](guides/SEMVER.md) before it i
 - **Pull request titles are conventional commits.** A squash merge of several commits uses the title as the commit release-please reads, so it carries `!` whenever any commit in the pull request is breaking. Prefer a merge commit when a pull request mixes `fix:`/`feat:` with other types.
 - **These rules live in CLAUDE.md and AGENTS.md both.** `tests/tdd/scripts/agent-docs.test.ts` fails if the two copies drift, so an agent cannot read a stale one and ship a break under `fix:`. Edit both, or neither.
 
+## Security review
+
+Review security against [`guides/security-model.yaml`](guides/security-model.yaml), the index of [`guides/SECURITY-MODEL.md`](guides/SECURITY-MODEL.md). Treat its `non_findings` as suppressions, and end every security finding with one disposition from its closed set (`dispositions`), citing the section that licenses it. A finding that fits none is a `MODEL-GAP`: the response is a pull request against the model, not an ad hoc call.
+
 ## Knowledge Graph
 
 For architecture questions (which modules import the logger, how a request flows to `fetch()`, which tests reach a given source file), use the graphify knowledge graph first when `graphify-out/` exists:

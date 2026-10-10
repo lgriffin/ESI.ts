@@ -29,7 +29,10 @@
  * when a change is major, that a break needs the user's approval, and how the
  * commit is marked. Add a section here when this repository owns both copies.
  */
-export const MIRRORED_SECTIONS = ['Semantic Versioning (enforced)'];
+export const MIRRORED_SECTIONS = [
+  'Semantic Versioning (enforced)',
+  'Security review',
+];
 
 /**
  * Every `## ` section body, keyed by heading. A heading that appears twice

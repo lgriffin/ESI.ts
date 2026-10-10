@@ -1,6 +1,6 @@
 # Security Policy
 
-This is the vulnerability disclosure policy for `@lgriffin/esi.ts`. The controls the library and its build pipeline apply are described in [guides/SECURITY.md](guides/SECURITY.md).
+This is the vulnerability disclosure policy for `@lgriffin/esi.ts`. The controls the library and its build pipeline apply are described in [guides/SECURITY.md](guides/SECURITY.md). What the library claims, what it disclaims, who is trusted and how every report is classified are set out in the security model, [guides/SECURITY-MODEL.md](guides/SECURITY-MODEL.md); read it before reporting, since a report outside the model is closed with the disposition it names.
 
 ## Supported versions
 
@@ -54,3 +54,5 @@ Typos, feature requests and ordinary bugs belong in [GitHub Issues](https://gith
 ## Scope
 
 This policy covers the ESI.ts library and its release artefacts. Vulnerabilities in the EVE Online ESI API or EVE SSO themselves should be reported to CCP Games.
+
+The in-scope vulnerability classes, the out-of-scope positions and the known non-findings are listed in [guides/SECURITY-MODEL.md](guides/SECURITY-MODEL.md#scope).

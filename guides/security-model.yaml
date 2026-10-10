@@ -1,0 +1,309 @@
+# Machine-readable index of guides/SECURITY-MODEL.md, which is canonical.
+# Read by `npm run security:model`, tests/tdd/core/untrusted-input-sites.test.ts,
+# scanners and agents. Edit the prose first, then this file.
+version: 1
+canonical: guides/SECURITY-MODEL.md
+read_against: f527e88
+
+roles:
+  - id: maintainer
+    name: Maintainer and release pipeline
+    trust: trusted
+  - id: consumer
+    name: 'Consumer developer: application code, middleware, a custom fetch, token storage, logger'
+    trust: fully-trusted
+  - id: end-user
+    name: The consumer's end users, whose values the application passes as parameters
+    trust: untrusted
+  - id: token-holder
+    name: A third party handing the application a token
+    trust: untrusted
+  - id: esi-sso
+    name: ESI and EVE SSO
+    trust: data-only
+  - id: sde-host
+    name: SDE download host
+    trust: data-only
+  - id: network
+    name: Network path attacker
+    trust: untrusted
+  - id: same-process
+    name: Other code in the same process
+    trust: outside-model
+
+inputs:
+  - id: parameters
+    name: Path and query parameters
+    trust: untrusted
+    protects: [P2]
+    sites:
+      - src/core/util/validation.ts
+  - id: response-body
+    name: Response body
+    trust: untrusted
+    protects: [P7]
+    sites:
+      - src/core/endpoints/createClient.ts
+      - src/core/pagination/AsyncPaginationIterator.ts
+  - id: x-pages
+    name: X-Pages
+    trust: untrusted
+    protects: [P8]
+    sites:
+      - src/core/util/headersUtil.ts
+      - src/core/requestPipeline/paginationOrchestration.ts
+      - src/core/pagination/PaginationHandler.ts
+      - src/core/pagination/AsyncPaginationIterator.ts
+  - id: cursor
+    name: Cursor tokens
+    trust: untrusted
+    protects: [P6, P8]
+    sites:
+      - src/core/util/headersUtil.ts
+      - src/core/pagination/CursorPaginationHandler.ts
+  - id: etag-expires
+    name: ETag, Expires
+    trust: untrusted
+    protects: [P4]
+    sites:
+      - src/core/cache/cacheKey.ts
+      - src/core/requestPipeline/cachePolicy.ts
+  - id: jwt-claims
+    name: JWT claims
+    trust: untrusted
+    protects: [P4, P5]
+    sites:
+      - src/auth/jwt.ts
+      - src/auth/jwks.ts
+  - id: redirect
+    name: Redirect target
+    trust: untrusted
+    protects: [P1, P6]
+    sites:
+      - src/core/requestPipeline/fetchExecution.ts
+  - id: sde-archive
+    name: SDE archive and build info
+    trust: untrusted
+    protects: [P9]
+    sites:
+      - src/sde/ingestion/SdeDownloader.ts
+      - src/sde/ingestion/SdeExtractor.ts
+  - id: urls-errors
+    name: URLs and error text
+    trust: untrusted
+    protects: [P3]
+    sites:
+      - src/core/util/error.ts
+      - src/core/logger/redactLog.ts
+
+properties:
+  - id: P1
+    claim: A token goes only to the allowlisted HTTPS host, and only on endpoints whose definition sets requiresAuth
+    severity: critical
+    tests: [tests/tdd/core/security.test.ts]
+    charter: [SEC-01]
+  - id: P2
+    claim: An untrusted parameter cannot change the route or the host
+    severity: high
+    tests:
+      - tests/tdd/core/security.test.ts
+      - tests/fuzz/parameter-fuzz.test.ts
+      - tests/bdd/features/core/0059-path-parameters.feature
+  - id: P3
+    claim: A token never appears in a log line, an error, a URL or a cache key
+    severity: high
+    tests:
+      - tests/tdd/core/redactLog.test.ts
+      - tests/bdd/features/core/0058-logging.feature
+    charter: [SEC-02]
+  - id: P4
+    claim: One identity is never served another's cached body or ETag, and an unverified claim grants nothing
+    severity: critical
+    tests:
+      - tests/tdd/core/cacheKey.test.ts
+      - tests/fuzz/cache-key.property.test.ts
+  - id: P5
+    claim: verifyAccessToken accepts a token only with an RS256 signature from EVE SSO's key set, the right issuer and audience, and an unexpired exp
+    severity: critical
+    tests:
+      - tests/tdd/auth/jwks.test.ts
+      - tests/tdd/auth/jwt.test.ts
+  - id: P6
+    claim: Values a response supplies never select a host and never carry the token off the allowlisted host
+    severity: high
+    status: gap
+    issue: 627
+    expires: 2026-12-31
+    tests: []
+  - id: P7
+    claim: With validation on, a body that does not match its schema is an error, never a typed value
+    severity: medium
+    tests:
+      - tests/bdd/features/core/0053-runtime-validation.feature
+      - tests/fuzz/schema-fuzz.test.ts
+  - id: P8
+    claim: A count reported by the remote bounds no more than 1000 page requests, at every pagination entry point
+    severity: medium
+    status: gap
+    issue: 627
+    expires: 2026-12-31
+    tests:
+      - tests/tdd/core/requestPipeline/paginationOrchestration.test.ts
+      - tests/tdd/core/PaginationHandler.test.ts
+  - id: P9
+    claim: SDE ingestion writes only inside the directory the caller named
+    severity: high
+    status: gap
+    issue: 627
+    expires: 2026-12-31
+    tests: [tests/tdd/sde/ingestion/SdeExtractor.test.ts]
+  - id: P10
+    claim: The token file is written atomically with mode 0o600
+    severity: medium
+    tests: [tests/tdd/auth/FileTokenStorage.test.ts]
+  - id: P11
+    claim: "The published tarball is what this repository's workflow built: provenance, cosign bundle, SBOM"
+    severity: high
+    tests: [tests/tdd/workflows/workflow-permissions.test.ts]
+    charter: [SEC-03, SEC-04, SEC-05, SEC-06]
+
+disclaimed:
+  - id: D1
+    statement: No sandbox for consumer code
+  - id: D2
+    statement: No availability guarantee beyond the page cap
+  - id: D3
+    statement: No protection once an opt-out is set
+  - id: D4
+    statement: No sanitisation of strings ESI returns
+  - id: D5
+    statement: No encryption at rest
+  - id: D6
+    statement: No redaction of secrets the consumer adds
+  - id: D7
+    statement: No shield against a dependency advisory that this code does not reach
+  - id: D8
+    statement: No constant-time comparison
+  - id: D9
+    statement: No integrity check on the SDE archive
+
+non_findings:
+  - id: N1
+    pattern: unsafeAllowCustomHost allows SSRF
+    section: known-non-findings
+    disposition: KNOWN-NON-FINDING
+  - id: N2
+    pattern: decodeAccessToken does not verify the signature
+    section: known-non-findings
+    disposition: KNOWN-NON-FINDING
+  - id: N3
+    pattern: The cache key uses a truncated SHA-256
+    section: known-non-findings
+    disposition: KNOWN-NON-FINDING
+  - id: N4
+    pattern: The token script listens on http://localhost
+    section: known-non-findings
+    disposition: KNOWN-NON-FINDING
+  - id: N5
+    pattern: A token is stored in .env
+    section: known-non-findings
+    disposition: KNOWN-NON-FINDING
+  - id: N6
+    pattern: Zod passthrough accepts unknown fields
+    section: known-non-findings
+    disposition: KNOWN-NON-FINDING
+  - id: N7
+    pattern: Dependency X has an advisory
+    section: known-non-findings
+    disposition: KNOWN-NON-FINDING
+  - id: N8
+    pattern: The library does not rate-limit hostile input
+    section: known-non-findings
+    disposition: KNOWN-NON-FINDING
+
+dispositions:
+  - id: VALID
+    section: security-properties-claimed
+  - id: VALID-HARDENING
+    section: triage
+  - id: 'OUT-OF-MODEL: trusted-input'
+    section: trust-model
+  - id: 'OUT-OF-MODEL: adversary-not-in-scope'
+    section: adversary
+  - id: 'OUT-OF-MODEL: opt-in'
+    section: out-of-scope
+  - id: 'OUT-OF-MODEL: unsupported'
+    section: out-of-scope
+  - id: 'BY-DESIGN: property-disclaimed'
+    section: properties-not-provided
+  - id: KNOWN-NON-FINDING
+    section: known-non-findings
+  - id: MODEL-GAP
+    section: triage
+
+# Every call that sends a request over the network, by file.
+network_call_sites:
+  - file: src/core/requestPipeline/fetchExecution.ts
+    host: esi.evetech.net (the allowlisted base URL)
+  - file: src/auth/EveSsoClient.ts
+    host: login.eveonline.com
+  - file: src/auth/jwks.ts
+    host: login.eveonline.com
+  - file: src/sde/ingestion/SdeDownloader.ts
+    host: developers.eveonline.com
+
+# Every read of a response header by name, by file.
+header_read_sites:
+  - file: src/core/util/headersUtil.ts
+    headers:
+      [
+        cache-control,
+        content-language,
+        date,
+        etag,
+        expires,
+        last-modified,
+        warning,
+        x-cursor-after,
+        x-cursor-before,
+        x-esi-request-id,
+        x-pages,
+      ]
+  - file: src/core/requestPipeline/headers.ts
+    headers: [cache-control]
+  - file: src/core/endpoints/createClient.ts
+    headers:
+      [
+        content-language,
+        date,
+        etag,
+        expires,
+        warning,
+        x-esi-error-limit-remain,
+        x-esi-error-limit-reset,
+        x-esi-request-id,
+        x-pages,
+        x-ratelimit-group,
+        x-ratelimit-limit,
+        x-ratelimit-remaining,
+        x-ratelimit-used,
+      ]
+  - file: src/core/rateLimiter/RateLimiter.ts
+    headers:
+      [
+        retry-after,
+        x-esi-error-limit-remain,
+        x-esi-error-limit-reset,
+        x-ratelimit-group,
+        x-ratelimit-limit,
+        x-ratelimit-remaining,
+        x-ratelimit-used,
+      ]
+  - file: src/core/pagination/AsyncPaginationIterator.ts
+    headers: [x-pages]
+  - file: src/core/pagination/CursorPaginationHandler.ts
+    headers: [x-cursor-after, x-cursor-before]
+  - file: src/core/ApiRequestHandler.ts
+    headers: [content-length]
+  - file: src/sde/ingestion/SdeDownloader.ts
+    headers: [content-length]
