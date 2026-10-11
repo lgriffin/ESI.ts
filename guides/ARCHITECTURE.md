@@ -938,7 +938,7 @@ client.resetCircuitBreaker(); // all circuits
 client.shutdown(); // stops the cleanup timer and clears circuits
 ```
 
-`CircuitOpenError` is not a subclass of `EsiError`. See [ERRORS.md](ERRORS.md).
+`CircuitOpenError` extends `EsiError` with `statusCode` 0 and `.retryable` false, so `isEsiError(err)` is true for it. See [ERRORS.md](ERRORS.md#circuitopenerror-extends-esierror).
 
 ---
 
