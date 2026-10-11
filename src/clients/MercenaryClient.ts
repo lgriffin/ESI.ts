@@ -14,10 +14,12 @@ export class MercenaryClient extends BaseEsiClient<typeof mercenaryEndpoints> {
   }
 
   /**
-   * Retrieves all mercenary dens with their development and anarchy parameters.
+   * Retrieves the mercenary dens a character owns. Call `getMercenaryDenDetail` for a den's
+   * evolution, infomorphs and skyhook.
    *
    * @param characterId - The ID of the character to query mercenary dens for
-   * @returns A list of mercenary dens
+   * @returns ESI's response as sent: `mercenary_dens`, one entry per den with its `id` and
+   *   `planet_id`
    * @requires Authentication
    */
   getMercenaryDens(characterId: number): Promise<MercenaryDensResponse> {
@@ -28,7 +30,8 @@ export class MercenaryClient extends BaseEsiClient<typeof mercenaryEndpoints> {
    * Retrieves all mercenary tactical operations (MTOs) spawned from mercenary dens.
    *
    * @param characterId - The ID of the character to query tactical operations for
-   * @returns A list of mercenary tactical operations
+   * @returns ESI's response as sent: `operations`, one entry per operation with its UUID `id`
+   *   and the `mercenary_den_id` it spawned from
    * @requires Authentication
    */
   getMercenaryTacticalOperations(
