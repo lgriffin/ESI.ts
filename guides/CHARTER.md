@@ -11,7 +11,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 | Generated operations (`src/generated/operations.generated.ts`) | <!-- metric:operations -->233<!-- /metric -->                                                                     |
 | EARS requirements in the specification                         | <!-- metric:requirements -->619<!-- /metric --> (<!-- metric:featureFiles -->77<!-- /metric --> feature files)    |
 | Gherkin scenarios                                              | <!-- metric:scenarios -->792<!-- /metric -->                                                                      |
-| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->351<!-- /metric -->                                                                      |
+| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->355<!-- /metric -->                                                                      |
 | Statement coverage                                             | 97.8% (`npm run coverage` on master `114a485a`, 2026-09-28; floor 90%)                                            |
 | OpenSSF Scorecard                                              | 8.3 / 10 (`scorecard.yml` run 36409177565 on master `9486fe2c`, 2026-09-28; 8.2 on 2026-09-21, 6.7 on 2026-08-24) |
 
@@ -32,6 +32,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 ### Amendments after revision 2 (the detail behind revision 3)
 
+- **2026-10-11, evidence for nine rows ([#634](https://github.com/lgriffin/ESI.ts/issues/634)).** A review found nine requirements whose "Verified by" named nothing in the repository. Each now names a file: ARCH-03 a unit test that fails when a request-pipeline stage imports a cache, rate limiter or circuit breaker implementation; DES-05 the deprecation-warning tests in `createClient.test.ts`, which now also check every call warns; PROC-01, PROC-02 and PROC-05 `tests/tdd/scripts/agent-process.test.ts`, which holds the instructions those habits come from; REL-04 a test that keeps the twelve `(not published)` changelog headings; PROC-04 and DOC-06 the files that do part of the job. PROC-03 named only branch protection, a setting: the `branch-protection` job in `maintenance.yml` now reads it through the API weekly and fails when `master` is unprotected or `ci-success` is not required, and the requirement no longer names a Lint, Build & Test check that protection never required. No status changed.
 - **2026-10-10, the security model.** From the maintainer's security model document, distilled from the Apache Camel security model. `guides/SECURITY-MODEL.md` names every role and its trust, the untrusted inputs, twelve claimed properties with severities and tests, the properties not provided, scope, nine closed triage dispositions and the known non-findings; `guides/security-model.yaml` indexes it and `guides/security-triage-log.md` logs closed reports ([#628](https://github.com/lgriffin/ESI.ts/pull/628)). Reading master against it found three gaps, fixed as hardening: the async page iterators read `X-Pages` uncapped, redirects were followed, and SDE archive entry names reached adm-zip unchecked ([#629](https://github.com/lgriffin/ESI.ts/pull/629)). SEC-09 to SEC-12 are new and Enforced: `npm run security:model` runs in the `security-model` job of `ci-success`, and the Rules that state each property carry `@sec-<id>` tags ([#627](https://github.com/lgriffin/ESI.ts/issues/627)).
 - **2026-10-08, a quality trend.** From the static analysis audit of 2026-10-08, which found that each number the gates produce exists only inside one run. `quality-trend.yml` runs `npm run quality:trend` every Monday. It measures the last twelve weekly commits of master in worktrees: hand-written `src/` lines, total and per-1,000-line cognitive complexity, functions over 20, `any` identifiers, `eslint-disable` comments and the lint warning total. It also ranks hotspots by churn × complexity. The trend is recomputed from git, so it needs no stored state and no write scope. It is a report, not a gate. The first run measured complexity per 1,000 lines falling from 40.9 to 38.4 since 2026-07-21 while `src/` doubled, and `createClient` as the top hotspot.
 - **2026-10-08, no import cycles.** From the static analysis audit of 2026-10-08, which found the core's interfaces importing their implementations: `IRetryStrategy` took `RetryContext` from `RetryStrategy`, and `ICircuitBreaker` took `CircuitState` from `CircuitBreaker`, which import `ApiClient`, which imports both interfaces. Each type now lives in its interface module and is re-exported from the old one, so every import path and the API report are unchanged, and the implementations import `ApiClient` with `import type`. `npm run lint:cycles` (`scripts/quality/import-cycles.ts`) builds the runtime import graph of `src/` with the TypeScript parser and fails on any cycle; it runs in `lint-and-build` and `check:local`. `lint:layers` still owns direction between layers; this covers cycles inside one.
@@ -221,7 +222,7 @@ Every endpoint exposed by a domain client **shall** be declared in exactly one `
 Request-pipeline modules under `src/core/requestPipeline` **shall** receive cache, rate limiter and circuit breaker as function parameters rather than importing a concrete implementation.
 
 - **Why:** Keeps every stage unit-testable without an `ApiClient` and keeps `dependencies.ts` the one place resolution happens.
-- **Verified by:** Code review. `lint:layers` keeps `src/core` away from clients and entry points but does not check this rule; candidate for an extra rule in `config/eslint/layers.rules.cjs` scoped to that directory.
+- **Verified by:** `tests/tdd/core/pipelineDependencyParameters.test.ts` fails when a module in `src/core/requestPipeline` other than `dependencies.ts` makes a value import of a cache, rate limiter or circuit breaker implementation (the `I*` interfaces and `cacheKey` helpers are allowed). Code review covers the parameter shape itself.
 
 #### ARCH-04 · Ubiquitous · Enforced
 
@@ -322,7 +323,7 @@ An endpoint definition **shall** declare `requiresAuth: true` if and only if the
 When an endpoint is deprecated upstream, the client **shall** carry `DeprecationInfo` with a replacement and sunset date on the endpoint's definition and log a warning on every call to it.
 
 - **Why:** Deprecation is a first-class field, not a comment. Consumers get a log line before the endpoint vanishes. The warning is not memoised (`createClient.ts`), so a hot loop logs on each call; revision 1 said "once", which was never true.
-- **Verified by:** Nightly spec drift files an issue; code review adds the field.
+- **Verified by:** `tests/tdd/core/createClient.test.ts` (the `DES-05` block: a call to a deprecated endpoint logs a warning naming its replacement and sunset date, on every call). Adding the field when ESI deprecates an endpoint is code review, prompted by the issue `nightly-spec-drift.yml` files.
 
 #### DES-06 · Ubiquitous · Practised
 
@@ -759,7 +760,7 @@ Every guide **shall** open with the charter requirement identifiers it implement
 When a public export is added, the pull request **shall** include its JSDoc, its guide section and, where user-facing, an example under `examples/`.
 
 - **Why:** `fetchAll*` (73 methods), `InMemoryFetch` and `createNoopLogger` exist only in the changelog.
-- **Verified by:** To add: a PR template checklist (the repository has none). Today the API surface diff makes the addition visible to the reviewer, and `test:export-coverage --ci` fails a PR that adds an export no test references.
+- **Verified by:** To add: a PR template checklist (the repository has none). Today the API surface diff (`etc/esi.ts.api.md`) makes the addition visible to the reviewer, and `test:export-coverage --ci` (`scripts/package/export-coverage-baseline.json`) fails a PR that adds an export no test references. Neither checks for JSDoc, a guide section or an example.
 
 ---
 
@@ -793,7 +794,7 @@ The version string **shall** be identical in `package.json`, `src/core/constants
 If a version is bumped but not published, then the changelog **shall** record it as unreleased rather than skipping the number.
 
 - **Why:** The changelog jumped from 9.1.0 to 9.7.0, so consumers could not tell whether 9.2 to 9.6 existed. Every number from 7.4.0 through 9.9.0 now has an entry ([#275](https://github.com/lgriffin/ESI.ts/issues/275)); numbers before 7.4.0 and the 10.x releases that never reached npm are not yet marked.
-- **Verified by:** Release guide procedure; nothing checks the changelog against the registry.
+- **Verified by:** `guides/RELEASE.md` ("Bumped but not published") is the procedure, and `tests/tdd/scripts/changelog-unpublished.test.ts` keeps the twelve 9.x numbers already marked `(not published)`. Nothing checks the changelog against the registry, so the 10.x numbers that never reached npm are still unmarked.
 
 #### REL-05 · Ubiquitous · Enforced
 
@@ -820,35 +821,35 @@ Agents are contributors here and are bound by the same rules as people, with les
 All task tracking **shall** live in the Beads tracker (`bd`), with `.beads/issues.jsonl` treated as a passive export and never as the source of truth.
 
 - **Why:** One tracker, shared by people and agents. Markdown TODO lists are forbidden by AGENTS.md.
-- **Verified by:** Repository instruction files.
+- **Verified by:** `tests/tdd/scripts/agent-process.test.ts` (the `PROC-01` block): `CLAUDE.md` and `AGENTS.md` name `bd` as the tracker and rule out markdown TODO lists, and `guides/BEADS.md` treats `.beads/issues.jsonl` as an exported snapshot. It checks the instruction, not that every task is in Beads.
 
 #### PROC-02 · State-driven · Practised
 
 While an agent operates under the default conservative profile, the agent **shall not** commit, push or sync the tracker without an explicit instruction.
 
 - **Why:** Autonomy is earned per session. The handoff reports changed files and proposed commands instead.
-- **Verified by:** AGENTS.md and CLAUDE.md managed blocks.
+- **Verified by:** `tests/tdd/scripts/agent-process.test.ts` (the `PROC-02` block): `guides/BEADS.md` states the conservative policy as the default, and both agent files point at it. It checks the instruction, not what an agent does.
 
 #### PROC-03 · Ubiquitous · Enforced
 
-`master` **shall** accept changes only through a pull request that is up to date with the base and passes the `ci-success` and Lint, Build & Test checks.
+`master` **shall** accept changes only through a pull request that is up to date with the base and passes the `ci-success` check.
 
 - **Why:** Recorded in bead `esi-8we`. Force-push is disabled.
-- **Verified by:** GitHub `branch protection` on `master`, a repository setting.
+- **Verified by:** GitHub `branch protection` on `master`, a repository setting, which requires `ci-success` (it gates every other job, Lint & Build included). The `branch-protection` job in `maintenance.yml` reads the setting through the API each week (`scripts/quality/branch-protection.ts`, tested in `tests/tdd/scripts/branch-protection.test.ts`) and fails when `master` is unprotected or `ci-success` is no longer required. Strict status checks and the force-push block need an admin token to read, so that job reports them unchecked.
 
 #### PROC-04 · Ubiquitous · Partial
 
 A branch **shall** carry one concern, named by its conventional-commit type and scope.
 
 - **Why:** Reviewers cannot review two things at once.
-- **Verified by:** Code review. There is no PR template yet (see DOC-06).
+- **Verified by:** `commitlint.config.cjs`, run by the `.husky/commit-msg` hook, holds each commit to a conventional type. Nothing checks the branch name or that a branch carries one concern; that is code review, and there is no PR template yet (see DOC-06).
 
 #### PROC-05 · Ubiquitous · Partial
 
 Agent instruction files (`AGENTS.md`, `CLAUDE.md`) **shall** contain pointers to guides, not copies of them.
 
-- **Why:** The Beads quick reference still appears three times in `AGENTS.md` and once in `CLAUDE.md`. Pointers cannot drift. The persona files are gone from the repository root.
-- **Verified by:** Roadmap item for BEADS.md; a line-count ceiling on the managed blocks.
+- **Why:** Pointers cannot drift. The Beads quick reference once appeared three times in `AGENTS.md` and once in `CLAUDE.md`; both now point at `guides/BEADS.md` and `bd prime`. The persona files are gone from the repository root.
+- **Verified by:** `tests/tdd/scripts/agent-process.test.ts` (the `PROC-05` block) holds the Beads section of each agent file to one pointer of at most twelve lines with no command reference. Other sections are not yet held to a ceiling.
 
 #### PROC-06 · Ubiquitous · Enforced
 

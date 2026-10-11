@@ -264,7 +264,7 @@ describe('createClient', () => {
     });
   });
 
-  describe('deprecation warnings', () => {
+  describe('DES-05: deprecation warnings', () => {
     // clientLog.logWarn(client, message, context) — assert on the message arg.
     const warnSpy = jest.spyOn(clientLog, 'logWarn');
     const warnMessages = (): string[] =>
@@ -344,6 +344,26 @@ describe('createClient', () => {
           expect.stringContaining('Sunset date: 2026-06-01'),
         ]),
       );
+    });
+
+    it('should log the warning on every call, not only the first', async () => {
+      const endpoints = {
+        getOldThing: {
+          path: 'latest/old/',
+          method: 'GET' as const,
+          requiresAuth: false,
+          deprecated: { replacedBy: 'getModern' },
+        },
+      } satisfies EndpointMap;
+
+      fetchMock.mockResponse(JSON.stringify({}));
+      const client = createClient(apiClient, endpoints);
+      await client.getOldThing();
+      await client.getOldThing();
+
+      expect(
+        warnMessages().filter((m) => m.includes("'getOldThing' is deprecated")),
+      ).toHaveLength(2);
     });
 
     it('should not log a warning for non-deprecated endpoints', async () => {
