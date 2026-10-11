@@ -1,5 +1,5 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>FileTokenStorage | @lgriffin/esi.ts - EVE Online ESI API Client - v11.2.0</title><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
-<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v11.2.0</a>
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>FileTokenStorage | @lgriffin/esi.ts - EVE Online ESI API Client - v11.3.0</title><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v11.3.0</a>
 <div id="tsd-toolbar-links"><a href="https://github.com/lgriffin/ESI.ts">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts">NPM</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
 <div id="tsd-search-status" aria-live="polite" aria-atomic="true">
@@ -12,18 +12,20 @@
 <li><a href="" aria-current="page">FileTokenStorage</a></li></ul>
 <h1>Class FileTokenStorage</h1></div>
 <section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>JSON-file <a href="../interfaces/src_auth_types.ITokenStorage.html" class="tsd-kind-interface">ITokenStorage</a> for single-process applications.</p>
+<div class="tsd-comment tsd-typography"><p>JSON-file <a href="../interfaces/src_auth_types.ITokenStorage.html" class="tsd-kind-interface">ITokenStorage</a>.</p>
 <p>Writes go to a sibling temporary file that is renamed over the target, so a
 crash mid-write leaves the previous file intact. Writes are serialised
-within the process. Two processes sharing one file are not supported: each
-would rotate refresh tokens the other cannot see.</p>
+within the process. Without the <code>lock</code> option, two processes sharing one
+file are not supported: each would rotate refresh tokens the other cannot
+see. With it, the storage provides <a href="../interfaces/src_auth_types.ITokenStorage.html#withlock" class="tsd-kind-method">ITokenStorage.withLock</a> and the
+processes take turns.</p>
 </div></section>
 <section class="tsd-panel">
 <h4>Implements</h4>
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/src_auth_types.ITokenStorage.html" class="tsd-signature-type tsd-kind-interface">ITokenStorage</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L53">src/auth/storage/FileTokenStorage.ts:53</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L108">src/auth/storage/FileTokenStorage.ts:108</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -34,8 +36,13 @@ would rotate refresh tokens the other cannot see.</p>
 <div class="tsd-index-list"><a href="#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a>
 </div></section>
 <section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#withlock" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>with<wbr/>Lock?</span></a>
+</div></section>
+<section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="accessors">Accessors<a href="#accessors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-index-list"><a href="#path" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>path</span></a>
+<a href="#lockpath" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>lock<wbr/>Path</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
@@ -61,7 +68,19 @@ would rotate refresh tokens the other cannot see.</p>
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/src_auth_storage_FileTokenStorage.FileTokenStorageOptions.html" class="tsd-signature-type tsd-kind-interface">FileTokenStorageOptions</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">FileTokenStorage</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L62">src/auth/storage/FileTokenStorage.ts:62</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L134">src/auth/storage/FileTokenStorage.ts:134</a></li></ul></aside></div></li></ul></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="withlock"><code class="tsd-tag">Optional</code> <code class="tsd-tag">Readonly</code><span>with<wbr/>Lock</span><a href="#withlock" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">withLock</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">characterId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">fn</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-comment tsd-typography"><p>Present only when the <code>lock</code> option is on, so the token manager treats an
+unlocked storage exactly as before.</p>
+</div><aside class="tsd-sources">
+<p>Implementation of <a href="../interfaces/src_auth_types.ITokenStorage.html">ITokenStorage</a>.<a href="../interfaces/src_auth_types.ITokenStorage.html#withlock">withLock</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L124">src/auth/storage/FileTokenStorage.ts:124</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="accessors-1">Accessors<a href="#accessors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -75,7 +94,20 @@ would rotate refresh tokens the other cannot see.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L68">src/auth/storage/FileTokenStorage.ts:68</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L152">src/auth/storage/FileTokenStorage.ts:152</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="lockpath"><span>lock<wbr/>Path</span><a href="#lockpath" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li>
+<div class="tsd-signature" id="lockpathlockpath"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">lockPath</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Absolute path of the advisory lock file that writes take when <code>lock</code> is
+on. A refresh holds a separate lock file per character,
+<code>&lt;path&gt;.&lt;characterId&gt;.lock</code>.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L161">src/auth/storage/FileTokenStorage.ts:161</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -92,7 +124,7 @@ would rotate refresh tokens the other cannot see.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/src_auth_types.StoredToken.html" class="tsd-signature-type tsd-kind-interface">StoredToken</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_auth_types.ITokenStorage.html">ITokenStorage</a>.<a href="../interfaces/src_auth_types.ITokenStorage.html#get">get</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L72">src/auth/storage/FileTokenStorage.ts:72</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L165">src/auth/storage/FileTokenStorage.ts:165</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="set"><span>set</span><a href="#set" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -107,7 +139,7 @@ would rotate refresh tokens the other cannot see.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_auth_types.ITokenStorage.html">ITokenStorage</a>.<a href="../interfaces/src_auth_types.ITokenStorage.html#set">set</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L78">src/auth/storage/FileTokenStorage.ts:78</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L171">src/auth/storage/FileTokenStorage.ts:171</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="delete"><span>delete</span><a href="#delete" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -121,7 +153,7 @@ would rotate refresh tokens the other cannot see.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_auth_types.ITokenStorage.html">ITokenStorage</a>.<a href="../interfaces/src_auth_types.ITokenStorage.html#delete">delete</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L84">src/auth/storage/FileTokenStorage.ts:84</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L187">src/auth/storage/FileTokenStorage.ts:187</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="list"><span>list</span><a href="#list" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -131,7 +163,7 @@ would rotate refresh tokens the other cannot see.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/src_auth_types.StoredToken.html" class="tsd-signature-type tsd-kind-interface">StoredToken</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_auth_types.ITokenStorage.html">ITokenStorage</a>.<a href="../interfaces/src_auth_types.ITokenStorage.html#list">list</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L91">src/auth/storage/FileTokenStorage.ts:91</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L200">src/auth/storage/FileTokenStorage.ts:200</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="invalidate"><span>invalidate</span><a href="#invalidate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -142,7 +174,7 @@ would rotate refresh tokens the other cannot see.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L100">src/auth/storage/FileTokenStorage.ts:100</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/auth/storage/FileTokenStorage.ts#L209">src/auth/storage/FileTokenStorage.ts:209</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -159,13 +191,15 @@ would rotate refresh tokens the other cannot see.</p>
 <div class="tsd-accordion-details">
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
 <div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
+<div><a href="#withlock"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>with<wbr/>Lock</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Accessors</summary>
-<div><a href="#path"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>path</span></a></div></details>
+<div><a href="#path"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>path</span></a><a href="#lockpath"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>lock<wbr/>Path</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
 <div><a href="#get"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get</span></a><a href="#set"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set</span></a><a href="#delete"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete</span></a><a href="#list"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>list</span></a><a href="#invalidate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>invalidate</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://esi.evetech.net/ui/">ESI Documentation</a><a href="https://www.eveonline.com/">EVE Online</a><a href="https://github.com/lgriffin/ESI.ts" class="tsd-nav-link">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts" class="tsd-nav-link">NPM</a></nav>
-<nav class="tsd-navigation"><a href="../modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v11.2.0</a>
+<nav class="tsd-navigation"><a href="../modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v11.3.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
 <li>Loading...</li></ul></nav></div></div></div><footer>
 <p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>

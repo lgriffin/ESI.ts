@@ -174,14 +174,71 @@ for (const r of results) {
 
 ### Storage adapters
 
-`ITokenStorage` is four async methods keyed by character id: `get`, `set`, `delete` and `list`.
+`ITokenStorage` is four async methods keyed by character id: `get`, `set`, `delete` and `list`, plus an optional `withLock` for stores that several processes share.
 
-| Adapter              | Use for                                                                   |
-| -------------------- | ------------------------------------------------------------------------- |
-| `MemoryTokenStorage` | Tests, CLIs that log in on every run, a cache in front of a durable store |
-| `FileTokenStorage`   | Single-process apps. Writes go to a temp file then a rename, mode `0600`  |
+| Adapter                              | Use for                                                                   |
+| ------------------------------------ | ------------------------------------------------------------------------- |
+| `MemoryTokenStorage`                 | Tests, CLIs that log in on every run, a cache in front of a durable store |
+| `FileTokenStorage`                   | Single-process apps. Writes go to a temp file then a rename, mode `0600`  |
+| `FileTokenStorage` with `lock: true` | Several processes on one machine sharing one token file (workers, cron)   |
 
 Implement the interface over Redis, Postgres or a keychain for anything else. `set` must be durable before it resolves. The manager persists the rotated refresh token before it returns the new access token, and SSO has already invalidated the previous one.
+
+#### Sharing a store between processes
+
+SSO rotates the refresh token on every use, so two processes that refresh the same character at once each get a different rotation, and whichever is saved second leaves the other holding a dead refresh token. A storage adapter that implements `withLock(characterId, fn)` prevents that. The manager runs every refresh inside the lock and reads the stored token again once it holds it. When another process rotated the token meanwhile, the manager returns that token and makes no SSO call.
+
+```typescript
+import { EsiTokenManager, FileTokenStorage } from '@lgriffin/esi.ts';
+
+const tokens = new EsiTokenManager({
+  clientId: process.env.EVE_CLIENT_ID!,
+  clientSecret: process.env.EVE_CLIENT_SECRET!,
+  storage: new FileTokenStorage('./tokens.json', { lock: true }),
+  ssoTimeoutMs: 10_000, // well below the lock's staleMs (30 s)
+});
+```
+
+With `lock` on, `FileTokenStorage` takes an advisory lock file next to the token file for every write (`tokens.json.lock`) and one per character for every refresh (`tokens.json.<characterId>.lock`), so refreshes of different characters still run in parallel. It also reads the file on every `get` instead of keeping a copy in memory. The lock options are:
+
+| Option      | Default | Meaning                                                                                                   |
+| ----------- | ------- | --------------------------------------------------------------------------------------------------------- |
+| `staleMs`   | 30 000  | A lock older than this is taken to belong to a crashed process and is broken. Keep it above one SSO call. |
+| `timeoutMs` | 60 000  | How long a write or refresh waits for the lock, queueing in this process included, before it rejects.     |
+| `retryMs`   | 25      | Pause between attempts to take the lock.                                                                  |
+
+Each timing must be a positive, finite number, or the constructor throws a `RangeError`. The lock file only works between processes that see the same file system with working hard links, so a local disk rather than a network share. A holder that keeps the lock longer than `staleMs` can lose it to a waiter, and a refresh then behaves as it did without the lock. SSO calls have no timeout unless you set one, and an SSO request that hangs holds that character's lock until it ends; if that outlasts `staleMs`, a waiter breaks the lock and may spend a refresh token the hung request already rotated. Set `ssoTimeoutMs` on the manager (or `timeoutMs` on an `EveSsoClient` you pass as `ssoClient`) well below `staleMs`. A request that SSO does not answer in time rejects with an `SsoError` whose `statusCode` is 0, `errorCode` is `timeout` and `isRetryable()` is true, and `refreshAll` reports it as a retryable failure. When SSO sends a status but the body is late, the error keeps that status: a late 2xx is not retryable, because SSO has probably rotated the refresh token already and the old one would be refused. For processes on different machines, implement `withLock` over the shared store itself, for example Redis `SET key value NX PX` with a token you check before deleting the key. Adapters without `withLock` behave exactly as before.
+
+### Verifying tokens from a third party
+
+A token that reaches your code from anywhere but SSO's token endpoint (a reverse proxy, a browser login that hands the token to a backend) has not been vouched for by TLS. Verify it before trusting its `sub`, `name`, `scp` or `owner` claims. `verifyAccessToken` fetches SSO's key set from `https://login.eveonline.com/oauth/jwks`, checks the RS256 signature with Node's `crypto`, then checks `iss` (EVE SSO), `aud` (your client id and `EVE Online`) and `exp`:
+
+```typescript
+import {
+  SsoJwks,
+  verifyAccessToken,
+  isTokenVerificationError,
+} from '@lgriffin/esi.ts';
+
+// One instance per process: it caches the key set for an hour and refetches
+// when a token names a key it has not seen (SSO rotated its key).
+const jwks = new SsoJwks();
+
+async function characterFromBearer(token: string): Promise<number | null> {
+  try {
+    const verified = await verifyAccessToken(token, {
+      clientId: process.env.ESI_SSO_CLIENT_ID!,
+      jwks,
+    });
+    return verified.characterId;
+  } catch (err) {
+    if (isTokenVerificationError(err)) return null; // err.reason names the failed check
+    throw err;
+  }
+}
+```
+
+`EsiTokenManager` does the same for every token it is handed when it is built with `verifyTokens: true`. `addCharacter` and `importToken` then reject a token that fails with `TokenVerificationError` and store nothing. An expired access token fails too, so a migration that imports stale tokens leaves the flag off for the import. Refreshes are not re-verified: those tokens come straight from SSO.
 
 ### Guarantees and limits
 
@@ -190,8 +247,8 @@ Implement the interface over Redis, Postgres or a keychain for anything else. `s
 - **Coalescing.** Concurrent refreshes for one character share one SSO call. This matters because SSO rotates the refresh token on every use.
 - **Revocation.** An `invalid_grant` from SSO marks the character revoked. Later calls throw `TokenRevokedError` locally without calling SSO.
 - **Hooks.** `onRefresh`, `onRefreshError` and `onRevoked` are there for logging, metrics or prompting a re-login.
-- **No JWT signature verification.** Tokens are trusted because they arrive straight from SSO over TLS. Do not use `decodeAccessToken` to authenticate a token a third party hands you. Opt-in JWKS verification is tracked in [#256](https://github.com/lgriffin/ESI.ts/issues/256).
-- **One process per store.** Two processes sharing one `FileTokenStorage` would each rotate refresh tokens the other cannot see. A locking adapter for shared stores is tracked in [#258](https://github.com/lgriffin/ESI.ts/issues/258), after 11.0.
+- **No JWT signature verification by default.** Tokens are trusted because they arrive straight from SSO over TLS. Do not use `decodeAccessToken` to authenticate a token a third party hands you; use `verifyAccessToken`, or `verifyTokens: true` on the manager (see [Verifying tokens from a third party](#verifying-tokens-from-a-third-party)).
+- **One process per store, unless the store locks.** Two processes sharing a store without `withLock` would each rotate refresh tokens the other cannot see. Use `FileTokenStorage` with `lock: true`, or an adapter of your own that implements `withLock`; see [Sharing a store between processes](#sharing-a-store-between-processes).
 
 ## 4. What 11.0.0 changes
 

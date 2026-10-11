@@ -143,7 +143,7 @@ The repository side is done: every workflow declares read-only top-level permiss
 | Vulnerabilities     |     6 | Cleared in the repository on 2026-09-28: the four OSV advisories were vite and esbuild under `docs-site/`, pinned by vitepress 1.6; `docs-site/package.json` now overrides `vite` to 7.x and `npm audit` there is clean |
 | Contributors        |     6 | Contributions from more organisations; inherent to a one-maintainer project                                                                                                                                             |
 | License             |     9 | Cleared in the repository on 2026-09-28: `LICENSE` is now the full GPL-3.0 text and the copyright line and CCP's trademark notice moved to `NOTICE`, so the file is recognised as an OSI licence                        |
-| Pinned-Dependencies |     9 | `skill-eval.yml` installs Claude Code by version, not hash; npm cannot pin a global install by hash, so this stays                                                                                                      |
+| Pinned-Dependencies |     9 | Cleared in the repository on 2026-10-08: `skill-eval.yml` no longer installs Claude Code, since its live tier was removed                                                                                               |
 | Signed-Releases     |     8 | The next release shipped through `sign-and-publish-assets`, which attaches the `.intoto.jsonl` provenance the check scores highest                                                                                      |
 
 ### Branch protection on `master` that includes administrators (SEC-07, Branch-Protection)
