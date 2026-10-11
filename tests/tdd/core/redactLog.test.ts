@@ -8,7 +8,7 @@ const SECRET_URL =
   'https://esi.evetech.net/latest/characters/1/?token=s3cret&page=2';
 const REDACTED_URL = sanitizeUrl(SECRET_URL)!;
 
-describe('redactLogText', () => {
+describe('SEC-02: redactLogText', () => {
   it('redacts a sensitive query parameter of an absolute URL through sanitizeUrl', () => {
     expect(REDACTED_URL).not.toContain('s3cret');
     expect(redactLogText(`GET ${SECRET_URL} failed`)).toBe(
@@ -53,7 +53,7 @@ describe('redactLogText', () => {
   );
 });
 
-describe('redactLogText edge cases', () => {
+describe('SEC-02: redactLogText edge cases', () => {
   it.each([
     [
       'https://a.example/?page=1,https://b.example/?token=s3cret',
@@ -79,7 +79,7 @@ describe('redactLogText edge cases', () => {
   });
 });
 
-describe('redactLogContext', () => {
+describe('SEC-02: redactLogContext', () => {
   it('redacts every top-level string value that carries a URL', () => {
     expect(
       redactLogContext({

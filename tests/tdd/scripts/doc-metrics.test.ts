@@ -59,7 +59,7 @@ const FEATURE = `Feature: Status
       Then it is rejected
 `;
 
-describe('counting', () => {
+describe('DOC-04: counting', () => {
   it('counts Rules, and a Scenario Outline once however many examples it has', () => {
     expect(countFeatures([{ file: 'a.feature', source: FEATURE }])).toEqual({
       requirements: 2,
@@ -204,7 +204,7 @@ describe('counting', () => {
   });
 });
 
-describe('formatting', () => {
+describe('DOC-04: formatting', () => {
   it('writes numbers the way the prose does', () => {
     expect(formatValue(39)).toBe('39');
     expect(formatValue(7198)).toBe('7,198');
@@ -218,7 +218,7 @@ describe('formatting', () => {
   });
 });
 
-describe('rewriteMarkers', () => {
+describe('DOC-04: rewriteMarkers', () => {
   const m = metrics({ clients: 39, routes: 1235 });
 
   it('replaces a stale value and reports where', () => {
@@ -323,7 +323,7 @@ describe('rewriteMarkers', () => {
   });
 });
 
-describe('checkDocs', () => {
+describe('DOC-04: checkDocs', () => {
   const m = metrics({ clients: 39 });
   const json = formatMetricsJson(m);
   const README =

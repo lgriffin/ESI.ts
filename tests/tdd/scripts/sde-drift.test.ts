@@ -70,7 +70,7 @@ function runScript(args: string[]): { status: number; stdout: string } {
   }
 }
 
-describe('SDE export drift over the fixture export', () => {
+describe('GATE-07: SDE export drift over the fixture export', () => {
   const report = analyseDrift({
     build: '20260901',
     checkedAt: '2026-09-28T00:00:00.000Z',
@@ -125,7 +125,7 @@ describe('SDE export drift over the fixture export', () => {
   });
 });
 
-describe('field drift', () => {
+describe('GATE-07: field drift', () => {
   const spec = SDE_FILE_REGISTRY.find((s) => s.yamlFile === 'groups.yaml')!;
   const schema = schemaFor('groups.yaml')!;
   const full = {
@@ -276,7 +276,7 @@ describe('field drift', () => {
   });
 });
 
-describe('the registry and the schemas', () => {
+describe('GATE-07: the registry and the schemas', () => {
   it.each(SDE_FILE_REGISTRY.map((s) => s.yamlFile))(
     '%s has a schema to compare against',
     (yamlFile) => {
@@ -302,7 +302,7 @@ describe('the registry and the schemas', () => {
   });
 });
 
-describe('the nightly workflow', () => {
+describe('GATE-07: the nightly workflow', () => {
   const workflow = readFileSync(
     path.join(ROOT, '.github/workflows/nightly-sde.yml'),
     'utf-8',
@@ -321,7 +321,7 @@ describe('the nightly workflow', () => {
   });
 });
 
-describe('scripts/sde/sde-drift.ts', () => {
+describe('GATE-07: scripts/sde/sde-drift.ts', () => {
   let out: string;
   beforeAll(() => {
     out = mkdtempSync(path.join(tmpdir(), 'sde-drift-'));

@@ -17,7 +17,7 @@ function getApiClientFromDomainClient(domainClient: unknown): unknown {
   return (domainClient as any)._client;
 }
 
-describe('Construction parity', () => {
+describe('ARCH-08: construction parity (every legacy surface configures the pipeline the same way)', () => {
   beforeEach(() => {
     fetchMock.resetMocks();
   });

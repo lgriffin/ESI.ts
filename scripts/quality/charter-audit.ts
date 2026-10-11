@@ -4,7 +4,9 @@
  *
  * Every `####` requirement block must be well-formed EARS (one `shall`, a
  * named system, one of the five patterns, no vague language), and an Enforced
- * block must name a script, job or file that exists. The checks are in
+ * block must name a script, job or file that exists. Every "Verified by"
+ * opens each clause with `Test:`, `Gate:`, `Review:` or `To add:`, and every
+ * Jest test file it cites carries the block's id in a test title. The checks are in
  * `charter-audit-core.ts`, which the unit suite drives with fixtures; this
  * file gathers what exists and prints the findings.
  *
@@ -67,6 +69,7 @@ function main(): void {
     scripts: new Set(Object.keys(pkg.scripts ?? {})),
     ...workflowMechanisms(),
     files,
+    readFile: (file) => readFileSync(path.join(ROOT, file), 'utf-8'),
   });
 
   const enforced = blocks.filter((b) => b.status === 'Enforced').length;
@@ -88,7 +91,7 @@ function main(): void {
     process.exit(1);
   }
   console.log(
-    `PASS: every requirement in ${CHARTER} is well-formed EARS and every Enforced row names its mechanism.`,
+    `PASS: every requirement in ${CHARTER} is well-formed EARS, labels its evidence, and names the mechanism it is Enforced by; every test file it cites names it.`,
   );
 }
 

@@ -15,7 +15,14 @@
  *   - an Enforced block: its "Verified by" names at least one mechanism that
  *     exists: an npm script (`npm run x`), a job or workflow in
  *     `.github/workflows/`, a path in the repository, or a GitHub setting
- *     the repository cannot hold in a file (branch protection).
+ *     the repository cannot hold in a file (branch protection);
+ *   - the evidence labels: every "Verified by" is a run of clauses, each
+ *     opening with `Test:`, `Gate:`, `Review:` or `To add:`, and an Enforced
+ *     block has a `Test:` or `Gate:` clause; a `Test:` clause names a path
+ *     under `tests/`;
+ *   - the test titles: every Jest test file (a `.test.ts` under `tests/`) a "Verified
+ *     by" names carries the block's id in a `describe`, `it` or `test` title,
+ *     so the test says which requirement it checks.
  *
  * Pure: the caller supplies the Markdown and what exists (scripts, jobs,
  * workflows, tracked files), so the unit suite can drive it with fixtures.
@@ -81,6 +88,8 @@ export interface Mechanisms {
   workflows: ReadonlySet<string>;
   /** Repository-relative paths of tracked files, forward slashes. */
   files: readonly string[];
+  /** The source of a tracked file, for the test-title check. */
+  readFile: (file: string) => string;
 }
 
 // A Markdown heading may be indented by up to three spaces.
@@ -277,6 +286,181 @@ export function checkVerifiedBy(
     : `names nothing that exists: ${tokens.map((t) => `\`${t}\``).join(', ')}`;
 }
 
+/**
+ * The labels a "Verified by" clause opens with. `Test:` cites tests, `Gate:`
+ * a script, workflow job, tool or setting that fails on a violation,
+ * `Review:` what only a person checks, and `To add:` what does not exist yet.
+ */
+export const EVIDENCE_LABELS = ['Test', 'Gate', 'Review', 'To add'] as const;
+export type EvidenceLabel = (typeof EVIDENCE_LABELS)[number];
+
+const LABEL_LIST = EVIDENCE_LABELS.map((l) => `\`${l}:\``).join(', ');
+
+export interface EvidenceClause {
+  label: EvidenceLabel;
+  text: string;
+}
+
+// A label opens the bullet or a sentence (after `.` or `;`).
+const LABEL = new RegExp(
+  `(?:^|(?<=[.;]\\s))(${EVIDENCE_LABELS.join('|')}):\\s`,
+  'g',
+);
+
+/**
+ * Split a "Verified by" into its labelled clauses. Text before the first
+ * label is returned as `unlabelled`, which the audit reports.
+ */
+export function evidenceClauses(verifiedBy: string): {
+  unlabelled: string;
+  clauses: EvidenceClause[];
+} {
+  const text = verifiedBy.trim();
+  const starts = [...text.matchAll(LABEL)];
+  const clauses = starts.map((m, i) => ({
+    label: m[1] as EvidenceLabel,
+    text: text
+      .slice(m.index + m[0].length, starts[i + 1]?.index ?? text.length)
+      .trim(),
+  }));
+  return {
+    unlabelled: text.slice(0, starts[0]?.index ?? text.length).trim(),
+    clauses,
+  };
+}
+
+/** Whether a tracked path is a Jest test file under `tests/`. */
+function isJestTest(file: string): boolean {
+  return /^tests\/.+\.test\.ts$/.test(file);
+}
+
+/**
+ * The titles of the `describe`, `it` and `test` calls in a test file: the
+ * string literal each call opens with. A modifier (`.only`, `.skip`), a gated
+ * alias (`describeIfGated`) and the conditional form
+ * `(canRun ? describe : describe.skip)(...)` are read too; a title built by
+ * `.each` from a table is not.
+ */
+export function testTitles(source: string): string[] {
+  const titles: string[] = [];
+  const call =
+    /\b(?:describe|it|test)(?:If[A-Z]\w*)?(?:\.(?:only|skip|concurrent|failing))?\s*\)?\s*\(\s*(['"`])/g;
+  for (const m of source.matchAll(call)) {
+    const title = quoted(source, m.index + m[0].length, m[1]!);
+    if (title !== null) titles.push(title);
+  }
+  return titles;
+}
+
+/**
+ * The text of a string literal from `start` up to its closing `quote`, with
+ * escapes left as written; null when the literal does not close.
+ */
+function quoted(source: string, start: number, quote: string): string | null {
+  for (let i = start; i < source.length; i += 1) {
+    if (source[i] === '\\') i += 1;
+    else if (source[i] === quote) return source.slice(start, i);
+  }
+  return null;
+}
+
+/** Whether a title names the id as a whole word (`SEC-03`, not `SEC-030`). */
+function titleNames(title: string, id: string): boolean {
+  return new RegExp(`(?<![A-Z0-9-])${id}(?![0-9])`).test(title);
+}
+
+/**
+ * The Jest test files a "Verified by" names in backticks: a tracked path, or
+ * a bare file name (`security.test.ts`) resolved to the tracked test files
+ * that end with it. A bare name more than one file has is returned with
+ * every match, for the audit to report. Directories are not expanded.
+ */
+export function citedTestFiles(
+  verifiedBy: string,
+  files: readonly string[],
+): { cited: string; files: string[] }[] {
+  const tests = files.filter(isJestTest);
+  const cited = new Map<string, string[]>();
+  for (const token of backticked(verifiedBy)) {
+    if (tests.includes(token)) cited.set(token, [token]);
+    else if (!token.includes('/') && token.endsWith('.test.ts')) {
+      const matches = tests.filter((f) => f.endsWith(`/${token}`));
+      if (matches.length > 0) cited.set(token, matches);
+    }
+  }
+  return [...cited].map(([token, matches]) => ({
+    cited: token,
+    files: matches,
+  }));
+}
+
+/**
+ * Whether a backticked token names a test: a path under `tests/` that is a
+ * directory, a Jest or tsd test file or a feature file, or a bare test file
+ * name.
+ */
+function namesTest(token: string): boolean {
+  if (/^tests\/.*(\/|\.test\.ts|\.test-d\.ts|\.feature)$/.test(token))
+    return true;
+  return !token.includes('/') && /\.test(-d)?\.ts$/.test(token);
+}
+
+/**
+ * The evidence rules: labelled clauses, a `Test:` or `Gate:` clause on an
+ * Enforced block, a `Test:` clause that names a test, and the block's id in
+ * a title of every Jest test file the "Verified by" cites.
+ */
+export function checkEvidence(
+  block: Pick<CharterBlock, 'id' | 'status' | 'verifiedBy'>,
+  mechanisms: Pick<Mechanisms, 'files' | 'readFile'>,
+): string[] {
+  if (block.verifiedBy.trim().length === 0) return [];
+  const problems: string[] = [];
+  const { unlabelled, clauses } = evidenceClauses(block.verifiedBy);
+  if (unlabelled.length > 0) {
+    problems.push(
+      `"Verified by" opens without a label; start it with ${LABEL_LIST}`,
+    );
+  }
+  if (
+    block.status === 'Enforced' &&
+    !clauses.some((c) => c.label === 'Test' || c.label === 'Gate')
+  ) {
+    problems.push(
+      'is Enforced but its "Verified by" has no `Test:` or `Gate:` clause',
+    );
+  }
+  for (const clause of clauses.filter((c) => c.label === 'Test')) {
+    if (!backticked(clause.text).some(namesTest)) {
+      problems.push(
+        'has a `Test:` clause that names no test file or directory under `tests/`',
+      );
+    }
+  }
+  for (const { cited, files } of citedTestFiles(
+    block.verifiedBy,
+    mechanisms.files,
+  )) {
+    if (files.length > 1) {
+      problems.push(
+        `cites \`${cited}\`, which ${files.length} test files are named; give the path`,
+      );
+      continue;
+    }
+    const file = files[0]!;
+    if (
+      !testTitles(mechanisms.readFile(file)).some((t) =>
+        titleNames(t, block.id),
+      )
+    ) {
+      problems.push(
+        `cites \`${file}\`, which has no describe, it or test title naming ${block.id}`,
+      );
+    }
+  }
+  return problems;
+}
+
 /** Audit every block; an empty list means the charter passes. */
 export function auditCharter(
   blocks: readonly CharterBlock[],
@@ -352,6 +536,7 @@ export function auditCharter(
       const reason = checkVerifiedBy(b.verifiedBy, mechanisms);
       if (reason) add(b, `is Enforced but its "Verified by" ${reason}`);
     }
+    for (const problem of checkEvidence(b, mechanisms)) add(b, problem);
   }
   return findings;
 }

@@ -93,7 +93,7 @@ function writeScopes(permissions: Permissions | undefined): string[] {
     .sort();
 }
 
-describe('workflow token permissions', () => {
+describe('SEC-03: workflow token permissions', () => {
   const files = workflowFiles();
 
   it('finds the workflows', () => {
@@ -112,7 +112,7 @@ describe('workflow token permissions', () => {
     }
   });
 
-  it('grants job-level write scopes only where WRITE_SCOPES lists them', () => {
+  it('grants job-level write scopes only where WRITE_SCOPES lists them (GATE-05: every issue-filing report job is listed)', () => {
     const found: Record<string, string[]> = {};
     for (const file of files) {
       for (const [job, def] of Object.entries(load(file).jobs ?? {})) {
@@ -127,7 +127,7 @@ describe('workflow token permissions', () => {
   });
 });
 
-describe('signed releases', () => {
+describe('SEC-04: signed releases', () => {
   const release = load('release.yml');
   const job = release.jobs?.['sign-and-publish-assets'];
   const runs = (job?.steps ?? [])

@@ -24,7 +24,7 @@ const clientLoggingTo = (logger: ReturnType<typeof spyLogger>): ApiClient => {
   return client;
 };
 
-describe('log call sites use the per-client logger', () => {
+describe('ARCH-09: log call sites use the per-client logger', () => {
   const original = getLogger();
   let global: ReturnType<typeof spyLogger>;
 

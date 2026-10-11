@@ -42,7 +42,7 @@ if (GATED_TESTS_ENABLED) {
 // Location
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Location', () => {
+describeIfGated('TEST-08: Gated Auth: Location', () => {
   afterAll(() => delay(500));
 
   it('getCharacterLocation returns solar_system_id', async () => {
@@ -68,7 +68,7 @@ describeIfGated('Gated Auth: Location', () => {
 // Skills
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Skills', () => {
+describeIfGated('TEST-08: Gated Auth: Skills', () => {
   afterAll(() => delay(500));
 
   it('getCharacterSkills returns total_sp and skills array', async () => {
@@ -98,7 +98,7 @@ describeIfGated('Gated Auth: Skills', () => {
 // Wallet
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Wallet', () => {
+describeIfGated('TEST-08: Gated Auth: Wallet', () => {
   afterAll(() => delay(500));
 
   it('getCharacterWallet returns a number (ISK balance)', async () => {
@@ -122,7 +122,7 @@ describeIfGated('Gated Auth: Wallet', () => {
 // Assets
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Assets', () => {
+describeIfGated('TEST-08: Gated Auth: Assets', () => {
   afterAll(() => delay(500));
 
   it('getCharacterAssets returns an array', async () => {
@@ -135,7 +135,7 @@ describeIfGated('Gated Auth: Assets', () => {
 // Characters (authenticated endpoints)
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Characters', () => {
+describeIfGated('TEST-08: Gated Auth: Characters', () => {
   afterAll(() => delay(500));
 
   it('getCharacterBlueprints returns an array', async () => {
@@ -170,7 +170,7 @@ describeIfGated('Gated Auth: Characters', () => {
 // Clones
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Clones', () => {
+describeIfGated('TEST-08: Gated Auth: Clones', () => {
   afterAll(() => delay(500));
 
   it('getClones returns home_location', async () => {
@@ -188,7 +188,7 @@ describeIfGated('Gated Auth: Clones', () => {
 // Contacts
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Contacts', () => {
+describeIfGated('TEST-08: Gated Auth: Contacts', () => {
   afterAll(() => delay(500));
 
   it('getCharacterContacts returns an array', async () => {
@@ -206,7 +206,7 @@ describeIfGated('Gated Auth: Contacts', () => {
 // Killmails
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Killmails', () => {
+describeIfGated('TEST-08: Gated Auth: Killmails', () => {
   afterAll(() => delay(500));
 
   it('getCharacterRecentKillmails returns an array', async () => {
@@ -220,7 +220,7 @@ describeIfGated('Gated Auth: Killmails', () => {
 // Mail
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Mail', () => {
+describeIfGated('TEST-08: Gated Auth: Mail', () => {
   afterAll(() => delay(500));
 
   it('getMailHeaders returns an array', async () => {
@@ -244,7 +244,7 @@ describeIfGated('Gated Auth: Mail', () => {
 // Fittings
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Fittings', () => {
+describeIfGated('TEST-08: Gated Auth: Fittings', () => {
   afterAll(() => delay(500));
 
   it('getFittings returns an array', async () => {
@@ -257,7 +257,7 @@ describeIfGated('Gated Auth: Fittings', () => {
 // Industry
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Industry', () => {
+describeIfGated('TEST-08: Gated Auth: Industry', () => {
   afterAll(() => delay(500));
 
   it('getCharacterIndustryJobs returns an array', async () => {
@@ -275,7 +275,7 @@ describeIfGated('Gated Auth: Industry', () => {
 // Market (authenticated)
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Market', () => {
+describeIfGated('TEST-08: Gated Auth: Market', () => {
   afterAll(() => delay(500));
 
   it('getCharacterOrders returns an array', async () => {
@@ -293,7 +293,7 @@ describeIfGated('Gated Auth: Market', () => {
 // Loyalty
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Loyalty', () => {
+describeIfGated('TEST-08: Gated Auth: Loyalty', () => {
   afterAll(() => delay(500));
 
   it('getLoyaltyPoints returns an array', async () => {
@@ -306,7 +306,7 @@ describeIfGated('Gated Auth: Loyalty', () => {
 // Contracts
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Contracts', () => {
+describeIfGated('TEST-08: Gated Auth: Contracts', () => {
   afterAll(() => delay(500));
 
   it('getCharacterContracts returns an array', async () => {
@@ -319,7 +319,7 @@ describeIfGated('Gated Auth: Contracts', () => {
 // Calendar
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Calendar', () => {
+describeIfGated('TEST-08: Gated Auth: Calendar', () => {
   afterAll(() => delay(500));
 
   it('getCalendarEvents returns an array', async () => {
@@ -332,7 +332,7 @@ describeIfGated('Gated Auth: Calendar', () => {
 // Search (authenticated)
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Search', () => {
+describeIfGated('TEST-08: Gated Auth: Search', () => {
   afterAll(() => delay(500));
 
   it('characterSearch returns results object', async () => {
@@ -350,7 +350,7 @@ describeIfGated('Gated Auth: Search', () => {
 // Factions (character stats)
 // ---------------------------------------------------------------------------
 
-describeIfGated('Gated Auth: Faction Warfare', () => {
+describeIfGated('TEST-08: Gated Auth: Faction Warfare', () => {
   it('getCharacterStats returns stats or empty', async () => {
     try {
       const result = await client.factions.getCharacterStats(characterId);

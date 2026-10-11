@@ -91,7 +91,7 @@ function runCli(
   }
 }
 
-describe('sde-spec-coverage: the provider interface', () => {
+describe('TEST-10: sde-spec-coverage: the provider interface', () => {
   it('reads every method with the family comment above it, in file order', () => {
     expect(readProviderMethods(PROJECT)).toEqual([
       { name: 'getType', family: 'Types' },
@@ -114,7 +114,7 @@ describe('sde-spec-coverage: the provider interface', () => {
   });
 });
 
-describe('sde-spec-coverage: what counts as coverage', () => {
+describe('TEST-10: sde-spec-coverage: what counts as coverage', () => {
   const report = analyseCoverage(PROJECT);
 
   it('is not broken: every step of the fixture resolves to one file', () => {
@@ -215,7 +215,7 @@ describe('sde-spec-coverage: what counts as coverage', () => {
   });
 });
 
-describe('sde-spec-coverage: the baseline ratchet', () => {
+describe('TEST-10: sde-spec-coverage: the baseline ratchet', () => {
   const report = analyseCoverage(PROJECT);
   const measured = parseBaseline(serializeBaseline(report));
   const sameOnBase = { ref: 'origin/master', baseline: measured };
@@ -324,7 +324,7 @@ describe('sde-spec-coverage: the baseline ratchet', () => {
   });
 });
 
-describe('sde-spec-coverage: the command line', () => {
+describe('TEST-10: sde-spec-coverage: the command line', () => {
   let scratch: string;
 
   beforeEach(() => {
@@ -457,7 +457,7 @@ describe('sde-spec-coverage: the command line', () => {
   });
 });
 
-describe('sde-spec-coverage: this repository', () => {
+describe('TEST-10: sde-spec-coverage: this repository', () => {
   const report = analyseCoverage(REPO_ROOT);
 
   it('reads the real interface and resolves every SDE step', () => {

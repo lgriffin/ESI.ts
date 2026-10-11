@@ -355,7 +355,7 @@ const FAMILY_SMOKE: FamilySmoke[] = [
   },
 ];
 
-(canRun ? describe : describe.skip)('Real SDE data validation', () => {
+(canRun ? describe : describe.skip)('TEST-08: real SDE data validation', () => {
   let sde: IStaticDataProvider;
 
   beforeAll(() => {
