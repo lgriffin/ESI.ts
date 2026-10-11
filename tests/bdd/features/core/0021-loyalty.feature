@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Loyalty Management
   The Loyalty client covers the two ESI loyalty endpoints: a character's
   loyalty point balances per NPC corporation, and the store offers an NPC

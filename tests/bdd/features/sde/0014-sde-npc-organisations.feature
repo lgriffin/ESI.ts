@@ -1,3 +1,4 @@
+@TEST-10
 Feature: NPC Organisations
   New Eden's NPC corporations, their stations, their named characters and
   their agents are reference data a mission tool, a standings tracker or a

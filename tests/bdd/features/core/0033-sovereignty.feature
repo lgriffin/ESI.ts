@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Sovereignty
   The Sovereignty client covers null-security space ownership: the campaigns
   currently being contested over TCUs and IHubs, and the combined systems

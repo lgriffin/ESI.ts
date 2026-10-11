@@ -1,24 +1,26 @@
 import { z } from 'zod';
 import { esiEnum } from './esiEnum';
 
+/** One entry in `GET /corporations/{corporation_id}/structures/sovereignty-hubs`. */
 export const SovereigntyHubSchema = z.looseObject({
-  structure_id: z.number(),
-  system_id: z.number(),
-  corporation_id: z.number(),
-  alliance_id: z.number().optional(),
-  online: z.boolean(),
-  remaining_reagents: z.number().optional(),
-  installed_upgrades: z.array(z.number()).optional(),
+  id: z.number(),
+  solar_system_id: z.number(),
 });
 
+/** `GET /corporations/{corporation_id}/structures/sovereignty-hubs`: ESI wraps the list in `sovereignty_hubs`. */
+export const SovereigntyHubsResponseSchema = z.looseObject({
+  sovereignty_hubs: z.array(SovereigntyHubSchema),
+});
+
+/** One entry in `GET /corporations/{corporation_id}/structures/skyhooks`. */
 export const OrbitalSkyhookSchema = z.looseObject({
-  structure_id: z.number(),
-  system_id: z.number(),
-  corporation_id: z.number(),
-  alliance_id: z.number().optional(),
-  online: z.boolean(),
-  reagent_silo_capacity: z.number().optional(),
-  reagent_silo_level: z.number().optional(),
+  id: z.number(),
+  planet_id: z.number(),
+});
+
+/** `GET /corporations/{corporation_id}/structures/skyhooks`: ESI wraps the list in `skyhooks`. */
+export const OrbitalSkyhooksResponseSchema = z.looseObject({
+  skyhooks: z.array(OrbitalSkyhookSchema),
 });
 
 /** One skyhook in `GET /skyhooks/raidable`, and its theft window. */
@@ -73,7 +75,7 @@ export const SkyhookDetailSchema = z.looseObject({
 export const SovereigntyHubDetailReagentSchema = z.looseObject({
   type_id: z.number(),
   amount: z.number(),
-  burning_per_hour: z.number().optional(),
+  burning_per_hour: z.number(),
 });
 
 export const SovereigntyHubDetailReagentBaySchema = z.looseObject({
@@ -82,8 +84,8 @@ export const SovereigntyHubDetailReagentBaySchema = z.looseObject({
 });
 
 export const SovereigntyHubDetailResourceSchema = z.looseObject({
-  available: z.number().optional(),
-  used: z.number().optional(),
+  available: z.number(),
+  allocated: z.number(),
 });
 
 export const SovereigntyHubDetailResourcesSchema = z.looseObject({
@@ -101,7 +103,14 @@ export const SovereigntyHubDetailVulnerabilityWindowSchema = z.looseObject({
   end: z.string(),
 });
 
-export const SovereigntyHubDetailTransportSchema = z.looseObject({});
+/**
+ * Workforce transport. `configuration` and `state` are each one of `import`,
+ * `export` or `transit` (a `oneOf` in the spec), kept free-form.
+ */
+export const SovereigntyHubDetailTransportSchema = z.looseObject({
+  configuration: z.looseObject({}),
+  state: z.looseObject({}),
+});
 
 export const SovereigntyHubDetailSchema = z.looseObject({
   id: z.number(),

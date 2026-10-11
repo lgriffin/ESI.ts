@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Market Management
   The Market client covers the four market surfaces ESI exposes: the global
   price list, the live order book of a region, the daily history of a type in a

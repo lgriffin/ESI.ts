@@ -30,39 +30,26 @@ defineFeature(feature, (test) => {
     client = createSeamClient();
   });
 
-  test('Hub listing reports an online hub with upgrades and an offline hub without', ({
+  test("Hub listing gives each hub's id and solar system", ({
     given,
     when,
     then,
   }) => {
     let result: any;
-    const expectedHubs = [
-      {
-        structure_id: 1046000000001,
-        system_id: 30004759,
-        corporation_id: TEST_CORPORATION_ID,
-        alliance_id: 99000006,
-        online: true,
-        remaining_reagents: 500,
-        installed_upgrades: [81615, 81619, 81621],
-      },
-      {
-        structure_id: 1046000000002,
-        system_id: 30004760,
-        corporation_id: TEST_CORPORATION_ID,
-        alliance_id: 99000006,
-        online: false,
-        remaining_reagents: 0,
-        installed_upgrades: [],
-      },
-    ];
+    // The shape the ESI spec declares: the list wrapped in sovereignty_hubs.
+    const hubsResponse = {
+      sovereignty_hubs: [
+        { id: 1046000000001, solar_system_id: 30004759 },
+        { id: 1046000000002, solar_system_id: 30004760 },
+      ],
+    };
 
     given('sovereignty hubs exist', () => {
       queueResponse({
         match: exactPath(
           `/corporations/${TEST_CORPORATION_ID}/structures/sovereignty-hubs`,
         ),
-        body: expectedHubs,
+        body: hubsResponse,
       });
     });
 
@@ -71,7 +58,7 @@ defineFeature(feature, (test) => {
     });
 
     then(
-      'the client shall return hub data with online status and upgrades',
+      'the client shall return the sovereignty_hubs list with ids and solar systems',
       () => {
         expect(lastRequest().url.pathname).toBe(
           `/corporations/${TEST_CORPORATION_ID}/structures/sovereignty-hubs`,
@@ -80,52 +67,35 @@ defineFeature(feature, (test) => {
           'Bearer bdd-access-token',
         );
         expect(
-          result.map((h: any) => [
-            h.structure_id,
-            h.online,
-            h.installed_upgrades,
-          ]),
+          result.sovereignty_hubs.map((h: any) => [h.id, h.solar_system_id]),
         ).toEqual([
-          [1046000000001, true, [81615, 81619, 81621]],
-          [1046000000002, false, []],
+          [1046000000001, 30004759],
+          [1046000000002, 30004760],
         ]);
       },
     );
   });
 
-  test('Skyhook listing reports silo capacity and current fill level', ({
+  test("Skyhook listing gives each skyhook's id and planet", ({
     given,
     when,
     then,
   }) => {
     let result: any;
-    const expectedSkyhooks = [
-      {
-        structure_id: 1047000000001,
-        system_id: 30004759,
-        corporation_id: TEST_CORPORATION_ID,
-        alliance_id: 99000006,
-        online: true,
-        reagent_silo_capacity: 1000,
-        reagent_silo_level: 750,
-      },
-      {
-        structure_id: 1047000000002,
-        system_id: 30004760,
-        corporation_id: TEST_CORPORATION_ID,
-        alliance_id: 99000006,
-        online: true,
-        reagent_silo_capacity: 1000,
-        reagent_silo_level: 120,
-      },
-    ];
+    // The shape the ESI spec declares: the list wrapped in skyhooks.
+    const skyhooksResponse = {
+      skyhooks: [
+        { id: 1047000000001, planet_id: 40302401 },
+        { id: 1047000000002, planet_id: 40302402 },
+      ],
+    };
 
     given('orbital skyhooks are deployed', () => {
       queueResponse({
         match: exactPath(
           `/corporations/${TEST_CORPORATION_ID}/structures/skyhooks`,
         ),
-        body: expectedSkyhooks,
+        body: skyhooksResponse,
       });
     });
 
@@ -133,21 +103,18 @@ defineFeature(feature, (test) => {
       result = await client.skyhooks.getOrbitalSkyhooks(TEST_CORPORATION_ID);
     });
 
-    then('the client shall return silo capacity and levels', () => {
-      expect(lastRequest().url.pathname).toBe(
-        `/corporations/${TEST_CORPORATION_ID}/structures/skyhooks`,
-      );
-      expect(
-        result.map((s: any) => [
-          s.structure_id,
-          s.reagent_silo_capacity,
-          s.reagent_silo_level,
-        ]),
-      ).toEqual([
-        [1047000000001, 1000, 750],
-        [1047000000002, 1000, 120],
-      ]);
-    });
+    then(
+      'the client shall return the skyhooks list with ids and planets',
+      () => {
+        expect(lastRequest().url.pathname).toBe(
+          `/corporations/${TEST_CORPORATION_ID}/structures/skyhooks`,
+        );
+        expect(result.skyhooks.map((s: any) => [s.id, s.planet_id])).toEqual([
+          [1047000000001, 40302401],
+          [1047000000002, 40302402],
+        ]);
+      },
+    );
   });
 
   test("Raidable listing gives each skyhook's planet and theft window", ({
@@ -277,7 +244,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Hub detail returns upgrade power state, reagent bay, and resource pools', ({
+  test('Hub detail returns upgrade power state, reagent burn rate, resource pools, and workforce transport', ({
     given,
     when,
     then,
@@ -296,10 +263,13 @@ defineFeature(feature, (test) => {
         reagents: [{ type_id: 81143, amount: 500, burning_per_hour: 10 }],
       },
       resources: {
-        power: { available: 100, used: 60 },
-        workforce: { available: 1000, used: 750 },
+        power: { available: 100, allocated: 60 },
+        workforce: { available: 1000, allocated: 750 },
       },
-      workforce_transport: {},
+      workforce_transport: {
+        configuration: { export: { amount: 250, solar_system_id: 30004760 } },
+        state: { export: { amount: 200, solar_system_id: 30004760 } },
+      },
       vulnerability_window: {
         start: '2026-05-23T12:00:00Z',
         end: '2026-05-23T16:00:00Z',
@@ -327,6 +297,17 @@ defineFeature(feature, (test) => {
         `/corporations/${TEST_CORPORATION_ID}/structures/sovereignty-hubs/${hubId}`,
       );
       expect(result).toEqual(expectedDetail);
+      expect(
+        result.reagent_bay.reagents.map((r: any) => r.burning_per_hour),
+      ).toEqual([10]);
+      expect(result.resources.workforce).toEqual({
+        available: 1000,
+        allocated: 750,
+      });
+      expect(Object.keys(result.workforce_transport)).toEqual([
+        'configuration',
+        'state',
+      ]);
     });
   });
 

@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Industry Reference Tables
   Feature 0004 looks up one blueprint and one planetary schematic. Industry
   also needs the schematic table whole, the industry activities a job can

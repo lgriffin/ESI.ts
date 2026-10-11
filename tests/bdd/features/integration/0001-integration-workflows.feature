@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Integration Workflows
   Real applications rarely call one ESI route. Building a character sheet, a
   trading view or a fleet roster means fanning out across several domain

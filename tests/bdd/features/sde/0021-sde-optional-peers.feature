@@ -68,6 +68,7 @@ Feature: Optional Peer Dependencies
 
   # ── Neither peer needed ──────────────────────────────────────────────
 
+  @TEST-11
   Rule: If neither js-yaml nor adm-zip is installed, then the ./sde entry point shall not require either package to load or to serve a MemorySdeProvider.
     The peers are loaded on the first read of a YAML file or an archive,
     never at import. An application that builds its provider from records it

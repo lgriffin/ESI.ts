@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Route Navigation Management
   The Route client wraps ESI's single routing endpoint, which computes a path
   through the stargate network between two solar systems. The result is a flat

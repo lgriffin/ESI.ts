@@ -1,32 +1,34 @@
+@TEST-10
 Feature: Access Lists
   The Access Lists client reads the named permission lists a character owns,
-  the ones that decide who may dock at a structure, use a service, or join a
-  fleet. A list is an identifier and a name plus entries, and each entry names
-  a character, corporation, or alliance and states whether that entity is
-  allowed or blocked. The endpoint is character-scoped and token-gated.
+  the ones that decide who may dock at a structure, use a service, or refuel a
+  sovereignty hub. A list is an identifier, a name and a description plus its
+  membership: whether everyone is allowed, and the alliances, corporations and
+  characters it names, each with an access level of Allowed, Blocked, Manager
+  or Admin. The endpoint is character-scoped and token-gated.
 
   # ── List contents ───────────────────────────────────────────────────
 
-  Rule: When an access list is requested, the Access Lists client shall return its identifier, its name, and one entry per listed entity carrying the entity type and access type.
-    A single list mixes entity granularities, so a character allowance and an
-    alliance block sit side by side in the same entries array. The access type
-    is per entry rather than per list, which is what lets one list express
-    both an allow set and a deny set.
+  Rule: When an access list is requested, the Access Lists client shall return its id, name, description and membership, with one entry per listed alliance, corporation and character carrying that member's access level.
+    ESI groups the membership by entity kind, so an alliance block and a
+    character admin sit in separate arrays of the same record. The access
+    level is per member rather than per list, which is what lets one list
+    express an allow set, a deny set and its managers together.
 
-    Scenario: List mixing character, corporation, and alliance entries returns both access types
+    Scenario: List with alliance, corporation, and character members returns each access level
       Given an access list exists with characters, corporations, and alliances
       When the client requests the access list
-      Then the client shall return all entries with their access types
+      Then the client shall return every member with its access level
 
-  Rule: If an access list has no entries, then the Access Lists client shall return the list record with an empty entries array.
+  Rule: If an access list has no members, then the Access Lists client shall return the list record with empty alliances, corporations and characters arrays.
     A list created but not yet populated still has an identifier and a name.
-    Returning the record with an empty array rather than a 404 keeps the
-    difference between "list not created" and "list is empty" visible.
+    Returning the record with empty membership arrays rather than a 404 keeps
+    the difference between "list not created" and "list is empty" visible.
 
-    Scenario: Empty list returns its identifier with a zero-length entries array
+    Scenario: Empty list returns its identifier with zero-length membership arrays
       Given an empty access list exists
       When the client requests the empty access list
-      Then the client shall return the list with an empty entries array
+      Then the client shall return the list with empty membership arrays
 
   # ── Rejected requests ───────────────────────────────────────────────
 

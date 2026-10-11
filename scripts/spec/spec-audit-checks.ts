@@ -221,11 +221,16 @@ export interface Exceptions {
    * Ratcheted the same way; see `spec-audit-steps.ts`.
    */
   legacyStepFiles: string[];
+  /**
+   * Feature files no charter requirement covers, so they carry no charter
+   * tag. Ratcheted the same way; see `checkUnchartedList`.
+   */
+  unchartedFeatures: string[];
 }
 
 export function loadExceptions(): Exceptions {
   if (!existsSync(EXCEPTIONS_PATH)) {
-    return { unconverted: [], legacyStepFiles: [] };
+    return { unconverted: [], legacyStepFiles: [], unchartedFeatures: [] };
   }
   const parsed = JSON.parse(readFileSync(EXCEPTIONS_PATH, 'utf-8')) as Partial<
     Exceptions & { $comment?: string }
@@ -233,6 +238,7 @@ export function loadExceptions(): Exceptions {
   return {
     unconverted: parsed.unconverted ?? [],
     legacyStepFiles: parsed.legacyStepFiles ?? [],
+    unchartedFeatures: parsed.unchartedFeatures ?? [],
   };
 }
 
@@ -256,6 +262,8 @@ export function loadBaselineExceptions(): {
    * told apart from the list being introduced.
    */
   legacyStepFiles: Set<string> | null;
+  /** `unchartedFeatures` on the integration branch, or null when it has none yet. */
+  unchartedFeatures: Set<string> | null;
   ref: string | null;
 } {
   const relPath = path
@@ -286,6 +294,9 @@ export function loadBaselineExceptions(): {
         legacyStepFiles: Array.isArray(parsed.legacyStepFiles)
           ? new Set(parsed.legacyStepFiles)
           : null,
+        unchartedFeatures: Array.isArray(parsed.unchartedFeatures)
+          ? new Set(parsed.unchartedFeatures)
+          : null,
         ref,
       };
     } catch {
@@ -293,7 +304,12 @@ export function loadBaselineExceptions(): {
     }
   }
 
-  return { entries: new Set(), legacyStepFiles: new Set(), ref: null };
+  return {
+    entries: new Set(),
+    legacyStepFiles: new Set(),
+    unchartedFeatures: new Set(),
+    ref: null,
+  };
 }
 
 export interface ExceptionProblems {
@@ -417,4 +433,145 @@ export function checkBugTags(
   }
 
   return errors;
+}
+
+// ---------------------------------------------------------------------------
+// Charter tags
+// ---------------------------------------------------------------------------
+
+export const CHARTER_PATH = path.resolve(REPO_ROOT, 'guides', 'CHARTER.md');
+
+/**
+ * A tag naming a requirement of `guides/CHARTER.md`: `@DES-08`, `@SEC-10`.
+ * Upper case, so it cannot be mistaken for a security-model tag (`@sec-P4`)
+ * or a bead (`@esi-23g`).
+ */
+export const CHARTER_TAG = /^@([A-Z]+-\d+)$/;
+
+/** The charter requirement ids among `tags`, without the `@`, once each, in order. */
+export function charterIds(tags: readonly string[]): string[] {
+  const ids = tags
+    .map((tag) => CHARTER_TAG.exec(tag)?.[1])
+    .filter((id): id is string => id !== undefined);
+  return [...new Set(ids)];
+}
+
+/** One `#### <ID> · <kind> · <status>` heading per requirement. */
+const CHARTER_HEADING = /^####\s+([A-Z]+-\d+)\s+·/;
+
+/** Every requirement id the charter text defines. */
+export function parseCharterIds(text: string): Set<string> {
+  const ids = new Set<string>();
+  for (const line of text.split(/\r?\n/)) {
+    const id = CHARTER_HEADING.exec(line)?.[1];
+    if (id) ids.add(id);
+  }
+  return ids;
+}
+
+/**
+ * Every requirement id in `guides/CHARTER.md`, or null when the charter cannot
+ * be read, so a caller refuses a tag it cannot check rather than accepting it.
+ */
+export function loadCharterIds(
+  file: string = CHARTER_PATH,
+): Set<string> | null {
+  try {
+    return parseCharterIds(readFileSync(file, 'utf-8'));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Findings for the tags of one element: each charter tag must name a
+ * requirement the charter defines. A tag naming a retired or mistyped id is a
+ * trace that leads nowhere.
+ */
+export function checkCharterTags(
+  tags: readonly string[],
+  known: ReadonlySet<string> | null,
+): string[] {
+  const errors: string[] = [];
+  for (const tag of tags) {
+    const id = /^@([A-Za-z]+-\d+)$/.exec(tag)?.[1];
+    if (id && !CHARTER_TAG.test(tag) && known?.has(id.toUpperCase())) {
+      errors.push(
+        `Tag ${tag} names charter requirement ${id.toUpperCase()} in the ` +
+          `wrong case. Write it as @${id.toUpperCase()}.`,
+      );
+    }
+  }
+  for (const id of charterIds(tags)) {
+    if (known === null) {
+      errors.push(
+        `Tag @${id} names a charter requirement, but guides/CHARTER.md could ` +
+          'not be read, so the reference cannot be checked.',
+      );
+    } else if (!known.has(id)) {
+      errors.push(
+        `Tag @${id} names no requirement in guides/CHARTER.md. Use the id of ` +
+          'a "#### <ID> · <kind> · <status>" block, or correct the tag.',
+      );
+    }
+  }
+  return errors;
+}
+
+/**
+ * The feature files a requirement's "Verified by" line names, as
+ * `[id, feature path]` pairs. A requirement that cites a feature as its
+ * evidence while the feature does not carry the requirement's tag is a trace
+ * that holds in one direction only.
+ */
+export function charterFeatureCitations(text: string): Array<[string, string]> {
+  const citations: Array<[string, string]> = [];
+  let id: string | null = null;
+  for (const line of text.split(/\r?\n/)) {
+    const heading = CHARTER_HEADING.exec(line);
+    if (heading) {
+      id = heading[1]!;
+      continue;
+    }
+    if (/^#{1,3}\s/.test(line)) id = null;
+    if (!id || !/^\s*-\s+\*\*Verified by:\*\*/.test(line)) continue;
+    for (const match of line.matchAll(
+      /tests\/bdd\/features\/[\w./-]+\.feature/g,
+    )) {
+      citations.push([id, match[0]]);
+    }
+  }
+  return citations;
+}
+
+export interface UnchartedProblems {
+  /** Entries absent from the baseline: the list grew. */
+  added: string[];
+  /** Entries that do not name a feature file on disk. */
+  dangling: string[];
+  /** Entries whose feature now carries a charter tag. */
+  stale: string[];
+}
+
+/**
+ * `unchartedFeatures` names the features no charter requirement covers. It
+ * is a ratchet like `unconverted`: an entry may not be added against the
+ * integration branch (unless that branch has no such list yet, the null
+ * baseline), must name a feature file, and must come out once its feature
+ * carries a charter tag.
+ */
+export function checkUnchartedList(
+  listed: readonly string[],
+  baseline: ReadonlySet<string> | null,
+  tagged: ReadonlySet<string>,
+  exists: (rel: string) => boolean = (rel) =>
+    existsSync(path.resolve(REPO_ROOT, rel)),
+): UnchartedProblems {
+  const problems: UnchartedProblems = { added: [], dangling: [], stale: [] };
+  for (const rel of listed) {
+    if (baseline && !baseline.has(rel)) problems.added.push(rel);
+    if (!rel.endsWith('.feature') || !exists(rel)) problems.dangling.push(rel);
+    else if (tagged.has(rel)) problems.stale.push(rel);
+  }
+  return problems;
 }

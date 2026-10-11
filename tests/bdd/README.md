@@ -281,6 +281,55 @@ Tags are inherited, so a tracker tag on a Rule covers `@bug` on each of its
 scenarios. A tracker tag on a scenario does not cover `@bug` on its Rule. Any
 `@esi-` tag must name a known bead, with or without `@bug`.
 
+### 10. Every feature names the charter requirement it verifies
+
+A charter tag is the id of a `guides/CHARTER.md` requirement, written as an
+upper-case tag: `@DES-08`, `@SEC-10`, `@TEST-10`. Put it on the Feature when
+the whole file backs that requirement, and on a Rule when only that Rule
+backs it:
+
+```gherkin
+@ARCH-04
+Feature: Resilience and Error Recovery
+  ...
+
+  @DES-08 @TEST-11
+  Rule: If a non-GET request issued by a stream or fetch-all helper is answered with HTTP 503, then the EsiClient shall not send the request again.
+```
+
+`npm run spec:audit` fails when:
+
+- a feature carries no charter tag on the Feature or on any of its Rules;
+- a charter tag names an id with no `#### <ID> · <kind> · <status>` block in
+  the charter (a mistyped or retired id);
+- a requirement's "Verified by" line cites a feature file that does not carry
+  its tag anywhere (DES-08 cites `0051-resilience.feature`, SEC-02 cites
+  `0058-logging.feature`), or cites a feature file that does not exist.
+
+The tags in use, and what each means here:
+
+| Tag        | On                                                                                                                                                                                                                                                                                                       |
+| :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@TEST-10` | Every domain-client feature (`core/0001` to `0039`), the integration and performance features, and the SDE provider features: their Rules and bound steps are what `spec:coverage:clients` and `spec:coverage:sde` count                                                                                 |
+| `@TEST-11` | Every exclusion Rule (`If …, then the <system> shall not …`), the Rules `npm run ears` lists in its exclusion register                                                                                                                                                                                   |
+| `@SEC-10`  | Every Rule tagged `@sec-<id>`, the evidence the security model audit reads                                                                                                                                                                                                                               |
+| `@ARCH-04` | The features specifying the default retry, circuit breaker, deduplication, rate limiter, cache and transport                                                                                                                                                                                             |
+| others     | The Rule or feature whose statement matches the requirement: `@DES-08` pagination, `@SEC-02` token redaction, `@DES-04` scope and bearer, `@DES-01` undeclared fields kept, `@ARCH-07` error guards, `@ARCH-08` construction surfaces, `@ARCH-09` the client logger, `@ARCH-10` the `./sde/memory` entry |
+
+Charter tags are upper case, so they never collide with the security model's
+`@sec-<id>` tags or bead tags. A feature no requirement covers is listed under
+`unchartedFeatures` in `scripts/spec/spec-audit-exceptions.json`, with the
+reason in the file's comment. That list ratchets like `unconverted`: it gains
+no entry against the integration branch, each entry must name an existing
+feature, and an entry whose feature gains a charter tag must come out. Two
+features are on it today: `sde/0007-sde-error-handling.feature` (the SDE error
+classes) and `sde/0023-sde-ingestion.feature` (the downloader, extractor and
+database builder), which no requirement names.
+
+`npm run bdd:report` copies each scenario's charter tags (Feature, Rule and
+Scenario, merged) into `reports/bdd/scenarios.json`, so a passing scenario can
+be shown as evidence for a requirement.
+
 ## Workflow for a behaviour change
 
 1. Write or update the EARS requirement as a `Rule:` title in the right
@@ -419,12 +468,35 @@ path. A failed scenario is a `<failure>`; a scenario that did not run is an
 `<error>`. In CI the `bdd-tests` job uploads `reports/bdd/` as the `bdd-junit`
 artifact and writes the Rules not verified to the job summary.
 
+It also writes `reports/bdd/scenarios.json`, one record per scenario, for a
+tool that joins results to requirements without parsing JUnit names:
+
+```json
+{
+  "file": "tests/bdd/features/core/0051-resilience.feature",
+  "line": 380,
+  "feature": "Resilience and Error Recovery",
+  "rule": "If a non-GET request issued by a stream or fetch-all helper is answered with HTTP 503, then the EsiClient shall not send the request again.",
+  "scenario": "Streaming name resolution answered with 503 is not retried",
+  "charterTags": ["ARCH-04", "DES-08", "TEST-11"],
+  "status": "passed",
+  "testFile": "tests/bdd/step-definitions/core/resilience.steps.ts"
+}
+```
+
+`status` is `passed`, `failed` or `not-run`; `testFile` is the spec entry or
+legacy step file whose test ran the scenario, and `null` when none did.
+`charterTags` merges the charter tags of the Feature, the Rule and the
+Scenario, without the `@`. The records sit under `scenarios`, beside the
+`features` and `rules` counts; `--scenarios=<path>` writes them elsewhere. The
+`bdd-junit` artifact carries this file too.
+
 ## When a Rule is protection
 
 A Rule is protection only when three things hold, each owned by one gate:
 
 1. **It is well-formed**: `npm run spec:audit` requires one `shall`, at least
-   one Scenario, and no Scenario outside a Rule.
+   one Scenario, no Scenario outside a Rule, and a charter tag on the feature.
 2. **Its scenarios execute**: `npm run bdd:report`, above.
 3. **Its scenarios can fail**: `npm run mutation:bdd:ratchet` floors the
    BDD-only mutation score of each source directory in

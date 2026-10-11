@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Corporation Management
   The Corporations client covers the corporation endpoints of ESI: the public
   corporation record, the member list and the roles held by those members, and

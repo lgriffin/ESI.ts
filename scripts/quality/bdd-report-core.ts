@@ -19,6 +19,7 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 
 import { outlineFeature } from '../../tests/bdd/support/outline';
+import { charterIds } from '../spec/spec-audit-checks';
 
 // ---------------------------------------------------------------------------
 // Jest's JSON results (`jest --json`), as much as the report reads
@@ -64,6 +65,13 @@ export interface ScenarioCase {
   time: number;
   /** Why it failed, or why it did not run. */
   detail: string;
+  /**
+   * The charter requirement ids tagged on the Feature, the Rule and the
+   * Scenario (`DES-08`, without the `@`), once each.
+   */
+  charterTags: string[];
+  /** The Jest test file whose test ran the scenario; null when none did. */
+  testFile: string | null;
 }
 
 export type LedgerCheck = 'feature-not-run' | 'scenario-not-executed';
@@ -160,16 +168,18 @@ export function buildLedger(
     }
 
     // Each executed test counts once, so two scenarios with one title need two tests.
-    const pool = loaded.flatMap(({ result }) => result.assertionResults);
+    const pool = loaded.flatMap(({ testFile, result }) =>
+      result.assertionResults.map((assertion) => ({ testFile, assertion })),
+    );
     const used = new Set<JestAssertion>();
     const take = (title: string, statuses: (s: string) => boolean) => {
       const found = pool.find(
-        (a) =>
+        ({ assertion: a }) =>
           !used.has(a) &&
           statuses(a.status) &&
           a.title.toLowerCase() === title.toLowerCase(),
       );
-      if (found) used.add(found);
+      if (found) used.add(found.assertion);
       return found;
     };
 
@@ -184,18 +194,25 @@ export function buildLedger(
           rule: rule.title,
           scenario: scenario.title,
           line: scenario.line,
+          charterTags: charterIds([
+            ...outline.tags,
+            ...rule.tags,
+            ...scenario.tags,
+          ]),
         };
-        const executed = notRun
+        const found = notRun
           ? undefined
           : take(scenario.title, (s) => EXECUTED.has(s));
 
-        if (executed) {
+        if (found) {
+          const executed = found.assertion;
           const messages = (executed.failureMessages ?? []).map(stripAnsi);
           ledger.cases.push({
             ...base,
             status: executed.status === 'passed' ? 'passed' : 'failed',
             time: (executed.duration ?? 0) / 1000,
             detail: messages.join('\n\n'),
+            testFile: found.testFile,
           });
           continue;
         }
@@ -206,7 +223,10 @@ export function buildLedger(
           notRunCount += 1;
           firstNotRunLine ??= scenario.line;
         } else {
-          const skipped = take(scenario.title, (s) => !EXECUTED.has(s));
+          const skipped = take(
+            scenario.title,
+            (s) => !EXECUTED.has(s),
+          )?.assertion;
           detail = skipped
             ? `Not executed: the test for this scenario was ${skipped.status} in ${loaded.map((r) => r.testFile).join(' and ')}. Remove the skip, .todo or pending() so the scenario runs.`
             : `Not executed: no test named "${scenario.title}" ran in ${loaded.map((r) => r.testFile).join(' and ')}. A legacy step file names its test('…') after the scenario exactly; rename one side to match.`;
@@ -217,7 +237,13 @@ export function buildLedger(
             message: `Scenario '${scenario.title}' under Rule '${rule.title ?? '(none)'}'. ${detail}`,
           });
         }
-        ledger.cases.push({ ...base, status: 'not-executed', time: 0, detail });
+        ledger.cases.push({
+          ...base,
+          status: 'not-executed',
+          time: 0,
+          detail,
+          testFile: null,
+        });
       }
     }
 
@@ -320,6 +346,53 @@ export function toJUnit(ledger: Ledger): string {
 
   lines.push('</testsuites>', '');
   return lines.join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Scenario results as JSON
+// ---------------------------------------------------------------------------
+
+/** One record per scenario in `reports/bdd/scenarios.json`. */
+export interface ScenarioRecord {
+  /** Repository-relative feature path, forward slashes. */
+  file: string;
+  line: number;
+  feature: string;
+  rule: string | null;
+  scenario: string;
+  /** Charter requirement ids from the Feature, Rule and Scenario tags. */
+  charterTags: string[];
+  status: 'passed' | 'failed' | 'not-run';
+  /** The Jest test file that ran the scenario, or null when none did. */
+  testFile: string | null;
+}
+
+export interface ScenarioResults {
+  features: number;
+  rules: number;
+  scenarios: ScenarioRecord[];
+}
+
+/**
+ * The ledger as one JSON record per scenario, so a tool can join a result to
+ * its feature file, its Rule and the charter requirements it backs without
+ * parsing JUnit names.
+ */
+export function toScenarioResults(ledger: Ledger): ScenarioResults {
+  return {
+    features: ledger.features,
+    rules: ledger.rules,
+    scenarios: ledger.cases.map((c) => ({
+      file: c.file,
+      line: c.line,
+      feature: c.feature,
+      rule: c.rule,
+      scenario: c.scenario,
+      charterTags: c.charterTags,
+      status: c.status === 'not-executed' ? 'not-run' : c.status,
+      testFile: c.testFile,
+    })),
+  };
 }
 
 // ---------------------------------------------------------------------------

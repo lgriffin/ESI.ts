@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Character Skills
   The Skills client covers the three authenticated character skill endpoints:
   the trained skill list with its total and unallocated skill points, the

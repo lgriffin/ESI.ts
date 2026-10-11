@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Fleet Management
   A fleet is a live, short-lived command structure: a boss, a message of the
   day, a tree of wings and squads, and the members assigned into them. The

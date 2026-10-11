@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Military Campaigns
   The MilitaryCampaigns client covers the campaign endpoints: the list of
   campaigns, the detail of one campaign, the objectives inside it, and a

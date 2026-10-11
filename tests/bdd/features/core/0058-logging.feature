@@ -1,3 +1,4 @@
+@ARCH-09 @SEC-02 @SEC-10
 Feature: Log redaction
   The pipeline writes the URL of each request to the logger an application
   configures, and an application may put a credential in a query string
@@ -30,7 +31,7 @@ Feature: Log redaction
       Then the logged request URL shall carry "refresh_token" with the value "[REDACTED]"
       And no logged line shall contain "r-9f2c"
 
-  @sec-P3
+  @sec-P3 @TEST-11
   Rule: If a request carries an access token, then the client logger shall not receive that token.
     The bearer token travels in the Authorization header, and no log call
     includes request headers, so the token has no path to a log line whatever

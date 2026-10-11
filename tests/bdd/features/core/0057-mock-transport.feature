@@ -1,3 +1,4 @@
+@ARCH-04
 Feature: A mock transport for an application's own tests
   An application that uses the SDK needs its own tests to run without ESI.
   Until now it replaced `globalThis.fetch` by hand and rebuilt, in every

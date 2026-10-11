@@ -34,5 +34,10 @@
     "tests/bdd/step-definitions/core/ui.steps.ts",
     "tests/bdd/step-definitions/integration/integration-workflows.steps.ts",
     "tests/bdd/step-definitions/performance/performance.steps.ts"
+  ],
+  "$unchartedFeaturesComment": "Feature files no guides/CHARTER.md requirement covers, so they carry no charter tag (@DES-08 and the like). The same ratchet: spec-audit fails if an entry is added, if a listed file no longer exists, or if a listed file now carries a charter tag. A new feature is tagged with the requirement it verifies, never listed here. 0007 specifies the SDE error classes, which no requirement names (ARCH-07 covers the pipeline errors of ./errors); 0023 specifies the SDE downloader, extractor and database builder, which no requirement names either.",
+  "unchartedFeatures": [
+    "tests/bdd/features/sde/0007-sde-error-handling.feature",
+    "tests/bdd/features/sde/0023-sde-ingestion.feature"
   ]
 }

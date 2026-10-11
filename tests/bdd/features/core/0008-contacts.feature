@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Contact Management
   The Contacts client covers the contact lists a character or a corporation
   keeps, together with the labels used to group them. Standings on these lists

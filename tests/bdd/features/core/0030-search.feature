@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Search Management
   The Search client wraps ESI's character-scoped search: a query string plus a
   list of categories to search in, answered with the IDs that matched. It is

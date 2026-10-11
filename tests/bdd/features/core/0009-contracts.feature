@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Contract Management
   The Contracts client covers the contract endpoints of ESI: the contracts a
   character or a corporation is party to, the public contracts listed in a

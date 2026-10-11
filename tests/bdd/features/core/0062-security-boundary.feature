@@ -1,3 +1,4 @@
+@SEC-10
 Feature: Security boundary
   The library trusts the consumer's code and configuration, and nothing that
   arrives from the network. Each Rule here holds one claimed property of the
@@ -26,7 +27,7 @@ Feature: Security boundary
         | the collecting iterator |
         | the async page iterator |
 
-  @sec-P6
+  @sec-P6 @TEST-11
   Rule: If ESI answers with a redirect to another host, then the client shall not send the request or the token to that host.
     The host allowlist is checked once, on the base URL, so a followed
     redirect would carry the request to a host nothing checked. The client

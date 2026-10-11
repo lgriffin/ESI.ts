@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Requirement buried in the rationale prose
   A requirement in the description is one no scenario is traceable to, so it
   belongs in a Rule title of its own.

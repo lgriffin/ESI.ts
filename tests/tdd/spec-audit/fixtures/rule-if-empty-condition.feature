@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Unwanted-behaviour Rule with no condition
   An If pattern whose condition is empty states an unconditional requirement
   while pretending to state a conditional one.

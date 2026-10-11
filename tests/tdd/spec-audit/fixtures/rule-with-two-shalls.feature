@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Rule title stating two requirements
   Two behaviours in one title cannot be traced to one scenario set, so the
   audit insists on exactly one shall per Rule.

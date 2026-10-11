@@ -1,3 +1,4 @@
+@ARCH-08
 Feature: One runtime, many identities
   An application that acts for more than one character used to build one
   EsiClient per character, each with its own rate limiter, error budget and
@@ -50,6 +51,7 @@ Feature: One runtime, many identities
 
   # ── The public view
 
+  @TEST-11
   Rule: If the public view requests an operation while another view holds a token, then the runtime shall not send an Authorization header.
     The public view holds no token, so nothing it sends can be attributed to a
     character, whatever tokens the runtime's other views hold.
@@ -155,7 +157,7 @@ Feature: One runtime, many identities
       And the public view requests the server status
       Then the runtime shall have sent 1 request
 
-  @sec-P4
+  @sec-P4 @SEC-10
   Rule: While two views share one runtime, the runtime shall keep each identity's authenticated entries apart.
     Two characters in one corporation ask the same URL and get answers scoped
     to their own roles. Sharing the cached body would show one character the

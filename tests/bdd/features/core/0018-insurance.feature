@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Insurance Management
   Ship insurance in EVE is a fixed tariff table rather than a per-pilot policy:
   for every insurable hull the game publishes six levels, each a premium to pay

@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Character Reference Tables
   Feature 0005 walks the character origin chain from a race down to its
   ancestries and looks one faction up by ID. This feature covers the rest of

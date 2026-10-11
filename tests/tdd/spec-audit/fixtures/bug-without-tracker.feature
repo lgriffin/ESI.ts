@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Bug with nowhere to look it up
   A scenario tagged as a bug with no tracker reference records a known defect
   and hides where its history lives.

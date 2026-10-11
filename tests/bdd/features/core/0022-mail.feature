@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Mail Management
   The Mail client wraps the character mail endpoints: reading inbox headers and
   individual messages, managing labels and mailing-list subscriptions, and the

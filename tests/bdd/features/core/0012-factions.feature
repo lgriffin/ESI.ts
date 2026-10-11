@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Faction Warfare Management
   Faction warfare is EVE's persistent low-security conflict between the four
   empire militias. The Factions client covers the four views ESI publishes over

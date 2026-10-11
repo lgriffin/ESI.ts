@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Industry Management
   Industry in EVE spans manufacturing, research, invention and mining, and ESI
   splits that across several endpoints. The Industry client covers all of them:

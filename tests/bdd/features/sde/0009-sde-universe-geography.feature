@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Universe Geography
   Regions, constellations, solar systems and stargates are the map of New
   Eden. Feature 0001 walks the map downward from a region; this feature

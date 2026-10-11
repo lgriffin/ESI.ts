@@ -21,9 +21,16 @@ import { readdirSync } from 'fs';
 import * as path from 'path';
 
 import {
+  charterFeatureCitations,
+  charterIds,
   checkBugTags,
+  checkCharterTags,
   checkExceptionList,
+  checkUnchartedList,
   loadBeadIds,
+  loadCharterIds,
+  loadExceptions,
+  parseCharterIds,
 } from '../../../scripts/spec/spec-audit-checks';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
@@ -111,6 +118,11 @@ describe('spec-audit', () => {
         'bug linked to a bead the export does not contain',
         'Tag @esi-zzzz.999 names no bead in .beads/issues.jsonl',
       ],
+      ['feature with no charter tag', 'Feature carries no charter tag'],
+      [
+        'charter tag naming no requirement',
+        'Tag @TEST-99 names no requirement in guides/CHARTER.md',
+      ],
     ];
 
     it.each(cases)('rejects a %s', (_name, expected) => {
@@ -174,6 +186,137 @@ describe('spec-audit', () => {
       expect(
         loadBeadIds(path.join(REPO_ROOT, 'no-such-export.jsonl')),
       ).toBeNull();
+    });
+  });
+
+  describe('charter tags', () => {
+    const charter = [
+      '## Part 3 · Design rules',
+      '',
+      '#### DES-08 · Ubiquitous · Partial',
+      '',
+      'Pagination helpers **shall** surface partial results as an error.',
+      '',
+      '- **Why:** A short list read as complete surprises the consumer.',
+      '- **Verified by:** `tests/bdd/features/core/0051-resilience.feature` (three failed cursor pages reject).',
+      '',
+      '#### SEC-02 · Ubiquitous · Enforced',
+      '',
+      '- **Why:** `tests/bdd/features/core/0099-not-evidence.feature` is prose, not a citation.',
+      '- **Verified by:** `security.test.ts`; `tests/bdd/features/core/0058-logging.feature`.',
+      '',
+      '## Part 7 · Documentation',
+      '',
+      '- **Verified by:** `tests/bdd/features/core/0001-alliance.feature` under no requirement.',
+    ].join('\n');
+
+    it('reads the requirement ids from the #### headings', () => {
+      expect([...parseCharterIds(charter)]).toEqual(['DES-08', 'SEC-02']);
+    });
+
+    it('reads every requirement of the committed charter', () => {
+      const ids = loadCharterIds();
+
+      expect(ids).not.toBeNull();
+      expect(ids!.has('DES-08')).toBe(true);
+      expect(ids!.has('TEST-10')).toBe(true);
+    });
+
+    it('picks out charter tags and ignores security-model, bead and plain tags', () => {
+      expect(
+        charterIds([
+          '@DES-08',
+          '@sec-P4',
+          '@esi-23g',
+          '@bug',
+          '@TEST-10',
+          '@DES-08',
+        ]),
+      ).toEqual(['DES-08', 'TEST-10']);
+    });
+
+    it('accepts a tag naming a requirement the charter defines', () => {
+      expect(
+        checkCharterTags(['@DES-08', '@sec-P4'], new Set(['DES-08'])),
+      ).toEqual([]);
+    });
+
+    it('rejects a tag naming an id the charter does not define', () => {
+      expect(checkCharterTags(['@DES-09'], new Set(['DES-08']))).toEqual([
+        expect.stringContaining('Tag @DES-09 names no requirement'),
+      ]);
+    });
+
+    it('rejects a charter id in the wrong case, even beside a valid tag', () => {
+      expect(
+        checkCharterTags(
+          ['@ARCH-04', '@test-11', '@sec-P4'],
+          new Set(['ARCH-04', 'TEST-11']),
+        ),
+      ).toEqual([expect.stringContaining('Write it as @TEST-11')]);
+    });
+
+    it('fails closed when the charter cannot be read', () => {
+      expect(checkCharterTags(['@DES-08'], null)).toEqual([
+        expect.stringContaining('could not be read'),
+      ]);
+      expect(loadCharterIds(path.join(REPO_ROOT, 'no-such.md'))).toBeNull();
+    });
+
+    it('reads the features a Verified by line cites, and nothing else', () => {
+      expect(charterFeatureCitations(charter)).toEqual([
+        ['DES-08', 'tests/bdd/features/core/0051-resilience.feature'],
+        ['SEC-02', 'tests/bdd/features/core/0058-logging.feature'],
+      ]);
+    });
+  });
+
+  describe('uncharted feature list', () => {
+    const listed = 'tests/bdd/features/sde/0007-sde-error-handling.feature';
+    const exists = () => true;
+
+    it('accepts an entry in the baseline whose feature carries no tag', () => {
+      expect(
+        checkUnchartedList([listed], new Set([listed]), new Set(), exists),
+      ).toEqual({ added: [], dangling: [], stale: [] });
+    });
+
+    it('accepts any entry while the integration branch has no list yet', () => {
+      expect(
+        checkUnchartedList([listed], null, new Set(), exists).added,
+      ).toEqual([]);
+    });
+
+    it('rejects an entry absent from the baseline', () => {
+      expect(
+        checkUnchartedList([listed], new Set(), new Set(), exists).added,
+      ).toEqual([listed]);
+    });
+
+    it('rejects an entry whose feature now carries a charter tag', () => {
+      expect(
+        checkUnchartedList([listed], new Set([listed]), new Set([listed]))
+          .stale,
+      ).toEqual([listed]);
+    });
+
+    it('rejects an entry that names no feature file', () => {
+      const gone = 'tests/bdd/features/sde/9999-gone.feature';
+      expect(
+        checkUnchartedList([gone], new Set([gone]), new Set()).dangling,
+      ).toEqual([gone]);
+    });
+
+    it('names only features that exist and carry no charter tag in the committed list', () => {
+      const { unchartedFeatures } = loadExceptions();
+      const problems = checkUnchartedList(
+        unchartedFeatures,
+        new Set(unchartedFeatures),
+        new Set(),
+      );
+
+      expect(unchartedFeatures.length).toBeGreaterThan(0);
+      expect(problems.dangling).toEqual([]);
     });
   });
 

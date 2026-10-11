@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Mission Content
   The SDE describes the content agents hand out: missions, the dungeons —
   deadspace pockets — those missions send a pilot into, and the epic arcs

@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Paragon Hub SKINR Marketplace
   The ParagonHub client covers the player-to-player marketplace for SKINR
   designs. Listings are readable three ways: the public board, the listings a

@@ -18,34 +18,30 @@ export const accessListPaths = {
 };
 
 export const accessListFixtures = {
-  /** One entry per entity granularity, both access types present. */
-  mixedEntries: () => [
-    {
-      entity_id: 1689391488,
-      entity_type: 'character',
-      access_type: 'allowed',
-    },
-    {
-      entity_id: 98000002,
-      entity_type: 'corporation',
-      access_type: 'allowed',
-    },
-    {
-      entity_id: 99000001,
-      entity_type: 'alliance',
-      access_type: 'blocked',
-    },
-  ],
+  /** One member per entity kind, with several access levels present. */
+  mixedMembership: () => ({
+    allow_everyone: false,
+    alliances: [{ alliance_id: 99000001, access: 'Blocked' }],
+    corporations: [{ corporation_id: 98000002, access: 'Allowed' }],
+    characters: [{ character_id: 1689391488, access: 'Admin' }],
+  }),
 
   mixedList: () => ({
-    access_list_id: MIXED_ACCESS_LIST_ID,
+    id: MIXED_ACCESS_LIST_ID,
     name: 'Station Docking ACL',
-    entries: accessListFixtures.mixedEntries(),
+    description: 'Who may dock at the staging Fortizar',
+    membership: accessListFixtures.mixedMembership(),
   }),
 
   emptyList: () => ({
-    access_list_id: EMPTY_ACCESS_LIST_ID,
+    id: EMPTY_ACCESS_LIST_ID,
     name: 'Empty ACL',
-    entries: [],
+    description: '',
+    membership: {
+      allow_everyone: false,
+      alliances: [],
+      corporations: [],
+      characters: [],
+    },
   }),
 };

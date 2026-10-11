@@ -1,10 +1,11 @@
+@TEST-10
 Feature: Skyhooks and Sovereignty Hubs
   The Skyhooks client covers the Equinox structures a corporation plants on
-  planets and in sovereign systems: orbital skyhooks with their reagent silos,
+  planets and in sovereign systems: orbital skyhooks with their reagent stock,
   sovereignty hubs with their installed upgrades and resource pools, and the
-  New Eden wide list of skyhooks currently open to raiding. Summary listings
-  and per-structure detail are separate endpoints with different payload
-  shapes, so both are specified here.
+  New Eden wide list of skyhooks currently open to raiding. The corporation
+  listings only locate each structure; its state lives on a separate detail
+  endpoint, so both are specified here.
 
   Retry, stale-on-error, circuit breaking and request deduplication apply to
   these calls as to every other; 0050-etag-caching.feature and
@@ -14,26 +15,27 @@ Feature: Skyhooks and Sovereignty Hubs
 
   # ── Corporation structure listings ──────────────────────────────────
 
-  Rule: When the sovereignty hubs of a corporation are requested, the Skyhooks client shall return one entry per hub carrying its online flag, and its installed upgrade list when present.
-    A hub listing drives the sovereignty map overlay, where the two facts that
-    matter per structure are whether it is powered and which upgrades are
-    fitted. An offline hub is reported with an empty upgrade list rather than
-    being omitted from the response.
+  Rule: When the sovereignty hubs of a corporation are requested, the Skyhooks client shall return the response's sovereignty_hubs list, each entry with its hub id and solar system.
+    ESI wraps the list in an object ({ sovereignty_hubs: [...] }), and the
+    client returns that object as sent. The listing only locates each hub: its
+    id and solar_system_id. Upgrades, reagents and resource pools come from the
+    per-hub detail endpoint, which the id is the key to.
 
-    Scenario: Hub listing reports an online hub with upgrades and an offline hub without
+    Scenario: Hub listing gives each hub's id and solar system
       Given sovereignty hubs exist
       When the client requests hubs
-      Then the client shall return hub data with online status and upgrades
+      Then the client shall return the sovereignty_hubs list with ids and solar systems
 
-  Rule: When the orbital skyhooks of a corporation are requested, the Skyhooks client shall return one entry per skyhook carrying its reagent silo capacity and current silo level when present.
-    Silo level against capacity is what tells an industrialist when a skyhook
-    needs emptying, so both numbers travel together in the listing rather than
-    requiring a detail call per structure.
+  Rule: When the orbital skyhooks of a corporation are requested, the Skyhooks client shall return the response's skyhooks list, each entry with its skyhook id and planet.
+    ESI wraps the list in an object ({ skyhooks: [...] }), and the client
+    returns that object as sent. Each entry gives the skyhook's id and the
+    planet_id it orbits; reagent stock and structure state come from the
+    per-skyhook detail endpoint.
 
-    Scenario: Skyhook listing reports silo capacity and current fill level
+    Scenario: Skyhook listing gives each skyhook's id and planet
       Given orbital skyhooks are deployed
       When the client requests skyhooks
-      Then the client shall return silo capacity and levels
+      Then the client shall return the skyhooks list with ids and planets
 
   Rule: When raidable skyhooks are requested, the Skyhooks client shall return the response's skyhooks list, each entry with its planet, solar system and theft vulnerability window.
     This endpoint is cluster-wide and unauthenticated, so it lists skyhooks
@@ -66,12 +68,14 @@ Feature: Skyhooks and Sovereignty Hubs
       When the client requests skyhook detail
       Then the client shall return reagents and state information
 
-  Rule: When the detail of a single sovereignty hub is requested, the Skyhooks client shall return its installed upgrades, reagent bay contents, and power and workforce pools, and its vulnerability window when present.
+  Rule: When the detail of a single sovereignty hub is requested, the Skyhooks client shall return its installed upgrades, its reagent bay with each reagent's hourly burn rate, its power and workforce pools as available and allocated amounts, its workforce transport configuration and state, and its vulnerability window when present.
     A hub is a resource machine: upgrades consume power and workforce, and the
-    reagent bay burns down at a stated hourly rate. The detail payload carries
-    every one of those inputs so a caller can project when the hub runs dry.
+    reagent bay burns down at the stated burning_per_hour rate. Each pool
+    reports what is available against what is allocated. The workforce
+    transport carries a configuration and a state, each one of import, export
+    or transit. Together they let a caller project when the hub runs dry.
 
-    Scenario: Hub detail returns upgrade power state, reagent bay, and resource pools
+    Scenario: Hub detail returns upgrade power state, reagent burn rate, resource pools, and workforce transport
       Given a sovereignty hub exists with detail data
       When the client requests sovereignty hub detail
       Then the client shall return upgrades and resource information
