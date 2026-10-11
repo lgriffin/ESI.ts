@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Type Classification
   Every item in EVE sits in exactly one group, and every group in exactly one
   category; the SDE stores the two links as foreign keys on the type and the

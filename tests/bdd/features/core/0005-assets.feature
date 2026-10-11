@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Asset Management
   The Assets client covers the character and corporation inventory endpoints of
   ESI, plus the two POST lookups that resolve a batch of item IDs to the names

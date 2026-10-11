@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Cosmetics SKINR
   The Cosmetics client covers the SKINR endpoints, which describe ship paint
   rather than ship capability: the designs a character holds a licence for, the

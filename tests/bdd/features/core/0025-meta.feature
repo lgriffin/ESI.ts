@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Meta API Management
   The Meta client exposes ESI's own description of itself: the OpenAPI
   specification, served in a JSON form and a YAML form of the same document,

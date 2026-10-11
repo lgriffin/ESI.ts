@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Calendar Management
   The Calendar client covers the in-game event calendar: the list of a
   character's upcoming events, the detail record for one event, the attendee

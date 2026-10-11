@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Dogma Definitions
   Feature 0004 looks up one dogma attribute by ID. The dogma tables also
   define effects — what a module does when activated — and two reference

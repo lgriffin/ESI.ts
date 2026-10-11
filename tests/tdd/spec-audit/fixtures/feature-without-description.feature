@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Feature with no description
 
   Rule: When a response carries an ETag header, the ETag cache shall store the response body against that ETag.

@@ -26,6 +26,8 @@ export interface OutlinedScenario {
   /** The `Scenario:` line; every example of an outline shares its outline's line. */
   line: number;
   steps: ParsedStep[];
+  /** The tags written above the `Scenario:` line, as written: not lower-cased, none inherited. */
+  tags: string[];
 }
 
 export interface OutlinedRule {
@@ -33,13 +35,37 @@ export interface OutlinedRule {
   title: string | null;
   /** The `Rule:` line, or null with the title. */
   line: number | null;
+  /** The tags written above the `Rule:` line; none for scenarios outside a Rule. */
+  tags: string[];
   scenarios: OutlinedScenario[];
 }
 
 export interface FeatureOutline {
   title: string;
+  /** The tags written above the `Feature:` line. */
+  tags: string[];
   /** Rules in file order. A Rule with no scenarios is absent; spec:audit rejects it. */
   rules: OutlinedRule[];
+}
+
+/**
+ * The tags on the lines above line `line` (1-based), as written. jest-cucumber
+ * lower-cases tags and drops a Rule's, so they are read from the source:
+ * Gherkin allows blank and comment lines between the tags and the keyword.
+ */
+function tagsAbove(lines: readonly string[], line: number): string[] {
+  const tags: string[] = [];
+  for (let i = line - 2; i >= 0; i--) {
+    const text = (lines[i] ?? '').trim();
+    if (text.length === 0 || text.startsWith('#')) continue;
+    if (!text.startsWith('@')) break;
+    const own = text
+      .replace(/\s#.*$/, '')
+      .split(/\s+/)
+      .filter((t) => t.startsWith('@'));
+    tags.unshift(...own);
+  }
+  return tags;
 }
 
 /** Line number and title of every `Rule:` keyword, skipping doc strings. */
@@ -65,13 +91,19 @@ function ruleLines(source: string): Array<{ line: number; title: string }> {
 export function outlineFeature(source: string): FeatureOutline {
   const parsed = parseFeature(source);
   const rules = ruleLines(source);
+  const lines = source.split(/\r?\n/);
+  const featureLine = lines.findIndex((l) => /^\s*Feature:/.test(l)) + 1;
 
   const scenarios = [
     ...parsed.scenarios.map((s) => ({ ...s, examples: [s] })),
     ...parsed.scenarioOutlines.map((o) => ({ ...o, examples: o.scenarios })),
   ].sort((a, b) => a.lineNumber - b.lineNumber);
 
-  const outline: FeatureOutline = { title: parsed.title, rules: [] };
+  const outline: FeatureOutline = {
+    title: parsed.title,
+    tags: featureLine > 0 ? tagsAbove(lines, featureLine) : [],
+    rules: [],
+  };
   const byRule = new Map<number | null, OutlinedRule>();
 
   for (const scenario of scenarios) {
@@ -84,6 +116,7 @@ export function outlineFeature(source: string): FeatureOutline {
       rule = {
         title: owner ? owner.title : null,
         line: ruleLine,
+        tags: owner ? tagsAbove(lines, owner.line) : [],
         scenarios: [],
       };
       byRule.set(ruleLine, rule);
@@ -94,6 +127,7 @@ export function outlineFeature(source: string): FeatureOutline {
         title: example.title,
         line: scenario.lineNumber,
         steps: example.steps,
+        tags: tagsAbove(lines, scenario.lineNumber),
       });
     }
   }

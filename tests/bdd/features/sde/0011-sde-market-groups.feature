@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Market Groups by Identifier and Name
   Feature 0003 walks the market tree from its roots. This feature covers the
   other ways into it: a market group by its own ID, the types a group sells,

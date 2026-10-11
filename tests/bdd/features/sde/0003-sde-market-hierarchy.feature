@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Market Group Hierarchy Navigation
   EVE's market browser is a tree of market groups, and the SDE stores that
   tree as a flat table where each group names its parent. The SDE provider

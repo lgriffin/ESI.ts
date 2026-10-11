@@ -8,7 +8,7 @@
  * `results-*.json` is the Jest JSON a run of that tree might produce.
  */
 import { execFileSync } from 'child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import * as path from 'path';
 
@@ -21,6 +21,7 @@ import {
   cell,
   readFeatures,
   toJUnit,
+  toScenarioResults,
   toSummary,
 } from '../../../scripts/quality/bdd-report-core';
 import { featureBindings } from '../../../scripts/spec/spec-audit-steps';
@@ -94,7 +95,7 @@ describe('bdd-report', () => {
 
       expect(checks(ledger)).toEqual(['scenario-not-executed']);
       expect(ledger.findings.map((f) => `${f.file}:${f.line}`)).toEqual([
-        `${ALPHA}:15`,
+        `${ALPHA}:18`,
         `${BETA}:12`,
       ]);
       expect(ledger.findings[0]!.message).toContain('was pending');
@@ -158,13 +159,70 @@ describe('bdd-report', () => {
     });
   });
 
+  describe('the scenario results', () => {
+    it('writes one record per scenario with its feature, Rule, charter tags, status and test file', () => {
+      const { features, rules, scenarios } = toScenarioResults(
+        ledgerFor(results('scenario-not-executed')),
+      );
+
+      expect([features, rules]).toEqual([2, 3]);
+      expect(scenarios).toEqual([
+        {
+          file: ALPHA,
+          line: 8,
+          feature: 'Alpha',
+          rule: 'When orders are requested, the Alpha client shall return every order.',
+          scenario: 'Five orders are returned',
+          charterTags: ['DES-08'],
+          status: 'passed',
+          testFile: 'tests/bdd/specs/core/0001-alpha.spec.ts',
+        },
+        expect.objectContaining({
+          scenario: 'HTTP 502 is retried',
+          charterTags: ['DES-08', 'ARCH-04', 'TEST-11'],
+          status: 'failed',
+          testFile: 'tests/bdd/specs/core/0001-alpha.spec.ts',
+        }),
+        expect.objectContaining({
+          scenario: 'HTTP 503 is retried',
+          line: 18,
+          charterTags: ['DES-08', 'ARCH-04', 'TEST-11'],
+          status: 'not-run',
+          testFile: null,
+        }),
+        expect.objectContaining({
+          file: BETA,
+          scenario: 'Status is returned',
+          charterTags: [],
+          status: 'passed',
+          testFile: 'tests/bdd/step-definitions/core/beta.steps.ts',
+        }),
+        expect.objectContaining({
+          scenario: 'Status is returned twice',
+          status: 'not-run',
+          testFile: null,
+        }),
+      ]);
+    });
+
+    it('marks every scenario of a feature that did not run as not-run with no test file', () => {
+      const { scenarios } = toScenarioResults(
+        ledgerFor(results('feature-not-run')),
+      );
+
+      expect(scenarios.map((r) => [r.status, r.testFile])).toEqual(
+        scenarios.map(() => ['not-run', null]),
+      );
+    });
+  });
+
   describe('the job summary', () => {
     it('lists each Rule not verified with its location', () => {
       const summary = toSummary(ledgerFor(results('scenario-not-executed')));
 
       expect(summary).toContain('| 2 | 3 | 5 | 2 | 1 | 2 |');
       expect(summary).toContain(
-        '| If ESI answers with a server error, then the Alpha client shall retry the request. | HTTP 502 is retried | failed | `tests/bdd/features/core/0001-alpha.feature:15` |',
+        '| If ESI answers with a server error, then the Alpha client shall retry the request. | HTTP 502 is retried | failed | `tests/bdd/features/core/0001-alpha.feature:18` |',
       );
     });
 
@@ -180,7 +238,10 @@ describe('bdd-report', () => {
   });
 
   describe('the CLI', () => {
+    let written: { scenarios: unknown[] } | null = null;
+
     function run(fixture: string): { output: string; status: number } {
+      written = null;
       const dir = mkdtempSync(path.join(tmpdir(), 'bdd-report-'));
       try {
         const stdout = execFileSync(
@@ -192,6 +253,7 @@ describe('bdd-report', () => {
             `--root=${ROOT}`,
             `--results=results-${fixture}.json`,
             `--junit=${path.join(dir, 'junit.xml')}`,
+            `--scenarios=${path.join(dir, 'scenarios.json')}`,
             `--summary=${path.join(dir, 'summary.md')}`,
           ],
           {
@@ -205,6 +267,12 @@ describe('bdd-report', () => {
             stdio: ['ignore', 'pipe', 'pipe'],
           },
         );
+        const scenarios = path.join(dir, 'scenarios.json');
+        if (existsSync(scenarios)) {
+          written = JSON.parse(readFileSync(scenarios, 'utf-8')) as {
+            scenarios: unknown[];
+          };
+        }
         return { output: stdout, status: 0 };
       } catch (error) {
         const failure = error as {
@@ -221,10 +289,11 @@ describe('bdd-report', () => {
       }
     }
 
-    it('passes a run in which every scenario executed', () => {
+    it('passes a run in which every scenario executed, and writes the scenario results', () => {
       const { output, status } = run('compliant');
       expect(output).toContain('PASS');
       expect(status).toBe(0);
+      expect(written?.scenarios).toHaveLength(5);
     });
 
     it('fails a run in which a scenario did not execute, naming file and line', () => {

@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Compliant specimen
   A fixture that satisfies every audit check. It guards the other direction
   from the negative fixtures: an audit that starts reporting findings against

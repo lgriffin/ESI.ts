@@ -1,3 +1,4 @@
+@ARCH-04
 Feature: Resilience and Error Recovery
   Every request leaving this library passes through a retry strategy and,
   where enabled, a per-endpoint circuit breaker before it reaches the
@@ -92,6 +93,7 @@ Feature: Resilience and Error Recovery
       When the client makes an authenticated request
       Then the client shall return the response after token refresh
 
+  @TEST-11
   Rule: If a request answered with 401 is replayed after a token refresh, then the retry strategy shall not count the replay against maxRetries.
     The refresh is a separate budget of one per call (ERRORS.md, "The 401
     refresh path"). Counting the replay would leave a client configured with
@@ -218,6 +220,7 @@ Feature: Resilience and Error Recovery
       Then the client rejects with an EsiParseError that is not retryable
       And the client sent 1 request
 
+  @TEST-11
   Rule: If ESI answers a GET request with a body that is not valid JSON, then the EsiClient shall not send the request again.
     A body that does not parse is a broken response, and ESI's edge serves
     the same HTML error page on the next attempt. The call rejects with the
@@ -321,6 +324,7 @@ Feature: Resilience and Error Recovery
       Then the client resolves with the payload from the retry
       And the client sent 2 requests
 
+  @TEST-11
   Rule: If a GET request is answered with HTTP 400, 401, 403, 404, or 500, then the EsiClient shall not send the request again.
     These statuses describe the request or a fault the retry strategy does not
     classify as transient, and repeating the call spends the ESI error budget
@@ -343,6 +347,7 @@ Feature: Resilience and Error Recovery
         | 404    |
         | 500    |
 
+  @TEST-11
   Rule: If a non-GET request is answered with HTTP 503, then the EsiClient shall not send the request again.
     A POST, PUT or DELETE may already have taken effect when the error comes
     back, and repeating it could apply it twice. The call rejects with the
@@ -366,6 +371,7 @@ Feature: Resilience and Error Recovery
       Then the client resolves with the names from the retry
       And the client sent 2 requests
 
+  @DES-08 @TEST-11
   Rule: If a non-GET request issued by a stream or fetch-all helper is answered with HTTP 503, then the EsiClient shall not send the request again.
     The stream and fetch-all helpers take the endpoint's method from its
     definition. The retry decision must see that method too, or a mutation
@@ -406,6 +412,7 @@ Feature: Resilience and Error Recovery
       And the circuit for the server status endpoint is open
       And the client sent 2 requests
 
+  @TEST-11
   Rule: If an endpoint answers with a 4xx status other than 420 or 429, then the circuit breaker shall not count the response towards opening the circuit.
     A 404 or a 403 describes the request, not the health of the endpoint.
     Counting them would let one caller's unknown identifiers shut an endpoint
@@ -494,6 +501,7 @@ Feature: Resilience and Error Recovery
       And the repeated page 1 request carried no If-None-Match header
       And the client sent 7 requests
 
+  @DES-08
   Rule: If three consecutive cursor pages fail, then the cursor pagination handler shall reject with the error of the last failed page instead of returning the items fetched so far.
     A cursor walk that stops part way cannot tell the caller how much is
     missing, so a partial result is an error rather than a short list.
@@ -521,7 +529,7 @@ Feature: Resilience and Error Recovery
       Then both calls resolve with the payload
       And the client sent 1 request
 
-  @sec-P4
+  @sec-P4 @SEC-10
   Rule: When concurrent GET requests to one authenticated endpoint carry access tokens for different identities, the EsiClient shall issue one HTTP request per identity.
     Deduplication keys on the request path, and a path says nothing about whose
     data comes back: characters/{character_id}/online answers differently for

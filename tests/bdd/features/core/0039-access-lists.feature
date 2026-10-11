@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Access Lists
   The Access Lists client reads the named permission lists a character owns,
   the ones that decide who may dock at a structure, use a service, or refuel a

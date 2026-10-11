@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Event-driven Rule missing the comma after its trigger
   The comma is what marks where the trigger ends and the constrained system
   begins.

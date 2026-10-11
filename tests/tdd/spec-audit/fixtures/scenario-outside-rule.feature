@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Scenario with no requirement above it
   A scenario at feature level verifies nothing that the specification states,
   so either the requirement is missing or the scenario is. Gherkin binds by

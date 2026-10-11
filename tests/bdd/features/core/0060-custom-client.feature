@@ -1,3 +1,4 @@
+@ARCH-08
 Feature: Custom client built from chosen API clients
   EsiClientBuilder builds a CustomEsiClient that carries only the API clients
   an application names, so a tool that reads the market and the server status

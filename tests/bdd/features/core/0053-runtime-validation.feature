@@ -23,6 +23,7 @@ Feature: Runtime Response Validation
       Then the response shall be parsed successfully
       And the response data shall contain the expected fields
 
+  @DES-01
   Rule: When a response carries fields the endpoint schema does not declare, the EsiClient shall include those fields in the returned object.
     CCP adds fields to live routes without a version bump. Stripping unknown
     keys would make this library lose data a caller already depends on,
@@ -37,7 +38,7 @@ Feature: Runtime Response Validation
 
   # ── Reporting validation failures ───────────────────────────────────
 
-  @sec-P7
+  @sec-P7 @SEC-10
   Rule: If a response fails schema validation, then the EsiClient shall reject the call with an EsiValidationError carrying the underlying Zod issues.
     A mismatch between the spec and the live API is a fault the caller has to
     be able to diagnose, which takes more than a message: the issue list names
@@ -63,6 +64,7 @@ Feature: Runtime Response Validation
       Then the first call shall reject with an EsiValidationError
       And the second call shall send an unconditional request and return the valid alliance
 
+  @TEST-11
   Rule: If a response fails schema validation, then the EsiClient shall not send the request again within that call.
     Validation runs in createClient after the retry loop has returned, so the
     failure is not a transient one the retry strategy may repeat: ESI would
@@ -74,6 +76,7 @@ Feature: Runtime Response Validation
       When the client requests the alliance and validation fails
       Then the client sent exactly one alliance request
 
+  @TEST-11
   Rule: If a response field holds a value its schema type accepts but the game cannot produce, then the EsiClient shall not reject the response or change the value.
     Schemas check shape, and ESI is the source of truth for values. A
     negative volume_remain is a number like any other to the schema, so it
@@ -86,6 +89,7 @@ Feature: Runtime Response Validation
       Then the client resolves with that order's volume_remain of -5
       And nothing was logged at warn level or above
 
+  @ARCH-07
   Rule: The EsiValidationError shall be an instance of EsiError that satisfies the isValidationError type guard.
     Callers already wrap ESI calls in a catch for EsiError; a validation
     failure that sat outside that hierarchy would escape those handlers. The
@@ -141,6 +145,7 @@ Feature: Runtime Response Validation
       When I validate data with valid nested objects
       Then schema validation shall succeed for the entire structure
 
+  @TEST-11
   Rule: If an enum-typed field holds a value outside the declared set, then the schema shall not reject the object or replace the received value.
     CCP introduces new contact types, order states and job statuses without
     warning. Rejecting an unrecognised value would break every caller on the

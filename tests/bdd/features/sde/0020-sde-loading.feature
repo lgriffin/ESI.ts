@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Loading the Static Data Export
   CCP publishes the Static Data Export as a ZIP archive of YAML files, one
   per table, with a _sde.yaml naming the build. SdeDataProvider reads that
@@ -36,6 +37,7 @@ Feature: Loading the Static Data Export
 
   # ── What loading passes over ─────────────────────────────────────────
 
+  @TEST-11
   Rule: If a file the registry names is absent from the directory, then the SdeDataProvider shall not refuse to open the directory.
     The registry lists every table the provider knows. A partial extract, or
     a build from before CCP added a file, loads the tables it has; a lookup
@@ -47,6 +49,7 @@ Feature: Loading the Static Data Export
       And the user looks up type ID 34
       Then the returned record shall be named "Tritanium"
 
+  @TEST-11
   Rule: If the directory holds a YAML file the registry does not name, then the SdeDataProvider shall not read that file.
     Loading walks the registry, not the directory, so a file CCP ships
     before the registry learns of it is passed over rather than guessed at.

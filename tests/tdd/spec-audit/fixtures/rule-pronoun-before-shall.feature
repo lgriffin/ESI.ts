@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Rule title pointing at the system instead of naming it
   A requirement that says "it shall" leaves the constrained system to be
   inferred from context, which is exactly what a specification must not do.

@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Dogma and Industry Data
   Dogma is EVE's attribute system: every ship and module carries numbered
   attributes whose meaning lives in the dogma attribute table. Industry data

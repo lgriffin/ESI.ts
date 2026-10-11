@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Bug linked to a bead that does not exist
   A tracker tag naming a bead the beads export does not contain is a dead
   link: it reads as tracked while pointing nowhere.

@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Wallets
   The Wallet client covers the money endpoints for both a character and a
   corporation: the current ISK balance, the journal of every movement with its

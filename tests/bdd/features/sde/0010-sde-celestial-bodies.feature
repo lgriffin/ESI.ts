@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Celestial Bodies by Identifier
   Feature 0002 lists the star, planets, moons and asteroid belts of a solar
   system. Each of those bodies also has an ID of its own — the ID a planetary

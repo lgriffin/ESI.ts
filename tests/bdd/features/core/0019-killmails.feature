@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Killmails Management
   A killmail is EVE's permanent record of a ship loss: who died, in what, where,
   and every pilot who contributed damage. ESI splits access in two — an

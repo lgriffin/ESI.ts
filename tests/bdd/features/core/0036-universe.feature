@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Universe Information
   The Universe client covers the static map and item database: solar systems
   and the celestials inside them, stations and player structures, item types

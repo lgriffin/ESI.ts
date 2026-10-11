@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Requirement with nothing verifying it
   A Rule with no scenarios underneath is a claim the suite does not check.
 

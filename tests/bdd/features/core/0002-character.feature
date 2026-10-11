@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Character Management
   The Characters client covers the per-character endpoints of ESI, split
   between data anyone can read — the public profile, the portrait set, and the

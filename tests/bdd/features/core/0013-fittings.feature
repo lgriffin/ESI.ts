@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Fittings Management
   A fitting is a saved ship loadout belonging to one character: a hull type, a
   name and description, and a list of modules pinned to slot flags. The

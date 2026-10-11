@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Unwanted-behaviour Rule missing the comma before then
   Without the comma the title reads as one run-on phrase and the condition
   stops being separable from the response.

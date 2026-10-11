@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Freelance Jobs Management
   Freelance jobs are player-published work contracts: a named objective with a
   progress target, an ISK reward that drains as contributions land, and a

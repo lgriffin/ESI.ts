@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Location Management
   The Location client covers the three character-scoped endpoints that describe
   where a pilot is and what they are doing right now: current location, online

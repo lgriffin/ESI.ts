@@ -1,3 +1,4 @@
+@DES-08
 Feature: Alpha
   A fixture feature bound by a spec entry.
 
@@ -9,9 +10,11 @@ Feature: Alpha
       When the orders are requested
       Then every order is returned
 
+  @ARCH-04 @sec-P4
   Rule: If ESI answers with a server error, then the Alpha client shall retry the request.
     Rationale.
 
+    @TEST-11 @slow
     Scenario Outline: HTTP <status> is retried
       Given ESI answers with HTTP <status>
       When the orders are requested

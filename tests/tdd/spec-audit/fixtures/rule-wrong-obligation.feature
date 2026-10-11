@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Rule title diluting the obligation keyword
   EARS reserves shall for mandatory behaviour; must, should, may and will all
   leave the reader guessing how binding the requirement is.

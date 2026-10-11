@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Generic Entity Access
   The SDE has more tables than the provider has typed lookups for. The two
   generic accessors reach any loaded table by its table name — the name the

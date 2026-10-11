@@ -1,3 +1,4 @@
+@ARCH-04
 Feature: Rate-limit status
   ESI meters most routes by rate-limit group: each response names its group
   and says how many tokens of the group's budget are left, and a 420 or 429

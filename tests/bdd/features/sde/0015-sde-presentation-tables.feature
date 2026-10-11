@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Presentation Tables
   Several SDE tables exist so a client can draw things: meta groups label a
   type's tech level, icons and graphics name the image and model files a

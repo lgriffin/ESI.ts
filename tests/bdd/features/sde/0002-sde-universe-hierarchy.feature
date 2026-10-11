@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Extended Universe Hierarchy Navigation
   Below the region-constellation-system chain, the SDE describes what each
   solar system physically contains: one star, its planets, the moons orbiting
