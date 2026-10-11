@@ -14,6 +14,8 @@ import {
 const feature = loadFeature('tests/bdd/features/core/0024-mercenary.feature');
 
 const TEST_CHARACTER_ID = 123456;
+const DEN_ID = 1046664005001;
+const OPERATION_ID = '3868eaed-8278-4cb7-9709-7d7de9c20dc7';
 
 // List endpoints end at the collection; detail endpoints add an ID segment.
 const DENS_LIST = new RegExp(
@@ -32,65 +34,48 @@ defineFeature(feature, (test) => {
     client = createSeamClient();
   });
 
-  test('Two dens return their development, anarchy, and active operation counts', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Two dens return their ids and planets', ({ given, when, then }) => {
     let result: any;
-    const expectedDens = [
-      {
-        den_id: 5001,
-        system_id: 30000142,
-        constellation_id: 20000125,
-        region_id: 10000002,
-        development_level: 3,
-        anarchy_level: 2,
-        active_operations: 1,
-      },
-      {
-        den_id: 5002,
-        system_id: 30004759,
-        constellation_id: 20000690,
-        region_id: 10000060,
-        development_level: 5,
-        anarchy_level: 4,
-        active_operations: 3,
-      },
-    ];
+    // The shape the ESI spec declares: the list wrapped in mercenary_dens.
+    const densResponse = {
+      mercenary_dens: [
+        { id: DEN_ID, planet_id: 40009077 },
+        { id: 1046664005002, planet_id: 40009078 },
+      ],
+    };
 
     given('mercenary dens exist', () => {
-      queueResponse({ match: DENS_LIST, body: expectedDens });
+      queueResponse({ match: DENS_LIST, body: densResponse });
     });
 
     when('the client requests dens', async () => {
       result = await client.mercenary.getMercenaryDens(TEST_CHARACTER_ID);
     });
 
-    then('the client shall return development and anarchy parameters', () => {
-      const request = lastRequest();
-      expect(request.method).toBe('GET');
-      expect(request.url.pathname).toMatch(
-        new RegExp(
-          `/characters/${TEST_CHARACTER_ID}/structures/mercenary-dens/?$`,
-        ),
-      );
-      expect(request.headers['authorization']).toBe('Bearer bdd-access-token');
-      expect(
-        result.map((d: any) => [
-          d.den_id,
-          d.development_level,
-          d.anarchy_level,
-          d.active_operations,
-        ]),
-      ).toEqual([
-        [5001, 3, 2, 1],
-        [5002, 5, 4, 3],
-      ]);
-    });
+    then(
+      'the client shall return the mercenary_dens list with ids and planets',
+      () => {
+        const request = lastRequest();
+        expect(request.method).toBe('GET');
+        expect(request.url.pathname).toMatch(
+          new RegExp(
+            `/characters/${TEST_CHARACTER_ID}/structures/mercenary-dens/?$`,
+          ),
+        );
+        expect(request.headers['authorization']).toBe(
+          'Bearer bdd-access-token',
+        );
+        expect(
+          result.mercenary_dens.map((d: any) => [d.id, d.planet_id]),
+        ).toEqual([
+          [DEN_ID, 40009077],
+          [1046664005002, 40009078],
+        ]);
+      },
+    );
   });
 
-  test('Character with no dens receives an empty array', ({
+  test('Character with no dens receives an empty mercenary_dens list', ({
     given,
     when,
     then,
@@ -98,48 +83,38 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('no dens exist in the area', () => {
-      queueResponse({ match: DENS_LIST, body: [] });
+      queueResponse({ match: DENS_LIST, body: { mercenary_dens: [] } });
     });
 
     when('the client requests dens', async () => {
       result = await client.mercenary.getMercenaryDens(TEST_CHARACTER_ID);
     });
 
-    then('the client shall return an empty array', () => {
+    then('the client shall return an empty mercenary_dens list', () => {
       expect(sentRequests()).toHaveLength(1);
-      expect(result).toEqual([]);
+      expect(result).toEqual({ mercenary_dens: [] });
     });
   });
 
-  test('Active and spawning operations return their site type and status', ({
+  test('Two operations return their UUIDs and parent den ids', ({
     given,
     when,
     then,
   }) => {
     let result: any;
-    const expectedOps = [
-      {
-        operation_id: 7001,
-        den_id: 5001,
-        system_id: 30000142,
-        site_type: 'assault',
-        status: 'active',
-        started_at: '2026-05-20T10:00:00Z',
-        expires_at: '2026-05-20T22:00:00Z',
-      },
-      {
-        operation_id: 7002,
-        den_id: 5002,
-        system_id: 30004759,
-        site_type: 'recon',
-        status: 'spawning',
-        started_at: '2026-05-20T14:00:00Z',
-        expires_at: '2026-05-21T02:00:00Z',
-      },
-    ];
+    // The shape the ESI spec declares: the list wrapped in operations.
+    const operationsResponse = {
+      operations: [
+        { id: OPERATION_ID, mercenary_den_id: DEN_ID },
+        {
+          id: '9b1c2d3e-4f50-4a61-8b72-c3d4e5f60718',
+          mercenary_den_id: 1046664005002,
+        },
+      ],
+    };
 
     given('MTOs are active', () => {
-      queueResponse({ match: OPS_LIST, body: expectedOps });
+      queueResponse({ match: OPS_LIST, body: operationsResponse });
     });
 
     when('the client requests operations', async () => {
@@ -149,22 +124,25 @@ defineFeature(feature, (test) => {
         );
     });
 
-    then('the client shall return operation details with status', () => {
-      expect(lastRequest().url.pathname).toMatch(
-        new RegExp(
-          `/characters/${TEST_CHARACTER_ID}/mercenary-tactical-operations/?$`,
-        ),
-      );
-      expect(
-        result.map((op: any) => [op.operation_id, op.site_type, op.status]),
-      ).toEqual([
-        [7001, 'assault', 'active'],
-        [7002, 'recon', 'spawning'],
-      ]);
-    });
+    then(
+      'the client shall return the operations list with UUIDs and den ids',
+      () => {
+        expect(lastRequest().url.pathname).toMatch(
+          new RegExp(
+            `/characters/${TEST_CHARACTER_ID}/mercenary-tactical-operations/?$`,
+          ),
+        );
+        expect(
+          result.operations.map((op: any) => [op.id, op.mercenary_den_id]),
+        ).toEqual([
+          [OPERATION_ID, DEN_ID],
+          ['9b1c2d3e-4f50-4a61-8b72-c3d4e5f60718', 1046664005002],
+        ]);
+      },
+    );
   });
 
-  test('Operation den_id matches the parent den fetched alongside it', ({
+  test('Operation mercenary_den_id matches the parent den fetched alongside it', ({
     given,
     when,
     then,
@@ -175,31 +153,11 @@ defineFeature(feature, (test) => {
     given('dens and MTOs exist', () => {
       queueResponse({
         match: DENS_LIST,
-        body: [
-          {
-            den_id: 5001,
-            system_id: 30000142,
-            constellation_id: 20000125,
-            region_id: 10000002,
-            development_level: 3,
-            anarchy_level: 2,
-            active_operations: 1,
-          },
-        ],
+        body: { mercenary_dens: [{ id: DEN_ID, planet_id: 40009077 }] },
       });
       queueResponse({
         match: OPS_LIST,
-        body: [
-          {
-            operation_id: 7001,
-            den_id: 5001,
-            system_id: 30000142,
-            site_type: 'assault',
-            status: 'active',
-            started_at: '2026-05-20T10:00:00Z',
-            expires_at: '2026-05-20T22:00:00Z',
-          },
-        ],
+        body: { operations: [{ id: OPERATION_ID, mercenary_den_id: DEN_ID }] },
       });
     });
 
@@ -212,10 +170,13 @@ defineFeature(feature, (test) => {
 
     then('the client shall correlate operations to their parent dens', () => {
       expect(sentRequests()).toHaveLength(2);
-      expect(denResults.map((d: any) => d.den_id)).toEqual([5001]);
-      expect(opResults.map((op: any) => op.operation_id)).toEqual([7001]);
-      expect(opResults[0].den_id).toBe(5001);
-      expect(opResults[0].den_id).toBe(denResults[0].den_id);
+      expect(denResults.mercenary_dens.map((d: any) => d.id)).toEqual([DEN_ID]);
+      expect(opResults.operations.map((op: any) => op.id)).toEqual([
+        OPERATION_ID,
+      ]);
+      expect(opResults.operations[0].mercenary_den_id).toBe(
+        denResults.mercenary_dens[0].id,
+      );
     });
   });
 
@@ -241,8 +202,8 @@ defineFeature(feature, (test) => {
           },
           infomorphs: { amount: 100 },
           evolution: {
-            development: { level: 3, progress: 0.75 },
-            anarchy: { level: 2, progress: 0.4 },
+            development: { amount: 75, level: 'Level3' },
+            anarchy: { amount: 40, level: 'Level2' },
           },
         },
       });
@@ -269,8 +230,10 @@ defineFeature(feature, (test) => {
         planet_id: 40000002,
         corporation_id: 98000002,
       });
-      expect(result.evolution.development.level).toBe(3);
-      expect(result.evolution.anarchy.level).toBe(2);
+      expect(result.evolution).toEqual({
+        development: { amount: 75, level: 'Level3' },
+        anarchy: { amount: 40, level: 'Level2' },
+      });
     });
   });
 

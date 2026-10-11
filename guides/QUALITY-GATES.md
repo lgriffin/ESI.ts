@@ -519,7 +519,7 @@ CCP versions breaking changes to ESI with compatibility dates. A new endpoint on
 
 `COMPATIBILITY_DATE` in `src/core/constants.ts` is the one the client sends on every request, and `generate-esi-types.ts` now defaults to it rather than keeping its own copy. Each file it writes records the date in its header, and `tests/tdd/scripts/generated-spec-date.test.ts` fails when a header stops matching the constant. That pairing is what was missing: the two dates had drifted to 2026-05-19 and 2025-12-16, so twelve routes ESI added in between had no cache TTL and were revalidated on every call, and no committed file said which spec the artefacts came from (esi-23g.31).
 
-The other spec-reading tools still pin `2025-12-16` independently — `generate-schema-drift-report.ts`, `generate-okf.ts`, `generate-endpoint-scaffold.ts`, `create-token.ts`, `run-schemathesis.sh` and `tests/contract/helpers.ts`. `validate-esi-endpoints.ts` and `snapshot-openapi.ts` import the constant, and `redocly.yaml` names the same date, which `generated-spec-date.test.ts` checks. Moving the others moves their baselines too (`schema-drift-baseline.json` most of all), so each is its own change; `esi-v2s.25` tracks the drift report's.
+The other spec-reading tools still pin `2025-12-16` independently — `generate-okf.ts`, `generate-endpoint-scaffold.ts`, `create-token.ts`, `run-schemathesis.sh` and `tests/contract/helpers.ts`. `validate-esi-endpoints.ts`, `snapshot-openapi.ts`, `check-spec-drift.ts` and `generate-schema-drift-report.ts` import the constant, and `redocly.yaml` names the same date, which `generated-spec-date.test.ts` checks. Moving the others can move their baselines too, so each is its own change. The drift report moved in [#638](https://github.com/lgriffin/ESI.ts/issues/638): at the newer date five list endpoints turned out to be wrapped in an object and several schemas had never matched ESI, so the schemas were fixed in the same change.
 
 ### Responding to drift
 
@@ -544,7 +544,7 @@ Related scripts:
 
 ## Schema drift
 
-`npm run schema:drift` compares the Zod `responseSchema` of every endpoint definition with the response body the ESI spec defines for that operation, pinned to `compatibility_date=2025-12-16`. The comparison lives in `scripts/spec/schema-drift-core.ts`, with unit tests in `tests/tdd/schema-drift/`; the CLI is `scripts/spec/generate-schema-drift-report.ts`.
+`npm run schema:drift` compares the Zod `responseSchema` of every endpoint definition with the response body the ESI spec defines for that operation, at the client's `COMPATIBILITY_DATE` (`src/core/constants.ts`). The comparison lives in `scripts/spec/schema-drift-core.ts`, with unit tests in `tests/tdd/schema-drift/`; the CLI is `scripts/spec/generate-schema-drift-report.ts`.
 
 ### How an endpoint finds its spec operation
 
@@ -577,7 +577,7 @@ The script exits `2`, in report mode as well as under `--ci`, when no schema was
 
 ### The known-drift baseline
 
-`scripts/spec/schema-drift-baseline.json` lists drift that is tracked but not yet fixed. Keys are `<endpoint> <field> <kind>` under `findings` and `<endpoint>` under `unmatched`; each value is the bead that tracks the fix, and an entry without a bead id is rejected. The seed from `master` holds 203 findings on 52 endpoints (`esi-v2s.10`, `.12`, `.14` and `.21`) and 28 endpoints newer than the pinned compatibility date (`esi-v2s.25`).
+`scripts/spec/schema-drift-baseline.json` lists drift that is tracked but not yet fixed. Keys are `<endpoint> <field> <kind>` under `findings` and `<endpoint>` under `unmatched`; each value is the bead that tracks the fix, and an entry without a bead id is rejected. The seed from `master` held 203 findings on 52 endpoints (`esi-v2s.10`, `.12`, `.14` and `.21`) and 28 endpoints newer than the then-pinned 2025-12-16 (`esi-v2s.25`). Since the move to the client's date ([#638](https://github.com/lgriffin/ESI.ts/issues/638)) it holds 12 optional fields the spec does not define (`esi-v2s.28`) and `getOpenApiJson`, whose route serves the spec itself.
 
 `--ci` exits `1` when:
 

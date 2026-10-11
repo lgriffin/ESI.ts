@@ -55,7 +55,10 @@ export const cosmeticsFixtures = {
     line: 'Crimson',
     tier: { level: 3 },
     layout: {
-      slots: [{}],
+      slots: [
+        { id: 1, configuration: { nanocoating: { id: 67890 } } },
+        { id: 2, configuration: { nanocoating: { id: 67892 } } },
+      ],
       pattern_blend_mode: 'normal',
     },
   }),

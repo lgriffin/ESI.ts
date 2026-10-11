@@ -2,10 +2,11 @@ Feature: Mercenary Operations
   The Mercenary client covers mercenary dens and the tactical operations that
   spawn from them. A den is a persistent structure with development and anarchy
   levels that evolve over time; a mercenary tactical operation (MTO) is a
-  short-lived site tied back to its parent den by den_id.
+  short-lived site, identified by a UUID, tied back to its parent den by
+  mercenary_den_id.
 
-  Each concept has a list endpoint for surveying what a character owns and a
-  detail endpoint for the evolution and expiry data the list view omits.
+  Each concept has a list endpoint that locates what a character owns and a
+  detail endpoint for the state, evolution and expiry data the list view omits.
 
   Retry, stale-on-error, circuit breaking and request deduplication apply to
   these calls as to every other; 0050-etag-caching.feature and
@@ -15,56 +16,58 @@ Feature: Mercenary Operations
 
   # ── Den listing ─────────────────────────────────────────────────────
 
-  Rule: When the mercenary dens of a character are requested, the Mercenary client shall return each den with its den_id, and its development_level, anarchy_level, and active_operations count when present.
-    Development and anarchy are the two axes a den evolves along, and the
-    active operation count says how much is currently running out of it.
-    Those three numbers are what a caller needs to rank dens without opening
-    each one's detail view.
+  Rule: When the mercenary dens of a character are requested, the Mercenary client shall return the response's mercenary_dens list, each entry with its den id and planet.
+    ESI wraps the list in an object ({ mercenary_dens: [...] }), and the
+    client returns that object as sent. The listing only locates each den: its
+    id and the planet_id it sits on. State, infomorphs and the development and
+    anarchy evolution come from the per-den detail endpoint.
 
-    Scenario: Two dens return their development, anarchy, and active operation counts
+    Scenario: Two dens return their ids and planets
       Given mercenary dens exist
       When the client requests dens
-      Then the client shall return development and anarchy parameters
+      Then the client shall return the mercenary_dens list with ids and planets
 
-  Rule: If a character owns no mercenary dens, then the Mercenary client shall return an empty array.
+  Rule: If a character owns no mercenary dens, then the Mercenary client shall return an empty mercenary_dens list.
     Owning no dens is the default state for a character who has never deployed
-    one, so it is reported
-    as an empty array rather than an error and callers branch on length.
+    one, so ESI reports it as { mercenary_dens: [] } rather than an error, and
+    callers branch on the list's length.
 
-    Scenario: Character with no dens receives an empty array
+    Scenario: Character with no dens receives an empty mercenary_dens list
       Given no dens exist in the area
       When the client requests dens
-      Then the client shall return an empty array
+      Then the client shall return an empty mercenary_dens list
 
   # ── Tactical operations ─────────────────────────────────────────────
 
-  Rule: When the mercenary tactical operations of a character are requested, the Mercenary client shall return each operation with its operation_id, site_type, and status.
-    An MTO's status moves from spawning to active over its lifetime and the
-    site type decides what fit is needed to run it. Both are in the list view
-    so a caller can triage which operations are worth opening.
+  Rule: When the mercenary tactical operations of a character are requested, the Mercenary client shall return the response's operations list, each entry with its UUID operation id and its mercenary_den_id.
+    ESI wraps the list in an object ({ operations: [...] }), and the client
+    returns that object as sent. An operation is identified by a UUID string
+    rather than a numeric ID. State, dungeon type and expiry come from the
+    per-operation detail endpoint.
 
-    Scenario: Active and spawning operations return their site type and status
+    Scenario: Two operations return their UUIDs and parent den ids
       Given MTOs are active
       When the client requests operations
-      Then the client shall return operation details with status
+      Then the client shall return the operations list with UUIDs and den ids
 
-  Rule: When dens and tactical operations are fetched together, the Mercenary client shall return on each operation the den_id of the den it spawned from.
-    The den_id is the only link between the two endpoints. Without it a caller
-    could list both sides but could not attribute an operation to the
+  Rule: When dens and tactical operations are fetched together, the Mercenary client shall return on each operation the mercenary_den_id that equals the id of the den it spawned from.
+    The mercenary_den_id is the only link between the two endpoints. Without it
+    a caller could list both sides but could not attribute an operation to the
     structure that produced it, which is the whole point of surveying them
     together.
 
-    Scenario: Operation den_id matches the parent den fetched alongside it
+    Scenario: Operation mercenary_den_id matches the parent den fetched alongside it
       Given dens and MTOs exist
       When the client fetches both
       Then the client shall correlate operations to their parent dens
 
   # ── Detail lookups ──────────────────────────────────────────────────
 
-  Rule: When a mercenary den detail is requested by den ID, the Mercenary client shall return the den state, its infomorph amount, its skyhook, and its development and anarchy evolution levels.
+  Rule: When a mercenary den detail is requested by den ID, the Mercenary client shall return the den state, its infomorph amount, its skyhook, and its development and anarchy evolution, each as an amount and a named level.
     The detail view is where evolution progress and the attached skyhook
-    appear — none of it is in the list payload. Infomorph stock is what the
-    den consumes to keep running, so it belongs with the state rather than
+    appear — none of it is in the list payload. Each evolution axis reports a
+    numeric amount and a level from Level0 to Level4. Infomorph stock is what
+    the den consumes to keep running, so it belongs with the state rather than
     behind a further call.
 
     Scenario: Running den reports its evolution levels, infomorphs, and skyhook

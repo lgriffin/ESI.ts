@@ -1,29 +1,38 @@
 import { z } from 'zod';
 import { esiEnum } from './esiEnum';
 
+/** One entry in `GET /characters/{character_id}/structures/mercenary-dens`. */
 export const MercenaryDenSchema = z.looseObject({
-  den_id: z.number(),
-  system_id: z.number(),
-  constellation_id: z.number(),
-  region_id: z.number(),
-  development_level: z.number().optional(),
-  anarchy_level: z.number().optional(),
-  active_operations: z.number().optional(),
+  id: z.number(),
+  planet_id: z.number(),
 });
 
+/** `GET /characters/{character_id}/structures/mercenary-dens`: ESI wraps the list in `mercenary_dens`. */
+export const MercenaryDensResponseSchema = z.looseObject({
+  mercenary_dens: z.array(MercenaryDenSchema),
+});
+
+/** One entry in `GET /characters/{character_id}/mercenary-tactical-operations`. */
 export const MercenaryTacticalOperationSchema = z.looseObject({
-  operation_id: z.number(),
-  den_id: z.number(),
-  system_id: z.number(),
-  site_type: z.string(),
-  status: esiEnum(['spawning', 'active', 'completed', 'expired']),
-  started_at: z.string().optional(),
-  expires_at: z.string().optional(),
+  id: z.string(),
+  mercenary_den_id: z.number(),
+});
+
+/** `GET /characters/{character_id}/mercenary-tactical-operations`: ESI wraps the list in `operations`. */
+export const MercenaryTacticalOperationsResponseSchema = z.looseObject({
+  operations: z.array(MercenaryTacticalOperationSchema),
 });
 
 const MercenaryDenDetailEvolutionLevelSchema = z.looseObject({
-  level: z.number().optional(),
-  progress: z.number().optional(),
+  amount: z.number(),
+  level: esiEnum([
+    'Unspecified',
+    'Level0',
+    'Level1',
+    'Level2',
+    'Level3',
+    'Level4',
+  ]),
 });
 
 export const MercenaryDenDetailEvolutionSchema = z.looseObject({

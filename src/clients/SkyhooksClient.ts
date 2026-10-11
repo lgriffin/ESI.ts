@@ -2,8 +2,8 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { skyhookEndpoints } from '../core/endpoints/skyhookEndpoints';
 import {
-  SovereigntyHub,
-  OrbitalSkyhook,
+  SovereigntyHubsResponse,
+  OrbitalSkyhooksResponse,
   RaidableSkyhooksResponse,
   SkyhookDetail,
   SovereigntyHubDetail,
@@ -15,24 +15,28 @@ export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
   }
 
   /**
-   * Retrieves all sovereignty hubs exposed as Upwell structures, including online status and installed upgrades.
+   * Retrieves the sovereignty hubs a corporation owns. Call `getSovereigntyHubDetail` for a hub's
+   * upgrades, reagent bay and resources.
    *
    * @param corporationId - The ID of the corporation to query sovereignty hubs for
-   * @returns A list of sovereignty hubs
+   * @returns ESI's response as sent: `sovereignty_hubs`, one entry per hub with its `id` and
+   *   `solar_system_id`
    * @requires Authentication
    */
-  getSovereigntyHubs(corporationId: number): Promise<SovereigntyHub[]> {
+  getSovereigntyHubs(corporationId: number): Promise<SovereigntyHubsResponse> {
     return this.api.getSovereigntyHubs(corporationId);
   }
 
   /**
-   * Retrieves all orbital skyhooks with their silo capacity and levels.
+   * Retrieves the orbital skyhooks a corporation owns. Call `getSkyhookDetail` for a skyhook's
+   * state, reagent stock and theft window.
    *
    * @param corporationId - The ID of the corporation to query skyhooks for
-   * @returns A list of orbital skyhooks
+   * @returns ESI's response as sent: `skyhooks`, one entry per skyhook with its `id` and
+   *   `planet_id`
    * @requires Authentication
    */
-  getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhook[]> {
+  getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhooksResponse> {
     return this.api.getOrbitalSkyhooks(corporationId);
   }
 
