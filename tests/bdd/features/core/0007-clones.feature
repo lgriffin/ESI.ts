@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Clone Management
   The Clones client covers the two token-scoped endpoints describing where a
   character can wake up and what is plugged into their head: the clone record,

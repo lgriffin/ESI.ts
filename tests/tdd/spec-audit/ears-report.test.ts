@@ -41,6 +41,8 @@ function scenario(
     status,
     time: 0,
     detail,
+    charterTags: [],
+    testFile: status === 'not-executed' ? null : 'tests/bdd/specs/x.spec.ts',
   };
 }
 

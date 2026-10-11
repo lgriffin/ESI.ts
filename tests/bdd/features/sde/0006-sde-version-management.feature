@@ -1,3 +1,4 @@
+@TEST-10
 Feature: SDE Version Management
   The Static Data Export is republished whenever CCP patches the game, so a
   loaded data set is only meaningful alongside the release it came from. The

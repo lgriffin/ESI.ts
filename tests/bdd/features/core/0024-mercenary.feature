@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Mercenary Operations
   The Mercenary client covers mercenary dens and the tactical operations that
   spawn from them. A den is a persistent structure with development and anarchy

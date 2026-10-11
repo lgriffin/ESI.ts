@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Rule title that is not a requirement
   The Rule title is the requirement, so a title with no obligation keyword
   states nothing for its scenarios to verify.

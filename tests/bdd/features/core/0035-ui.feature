@@ -1,3 +1,4 @@
+@TEST-10
 Feature: In-Game UI Control
   The UI client drives the EVE client of the authenticated character: it sets
   autopilot waypoints and opens contract, information, market details, and new

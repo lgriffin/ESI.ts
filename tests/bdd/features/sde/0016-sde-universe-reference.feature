@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Universe Reference Tables
   Beside the map itself, the SDE carries reference tables about places:
   landmarks with a position in space, secondary suns placed in some systems,

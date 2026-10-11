@@ -1,3 +1,4 @@
+@ARCH-04
 Feature: ETag Caching
   The EsiClient caches GET responses that carry an ETag header, keyed by
   endpoint. Each entry takes its freshness TTL from the endpoint's cache
@@ -68,6 +69,7 @@ Feature: ETag Caching
       When the server would return an error
       Then the client shall return the originally cached data
 
+  @TEST-11
   Rule: If a response carries an Expires header, then the ETag cache shall not take the entry's freshness from it.
     Freshness comes from the endpoint's spec cache metadata, or from
     Cache-Control max-age where the spec gives none. Expires is exposed on
@@ -101,6 +103,7 @@ Feature: ETag Caching
       Then both calls resolve with the assets from both pages
       And the client sent 2 requests
 
+  @TEST-11
   Rule: If a paginated call requests a page after the first while the ETag cache holds an entry for that page's URL, then the EsiClient shall not send an If-None-Match header for that page.
     Pages 2 to N are fetched unconditionally (PAGINATION.md). A 304 on one
     page would stand for a slice of an older snapshot, and only page 1's
@@ -114,6 +117,7 @@ Feature: ETag Caching
       Then the client resolves with the market types of both pages
       And the page 2 request carried no If-None-Match header
 
+  @TEST-11
   Rule: If a paginated call receives a page after the first, then the ETag cache shall not store that page under its own URL.
     The combined array is stored once, under page 1's URL with page 1's
     ETag, after every page is in. An entry per page would be one nobody
@@ -126,6 +130,7 @@ Feature: ETag Caching
       Then the client resolves with the market types of both pages
       And the ETag cache holds 1 entry
 
+  @TEST-11
   Rule: If a stream or fetch-all helper requests a page, then the EsiClient shall not send an If-None-Match header.
     The stream* and fetchAll* helpers read every page afresh and keep no
     cache of their own, so a 304 would leave them with no body to return.
@@ -145,6 +150,7 @@ Feature: ETag Caching
         | stream    |
         | fetch-all |
 
+  @TEST-11
   Rule: If a stream or fetch-all helper requests a page while the ETag cache holds an entry inside its spec TTL, then the EsiClient shall not answer the page from that entry.
     The helpers take the lighter single-page path, which has no spec-TTL
     lookup (PAGINATION.md, "What stream* and fetchAll* skip"). A cached
@@ -163,6 +169,7 @@ Feature: ETag Caching
         | stream    |
         | fetch-all |
 
+  @TEST-11
   Rule: If a stream or fetch-all helper receives a page, then the EsiClient shall not store that page in the ETag cache.
     A page is part of a resource, not the resource an ordinary call caches
     under the same URL. Storing it would let a later ordinary call be
@@ -180,6 +187,7 @@ Feature: ETag Caching
         | stream    |
         | fetch-all |
 
+  @TEST-11
   Rule: If a page requested by a stream or fetch-all helper is answered with a 5xx status while the ETag cache holds an entry for its URL, then the EsiClient shall not serve that entry in place of the page.
     Stale-on-error belongs to the eager path. The helper's page is not the
     combined array the entry holds, so the failure reaches the caller as an
@@ -222,6 +230,7 @@ Feature: ETag Caching
         | 500    |
         | 503    |
 
+  @TEST-11
   Rule: If a GET request is answered with a 5xx status while the ETag cache holds an unexpired entry for it, then the EsiClient shall not send the request again.
     The stale entry is the answer, so nothing is thrown and the retry
     strategy has nothing to retry, even for 502, 503 and 504, which it would
@@ -392,7 +401,7 @@ Feature: ETag Caching
       Then the client resolves with the cached structure orders from a 304 revalidation
       And the client sent 3 requests, the last carrying the cached structure orders ETag in If-None-Match
 
-  @sec-P4
+  @sec-P4 @SEC-10
   Rule: If two EVE SSO access tokens carry different character ids, then the ETag cache shall keep a separate entry for each character.
     A structure's order book, a corporation's wallet or a character's own
     location answer differently for every character that asks, so an entry
@@ -409,6 +418,7 @@ Feature: ETag Caching
       Then the second structure orders request carried no If-None-Match header
       And the cache holds 2 entries
 
+  @SEC-02
   Rule: If an access token is not an EVE SSO JWT, then the ETag cache shall scope that token's entries by a hash of the token.
     A token that names no character (a raw string in a test, a token from
     another issuer) has no identity to key by except itself. The hash keeps
@@ -425,7 +435,7 @@ Feature: ETag Caching
       Then the second structure orders request carried no If-None-Match header
       And the cache holds 2 entries
 
-  @sec-P4
+  @sec-P4 @SEC-10
   Rule: If the current access token is one ESI has not yet answered, then the ETag cache shall serve no stored entry for it without a request.
     The character a token names is read without verifying the token, so it is
     a claim until ESI has answered a request under that token with 2xx or

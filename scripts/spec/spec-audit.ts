@@ -12,6 +12,12 @@
  *     language, and follows EARS grammar for If/While/When/Where.
  *   - A `@bug` tag names where the bug is tracked (`@esi-<bead>` or
  *     `@gh-<issue>`), and a bead tag names a bead in `.beads/issues.jsonl`.
+ *   - Every Feature carries at least one charter tag (`@DES-08`) on the
+ *     Feature or on one of its Rules, naming the `guides/CHARTER.md`
+ *     requirement it verifies; every charter tag names an id the charter
+ *     defines; and a feature a requirement's "Verified by" line cites carries
+ *     that requirement's tag. Features no requirement covers are listed in
+ *     `unchartedFeatures`, a shrink-only list.
  *
  * Ported from the hermes project's audit.py, but parsing the real Gherkin AST
  * via @cucumber/gherkin rather than matching lines with regexes, so `Rule:`
@@ -50,16 +56,22 @@ import type {
 } from '@cucumber/messages';
 
 import {
+  CHARTER_PATH,
   REPO_ROOT,
+  charterFeatureCitations,
+  charterIds,
   checkBugTags,
+  checkCharterTags,
   checkEarsPatternStructure,
   checkExceptionList,
   checkMissingSystemName,
+  checkUnchartedList,
   countShall,
   findVagueTerms,
   findWrongObligationKeywords,
   loadBaselineExceptions,
   loadBeadIds,
+  loadCharterIds,
   loadExceptions,
 } from './spec-audit-checks';
 import { StepFinding, auditStepLayout } from './spec-audit-steps';
@@ -131,6 +143,10 @@ interface FileReport {
   findings: Finding[];
   ruleCount: number;
   scenarioCount: number;
+  /** Charter ids on the Feature or one of its Rules: what the feature verifies. */
+  carried: Set<string>;
+  /** Charter ids tagged anywhere in the file, Scenarios and Examples included. */
+  charter: Set<string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -139,18 +155,27 @@ interface FileReport {
 
 type Beads = ReadonlySet<string> | null;
 
-/** Bug-tag findings for one element, reported at the line of its tags. */
+/** What the tag checks read: the beads export and the charter's ids. */
+interface Known {
+  beads: Beads;
+  charter: ReadonlySet<string> | null;
+}
+
+/** Bug- and charter-tag findings for one element, reported at the line of its tags. */
 function auditTags(
   element: { tags: readonly { name: string; location: { line: number } }[] },
   inherited: readonly string[],
   what: string,
   file: string,
-  beads: Beads,
+  known: Known,
   findings: Finding[],
 ): string[] {
   const own = element.tags.map((t) => t.name);
   const line = element.tags[0]?.location.line ?? null;
-  for (const message of checkBugTags(own, inherited, beads)) {
+  for (const message of [
+    ...checkBugTags(own, inherited, known.beads),
+    ...checkCharterTags(own, known.charter),
+  ]) {
     findings.push({ file, line, message: `${what}: ${message}` });
   }
   return [...inherited, ...own];
@@ -161,7 +186,7 @@ function auditRule(
   file: string,
   findings: Finding[],
   inherited: readonly string[],
-  beads: Beads,
+  known: Known,
 ): number {
   const title = rule.name.trim();
   const line = rule.location.line;
@@ -221,12 +246,12 @@ function auditRule(
     inherited,
     prefix.slice(0, -1),
     file,
-    beads,
+    known,
     findings,
   );
   for (const child of rule.children) {
     if (child.scenario)
-      auditScenario(child.scenario, ruleTags, file, beads, findings);
+      auditScenario(child.scenario, ruleTags, file, known, findings);
   }
 
   const scenarios = rule.children.filter((c) => c.scenario).length;
@@ -240,20 +265,20 @@ function auditScenario(
   scenario: Scenario,
   inherited: readonly string[],
   file: string,
-  beads: Beads,
+  known: Known,
   findings: Finding[],
 ): void {
   const what = `Scenario '${scenario.name}'`;
-  const tags = auditTags(scenario, inherited, what, file, beads, findings);
+  const tags = auditTags(scenario, inherited, what, file, known, findings);
   for (const examples of scenario.examples) {
-    auditTags(examples, tags, `${what} Examples`, file, beads, findings);
+    auditTags(examples, tags, `${what} Examples`, file, known, findings);
   }
 }
 
 function auditFeature(
   feature: Feature,
   file: string,
-  beads: Beads,
+  known: Known,
 ): FileReport {
   const findings: Finding[] = [];
   const featureTags = auditTags(
@@ -261,7 +286,7 @@ function auditFeature(
     [],
     `Feature '${feature.name}'`,
     file,
-    beads,
+    known,
     findings,
   );
   let ruleCount = 0;
@@ -277,10 +302,10 @@ function auditFeature(
         file,
         findings,
         featureTags,
-        beads,
+        known,
       );
     } else if (child.scenario) {
-      auditScenario(child.scenario, featureTags, file, beads, findings);
+      auditScenario(child.scenario, featureTags, file, known, findings);
       orphanScenarios.push(child.scenario);
     }
   }
@@ -320,14 +345,31 @@ function auditFeature(
     });
   }
 
-  return { file, findings, ruleCount, scenarioCount };
+  const names = (element: { tags: readonly { name: string }[] }) =>
+    element.tags.map((t) => t.name);
+  const rules = feature.children.flatMap((c) => (c.rule ? [c.rule] : []));
+  const scenarios = [
+    ...rules.flatMap((r) => r.children),
+    ...feature.children,
+  ].flatMap((c) => (c.scenario ? [c.scenario] : []));
+  const carried = new Set(
+    charterIds([...names(feature), ...rules.flatMap(names)]),
+  );
+  const charter = new Set([
+    ...carried,
+    ...charterIds(
+      scenarios.flatMap((sc) => [...names(sc), ...sc.examples.flatMap(names)]),
+    ),
+  ]);
+
+  return { file, findings, ruleCount, scenarioCount, carried, charter };
 }
 
 function auditFile(
   parse: ParseGherkin,
   absPath: string,
   relPath: string,
-  beads: Beads,
+  known: Known,
 ): FileReport {
   let document;
   try {
@@ -344,6 +386,8 @@ function auditFile(
       ],
       ruleCount: 0,
       scenarioCount: 0,
+      carried: new Set(),
+      charter: new Set(),
     };
   }
 
@@ -355,10 +399,12 @@ function auditFile(
       ],
       ruleCount: 0,
       scenarioCount: 0,
+      carried: new Set(),
+      charter: new Set(),
     };
   }
 
-  return auditFeature(document.feature, relPath, beads);
+  return auditFeature(document.feature, relPath, known);
 }
 
 // ---------------------------------------------------------------------------
@@ -384,6 +430,10 @@ function collectFeatureFiles(target: string): string[] {
     }
   }
   return found.sort();
+}
+
+function posix(rel: string): string {
+  return rel.split(path.sep).join('/');
 }
 
 function annotate(
@@ -456,14 +506,27 @@ async function main(): Promise<void> {
   }
 
   const parse = await loadGherkinParser();
-  const beads = loadBeadIds();
+  const known: Known = { beads: loadBeadIds(), charter: loadCharterIds() };
+  const uncharted = new Set(exceptions.unchartedFeatures);
   const reports: FileReport[] = [];
   const skipped: string[] = [];
   const staleExceptions: string[] = [];
 
   for (const abs of files) {
     const rel = path.relative(REPO_ROOT, abs);
-    const report = auditFile(parse, abs, rel, beads);
+    const report = auditFile(parse, abs, rel, known);
+    const parsed = report.ruleCount > 0 || report.findings.length === 0;
+    if (parsed && report.carried.size === 0 && !uncharted.has(posix(rel))) {
+      report.findings.push({
+        file: rel,
+        line: 1,
+        message:
+          'Feature carries no charter tag. Tag the Feature, or each Rule that ' +
+          'backs a requirement, with the guides/CHARTER.md requirement it ' +
+          'verifies (for example @DES-08). A feature no requirement covers ' +
+          'is listed under unchartedFeatures in spec-audit-exceptions.json.',
+      });
+    }
     if (unconverted.has(rel)) {
       // Still allowlisted — but if it now passes, the entry must come out so
       // the file cannot silently regress later.
@@ -475,6 +538,68 @@ async function main(): Promise<void> {
       continue;
     }
     reports.push(report);
+  }
+
+  // The charter and the features cite each other: a feature a requirement's
+  // "Verified by" line names must carry that requirement's tag. Checked on a
+  // full run only, since a fixture tree holds none of the cited features.
+  const charterProblems: string[] = [];
+  if (targets.length === 0) {
+    const byFile = new Map(reports.map((r) => [posix(r.file), r]));
+    let charterText = '';
+    try {
+      charterText = readFileSync(CHARTER_PATH, 'utf-8');
+    } catch {
+      // loadCharterIds already reports an unreadable charter on every tag.
+    }
+    for (const [id, cited] of charterFeatureCitations(charterText)) {
+      const report = byFile.get(cited);
+      if (!report) {
+        charterProblems.push(
+          `guides/CHARTER.md ${id} cites ${cited} in its "Verified by" line, ` +
+            'but no such feature file exists. Correct the citation.',
+        );
+      } else if (!report.charter.has(id)) {
+        report.findings.push({
+          file: report.file,
+          line: 1,
+          message:
+            `guides/CHARTER.md ${id} cites this feature in its "Verified by" ` +
+            `line, but no Feature, Rule or Scenario here carries @${id}. Tag ` +
+            'what verifies it, or correct the citation.',
+        });
+      }
+    }
+
+    const tagged = new Set(
+      reports.filter((r) => r.carried.size > 0).map((r) => posix(r.file)),
+    );
+    const { added, dangling, stale } = checkUnchartedList(
+      exceptions.unchartedFeatures,
+      exceptions.unchartedFeatures.length > 0
+        ? loadBaseline().unchartedFeatures
+        : null,
+      tagged,
+    );
+    for (const rel of added) {
+      charterProblems.push(
+        `${rel} was added to unchartedFeatures in spec-audit-exceptions.json. ` +
+          'The list is a ratchet: entries may only be removed. Tag the ' +
+          'feature with the charter requirement it verifies instead.',
+      );
+    }
+    for (const rel of dangling) {
+      charterProblems.push(
+        `${rel} is listed under unchartedFeatures in spec-audit-exceptions.json ` +
+          'but no such .feature file exists. Remove the stale entry.',
+      );
+    }
+    for (const rel of stale) {
+      charterProblems.push(
+        `${rel} is listed under unchartedFeatures in spec-audit-exceptions.json ` +
+          'but now carries a charter tag. Remove it from the list.',
+      );
+    }
   }
 
   const failing = reports.filter((r) => r.findings.length > 0);
@@ -514,6 +639,11 @@ async function main(): Promise<void> {
     annotate('error', message, 'scripts/spec/spec-audit-exceptions.json');
   }
 
+  for (const message of charterProblems) {
+    console.error(`\n  [ERROR] ${message}`);
+    annotate('error', message, 'scripts/spec/spec-audit-exceptions.json');
+  }
+
   const stepFiles = [...new Set(stepFindings.map((f) => f.file))];
   for (const file of stepFiles) {
     console.error(`\n--- ${file} ---`);
@@ -543,6 +673,10 @@ async function main(): Promise<void> {
       console.log(
         `Legacy step files: ${exceptions.legacyStepFiles.length} awaiting one-step-per-file`,
       );
+      const tagged = reports.filter((r) => r.carried.size > 0).length;
+      console.log(
+        `Charter tags:      ${tagged} feature(s) tagged, ${exceptions.unchartedFeatures.length} listed as uncharted`,
+      );
     }
     if (skipped.length > 0) {
       console.log('\nAwaiting conversion:');
@@ -551,7 +685,10 @@ async function main(): Promise<void> {
   }
 
   const badExceptions =
-    staleExceptions.length + addedExceptions.length + danglingExceptions.length;
+    staleExceptions.length +
+    addedExceptions.length +
+    danglingExceptions.length +
+    charterProblems.length;
 
   if (totalFindings > 0 || badExceptions > 0) {
     console.error(

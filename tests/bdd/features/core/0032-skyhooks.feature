@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Skyhooks and Sovereignty Hubs
   The Skyhooks client covers the Equinox structures a corporation plants on
   planets and in sovereign systems: orbital skyhooks with their reagent silos,

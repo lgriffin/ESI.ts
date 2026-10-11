@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Dogma System
   Dogma is EVE's attribute and effect engine: every module, ship and charge in
   the game is described by numeric attributes and the effects that consume

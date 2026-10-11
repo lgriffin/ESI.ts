@@ -1,3 +1,4 @@
+@ARCH-10
 Feature: The Memory Entry Point
   The package exposes the SDE twice: ./sde carries everything, including the
   file-backed SdeDataProvider and, through it, the optional peers; ./sde/memory

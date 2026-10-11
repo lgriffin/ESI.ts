@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Corporation Projects Management
   The Corporation Projects client covers the project endpoints a corporation
   uses to set collective goals and track who worked towards them. It reads the

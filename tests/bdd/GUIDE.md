@@ -57,6 +57,9 @@ it — the sentence itself, ending in a full stop, with exactly one `shall`.
 ## Anatomy of a feature file
 
 ```gherkin
+@ARCH-04
+↑ Charter tag: required, here or on a Rule. The guides/CHARTER.md requirement
+  the file verifies. A Rule that backs a different one carries its own tag.
 Feature: ETag Caching
   The EsiClient can cache GET responses that carry an ETag header, keyed by
   endpoint. Each entry has a TTL derived from the endpoint's cache metadata
@@ -422,6 +425,10 @@ mid-flight.
    Note that `MedalSchema` has more fields than four. The requirement names the
    ones the scenario actually checks — naming all of them would overstate the
    coverage.
+
+   The Rule inherits the `@TEST-10` tag on the feature's first line. A Rule
+   that backs a different charter requirement carries that id as its own tag
+   (`@DES-08`), and an exclusion Rule (`… shall not …`) carries `@TEST-11`.
 
 3. **Write the scenario** under it — and the error cases the client really
    handles: 404, 403, 420, 5xx, empty collection, last page.

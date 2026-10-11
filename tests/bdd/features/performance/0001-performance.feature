@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Performance Characteristics
   These scenarios are smoke checks of the behaviour that performance depends
   on: a response is waited for rather than answered early, concurrent calls

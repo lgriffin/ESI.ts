@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Planetary Interaction Management
   The PI client covers planetary industry: the colonies a character owns, the
   pin-link-route layout inside each colony, the schematics those pins run, and

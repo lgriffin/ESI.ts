@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Static Data Lookup
   The SDE provider serves EVE's Static Data Export from an in-memory data set,
   answering point lookups by primary key and name searches over loaded types.

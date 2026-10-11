@@ -7,6 +7,10 @@
  *   - writes a JUnit XML report whose test cases are named
  *     `Feature › Rule › Scenario`, so a CI report shows which requirement a
  *     failure breaks, whichever runner (spec entry or legacy step file) ran it;
+ *   - writes `reports/bdd/scenarios.json`, one record per scenario: feature
+ *     file and line, Feature, Rule, Scenario, the charter requirement ids its
+ *     tags name, its status (passed, failed or not-run) and the Jest test
+ *     file that ran it, so a tool can join a result to a requirement;
  *   - appends a summary table to `$GITHUB_STEP_SUMMARY` when that is set;
  *   - exits 1 when any scenario did not execute: its feature is bound to no
  *     test file, its test file is missing from the run or failed to load, or
@@ -21,7 +25,7 @@
  *   npm run bdd:report
  *
  *   npx ts-node scripts/quality/bdd-report.ts [--results=<json>] [--junit=<xml>]
- *     [--summary=<md>] [--root=<dir>]
+ *     [--scenarios=<json>] [--summary=<md>] [--root=<dir>]
  *
  * `--root` points the report at a miniature repository (the unit fixtures);
  * results paths are resolved against it.
@@ -43,6 +47,7 @@ import {
   buildLedger,
   readFeatures,
   toJUnit,
+  toScenarioResults,
   toSummary,
 } from './bdd-report-core';
 import { featureBindings } from '../spec/spec-audit-steps';
@@ -85,6 +90,10 @@ function main(): void {
     arg('results') ?? 'reports/bdd/jest-results.json',
   );
   const junitPath = path.resolve(root, arg('junit') ?? 'reports/bdd/junit.xml');
+  const scenariosPath = path.resolve(
+    root,
+    arg('scenarios') ?? 'reports/bdd/scenarios.json',
+  );
   const summaryPath = arg('summary') ?? process.env.GITHUB_STEP_SUMMARY;
 
   if (!existsSync(resultsPath)) {
@@ -119,6 +128,11 @@ function main(): void {
 
   mkdirSync(path.dirname(junitPath), { recursive: true });
   writeFileSync(junitPath, toJUnit(ledger));
+  mkdirSync(path.dirname(scenariosPath), { recursive: true });
+  writeFileSync(
+    scenariosPath,
+    `${JSON.stringify(toScenarioResults(ledger), null, 2)}\n`,
+  );
   if (summaryPath) appendFileSync(summaryPath, toSummary(ledger));
 
   const count = (status: string) =>
@@ -128,6 +142,7 @@ function main(): void {
       `${count('passed')} passed, ${count('failed')} failed, ${count('not-executed')} not executed.`,
   );
   console.log(`JUnit report: ${path.relative(REPO_ROOT, junitPath)}`);
+  console.log(`Scenario results: ${path.relative(REPO_ROOT, scenariosPath)}`);
 
   for (const finding of ledger.findings) {
     console.error(

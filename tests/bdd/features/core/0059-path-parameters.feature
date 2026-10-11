@@ -1,3 +1,4 @@
+@SEC-10
 Feature: Path parameter validation
   Every ID a caller passes to an endpoint becomes a segment of the request
   path. A value that is empty, that holds a character with meaning in a URL,

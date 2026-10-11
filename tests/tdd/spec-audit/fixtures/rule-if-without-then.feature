@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Unwanted-behaviour Rule missing its then
   The If pattern is the only EARS template that takes then, and then must
   separate the condition from the response.

@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Character and Lore Data Lookup
   Character creation in EVE is a chain of choices — race, then bloodline, then
   ancestry — and the SDE stores each level as its own table linked by ID.

@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Alliance Management
   The Alliance client covers the public alliance endpoints of ESI: the alliance
   record itself, the alliance contact list, and the corporations that belong to

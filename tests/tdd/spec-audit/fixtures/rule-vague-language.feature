@@ -1,3 +1,4 @@
+@TEST-02
 Feature: Rule title using unmeasurable language
   If two readers can disagree about whether the system met the requirement,
   it is not a requirement.

@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Wars
   The Wars client covers the public war register: the index of declared wars,
   the detail record for one war with its aggressor and defender statistics and
