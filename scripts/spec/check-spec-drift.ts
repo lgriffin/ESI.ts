@@ -5,7 +5,7 @@
  * OpenAPI spec and outputs a JSON report of missing endpoints. Designed
  * to be called by CI to auto-file GitHub issues for new spec gaps.
  *
- * Usage: npx ts-node scripts/spec/check-spec-drift.ts
+ * Usage: npx ts-node scripts/spec/check-spec-drift.ts  (the client's COMPATIBILITY_DATE)
  *        npx ts-node scripts/spec/check-spec-drift.ts --compatibility-date=2026-08-04
  *
  * Output: JSON to stdout with structure:
@@ -17,7 +17,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const DEFAULT_COMPATIBILITY_DATE = '2025-12-16';
+import { COMPATIBILITY_DATE } from '../../src/core/constants';
+
 const ESI_OPENAPI_BASE = 'https://esi.evetech.net/meta/openapi.json';
 const ESI_COMPATIBILITY_DATES_URL =
   'https://esi.evetech.net/meta/compatibility-dates';
@@ -38,7 +39,7 @@ function parseCompatibilityDate(): string {
     const match = arg.match(/^--compatibility-date=(\d{4}-\d{2}-\d{2})$/);
     if (match) return match[1]!;
   }
-  return DEFAULT_COMPATIBILITY_DATE;
+  return COMPATIBILITY_DATE;
 }
 
 async function resolveCompatibilityDate(
