@@ -555,29 +555,29 @@ describe('TestDataFactory', () => {
 
     it('should create a sovereignty hub with defaults', () => {
       const hub = TestDataFactory.createSovereigntyHub();
-      expect(hub.structure_id).toBe(100000001);
-      expect(hub.online).toBe(true);
-      expect(hub.installed_upgrades).toEqual([1, 2, 3]);
+      expect(hub.id).toBe(1046664001931);
+      expect(hub.solar_system_id).toBe(30000142);
     });
 
     it('should create a sovereignty hub with overrides', () => {
-      const hub = TestDataFactory.createSovereigntyHub({ online: false });
-      expect(hub.online).toBe(false);
-      expect(hub.structure_id).toBe(100000001);
+      const hub = TestDataFactory.createSovereigntyHub({
+        solar_system_id: 30002187,
+      });
+      expect(hub.solar_system_id).toBe(30002187);
+      expect(hub.id).toBe(1046664001931);
     });
 
     it('should create an orbital skyhook with defaults', () => {
       const skyhook = TestDataFactory.createOrbitalSkyhook();
-      expect(skyhook.structure_id).toBe(200000001);
-      expect(skyhook.reagent_silo_capacity).toBe(1000);
-      expect(skyhook.reagent_silo_level).toBe(750);
+      expect(skyhook.id).toBe(1046664001932);
+      expect(skyhook.planet_id).toBe(40009077);
     });
 
     it('should create an orbital skyhook with overrides', () => {
       const skyhook = TestDataFactory.createOrbitalSkyhook({
-        reagent_silo_level: 0,
+        planet_id: 40202075,
       });
-      expect(skyhook.reagent_silo_level).toBe(0);
+      expect(skyhook.planet_id).toBe(40202075);
     });
 
     it('should create a raidable skyhook with defaults', () => {
@@ -596,46 +596,39 @@ describe('TestDataFactory', () => {
 
     it('should create a mercenary den with defaults', () => {
       const den = TestDataFactory.createMercenaryDen();
-      expect(den.den_id).toBe(5001);
-      expect(den.development_level).toBe(3);
-      expect(den.anarchy_level).toBe(2);
+      expect(den.id).toBe(1046664001933);
+      expect(den.planet_id).toBe(40009077);
     });
 
     it('should create a mercenary den with overrides', () => {
-      const den = TestDataFactory.createMercenaryDen({
-        development_level: 5,
-      });
-      expect(den.development_level).toBe(5);
+      const den = TestDataFactory.createMercenaryDen({ planet_id: 40202075 });
+      expect(den.planet_id).toBe(40202075);
     });
 
     it('should create a mercenary tactical operation with defaults', () => {
       const op = TestDataFactory.createMercenaryTacticalOperation();
-      expect(op.operation_id).toBe(7001);
-      expect(op.site_type).toBe('assault');
-      expect(op.status).toBe('active');
+      expect(op.id).toBe('3f2b7c1e-8d4a-4b6e-9a51-2c7d0e9f4a10');
+      expect(op.mercenary_den_id).toBe(1046664001933);
     });
 
     it('should create a mercenary tactical operation with overrides', () => {
       const op = TestDataFactory.createMercenaryTacticalOperation({
-        status: 'completed',
+        mercenary_den_id: 7,
       });
-      expect(op.status).toBe('completed');
+      expect(op.mercenary_den_id).toBe(7);
     });
 
-    it('should create an access list entry with defaults', () => {
-      const entry = TestDataFactory.createAccessListEntry();
-      expect(entry.entity_id).toBe(1689391488);
-      expect(entry.entity_type).toBe('character');
-      expect(entry.access_type).toBe('allowed');
+    it('should create an access list with defaults', () => {
+      const list = TestDataFactory.createAccessList();
+      expect(list.id).toBe(1000000001);
+      expect(list.membership.allow_everyone).toBe(false);
+      expect(list.membership.characters[0]!.access).toBe('Admin');
     });
 
-    it('should create an access list entry with overrides', () => {
-      const entry = TestDataFactory.createAccessListEntry({
-        entity_type: 'corporation',
-        access_type: 'blocked',
-      });
-      expect(entry.entity_type).toBe('corporation');
-      expect(entry.access_type).toBe('blocked');
+    it('should create an access list with overrides', () => {
+      const list = TestDataFactory.createAccessList({ name: 'Docking' });
+      expect(list.name).toBe('Docking');
+      expect(list.id).toBe(1000000001);
     });
   });
 

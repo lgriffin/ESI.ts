@@ -211,6 +211,8 @@ export const TIERS: Tier[] = [
 /** Scripts that are shorthand for others, so CI running them counts as coverage. */
 export const COMPOSITES: Record<string, string[]> = {
   'test:all': ['test', 'bdd', 'test:integration', 'fuzz', 'test:types'],
+  // The same tsd run as test:types, plus a JSON results file for CI.
+  'test:types:report': ['test:types'],
 };
 
 /**

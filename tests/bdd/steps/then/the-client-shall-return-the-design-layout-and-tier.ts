@@ -10,7 +10,12 @@ Then('the client shall return the design layout and tier', function () {
   expect(this.result.name).toBe('Crimson Fury');
   expect(this.result.tier.level).toBe(3);
   expect(this.result.layout.pattern_blend_mode).toBe('normal');
-  expect(this.result.layout.slots).toEqual([{}]);
+  expect(
+    this.result.layout.slots.map((slot: any) => [slot.id, slot.configuration]),
+  ).toEqual([
+    [1, { nanocoating: { id: 67890 } }],
+    [2, { nanocoating: { id: 67892 } }],
+  ]);
   expect(this.result.creator_id).toBe(90000001);
   expect(this.result.ship_type_id).toBe(587);
 });

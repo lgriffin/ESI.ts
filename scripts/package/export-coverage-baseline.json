@@ -3,7 +3,6 @@
   "unreferenced": {
     ".": [
       "AccessList",
-      "AccessListEntry",
       "AddCharacterOptions",
       "AgentResearch",
       "AllianceContact",

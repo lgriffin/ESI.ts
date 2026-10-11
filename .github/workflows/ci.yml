@@ -507,10 +507,13 @@ jobs:
       # `contract` would skip every suite and pass. contract:live throws instead.
       # pipefail: without it the `if` reads tee's status, so a failing suite
       # would pass.
+      # --json records each test's outcome for the artefact below, so ARCH-02
+      # and TEST-05 can be shown passing, not only named (#639, #640).
       - name: Run contract tests
         run: |
           set -o pipefail
-          if npm run contract:live 2>&1 | tee /tmp/contract.log; then
+          mkdir -p reports/test-results
+          if npm run contract:live -- --json --outputFile=reports/test-results/contract-live.json 2>&1 | tee /tmp/contract.log; then
             true
           elif grep -q "HTTP 503" /tmp/contract.log; then
             echo "::warning::ESI API returned 503 — skipping contract tests"
@@ -520,6 +523,15 @@ jobs:
           fi
         env:
           ESI_LIVE_TESTS: 'true'
+
+      # Jest results per test; a 503 soft-skip still uploads what ran.
+      - name: Upload the test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: test-results-contract-live
+          path: reports/test-results/
+          if-no-files-found: warn
 
   # Recorded ESI payloads replayed through the full client pipeline at the
   # transport seam, with no network (tests/contract/AGENTS.md). Separate from
@@ -550,7 +562,18 @@ jobs:
         run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
 
       - name: Replay recorded payloads
-        run: npm run contract:replay
+        run: |
+          mkdir -p reports/test-results
+          npm run contract:replay -- --json --outputFile=reports/test-results/contract-replay.json
+
+      # Jest results per test, published whether the replay passed or not.
+      - name: Upload the test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: test-results-contract-replay
+          path: reports/test-results/
+          if-no-files-found: warn
 
   fuzz-tests:
     name: Fuzz Tests
@@ -573,7 +596,18 @@ jobs:
         run: npm ci
 
       - name: Run fuzz tests
-        run: npm run fuzz
+        run: |
+          mkdir -p reports/test-results
+          npm run fuzz -- --json --outputFile=reports/test-results/fuzz.json
+
+      # Jest results per test, published whether the run passed or not.
+      - name: Upload the test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: test-results-fuzz
+          path: reports/test-results/
+          if-no-files-found: warn
 
   fault-catalogue:
     name: Fault Catalogue
@@ -604,7 +638,18 @@ jobs:
       # Every transport fault once per representative endpoint, through the
       # real pipeline, plus the catalogue self-test (tests/faults/AGENTS.md).
       - name: Run the fault catalogue
-        run: npm run faults -- --ci
+        run: |
+          mkdir -p reports/test-results
+          npm run faults -- --ci --json --outputFile=reports/test-results/faults.json
+
+      # Jest results per test, published whether the run passed or not.
+      - name: Upload the test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: test-results-faults
+          path: reports/test-results/
+          if-no-files-found: warn
 
   full-test-suite:
     name: Complete Test Suite
@@ -626,8 +671,43 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run all tests
-        run: npm run test:all
+      # npm run test:all, one tier per step so each writes its results file.
+      # Every step runs even when an earlier one failed, so the artefact holds
+      # all five; the job still fails if any did. Type tests have no Jest
+      # JSON, so test:types:report writes one record per tsd file instead.
+      # Runs only when install succeeded; the tier steps key off it.
+      - name: Prepare the results directory
+        id: results-dir
+        run: mkdir -p reports/test-results
+
+      - name: Run the unit tests
+        if: ${{ !cancelled() && steps.results-dir.conclusion == 'success' }}
+        run: npm test -- --json --outputFile=reports/test-results/unit.json
+
+      - name: Run the BDD tests
+        if: ${{ !cancelled() && steps.results-dir.conclusion == 'success' }}
+        run: npm run bdd -- --json --outputFile=reports/test-results/bdd.json
+
+      - name: Run the integration tests
+        if: ${{ !cancelled() && steps.results-dir.conclusion == 'success' }}
+        run: npm run test:integration -- --json --outputFile=reports/test-results/integration.json
+
+      - name: Run the fuzz tests
+        if: ${{ !cancelled() && steps.results-dir.conclusion == 'success' }}
+        run: npm run fuzz -- --json --outputFile=reports/test-results/fuzz.json
+
+      - name: Run the type tests
+        if: ${{ !cancelled() && steps.results-dir.conclusion == 'success' }}
+        run: npm run test:types:report
+
+      # One results file per tier: unit, bdd, integration, fuzz, types.
+      - name: Upload the test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: test-results-full-suite
+          path: reports/test-results/
+          if-no-files-found: warn
 
   api-surface:
     name: API Surface Check

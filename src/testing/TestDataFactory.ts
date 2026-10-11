@@ -19,7 +19,7 @@ import {
   RaidableSkyhook,
   MercenaryDen,
   MercenaryTacticalOperation,
-  AccessListEntry,
+  AccessList,
 } from '../types/api-responses';
 import { EsiError } from '../core/util/error';
 
@@ -754,13 +754,8 @@ export class TestDataFactory {
     overrides: Partial<SovereigntyHub> = {},
   ): SovereigntyHub {
     return {
-      structure_id: 100000001,
-      system_id: 30000142,
-      corporation_id: 98000002,
-      alliance_id: 99000006,
-      online: true,
-      remaining_reagents: 500,
-      installed_upgrades: [1, 2, 3],
+      id: 1046664001931,
+      solar_system_id: 30000142,
       ...overrides,
     };
   }
@@ -769,13 +764,8 @@ export class TestDataFactory {
     overrides: Partial<OrbitalSkyhook> = {},
   ): OrbitalSkyhook {
     return {
-      structure_id: 200000001,
-      system_id: 30000142,
-      corporation_id: 98000002,
-      alliance_id: 99000006,
-      online: true,
-      reagent_silo_capacity: 1000,
-      reagent_silo_level: 750,
+      id: 1046664001932,
+      planet_id: 40009077,
       ...overrides,
     };
   }
@@ -798,13 +788,8 @@ export class TestDataFactory {
     overrides: Partial<MercenaryDen> = {},
   ): MercenaryDen {
     return {
-      den_id: 5001,
-      system_id: 30000142,
-      constellation_id: 20000125,
-      region_id: 10000002,
-      development_level: 3,
-      anarchy_level: 2,
-      active_operations: 1,
+      id: 1046664001933,
+      planet_id: 40009077,
       ...overrides,
     };
   }
@@ -813,24 +798,23 @@ export class TestDataFactory {
     overrides: Partial<MercenaryTacticalOperation> = {},
   ): MercenaryTacticalOperation {
     return {
-      operation_id: 7001,
-      den_id: 5001,
-      system_id: 30000142,
-      site_type: 'assault',
-      status: 'active',
-      started_at: '2026-05-20T10:00:00Z',
-      expires_at: '2026-05-20T22:00:00Z',
+      id: '3f2b7c1e-8d4a-4b6e-9a51-2c7d0e9f4a10',
+      mercenary_den_id: 1046664001933,
       ...overrides,
     };
   }
 
-  static createAccessListEntry(
-    overrides: Partial<AccessListEntry> = {},
-  ): AccessListEntry {
+  static createAccessList(overrides: Partial<AccessList> = {}): AccessList {
     return {
-      entity_id: 1689391488,
-      entity_type: 'character',
-      access_type: 'allowed',
+      id: 1000000001,
+      name: 'Fuel access',
+      description: 'Who may refuel the hub',
+      membership: {
+        allow_everyone: false,
+        alliances: [],
+        corporations: [{ corporation_id: 98000002, access: 'Allowed' }],
+        characters: [{ character_id: 1689391488, access: 'Admin' }],
+      },
       ...overrides,
     };
   }

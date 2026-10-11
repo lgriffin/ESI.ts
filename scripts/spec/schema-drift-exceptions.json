@@ -1,20 +1,17 @@
 {
-  "_comment": "Fields listed here are known accepted deviations between hand-written Zod schemas and the ESI OpenAPI spec. Add schema name as key, array of field names as value. CharacterInfoSchema and CorporationInfoSchema list fields that differ between compatibility dates 2026-05-19 and 2026-08-18: both shapes are accepted because a client can pin either date.",
+  "_comment": "Fields listed here are known accepted deviations between hand-written Zod schemas and the ESI OpenAPI spec. Add schema name as key, array of field names as value. CharacterInfoSchema and CorporationInfoSchema keep the fields that differ between compatibility dates 2025-12-16 and 2026-08-18 optional: a client can pin an older date, so both shapes are accepted (title, faction_id and tax_rate are the older names; achievement_score, description, friendly_fire, home_station_id, shares, state, tax_rates, type and war_eligible are required only at the newer date).",
   "AllianceInfoSchema": ["alliance_id"],
-  "CharacterInfoSchema": [
-    "achievement_score",
-    "character_title_id",
-    "corporation_title"
-  ],
+  "CharacterInfoSchema": ["achievement_score", "title"],
   "CorporationInfoSchema": [
-    "ceo_id",
-    "creator_id",
-    "enlisted_faction_id",
+    "description",
+    "faction_id",
     "friendly_fire",
-    "palette",
+    "home_station_id",
+    "shares",
     "state",
     "tax_rate",
     "tax_rates",
-    "type"
+    "type",
+    "war_eligible"
   ]
 }
