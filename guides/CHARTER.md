@@ -143,7 +143,7 @@ Five layers, one request path, and side modules that deliberately share nothing 
 | Domain clients       | `src/clients` (<!-- metric:clients -->39<!-- /metric --> + `BaseEsiClient`)                                                      | One class per ESI domain. Adds ergonomics only: named methods, `stream*` and `fetchAll*` wrappers, `withSafeMode()` envelopes. No HTTP knowledge.                                                                                                                                                                                                              |
 | Endpoint definitions | `src/core/endpoints` (<!-- metric:endpointMaps -->39<!-- /metric --> files, <!-- metric:routes -->235<!-- /metric --> endpoints) | Declarative maps (`as const satisfies EndpointMap`) wiring path, method, `requiresAuth`, pagination kind, `responseSchema`, `requestSchema`, deprecation. `createClient()` turns a map into typed methods; return types are inferred from the schema.                                                                                                          |
 | Request pipeline     | `src/core`, `src/core/requestPipeline/*`                                                                                         | Pure functions receiving their dependencies as parameters (`dependencies.ts` is the only resolver). Cache policy, headers, fetch execution, status handling, pagination orchestration, middleware bridge.                                                                                                                                                      |
-| Transport            | `FetchLike`, `globalThis.fetch`                                                                                                  | Injectable via `setFetch()`. Timeout by `AbortController`. The Node floor (18 today, 22 from 11.0.0) exists because this layer relies on the global fetch.                                                                                                                                                                                                     |
+| Transport            | `FetchLike`, `globalThis.fetch`                                                                                                  | Injectable via `setFetch()`. Timeout by `AbortController`. The Node floor (`engines.node` `>=22.12.0` since 11.0.0, REL-05) exists because this layer relies on the global fetch.                                                                                                                                                                              |
 | Ports                | `src/core/ports`                                                                                                                 | Type-only interfaces (`CacheStore`, `Clock`, `HttpTransport`, `Identity`, `Logger`, `OperationTransport`, `TokenProvider`) that import nothing. Exported from `./client`.                                                                                                                                                                                      |
 | Generated operations | `src/generated/operations.generated.ts`                                                                                          | One function per spec operation, importing only ports. Checked by `spec:generate:check` and `spec:coverage` in CI; called through `src/client`.                                                                                                                                                                                                                |
 | Client               | `src/client` (`./client`)                                                                                                        | `createEsi`: one runtime over `configureApiClient`, `esi.public` (a `PublicScopeTree`) and `esi.as(identity)` (a `ScopeTree` sharing the runtime's budgets and cache). Imports core, adapters and generated code, never the legacy tree; `lint:layers` enforces it (Enforced).                                                                                 |
@@ -186,19 +186,26 @@ Every domain method takes this route. Order is the information: a stage cannot s
 Error
 ├── EsiError (statusCode, sanitised url, requestId)      .retryable ⇐ {0, 420, 429, 502, 503, 504}
 │   ├── TimeoutError (+ timeoutMs)
-│   └── EsiValidationError (+ ZodError, direction: request | response)
-├── CircuitOpenError (endpoint, failures, retryAfterMs)   not an EsiError
+│   ├── EsiNetworkError (+ cause)
+│   ├── EsiValidationError (+ ZodError, direction: request | response)
+│   ├── CircuitOpenError (endpoint, failures, retryAfterMs)   statusCode 0, never retryable
+│   └── EsiFaultError (+ code, cause)                     raised by the library, not ESI
+│       ├── EsiConfigurationError                         VALIDATION_ERROR, NO_AUTH_TOKEN, CONFIGURATION_ERROR
+│       ├── EsiParseError                                 JSON_PARSE_ERROR
+│       ├── EsiPaginationError                            PAGINATION_INCOMPLETE
+│       └── EsiTokenRefreshError                          TOKEN_REFRESH_FAILED
 ├── AuthError
 │   ├── SsoError (+ statusCode)                           .retryable ⇐ 429 or ≥ 500
 │   ├── TokenRevokedError
 │   ├── TokenDecodeError                                  no type guard yet
+│   ├── TokenVerificationError
 │   └── CharacterNotFoundError
 └── SdeError → SdeDatabaseError | SdeValidationError | SdeVersionMismatchError
 ```
 
-The auth subtree is exported from the root and from `./errors`, with guards `isAuthError`, `isSsoError`, `isTokenRevoked` and `isCharacterNotFound`.
+Every failure the request pipeline raises is an `EsiError`, `CircuitOpenError` included, so `isEsiError(err)` is true for all of them ([ERRORS.md](ERRORS.md#hierarchy)). The auth subtree is exported from the root and from `./errors`, with guards `isAuthError`, `isSsoError`, `isTokenRevoked`, `isTokenVerificationError` and `isCharacterNotFound`.
 
-Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `PAGINATION_INCOMPLETE`, `TOKEN_REFRESH_FAILED`, `VALIDATION_ERROR`) are plain `Error`s with a bracketed type prefix, built by `buildError` in `src/core/util/error.ts`. That is a known inconsistency, registered in Part 10.
+Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `PAGINATION_INCOMPLETE`, `TOKEN_REFRESH_FAILED`, `VALIDATION_ERROR`) are `EsiFaultError` subclasses carrying the code. Until 11.0.0 they were plain `Error`s with a bracketed type prefix, built by `buildError`; Part 10 row 5 records that history.
 
 ### Requirements
 
@@ -232,7 +239,7 @@ Each resilience concern (retry, rate limiting, circuit breaking, deduplication, 
 
 #### ARCH-05 · Ubiquitous · Enforced
 
-The package **shall** publish a dual CJS and ESM build with declaration files for the six entry points: root, `schemas`, `errors`, `testing`, `sde` and `sde/memory`.
+The package **shall** publish a dual CJS and ESM build with declaration files for the seven entry points: root, `client`, `schemas`, `errors`, `testing`, `sde` and `sde/memory`.
 
 - **Why:** Subpath entries are the tree-shaking story while the root barrel stays wide.
 - **Verified by:** `tsup.config.ts`, the `package-lint` job in `ci.yml` (publint and Are The Types Wrong on the packed tarball), and the consumer contract.
@@ -248,7 +255,7 @@ The package **shall** declare `"sideEffects": false` in its manifest and constru
 
 Every public error the pipeline can throw **shall** be an instance of a class exported from `@lgriffin/esi.ts/errors` with a matching type guard.
 
-- **Why:** Consumers branch on errors. String-prefixed plain `Error`s, the missing `isCircuitOpen` export on the subpath and the missing `TokenDecodeError` guard break that.
+- **Why:** Consumers branch on errors. Before 11.0.0, string-prefixed plain `Error`s and the missing `isCircuitOpen` export on the subpath broke that; both are fixed ([#266](https://github.com/lgriffin/ESI.ts/issues/266)). The missing `TokenDecodeError` guard still does.
 - **Verified by:** To add: a type test that the guard set on `.` equals the guard set on `./errors`.
 
 #### ARCH-08 · Ubiquitous · Partial
@@ -353,13 +360,13 @@ This table is the canonical tier order. Both testing guides merge into one and c
 
 | Tier | Name                           | Where                            | Files                                                                                                                                                                    | Runner                    | Runs on                                                        |
 | ---- | ------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | -------------------------------------------------------------- |
-| 1    | Unit (TDD)                     | `tests/tdd`                      | 192                                                                                                                                                                      | jest.unit                 | push (Node 22), PR (Node 22/24)                                |
+| 1    | Unit (TDD)                     | `tests/tdd`                      | <!-- metric:unitSuites -->223<!-- /metric -->                                                                                                                            | jest.unit                 | push (Node 22), PR (Node 22/24)                                |
 | 2    | Specification (EARS/BDD)       | `tests/bdd`                      | <!-- metric:featureFiles -->77<!-- /metric --> features · <!-- metric:requirements -->619<!-- /metric --> rules · <!-- metric:scenarios -->792<!-- /metric --> scenarios | jest.unit + jest-cucumber | push (`npm test`), PR (`bdd-tests`), plus `spec:audit`         |
-| 3    | Type tests                     | `tests/typetests`                | 7                                                                                                                                                                        | tsd                       | PR (full suite)                                                |
-| 4    | Property fuzz                  | `tests/fuzz`                     | 15                                                                                                                                                                       | jest.fuzz + fast-check    | PR, nightly properties                                         |
+| 3    | Type tests                     | `tests/typetests`                | <!-- metric:typeTestFiles -->12<!-- /metric -->                                                                                                                          | tsd                       | PR (full suite)                                                |
+| 4    | Property fuzz                  | `tests/fuzz`                     | <!-- metric:fuzzSuites -->15<!-- /metric -->                                                                                                                             | jest.fuzz + fast-check    | PR, nightly properties                                         |
 | 5    | Contract                       | `tests/contract`                 | 6 (2 live + 4 replay) + snapshot                                                                                                                                         | jest.contract(.replay)    | PR (`contract-replay`), soft-skip on ESI 503                   |
 | 6    | Fault catalogue                | `tests/faults`                   | 3                                                                                                                                                                        | jest.faults               | PR (`fault-catalogue`), nightly                                |
-| 7    | Integration, mocked full stack | `tests/integration`              | 6                                                                                                                                                                        | jest.integration          | PR (full suite)                                                |
+| 7    | Integration, mocked full stack | `tests/integration`              | <!-- metric:integrationSuites -->6<!-- /metric -->                                                                                                                       | jest.integration          | PR (full suite)                                                |
 | 8    | Integration, live              | same, `ESI_LIVE_TESTS`           | ~50                                                                                                                                                                      | jest.integration.live     | manual                                                         |
 | 9    | Integration, gated auth        | same, `ESI_GATED_TESTS` + `.env` | 30+                                                                                                                                                                      | jest.integration.live     | manual                                                         |
 | 10   | Benchmark and heap soak        | `tests/benchmark`                | 24 tasks (18 client, 6 SDE) + client soak + SDE soak                                                                                                                     | mitata + soak drivers     | PR (A/B on hot paths), nightly; SDE nightly on the real export |
