@@ -1,8 +1,7 @@
-import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
 import {
-  SovereigntyHubSchema,
-  OrbitalSkyhookSchema,
+  SovereigntyHubsResponseSchema,
+  OrbitalSkyhooksResponseSchema,
   RaidableSkyhooksResponseSchema,
   SkyhookDetailSchema,
   SovereigntyHubDetailSchema,
@@ -14,14 +13,14 @@ export const skyhookEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
-    responseSchema: z.array(SovereigntyHubSchema),
+    responseSchema: SovereigntyHubsResponseSchema,
   },
   getOrbitalSkyhooks: {
     path: 'corporations/{corporationId}/structures/skyhooks',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
-    responseSchema: z.array(OrbitalSkyhookSchema),
+    responseSchema: OrbitalSkyhooksResponseSchema,
   },
   getRaidableSkyhooks: {
     path: 'skyhooks/raidable',

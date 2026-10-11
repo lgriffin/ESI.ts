@@ -4,8 +4,8 @@ import {
   EsiResponseMetaSchema,
 
   // access-lists
-  AccessListEntrySchema,
   AccessListSchema,
+  CharacterAccessListsResponseSchema,
 
   // corporation-projects
   CorporationProjectSchema,
@@ -167,6 +167,7 @@ import {
 
   // mercenary
   MercenaryDenSchema,
+  MercenaryDensResponseSchema,
   MercenaryTacticalOperationSchema,
 
   // pi
@@ -181,6 +182,7 @@ import {
 
   // skyhooks
   SovereigntyHubSchema,
+  SovereigntyHubsResponseSchema,
   OrbitalSkyhookSchema,
   RaidableSkyhookSchema,
   RaidableSkyhooksResponseSchema,
@@ -267,34 +269,36 @@ const schemaCases: SchemaTestCase[] = [
 
   // ── access-lists ──────────────────────────────────────────────────────────
   {
-    name: 'AccessListEntrySchema',
-    schema: AccessListEntrySchema,
-    validData: {
-      entity_id: 123,
-      entity_type: 'character',
-      access_type: 'allowed',
-    },
-    invalidData: {
-      entity_id: 'bad',
-      entity_type: 'character',
-      access_type: 'allowed',
-    },
-  },
-  {
     name: 'AccessListSchema',
     schema: AccessListSchema,
     validData: {
-      access_list_id: 1,
+      id: 1,
       name: 'Test List',
-      entries: [
-        { entity_id: 123, entity_type: 'corporation', access_type: 'blocked' },
-      ],
+      description: 'Docking rights',
+      membership: {
+        allow_everyone: false,
+        alliances: [],
+        corporations: [{ corporation_id: 98000002, access: 'Blocked' }],
+        characters: [],
+      },
     },
     invalidData: {
-      access_list_id: 'bad',
+      id: 'bad',
       name: 'Test List',
-      entries: [],
+      description: 'Docking rights',
+      membership: {
+        allow_everyone: false,
+        alliances: [],
+        corporations: [],
+        characters: [],
+      },
     },
+  },
+  {
+    name: 'CharacterAccessListsResponseSchema',
+    schema: CharacterAccessListsResponseSchema,
+    validData: { access_lists: [{ id: 1 }] },
+    invalidData: { access_lists: [{ id: 'bad' }] },
   },
 
   // ── alliance ──────────────────────────────────────────────────────────────
@@ -2034,36 +2038,23 @@ const schemaCases: SchemaTestCase[] = [
   {
     name: 'MercenaryDenSchema',
     schema: MercenaryDenSchema,
-    validData: {
-      den_id: 1,
-      system_id: 30000142,
-      constellation_id: 20000020,
-      region_id: 10000002,
-    },
-    invalidData: {
-      den_id: 'bad',
-      system_id: 30000142,
-      constellation_id: 20000020,
-      region_id: 10000002,
-    },
+    validData: { id: 1, planet_id: 40009077 },
+    invalidData: { id: 'bad', planet_id: 40009077 },
+  },
+  {
+    name: 'MercenaryDensResponseSchema',
+    schema: MercenaryDensResponseSchema,
+    validData: { mercenary_dens: [{ id: 1, planet_id: 40009077 }] },
+    invalidData: { mercenary_dens: [{ id: 1, planet_id: 'bad' }] },
   },
   {
     name: 'MercenaryTacticalOperationSchema',
     schema: MercenaryTacticalOperationSchema,
     validData: {
-      operation_id: 1,
-      den_id: 1,
-      system_id: 30000142,
-      site_type: 'combat',
-      status: 'active',
+      id: '3f2b7c1e-8d4a-4b6e-9a51-2c7d0e9f4a10',
+      mercenary_den_id: 1,
     },
-    invalidData: {
-      operation_id: 'bad',
-      den_id: 1,
-      system_id: 30000142,
-      site_type: 'combat',
-      status: 'active',
-    },
+    invalidData: { id: 7001, mercenary_den_id: 1 },
   },
 
   // ── pi ────────────────────────────────────────────────────────────────────
@@ -2185,34 +2176,20 @@ const schemaCases: SchemaTestCase[] = [
   {
     name: 'SovereigntyHubSchema',
     schema: SovereigntyHubSchema,
-    validData: {
-      structure_id: 1,
-      system_id: 30000142,
-      corporation_id: 200,
-      online: true,
-    },
-    invalidData: {
-      structure_id: 'bad',
-      system_id: 30000142,
-      corporation_id: 200,
-      online: true,
-    },
+    validData: { id: 1, solar_system_id: 30000142 },
+    invalidData: { id: 'bad', solar_system_id: 30000142 },
+  },
+  {
+    name: 'SovereigntyHubsResponseSchema',
+    schema: SovereigntyHubsResponseSchema,
+    validData: { sovereignty_hubs: [{ id: 1, solar_system_id: 30000142 }] },
+    invalidData: { sovereignty_hubs: [{ id: 1, solar_system_id: 'bad' }] },
   },
   {
     name: 'OrbitalSkyhookSchema',
     schema: OrbitalSkyhookSchema,
-    validData: {
-      structure_id: 1,
-      system_id: 30000142,
-      corporation_id: 200,
-      online: true,
-    },
-    invalidData: {
-      structure_id: 'bad',
-      system_id: 30000142,
-      corporation_id: 200,
-      online: true,
-    },
+    validData: { id: 1, planet_id: 40009077 },
+    invalidData: { id: 'bad', planet_id: 40009077 },
   },
   {
     name: 'RaidableSkyhookSchema',

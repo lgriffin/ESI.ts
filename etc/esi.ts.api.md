@@ -22,24 +22,72 @@ import { ZodUnknown } from 'zod';
 export type AccessList = z.infer<typeof AccessListSchema>;
 
 // @public (undocumented)
-export type AccessListEntry = z.infer<typeof AccessListEntrySchema>;
+export type AccessListAllianceMember = z.infer<typeof AccessListAllianceMemberSchema>;
 
 // @public (undocumented)
-const AccessListEntrySchema: z.ZodObject<{
-    entity_id: z.ZodNumber;
-    entity_type: z.ZodType<(string & {}) | "character" | "corporation" | "alliance", unknown, z.core.$ZodTypeInternals<(string & {}) | "character" | "corporation" | "alliance", unknown>>;
-    access_type: z.ZodType<(string & {}) | "allowed" | "blocked", unknown, z.core.$ZodTypeInternals<(string & {}) | "allowed" | "blocked", unknown>>;
+const AccessListAllianceMemberSchema: z.ZodObject<{
+    alliance_id: z.ZodNumber;
+    access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type AccessListCharacterMember = z.infer<typeof AccessListCharacterMemberSchema>;
+
+// @public (undocumented)
+const AccessListCharacterMemberSchema: z.ZodObject<{
+    character_id: z.ZodNumber;
+    access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type AccessListCorporationMember = z.infer<typeof AccessListCorporationMemberSchema>;
+
+// @public (undocumented)
+const AccessListCorporationMemberSchema: z.ZodObject<{
+    corporation_id: z.ZodNumber;
+    access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type AccessListMembership = z.infer<typeof AccessListMembershipSchema>;
+
+// @public (undocumented)
+const AccessListMembershipSchema: z.ZodObject<{
+    allow_everyone: z.ZodBoolean;
+    alliances: z.ZodArray<z.ZodObject<{
+        alliance_id: z.ZodNumber;
+        access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
+    }, z.core.$loose>>;
+    corporations: z.ZodArray<z.ZodObject<{
+        corporation_id: z.ZodNumber;
+        access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
+    }, z.core.$loose>>;
+    characters: z.ZodArray<z.ZodObject<{
+        character_id: z.ZodNumber;
+        access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
 const AccessListSchema: z.ZodObject<{
-    access_list_id: z.ZodNumber;
+    id: z.ZodNumber;
     name: z.ZodString;
-    entries: z.ZodArray<z.ZodObject<{
-        entity_id: z.ZodNumber;
-        entity_type: z.ZodType<(string & {}) | "character" | "corporation" | "alliance", unknown, z.core.$ZodTypeInternals<(string & {}) | "character" | "corporation" | "alliance", unknown>>;
-        access_type: z.ZodType<(string & {}) | "allowed" | "blocked", unknown, z.core.$ZodTypeInternals<(string & {}) | "allowed" | "blocked", unknown>>;
-    }, z.core.$loose>>;
+    description: z.ZodString;
+    membership: z.ZodObject<{
+        allow_everyone: z.ZodBoolean;
+        alliances: z.ZodArray<z.ZodObject<{
+            alliance_id: z.ZodNumber;
+            access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
+        }, z.core.$loose>>;
+        corporations: z.ZodArray<z.ZodObject<{
+            corporation_id: z.ZodNumber;
+            access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
+        }, z.core.$loose>>;
+        characters: z.ZodArray<z.ZodObject<{
+            character_id: z.ZodNumber;
+            access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
 }, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "accessListEndpoints" needs to be exported by the entry point index.d.ts
@@ -48,8 +96,16 @@ const AccessListSchema: z.ZodObject<{
 export class AccessListsClient extends BaseEsiClient<typeof accessListEndpoints> {
     constructor(client: ApiClient);
     getAccessList(characterId: number, accessListId: number): Promise<AccessList>;
-    getCharacterAccessLists(characterId: number): Promise<AccessList[]>;
+    getCharacterAccessLists(characterId: number): Promise<CharacterAccessListsResponse>;
 }
+
+// @public (undocumented)
+export type AccessListSummary = z.infer<typeof AccessListSummarySchema>;
+
+// @public
+const AccessListSummarySchema: z.ZodObject<{
+    id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export interface AddCharacterOptions extends ExchangeCodeOptions {
@@ -597,6 +653,16 @@ const CalendarEventSchema: z.ZodObject<{
     title: z.ZodOptional<z.ZodString>;
     importance: z.ZodOptional<z.ZodNumber>;
     event_response: z.ZodOptional<z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type CharacterAccessListsResponse = z.infer<typeof CharacterAccessListsResponseSchema>;
+
+// @public
+const CharacterAccessListsResponseSchema: z.ZodObject<{
+    access_lists: z.ZodArray<z.ZodObject<{
+        id: z.ZodNumber;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -7594,9 +7660,9 @@ export class MemoryTokenStorage implements ITokenStorage {
 export class MercenaryClient extends BaseEsiClient<typeof mercenaryEndpoints> {
     constructor(client: ApiClient);
     getMercenaryDenDetail(characterId: number, mercenaryDenId: number): Promise<MercenaryDenDetail>;
-    getMercenaryDens(characterId: number): Promise<MercenaryDen[]>;
+    getMercenaryDens(characterId: number): Promise<MercenaryDensResponse>;
     getMercenaryTacticalOperationDetail(characterId: number, operationId: string): Promise<MercenaryTacticalOperationDetail>;
-    getMercenaryTacticalOperations(characterId: number): Promise<MercenaryTacticalOperation[]>;
+    getMercenaryTacticalOperations(characterId: number): Promise<MercenaryTacticalOperationsResponse>;
 }
 
 // @public (undocumented)
@@ -7608,12 +7674,12 @@ export type MercenaryDenDetail = z.infer<typeof MercenaryDenDetailSchema>;
 // @public (undocumented)
 const MercenaryDenDetailEvolutionSchema: z.ZodObject<{
     development: z.ZodObject<{
-        level: z.ZodOptional<z.ZodNumber>;
-        progress: z.ZodOptional<z.ZodNumber>;
+        amount: z.ZodNumber;
+        level: z.ZodType<(string & {}) | "Unspecified" | "Level0" | "Level1" | "Level2" | "Level3" | "Level4", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Level0" | "Level1" | "Level2" | "Level3" | "Level4", unknown>>;
     }, z.core.$loose>;
     anarchy: z.ZodObject<{
-        level: z.ZodOptional<z.ZodNumber>;
-        progress: z.ZodOptional<z.ZodNumber>;
+        amount: z.ZodNumber;
+        level: z.ZodType<(string & {}) | "Unspecified" | "Level0" | "Level1" | "Level2" | "Level3" | "Level4", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Level0" | "Level1" | "Level2" | "Level3" | "Level4", unknown>>;
     }, z.core.$loose>;
 }, z.core.$loose>;
 
@@ -7642,12 +7708,12 @@ const MercenaryDenDetailSchema: z.ZodObject<{
     }, z.core.$loose>;
     evolution: z.ZodObject<{
         development: z.ZodObject<{
-            level: z.ZodOptional<z.ZodNumber>;
-            progress: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodNumber;
+            level: z.ZodType<(string & {}) | "Unspecified" | "Level0" | "Level1" | "Level2" | "Level3" | "Level4", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Level0" | "Level1" | "Level2" | "Level3" | "Level4", unknown>>;
         }, z.core.$loose>;
         anarchy: z.ZodObject<{
-            level: z.ZodOptional<z.ZodNumber>;
-            progress: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodNumber;
+            level: z.ZodType<(string & {}) | "Unspecified" | "Level0" | "Level1" | "Level2" | "Level3" | "Level4", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Level0" | "Level1" | "Level2" | "Level3" | "Level4", unknown>>;
         }, z.core.$loose>;
     }, z.core.$loose>;
     reinforcement_timer: z.ZodOptional<z.ZodObject<{
@@ -7662,15 +7728,21 @@ const MercenaryDenDetailSkyhookSchema: z.ZodObject<{
     corporation_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public (undocumented)
+// @public
 const MercenaryDenSchema: z.ZodObject<{
-    den_id: z.ZodNumber;
-    system_id: z.ZodNumber;
-    constellation_id: z.ZodNumber;
-    region_id: z.ZodNumber;
-    development_level: z.ZodOptional<z.ZodNumber>;
-    anarchy_level: z.ZodOptional<z.ZodNumber>;
-    active_operations: z.ZodOptional<z.ZodNumber>;
+    id: z.ZodNumber;
+    planet_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type MercenaryDensResponse = z.infer<typeof MercenaryDensResponseSchema>;
+
+// @public
+const MercenaryDensResponseSchema: z.ZodObject<{
+    mercenary_dens: z.ZodArray<z.ZodObject<{
+        id: z.ZodNumber;
+        planet_id: z.ZodNumber;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -7688,15 +7760,21 @@ const MercenaryTacticalOperationDetailSchema: z.ZodObject<{
     expires: z.ZodString;
 }, z.core.$loose>;
 
-// @public (undocumented)
+// @public
 const MercenaryTacticalOperationSchema: z.ZodObject<{
-    operation_id: z.ZodNumber;
-    den_id: z.ZodNumber;
-    system_id: z.ZodNumber;
-    site_type: z.ZodString;
-    status: z.ZodType<(string & {}) | "active" | "expired" | "spawning" | "completed", unknown, z.core.$ZodTypeInternals<(string & {}) | "active" | "expired" | "spawning" | "completed", unknown>>;
-    started_at: z.ZodOptional<z.ZodString>;
-    expires_at: z.ZodOptional<z.ZodString>;
+    id: z.ZodString;
+    mercenary_den_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type MercenaryTacticalOperationsResponse = z.infer<typeof MercenaryTacticalOperationsResponseSchema>;
+
+// @public
+const MercenaryTacticalOperationsResponseSchema: z.ZodObject<{
+    operations: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        mercenary_den_id: z.ZodNumber;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -8053,15 +8131,21 @@ const NotificationSchema: z.ZodObject<{
 // @public (undocumented)
 export type OrbitalSkyhook = z.infer<typeof OrbitalSkyhookSchema>;
 
-// @public (undocumented)
+// @public
 const OrbitalSkyhookSchema: z.ZodObject<{
-    structure_id: z.ZodNumber;
-    system_id: z.ZodNumber;
-    corporation_id: z.ZodNumber;
-    alliance_id: z.ZodOptional<z.ZodNumber>;
-    online: z.ZodBoolean;
-    reagent_silo_capacity: z.ZodOptional<z.ZodNumber>;
-    reagent_silo_level: z.ZodOptional<z.ZodNumber>;
+    id: z.ZodNumber;
+    planet_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type OrbitalSkyhooksResponse = z.infer<typeof OrbitalSkyhooksResponseSchema>;
+
+// @public
+const OrbitalSkyhooksResponseSchema: z.ZodObject<{
+    skyhooks: z.ZodArray<z.ZodObject<{
+        id: z.ZodNumber;
+        planet_id: z.ZodNumber;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -8731,8 +8815,13 @@ declare namespace schemas {
         StandingSchema,
         RateLimitMetaSchema,
         EsiResponseMetaSchema,
-        AccessListEntrySchema,
+        AccessListAllianceMemberSchema,
+        AccessListCorporationMemberSchema,
+        AccessListCharacterMemberSchema,
+        AccessListMembershipSchema,
         AccessListSchema,
+        AccessListSummarySchema,
+        CharacterAccessListsResponseSchema,
         AllianceInfoSchema,
         AllianceContactSchema,
         AllianceContactLabelSchema,
@@ -8865,7 +8954,9 @@ declare namespace schemas {
         MarketGroupSchema,
         MarketPriceSchema,
         MercenaryDenSchema,
+        MercenaryDensResponseSchema,
         MercenaryTacticalOperationSchema,
+        MercenaryTacticalOperationsResponseSchema,
         MercenaryDenDetailEvolutionSchema,
         MercenaryDenDetailInfomorphsSchema,
         MercenaryDenDetailReinforcementTimerSchema,
@@ -8898,7 +8989,9 @@ declare namespace schemas {
         CharacterSkillsResponseSchema,
         SkillQueueSchema,
         SovereigntyHubSchema,
+        SovereigntyHubsResponseSchema,
         OrbitalSkyhookSchema,
+        OrbitalSkyhooksResponseSchema,
         RaidableSkyhookSchema,
         RaidableSkyhooksResponseSchema,
         SkyhookDetailReagentSchema,
@@ -9036,12 +9129,18 @@ const SkinrComponentRunsSchema: z.ZodObject<{
 
 // @public (undocumented)
 const SkinrLayoutSchema: z.ZodObject<{
-    slots: z.ZodArray<z.ZodObject<{}, z.core.$loose>>;
+    slots: z.ZodArray<z.ZodObject<{
+        id: z.ZodNumber;
+        configuration: z.ZodObject<{}, z.core.$loose>;
+    }, z.core.$loose>>;
     pattern_blend_mode: z.ZodType<(string & {}) | "normal" | "subtract" | "exclusion" | "nested" | "nested_inverted", unknown, z.core.$ZodTypeInternals<(string & {}) | "normal" | "subtract" | "exclusion" | "nested" | "nested_inverted", unknown>>;
 }, z.core.$loose>;
 
-// @public (undocumented)
-const SkinrLayoutSlotSchema: z.ZodObject<{}, z.core.$loose>;
+// @public
+const SkinrLayoutSlotSchema: z.ZodObject<{
+    id: z.ZodNumber;
+    configuration: z.ZodObject<{}, z.core.$loose>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type SkinrLicense = z.infer<typeof SkinrLicenseSchema>;
@@ -9064,7 +9163,10 @@ const SkinrSchema: z.ZodObject<{
         level: z.ZodNumber;
     }, z.core.$loose>;
     layout: z.ZodObject<{
-        slots: z.ZodArray<z.ZodObject<{}, z.core.$loose>>;
+        slots: z.ZodArray<z.ZodObject<{
+            id: z.ZodNumber;
+            configuration: z.ZodObject<{}, z.core.$loose>;
+        }, z.core.$loose>>;
         pattern_blend_mode: z.ZodType<(string & {}) | "normal" | "subtract" | "exclusion" | "nested" | "nested_inverted", unknown, z.core.$ZodTypeInternals<(string & {}) | "normal" | "subtract" | "exclusion" | "nested" | "nested_inverted", unknown>>;
     }, z.core.$loose>;
 }, z.core.$loose>;
@@ -9123,11 +9225,11 @@ const SkyhookDetailTheftVulnerabilitySchema: z.ZodObject<{
 // @public (undocumented)
 export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
     constructor(client: ApiClient);
-    getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhook[]>;
+    getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhooksResponse>;
     getRaidableSkyhooks(): Promise<RaidableSkyhooksResponse>;
     getSkyhookDetail(corporationId: number, skyhookId: number): Promise<SkyhookDetail>;
     getSovereigntyHubDetail(corporationId: number, sovereigntyHubId: number): Promise<SovereigntyHubDetail>;
-    getSovereigntyHubs(corporationId: number): Promise<SovereigntyHub[]>;
+    getSovereigntyHubs(corporationId: number): Promise<SovereigntyHubsResponse>;
 }
 
 // @public (undocumented)
@@ -9236,7 +9338,7 @@ const SovereigntyHubDetailReagentBaySchema: z.ZodObject<{
     reagents: z.ZodArray<z.ZodObject<{
         type_id: z.ZodNumber;
         amount: z.ZodNumber;
-        burning_per_hour: z.ZodOptional<z.ZodNumber>;
+        burning_per_hour: z.ZodNumber;
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
@@ -9244,24 +9346,24 @@ const SovereigntyHubDetailReagentBaySchema: z.ZodObject<{
 const SovereigntyHubDetailReagentSchema: z.ZodObject<{
     type_id: z.ZodNumber;
     amount: z.ZodNumber;
-    burning_per_hour: z.ZodOptional<z.ZodNumber>;
+    burning_per_hour: z.ZodNumber;
 }, z.core.$loose>;
 
 // @public (undocumented)
 const SovereigntyHubDetailResourceSchema: z.ZodObject<{
-    available: z.ZodOptional<z.ZodNumber>;
-    used: z.ZodOptional<z.ZodNumber>;
+    available: z.ZodNumber;
+    allocated: z.ZodNumber;
 }, z.core.$loose>;
 
 // @public (undocumented)
 const SovereigntyHubDetailResourcesSchema: z.ZodObject<{
     power: z.ZodObject<{
-        available: z.ZodOptional<z.ZodNumber>;
-        used: z.ZodOptional<z.ZodNumber>;
+        available: z.ZodNumber;
+        allocated: z.ZodNumber;
     }, z.core.$loose>;
     workforce: z.ZodObject<{
-        available: z.ZodOptional<z.ZodNumber>;
-        used: z.ZodOptional<z.ZodNumber>;
+        available: z.ZodNumber;
+        allocated: z.ZodNumber;
     }, z.core.$loose>;
 }, z.core.$loose>;
 
@@ -9278,20 +9380,23 @@ const SovereigntyHubDetailSchema: z.ZodObject<{
         reagents: z.ZodArray<z.ZodObject<{
             type_id: z.ZodNumber;
             amount: z.ZodNumber;
-            burning_per_hour: z.ZodOptional<z.ZodNumber>;
+            burning_per_hour: z.ZodNumber;
         }, z.core.$loose>>;
     }, z.core.$loose>;
     resources: z.ZodObject<{
         power: z.ZodObject<{
-            available: z.ZodOptional<z.ZodNumber>;
-            used: z.ZodOptional<z.ZodNumber>;
+            available: z.ZodNumber;
+            allocated: z.ZodNumber;
         }, z.core.$loose>;
         workforce: z.ZodObject<{
-            available: z.ZodOptional<z.ZodNumber>;
-            used: z.ZodOptional<z.ZodNumber>;
+            available: z.ZodNumber;
+            allocated: z.ZodNumber;
         }, z.core.$loose>;
     }, z.core.$loose>;
-    workforce_transport: z.ZodObject<{}, z.core.$loose>;
+    workforce_transport: z.ZodObject<{
+        configuration: z.ZodObject<{}, z.core.$loose>;
+        state: z.ZodObject<{}, z.core.$loose>;
+    }, z.core.$loose>;
     fuel_access_list_id: z.ZodOptional<z.ZodNumber>;
     vulnerability_window: z.ZodOptional<z.ZodObject<{
         start: z.ZodString;
@@ -9299,8 +9404,11 @@ const SovereigntyHubDetailSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public (undocumented)
-const SovereigntyHubDetailTransportSchema: z.ZodObject<{}, z.core.$loose>;
+// @public
+const SovereigntyHubDetailTransportSchema: z.ZodObject<{
+    configuration: z.ZodObject<{}, z.core.$loose>;
+    state: z.ZodObject<{}, z.core.$loose>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 const SovereigntyHubDetailUpgradeSchema: z.ZodObject<{
@@ -9314,15 +9422,21 @@ const SovereigntyHubDetailVulnerabilityWindowSchema: z.ZodObject<{
     end: z.ZodString;
 }, z.core.$loose>;
 
-// @public (undocumented)
+// @public
 const SovereigntyHubSchema: z.ZodObject<{
-    structure_id: z.ZodNumber;
-    system_id: z.ZodNumber;
-    corporation_id: z.ZodNumber;
-    alliance_id: z.ZodOptional<z.ZodNumber>;
-    online: z.ZodBoolean;
-    remaining_reagents: z.ZodOptional<z.ZodNumber>;
-    installed_upgrades: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    id: z.ZodNumber;
+    solar_system_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type SovereigntyHubsResponse = z.infer<typeof SovereigntyHubsResponseSchema>;
+
+// @public
+const SovereigntyHubsResponseSchema: z.ZodObject<{
+    sovereignty_hubs: z.ZodArray<z.ZodObject<{
+        id: z.ZodNumber;
+        solar_system_id: z.ZodNumber;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)

@@ -28,65 +28,46 @@ describe('MercenaryClient', () => {
   });
 
   it('should get mercenary dens', async () => {
-    const mockResponse = [
-      {
-        den_id: 5001,
-        system_id: 30000142,
-        constellation_id: 20000125,
-        region_id: 10000002,
-        development_level: 3,
-        anarchy_level: 2,
-        active_operations: 1,
-      },
-    ];
+    const mockResponse = {
+      mercenary_dens: [{ id: 1046664001933, planet_id: 40009077 }],
+    };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() =>
       mercenaryClient.getMercenaryDens(123456),
     );
-    expect(Array.isArray(result)).toBe(true);
-    result.forEach((den: any) => {
-      expect(den).toHaveProperty('den_id');
-      expect(typeof den.den_id).toBe('number');
-      expect(den).toHaveProperty('system_id');
-    });
+    expect(result).toEqual(mockResponse);
+    expect(result.mercenary_dens[0]!.planet_id).toBe(40009077);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456/structures/mercenary-dens',
     );
   });
 
   it('should get mercenary tactical operations', async () => {
-    const mockResponse = [
-      {
-        operation_id: 7001,
-        den_id: 5001,
-        system_id: 30000142,
-        site_type: 'assault',
-        status: 'active',
-        started_at: '2026-05-20T10:00:00Z',
-        expires_at: '2026-05-20T22:00:00Z',
-      },
-    ];
+    const mockResponse = {
+      operations: [
+        {
+          id: '3f2b7c1e-8d4a-4b6e-9a51-2c7d0e9f4a10',
+          mercenary_den_id: 1046664001933,
+        },
+      ],
+    };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() =>
       mercenaryClient.getMercenaryTacticalOperations(123456),
     );
-    expect(Array.isArray(result)).toBe(true);
-    result.forEach((op: any) => {
-      expect(op).toHaveProperty('operation_id');
-      expect(typeof op.operation_id).toBe('number');
-      expect(op).toHaveProperty('status');
-    });
+    expect(result).toEqual(mockResponse);
+    expect(result.operations[0]!.mercenary_den_id).toBe(1046664001933);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456/mercenary-tactical-operations',
     );
   });
 
   it('should send auth headers for mercenary dens', async () => {
-    fetchMock.mockResponseOnce(JSON.stringify([]));
+    fetchMock.mockResponseOnce(JSON.stringify({ mercenary_dens: [] }));
 
     await getBody(() => mercenaryClient.getMercenaryDens(123456));
 
@@ -97,7 +78,7 @@ describe('MercenaryClient', () => {
   });
 
   it('should send auth headers for mercenary tactical operations', async () => {
-    fetchMock.mockResponseOnce(JSON.stringify([]));
+    fetchMock.mockResponseOnce(JSON.stringify({ operations: [] }));
 
     await getBody(() => mercenaryClient.getMercenaryTacticalOperations(123456));
 
@@ -119,8 +100,8 @@ describe('MercenaryClient', () => {
       },
       infomorphs: { amount: 100 },
       evolution: {
-        development: { level: 3, progress: 0.75 },
-        anarchy: { level: 2, progress: 0.4 },
+        development: { level: 'Level3', amount: 75 },
+        anarchy: { level: 'Level2', amount: 40 },
       },
     };
 
@@ -133,7 +114,7 @@ describe('MercenaryClient', () => {
     expect(result).toHaveProperty('state', 'Running');
     expect(result.skyhook).toHaveProperty('planet_id', 40000002);
     expect(result.infomorphs).toHaveProperty('amount', 100);
-    expect(result.evolution.development).toHaveProperty('level', 3);
+    expect(result.evolution.development).toHaveProperty('level', 'Level3');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456/structures/mercenary-dens/5001',
     );
@@ -173,8 +154,8 @@ describe('MercenaryClient', () => {
         skyhook: { id: 1, planet_id: 1, corporation_id: 1 },
         infomorphs: { amount: 0 },
         evolution: {
-          development: { level: 0 },
-          anarchy: { level: 0 },
+          development: { level: 'Level0', amount: 0 },
+          anarchy: { level: 'Level0', amount: 0 },
         },
       }),
     );

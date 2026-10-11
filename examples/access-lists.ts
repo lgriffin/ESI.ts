@@ -1,7 +1,7 @@
 /**
  * ESI.ts Example: Access Lists
  *
- * Retrieves an access list (ACL) and displays its entries
+ * Retrieves an access list (ACL) and displays its members
  * grouped by entity type. Requires ESI authentication.
  *
  * Usage: npm run example:access-lists
@@ -37,31 +37,46 @@ async function main() {
       ACCESS_LIST_ID,
     );
 
-    log.info(`Name:    ${list.name}`);
-    log.info(`ID:      ${list.access_list_id}`);
-    log.info(`Entries: ${list.entries.length}`);
+    const { membership } = list;
+    log.info(`Name:           ${list.name}`);
+    log.info(`ID:             ${list.id}`);
+    log.info(`Description:    ${list.description}`);
+    log.info(`Allow everyone: ${membership.allow_everyone ? 'yes' : 'no'}`);
     log.info('-'.repeat(60));
 
-    // Group entries by entity type
-    const byType = new Map<string, typeof list.entries>();
-    for (const entry of list.entries) {
-      const group = byType.get(entry.entity_type) || [];
-      group.push(entry);
-      byType.set(entry.entity_type, group);
-    }
+    const groups: Array<[string, Array<{ id: number; access: string }>]> = [
+      [
+        'Characters',
+        membership.characters.map((m) => ({
+          id: m.character_id,
+          access: m.access,
+        })),
+      ],
+      [
+        'Corporations',
+        membership.corporations.map((m) => ({
+          id: m.corporation_id,
+          access: m.access,
+        })),
+      ],
+      [
+        'Alliances',
+        membership.alliances.map((m) => ({
+          id: m.alliance_id,
+          access: m.access,
+        })),
+      ],
+    ];
 
-    for (const [entityType, entries] of byType) {
-      log.info(
-        `\n${entityType.charAt(0).toUpperCase() + entityType.slice(1)}s (${entries.length})`,
-      );
-      for (const entry of entries.slice(0, 10)) {
-        const icon = entry.access_type === 'allowed' ? '+' : '-';
-        log.info(
-          `  [${icon}] ${entry.entity_type} ${entry.entity_id} — ${entry.access_type}`,
-        );
+    for (const [label, members] of groups) {
+      if (members.length === 0) continue;
+      log.info(`\n${label} (${members.length})`);
+      for (const member of members.slice(0, 10)) {
+        const icon = member.access === 'Blocked' ? '-' : '+';
+        log.info(`  [${icon}] ${member.id} — ${member.access}`);
       }
-      if (entries.length > 10)
-        log.info(`  ... and ${entries.length - 10} more`);
+      if (members.length > 10)
+        log.info(`  ... and ${members.length - 10} more`);
     }
   } catch (err) {
     if (err instanceof EsiError && err.statusCode === 401) {

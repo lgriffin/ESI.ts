@@ -3,12 +3,18 @@ import { sentRequests } from '../../support/transport';
 import { Then } from '../../support/steps';
 
 Then(
-  'the client shall return the list with an empty entries array',
+  'the client shall return the list with empty membership arrays',
   function () {
     expect(this.result).toEqual({
-      access_list_id: EMPTY_ACCESS_LIST_ID,
+      id: EMPTY_ACCESS_LIST_ID,
       name: 'Empty ACL',
-      entries: [],
+      description: '',
+      membership: {
+        allow_everyone: false,
+        alliances: [],
+        corporations: [],
+        characters: [],
+      },
     });
     expect(sentRequests()).toHaveLength(1);
   },

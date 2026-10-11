@@ -1,7 +1,10 @@
 import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { accessListEndpoints } from '../core/endpoints/accessListEndpoints';
-import { AccessList } from '../types/api-responses';
+import {
+  AccessList,
+  CharacterAccessListsResponse,
+} from '../types/api-responses';
 
 export class AccessListsClient extends BaseEsiClient<
   typeof accessListEndpoints
@@ -11,11 +14,12 @@ export class AccessListsClient extends BaseEsiClient<
   }
 
   /**
-   * Retrieves the contents of an access list (ACL) including all character, corporation, and alliance entries.
+   * Retrieves an access list (ACL): its name, description and the characters, corporations and
+   * alliances it lists, each with an access level.
    *
    * @param characterId - The ID of the character who owns the access list
    * @param accessListId - The ID of the access list to retrieve
-   * @returns The access list with its entries
+   * @returns The access list: `id`, `name`, `description` and `membership`
    * @requires Authentication
    */
   getAccessList(
@@ -26,13 +30,15 @@ export class AccessListsClient extends BaseEsiClient<
   }
 
   /**
-   * Retrieves all access lists for a character.
+   * Retrieves the IDs of a character's access lists. Call `getAccessList` for a list's contents.
    *
    * @param characterId - The ID of the character
-   * @returns An array of the character's access lists
+   * @returns ESI's response as sent: `access_lists`, one entry per list with its `id`
    * @requires Authentication
    */
-  getCharacterAccessLists(characterId: number): Promise<AccessList[]> {
+  getCharacterAccessLists(
+    characterId: number,
+  ): Promise<CharacterAccessListsResponse> {
     return this.api.getCharacterAccessLists(characterId);
   }
 }

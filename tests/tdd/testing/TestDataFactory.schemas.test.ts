@@ -81,7 +81,7 @@ const builderSchemas: Record<string, z.ZodType> = {
   createRaidableSkyhook: schemas.RaidableSkyhookSchema,
   createMercenaryDen: schemas.MercenaryDenSchema,
   createMercenaryTacticalOperation: schemas.MercenaryTacticalOperationSchema,
-  createAccessListEntry: schemas.AccessListEntrySchema,
+  createAccessList: schemas.AccessListSchema,
 };
 
 const payloadBuilders = Object.getOwnPropertyNames(TestDataFactory)

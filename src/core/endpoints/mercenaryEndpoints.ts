@@ -1,8 +1,7 @@
-import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
 import {
-  MercenaryDenSchema,
-  MercenaryTacticalOperationSchema,
+  MercenaryDensResponseSchema,
+  MercenaryTacticalOperationsResponseSchema,
   MercenaryDenDetailSchema,
   MercenaryTacticalOperationDetailSchema,
 } from '../../schemas/mercenary';
@@ -13,14 +12,14 @@ export const mercenaryEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
-    responseSchema: z.array(MercenaryDenSchema),
+    responseSchema: MercenaryDensResponseSchema,
   },
   getMercenaryTacticalOperations: {
     path: 'characters/{characterId}/mercenary-tactical-operations',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
-    responseSchema: z.array(MercenaryTacticalOperationSchema),
+    responseSchema: MercenaryTacticalOperationsResponseSchema,
   },
   getMercenaryDenDetail: {
     path: 'characters/{characterId}/structures/mercenary-dens/{mercenaryDenId}',

@@ -56,65 +56,35 @@ async function main() {
       throw err;
     }
 
-    const byRegion = new Map<number, typeof dens>();
-    for (const den of dens) {
-      const list = byRegion.get(den.region_id) || [];
-      list.push(den);
-      byRegion.set(den.region_id, list);
-    }
+    const denList = dens.mercenary_dens;
+    const operationList = operations.operations;
 
-    log.info('Mercenary Dens by Region');
+    log.info(`Mercenary Dens (${denList.length} total)`);
     log.info('-'.repeat(60));
-    const sortedRegions = [...byRegion.entries()].sort(
-      (a, b) => b[1].length - a[1].length,
-    );
-
-    for (const [regionId, regionDens] of sortedRegions.slice(0, 10)) {
-      const avgDev =
-        regionDens.reduce((sum, d) => sum + (d.development_level ?? 0), 0) /
-        regionDens.length;
-      const avgAnarchy =
-        regionDens.reduce((sum, d) => sum + (d.anarchy_level ?? 0), 0) /
-        regionDens.length;
+    for (const den of denList.slice(0, 10)) {
+      const running = operationList.filter(
+        (op) => op.mercenary_den_id === den.id,
+      ).length;
       log.info(
-        `  Region ${regionId}: ${regionDens.length} den(s) — ` +
-          `Avg Dev: ${avgDev.toFixed(1)} — Avg Anarchy: ${avgAnarchy.toFixed(1)}`,
+        `  Den ${den.id} — Planet ${den.planet_id} — ${running} operation(s)`,
       );
     }
-    if (sortedRegions.length > 10)
-      log.info(`  ... and ${sortedRegions.length - 10} more`);
+    if (denList.length > 10) log.info(`  ... and ${denList.length - 10} more`);
 
-    log.info(`\nTactical Operations (${operations.length} total)`);
+    log.info(`\nTactical Operations (${operationList.length} total)`);
     log.info('-'.repeat(60));
-
-    const byStatus = new Map<string, number>();
-    for (const op of operations) {
-      byStatus.set(op.status, (byStatus.get(op.status) || 0) + 1);
-    }
-    for (const [status, count] of byStatus) {
-      log.info(`  ${status.padEnd(12)} ${count}`);
-    }
-
-    const active = operations.filter((op) => op.status === 'active');
-    if (active.length > 0) {
-      log.info('\nActive Operations (first 5)');
-      log.info('-'.repeat(60));
-      for (const op of active.slice(0, 5)) {
-        const expires = op.expires_at ? ` — Expires: ${op.expires_at}` : '';
-        log.info(
-          `  Den ${op.den_id} → System ${op.system_id} — ${op.site_type}${expires}`,
-        );
-      }
+    for (const op of operationList.slice(0, 5)) {
+      log.info(`  Operation ${op.id} → Den ${op.mercenary_den_id}`);
     }
 
     // Fetch detail for the first den
-    const firstDens = dens[0];
+    const firstDens = denList[0];
     if (firstDens) {
       log.info('\nMercenary Den Detail');
       log.info('-'.repeat(60));
       const denDetail = await client.mercenary.getMercenaryDenDetail(
         characterId,
-        firstDens.den_id,
+        firstDens.id,
       );
       log.info(`  Den ${denDetail.id} — State: ${denDetail.state}`);
       log.info(
@@ -122,20 +92,22 @@ async function main() {
       );
       log.info(`  Infomorphs: ${denDetail.infomorphs.amount}`);
       log.info(
-        `  Evolution: Dev ${denDetail.evolution.development.level ?? 'N/A'} / ` +
-          `Anarchy ${denDetail.evolution.anarchy.level ?? 'N/A'}`,
+        `  Evolution: Dev ${denDetail.evolution.development.level} ` +
+          `(${denDetail.evolution.development.amount}) / ` +
+          `Anarchy ${denDetail.evolution.anarchy.level} ` +
+          `(${denDetail.evolution.anarchy.amount})`,
       );
     }
 
     // Fetch detail for the first operation
-    const firstOperations = operations[0];
+    const firstOperations = operationList[0];
     if (firstOperations) {
       log.info('\nMTO Detail');
       log.info('-'.repeat(60));
       const opDetail =
         await client.mercenary.getMercenaryTacticalOperationDetail(
           characterId,
-          String(firstOperations.operation_id),
+          firstOperations.id,
         );
       log.info(`  Operation ${opDetail.id} — State: ${opDetail.state}`);
       log.info(`  Dungeon Type: ${opDetail.dungeon_type_id}`);
