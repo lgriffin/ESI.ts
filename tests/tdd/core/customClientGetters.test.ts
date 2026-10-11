@@ -50,7 +50,7 @@ const ALL_TYPES: Record<ApiClientType, true> = {
 };
 const types = Object.keys(ALL_TYPES) as ApiClientType[];
 
-describe('CustomEsiClient getters', () => {
+describe('ARCH-08: CustomEsiClient getters', () => {
   it('has a getter for every registered client type', () => {
     // The check is the type of everyTypeHasAGetter, which ts-jest compiles;
     // this line only puts it in a test.

@@ -34,7 +34,7 @@ function found(text: string): string[] {
   return FORBIDDEN.filter((needle) => text.includes(needle));
 }
 
-describe('./sde/memory bundle', () => {
+describe('ARCH-10: ./sde/memory bundle', () => {
   it.each(['esm', 'cjs'] as const)(
     'reaches no file-system, YAML, ZIP or SQLite code (%s)',
     (format) => {

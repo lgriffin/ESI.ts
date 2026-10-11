@@ -65,7 +65,7 @@ const clients = new Set(
   ),
 );
 
-describe('the site over the real repository', () => {
+describe('DOC-03: the site over the real repository', () => {
   const pages = planGuides(guideSources);
   const slugs = new Map(pages.map((p) => [p.source, p.slug]));
 
@@ -284,7 +284,7 @@ describe('one canonical file per topic (CHARTER DOC-01)', () => {
   });
 });
 
-describe('planGuides and slugFor', () => {
+describe('DOC-03: planGuides and slugFor', () => {
   it('slugs README.md as the index and a guide by its lower-cased name', () => {
     expect(slugFor('README.md')).toBe('index');
     expect(slugFor('guides/MULTI-CHARACTER.md')).toBe('multi-character');
@@ -324,7 +324,7 @@ describe('planGuides and slugFor', () => {
   });
 });
 
-describe('resolveLink', () => {
+describe('DOC-03: resolveLink', () => {
   const pages = new Map([
     ['guides/USAGE.md', 'usage'],
     ['README.md', 'index'],
@@ -372,7 +372,7 @@ describe('resolveLink', () => {
   });
 });
 
-describe('rewriteGuide', () => {
+describe('DOC-03: rewriteGuide', () => {
   const pages = new Map([['guides/USAGE.md', 'usage']]);
   const rewrite = (markdown: string) =>
     rewriteGuide(markdown, 'guides/ERRORS.md', pages).markdown;
@@ -421,7 +421,7 @@ describe('rewriteGuide', () => {
   });
 });
 
-describe('renderGuidePage and guideSidebar', () => {
+describe('DOC-03: renderGuidePage and guideSidebar', () => {
   const page = {
     source: 'guides/ERRORS.md',
     slug: 'errors',
@@ -475,7 +475,7 @@ response.headers.get('etag');
 await client.status.getStatus();
 `;
 
-describe('parseExample', () => {
+describe('DOC-03: parseExample', () => {
   const doc = parseExample(
     'market-prices.ts',
     SAMPLE,
@@ -564,7 +564,7 @@ describe('parseExample', () => {
   });
 });
 
-describe('rewriteImports', () => {
+describe('DOC-03: rewriteImports', () => {
   it('fails on a source path that maps to no package sub-path', () => {
     expect(() =>
       rewriteImports("import { x } from '../src/core/internal';", 'x.ts'),
@@ -572,7 +572,7 @@ describe('rewriteImports', () => {
   });
 });
 
-describe('rendering the showcase', () => {
+describe('DOC-03: rendering the showcase', () => {
   const doc = parseExample(
     'market-prices.ts',
     SAMPLE,

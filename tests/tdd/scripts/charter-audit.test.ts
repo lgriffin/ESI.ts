@@ -16,9 +16,13 @@ import {
   CharterBlock,
   Mechanisms,
   auditCharter,
+  checkEvidence,
   checkVerifiedBy,
+  citedTestFiles,
+  evidenceClauses,
   formatFindings,
   parseCharter,
+  testTitles,
   workflowJobs,
 } from '../../../scripts/quality/charter-audit-core';
 
@@ -39,11 +43,36 @@ function block(
   };
 }
 
+/** Test sources the title check reads, by path. */
+const SOURCES = new Map<string, string>([
+  [
+    'tests/tdd/core/security.test.ts',
+    "describe('SEC-01: host allowlist', () => {\n  it('rejects http', () => {});\n});\n",
+  ],
+  [
+    'tests/tdd/core/cache.test.ts',
+    "describe('cache', () => {\n  it('ARCH-01: keys by URL', () => {});\n});\n",
+  ],
+  ['tests/tdd/a/twin.test.ts', "describe('ARCH-01: twin', () => {});\n"],
+  ['tests/tdd/b/twin.test.ts', "describe('ARCH-01: twin', () => {});\n"],
+]);
+
 const MECHANISMS: Mechanisms = {
   scripts: new Set(['lint', 'spec:audit']),
   jobs: new Set(['api-surface', 'API Surface Check']),
   workflows: new Set(['ci.yml']),
-  files: ['scripts/spec/spec-audit.ts', 'tests/tdd/core/security.test.ts'],
+  files: [
+    'scripts/spec/spec-audit.ts',
+    'tests/contract/esi.contract.test.ts',
+    'tests/typetests/sde.test-d.ts',
+    'tests/bdd/features/core/0051-resilience.feature',
+    ...SOURCES.keys(),
+  ],
+  readFile: (file) => {
+    const source = SOURCES.get(file);
+    if (source === undefined) throw new Error(`no fixture source: ${file}`);
+    return source;
+  },
 };
 
 function messages(blocks: CharterBlock[], m: Mechanisms = MECHANISMS) {
@@ -93,7 +122,7 @@ An example block inside a fence, which is not a requirement.
 - **Why:** The fence shows the form.
 `;
 
-describe('the charter audit', () => {
+describe('PROC-06: the charter audit', () => {
   it('passes the real guides/CHARTER.md', () => {
     const markdown = readFileSync(
       path.join(ROOT, 'guides/CHARTER.md'),
@@ -131,6 +160,7 @@ describe('the charter audit', () => {
       jobs,
       workflows,
       files,
+      readFile: (file) => readFileSync(path.join(ROOT, file), 'utf-8'),
     });
     expect(formatFindings(findings, 'guides/CHARTER.md')).toEqual([]);
   });
@@ -195,7 +225,7 @@ describe('the charter audit', () => {
           block({
             status: 'Enforced',
             text: 'The client **shall** retry a 503 once.',
-            verifiedBy: '`npm run lint`',
+            verifiedBy: 'Gate: `npm run lint`',
           }),
         ]),
       ).toEqual([]);
@@ -334,7 +364,7 @@ describe('the charter audit', () => {
       ]);
       expect(
         messages([
-          block({ status: 'Enforced', text, verifiedBy: 'Code review.' }),
+          block({ status: 'Enforced', text, verifiedBy: 'Gate: code review.' }),
         ]),
       ).toEqual([
         'is Enforced but its "Verified by" names no script, job or file (nothing in backticks)',
@@ -344,7 +374,7 @@ describe('the charter audit', () => {
           block({
             status: 'Enforced',
             text,
-            verifiedBy: '`npm run nope` and `scripts/missing.ts`',
+            verifiedBy: 'Gate: `npm run nope` and `scripts/missing.ts`',
           }),
         ]),
       ).toEqual([
@@ -352,7 +382,9 @@ describe('the charter audit', () => {
       ]);
       // Anything but Enforced may cite what does not exist yet.
       expect(
-        messages([block({ status: 'Gap', text, verifiedBy: 'To add.' })]),
+        messages([
+          block({ status: 'Gap', text, verifiedBy: 'To add: a check.' }),
+        ]),
       ).toEqual([]);
     });
   });
@@ -394,6 +426,202 @@ describe('the charter audit', () => {
       expect(checkVerifiedBy('`npm run other`', MECHANISMS)).toMatch(
         /names nothing that exists/,
       );
+    });
+  });
+
+  describe('evidenceClauses', () => {
+    it('splits the Verified by at each label that opens it or a sentence', () => {
+      expect(
+        evidenceClauses(
+          'Gate: `npm run lint` in CI. Test: `tests/tdd/a.test.ts`; Review: the rest. To add: a check.',
+        ),
+      ).toEqual({
+        unlabelled: '',
+        clauses: [
+          { label: 'Gate', text: '`npm run lint` in CI.' },
+          { label: 'Test', text: '`tests/tdd/a.test.ts`;' },
+          { label: 'Review', text: 'the rest.' },
+          { label: 'To add', text: 'a check.' },
+        ],
+      });
+    });
+
+    it('returns the text before the first label as unlabelled, and reads a label mid-sentence as prose', () => {
+      expect(
+        evidenceClauses('`npm run lint`, the Gate: job. Test: `tests/x/`.'),
+      ).toEqual({
+        unlabelled: '`npm run lint`, the Gate: job.',
+        clauses: [{ label: 'Test', text: '`tests/x/`.' }],
+      });
+    });
+  });
+
+  describe('testTitles', () => {
+    it('reads describe, it and test titles in every quote style and modifier', () => {
+      const source = [
+        "describe('ARCH-01: one', () => {",
+        '  it("two", () => {});',
+        '  test.only(`three`, () => {});',
+        String.raw`  it.skip('four \'quoted\'', () => {});`,
+        '});',
+      ].join('\n');
+      expect(testTitles(source)).toEqual([
+        'ARCH-01: one',
+        'two',
+        'three',
+        String.raw`four \'quoted\'`,
+      ]);
+    });
+
+    it('reads a gated alias and the conditional describe, not a table built by .each', () => {
+      const source = [
+        "describeIfGated('TEST-08: gated', () => {});",
+        "(canRun ? describe : describe.skip)('TEST-08: real data', () => {});",
+        "it.each([['a']])('%s from a table', () => {});",
+        "const items = list('not a title');",
+      ].join('\n');
+      expect(testTitles(source)).toEqual([
+        'TEST-08: gated',
+        'TEST-08: real data',
+      ]);
+    });
+  });
+
+  describe('testTitles ignores commented-out calls', () => {
+    it('skips a call in a line or block comment, and keeps a // inside a title', () => {
+      const source = [
+        "// it('ARCH-01: retired', () => {});",
+        '/*',
+        "describe('ARCH-01: also retired', () => {});",
+        '*/',
+        "it('fetches https://esi.example', () => {});",
+      ].join('\n');
+      expect(testTitles(source)).toEqual(['fetches https://esi.example']);
+    });
+  });
+
+  describe('citedTestFiles', () => {
+    it('resolves a path and a bare file name, and ignores directories and other files', () => {
+      expect(
+        citedTestFiles(
+          '`tests/tdd/core/cache.test.ts`; `security.test.ts` groups; `tests/tdd/core/`; `scripts/spec/spec-audit.ts`; `missing.test.ts`',
+          MECHANISMS.files,
+        ),
+      ).toEqual([
+        {
+          cited: 'tests/tdd/core/cache.test.ts',
+          files: ['tests/tdd/core/cache.test.ts'],
+        },
+        {
+          cited: 'security.test.ts',
+          files: ['tests/tdd/core/security.test.ts'],
+        },
+      ]);
+    });
+
+    it('returns every match for a bare name two test files share', () => {
+      expect(citedTestFiles('`twin.test.ts`', MECHANISMS.files)).toEqual([
+        {
+          cited: 'twin.test.ts',
+          files: ['tests/tdd/a/twin.test.ts', 'tests/tdd/b/twin.test.ts'],
+        },
+      ]);
+    });
+  });
+
+  describe('checkEvidence', () => {
+    const evidence = (
+      verifiedBy: string,
+      id = 'ARCH-01',
+      status = 'Enforced',
+    ) => checkEvidence({ id, status, verifiedBy }, MECHANISMS);
+
+    it('accepts labelled clauses whose cited test files name the row in a title', () => {
+      expect(
+        evidence(
+          'Gate: `npm run lint`. Test: `tests/tdd/core/cache.test.ts` keys by URL.',
+        ),
+      ).toEqual([]);
+      expect(
+        evidence('Test: `security.test.ts` host allowlist.', 'SEC-01'),
+      ).toEqual([]);
+    });
+
+    it('fails a Test clause citing a test no tracked file matches', () => {
+      expect(
+        evidence('Gate: `npm run lint`. Test: `missing.test.ts`.'),
+      ).toEqual([
+        'has a `Test:` clause citing `missing.test.ts`, which no tracked file matches',
+      ]);
+      expect(
+        evidence('Gate: `npm run lint`. Test: `tests/tdd/gone/`.'),
+      ).toEqual([
+        'has a `Test:` clause citing `tests/tdd/gone/`, which no tracked file matches',
+      ]);
+    });
+
+    it('fails a later label in the wrong case and an empty clause', () => {
+      expect(evidence('Gate: `npm run lint`; test: the cache group.')).toEqual([
+        'has the label `test:`; write it as one of `Test:`, `Gate:`, `Review:`, `To add:`',
+      ]);
+      expect(evidence('Gate: `npm run lint`; Test:')).toEqual([
+        'has an empty `Test:` clause',
+        'has a `Test:` clause that names no test file or directory under `tests/`',
+      ]);
+    });
+
+    it('fails a Verified by that opens without a label', () => {
+      expect(evidence('`npm run lint`. Gate: `ci.yml`.')).toEqual([
+        '"Verified by" opens without a label; start it with `Test:`, `Gate:`, `Review:`, `To add:`',
+      ]);
+    });
+
+    it('fails an Enforced row with only Review or To add clauses, and lets any other status have them', () => {
+      expect(evidence('Review: code review. To add: a check.')).toEqual([
+        'is Enforced but its "Verified by" has no `Test:` or `Gate:` clause',
+      ]);
+      expect(
+        evidence('Review: code review. To add: a check.', 'ARCH-01', 'Partial'),
+      ).toEqual([]);
+    });
+
+    it('fails a Test clause that names nothing under tests/', () => {
+      expect(
+        evidence('Test: `npm run lint` and `tests/bdd/GUIDE.md`.'),
+      ).toEqual([
+        'has a `Test:` clause that names no test file or directory under `tests/`',
+      ]);
+      for (const named of [
+        '`tests/contract/`',
+        '`tests/typetests/sde.test-d.ts`',
+        '`tests/bdd/features/core/0051-resilience.feature`',
+      ]) {
+        expect(evidence(`Test: ${named}.`)).toEqual([]);
+      }
+    });
+
+    it('fails a cited test file, in any clause, whose titles do not name the row', () => {
+      expect(
+        evidence('Gate: `npm run lint`, proved by `security.test.ts`.'),
+      ).toEqual([
+        'cites `tests/tdd/core/security.test.ts`, which has no describe, it or test title naming ARCH-01',
+      ]);
+    });
+
+    it('matches the id as a whole word, so SEC-0 does not match SEC-01', () => {
+      expect(evidence('Test: `security.test.ts`.', 'SEC-0')).toEqual([
+        'cites `tests/tdd/core/security.test.ts`, which has no describe, it or test title naming SEC-0',
+      ]);
+    });
+
+    it('fails a bare file name that more than one test file has', () => {
+      expect(evidence('Test: `twin.test.ts`.')).toEqual([
+        'cites `twin.test.ts`, which 2 test files are named; give the path',
+      ]);
+    });
+
+    it('leaves an empty Verified by to the mechanism check', () => {
+      expect(evidence('')).toEqual([]);
     });
   });
 

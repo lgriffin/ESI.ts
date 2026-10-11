@@ -23,7 +23,7 @@ function resetGlobals() {
   fetchMock.resetMocks();
 }
 
-describe('Security: Token Handling', () => {
+describe('SEC-02: Security: Token Handling', () => {
   afterEach(() => {
     resetGlobals();
   });
@@ -83,7 +83,7 @@ describe('Security: Token Handling', () => {
   });
 });
 
-describe('Security: HTTPS Enforcement', () => {
+describe('SEC-01: Security: HTTPS Enforcement', () => {
   it('should reject http:// base URL', () => {
     expect(
       () =>
@@ -99,7 +99,7 @@ describe('Security: HTTPS Enforcement', () => {
   });
 });
 
-describe('Security: Host Allowlist', () => {
+describe('SEC-01: Security: Host Allowlist', () => {
   it('should reject unknown hosts without unsafeAllowCustomHost', () => {
     expect(
       () =>

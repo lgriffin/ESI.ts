@@ -190,7 +190,7 @@ describe('nameRootComponent', () => {
   });
 });
 
-describe('sbomProblems', () => {
+describe('SEC-06: sbomProblems', () => {
   it('finds nothing wrong with a document that describes the package', () => {
     expect(sbomProblems(validSbom(), MANIFEST)).toEqual([]);
   });
@@ -280,7 +280,7 @@ describe('sbomProblems', () => {
   });
 });
 
-describe('generateSbom against this repository', () => {
+describe('SEC-06: generateSbom against this repository', () => {
   const manifest = JSON.parse(
     readFileSync(path.join(ROOT, 'package.json'), 'utf8'),
   ) as Manifest;

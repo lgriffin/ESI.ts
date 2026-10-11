@@ -25,7 +25,7 @@ async function restricted(filePath: string, source: string) {
 const importing = (specifier: string) =>
   `import { logInfo } from '${specifier}';\nexport { logInfo };\n`;
 
-describe('logger-import lint rule (#265)', () => {
+describe('ARCH-09: logger-import lint rule (#265)', () => {
   it.each([
     ['src/core/requestPipeline/headers.ts', '../logger/loggerUtil'],
     ['src/core/requestPipeline/headers.ts', '../logger/loggerUtil.js'],
@@ -98,7 +98,7 @@ function printedRule(file: string, ...args: string[]): unknown {
   ];
 }
 
-describe('logger-import lint rule wiring', () => {
+describe('ARCH-09: logger-import lint rule wiring', () => {
   const expected = [
     2,
     {

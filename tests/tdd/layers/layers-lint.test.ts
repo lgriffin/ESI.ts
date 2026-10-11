@@ -250,48 +250,56 @@ describe('layer lint rule', () => {
 
   // In both directions and in every import form. The sde direction is
   // spelled out because the side-module check runs before the relative check.
-  it.each([
-    [
-      'src/sde/providers/yaml/SdeDataProvider.ts',
-      "import type { A } from '../../../core/ApiClient';\nexport type { A };",
-      'sde',
-    ],
-    [
-      'src/sde/providers/yaml/SdeDataProvider.ts',
-      "export * from '../../../core/ApiClient';",
-      'sde',
-    ],
-    [
-      'src/sde/providers/yaml/SdeDataProvider.ts',
-      "export const a = require('../../../core/ApiClient');",
-      'sde',
-    ],
-    [
-      'src/sde/providers/yaml/SdeDataProvider.ts',
-      "export const a = require('pino');",
-      'sde',
-    ],
-    [
-      'src/sde/providers/yaml/SdeDataProvider.ts',
-      "export let a: import('../../../core/ApiClient').ApiClient;",
-      'sde',
-    ],
-    ['src/clients/UniverseClient.ts', "export * from '../sde';", 'sideModule'],
-    [
-      'src/clients/UniverseClient.ts',
-      "export const a = import('../sde/memory');",
-      'sideModule',
-    ],
-    [
-      'src/clients/UniverseClient.ts',
-      "export let a: import('../sde').IStaticDataProvider;",
-      'sideModule',
-    ],
-  ])('%s: %s', async (file, code, layer) => {
-    const [result] = await eslint.lintText(`${code}\n`, { filePath: file });
-    expect(
-      result.messages.map((m) => /\[layers:([a-zA-Z]+)\]/.exec(m.message)?.[1]),
-    ).toEqual([layer]);
+  describe('ARCH-10: the sde and sideModule boundaries', () => {
+    it.each([
+      [
+        'src/sde/providers/yaml/SdeDataProvider.ts',
+        "import type { A } from '../../../core/ApiClient';\nexport type { A };",
+        'sde',
+      ],
+      [
+        'src/sde/providers/yaml/SdeDataProvider.ts',
+        "export * from '../../../core/ApiClient';",
+        'sde',
+      ],
+      [
+        'src/sde/providers/yaml/SdeDataProvider.ts',
+        "export const a = require('../../../core/ApiClient');",
+        'sde',
+      ],
+      [
+        'src/sde/providers/yaml/SdeDataProvider.ts',
+        "export const a = require('pino');",
+        'sde',
+      ],
+      [
+        'src/sde/providers/yaml/SdeDataProvider.ts',
+        "export let a: import('../../../core/ApiClient').ApiClient;",
+        'sde',
+      ],
+      [
+        'src/clients/UniverseClient.ts',
+        "export * from '../sde';",
+        'sideModule',
+      ],
+      [
+        'src/clients/UniverseClient.ts',
+        "export const a = import('../sde/memory');",
+        'sideModule',
+      ],
+      [
+        'src/clients/UniverseClient.ts',
+        "export let a: import('../sde').IStaticDataProvider;",
+        'sideModule',
+      ],
+    ])('%s: %s', async (file, code, layer) => {
+      const [result] = await eslint.lintText(`${code}\n`, { filePath: file });
+      expect(
+        result.messages.map(
+          (m) => /\[layers:([a-zA-Z]+)\]/.exec(m.message)?.[1],
+        ),
+      ).toEqual([layer]);
+    });
   });
 
   it.each([

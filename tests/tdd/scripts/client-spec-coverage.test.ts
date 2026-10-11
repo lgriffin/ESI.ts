@@ -88,7 +88,7 @@ function runCli(args: string[]): { status: number; output: string } {
   }
 }
 
-describe('client-spec-coverage: the clients', () => {
+describe('TEST-10: client-spec-coverage: the clients', () => {
   it("reads each client's own public instance methods, clients by name, methods in order", () => {
     // Not: the constructor, an accessor, a static, private or protected
     // method, a method inherited from BaseEsiClient, or a class that does
@@ -122,7 +122,7 @@ describe('client-spec-coverage: the clients', () => {
   });
 });
 
-describe('client-spec-coverage: what counts as coverage', () => {
+describe('TEST-10: client-spec-coverage: what counts as coverage', () => {
   const report = analyseCoverage(PROJECT);
 
   it('is not broken: every step and legacy scenario of the fixture binds', () => {
@@ -249,7 +249,7 @@ describe('client-spec-coverage: what counts as coverage', () => {
   });
 });
 
-describe('client-spec-coverage: nested callbacks and aliased bases', () => {
+describe('TEST-10: client-spec-coverage: nested callbacks and aliased bases', () => {
   const CALLBACKS = path.join(FIXTURES, 'callbacks');
   const report = analyseCoverage(CALLBACKS);
   const covered = (name: string) =>
@@ -282,7 +282,7 @@ describe('client-spec-coverage: nested callbacks and aliased bases', () => {
   });
 });
 
-describe('client-spec-coverage: the baseline ratchet', () => {
+describe('TEST-10: client-spec-coverage: the baseline ratchet', () => {
   const report = analyseCoverage(PROJECT);
   const measured = parseBaseline(serializeBaseline(report));
 
@@ -348,7 +348,7 @@ describe('client-spec-coverage: the baseline ratchet', () => {
   });
 });
 
-describe('client-spec-coverage: the command line', () => {
+describe('TEST-10: client-spec-coverage: the command line', () => {
   let scratch: string;
 
   beforeEach(() => {
@@ -393,7 +393,7 @@ describe('client-spec-coverage: the command line', () => {
   });
 });
 
-describe('client-spec-coverage: this repository', () => {
+describe('TEST-10: client-spec-coverage: this repository', () => {
   const report = analyseCoverage(REPO_ROOT);
 
   it('reads every domain client and binds every step and legacy scenario', () => {

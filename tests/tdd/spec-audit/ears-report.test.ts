@@ -84,7 +84,7 @@ describe('EARS requirement report', () => {
     });
   });
 
-  describe('isExclusion', () => {
+  describe('TEST-11: isExclusion', () => {
     it.each([
       [NOT, true],
       ['If a header is absent, then the client shall  not send it', true],
@@ -263,7 +263,7 @@ describe('EARS requirement report', () => {
     });
   });
 
-  describe('exclusion register', () => {
+  describe('TEST-11: exclusion register', () => {
     it('marks a negated unwanted-behaviour Rule as an exclusion and keeps its scenario names', () => {
       const report = buildReport(
         [
@@ -352,7 +352,7 @@ describe('EARS requirement report', () => {
       );
     });
 
-    it('lists the exclusion register with each exclusion, its verdict and its scenarios', () => {
+    it('TEST-11: lists the exclusion register with each exclusion, its verdict and its scenarios', () => {
       const withExclusion = buildReport(
         [
           outline([

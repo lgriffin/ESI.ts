@@ -63,7 +63,7 @@ describe('clientLog', () => {
   });
 });
 
-describe('clientLog redaction at the logger boundary', () => {
+describe('SEC-02: clientLog redaction at the logger boundary', () => {
   const secret =
     'https://esi.evetech.net/latest/characters/1/assets/?token=s3cret';
 
