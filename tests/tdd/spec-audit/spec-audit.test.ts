@@ -247,6 +247,15 @@ describe('spec-audit', () => {
       ]);
     });
 
+    it('rejects a charter id in the wrong case, even beside a valid tag', () => {
+      expect(
+        checkCharterTags(
+          ['@ARCH-04', '@test-11', '@sec-P4'],
+          new Set(['ARCH-04', 'TEST-11']),
+        ),
+      ).toEqual([expect.stringContaining('Write it as @TEST-11')]);
+    });
+
     it('fails closed when the charter cannot be read', () => {
       expect(checkCharterTags(['@DES-08'], null)).toEqual([
         expect.stringContaining('could not be read'),

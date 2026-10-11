@@ -493,6 +493,15 @@ export function checkCharterTags(
   known: ReadonlySet<string> | null,
 ): string[] {
   const errors: string[] = [];
+  for (const tag of tags) {
+    const id = /^@([A-Za-z]+-\d+)$/.exec(tag)?.[1];
+    if (id && !CHARTER_TAG.test(tag) && known?.has(id.toUpperCase())) {
+      errors.push(
+        `Tag ${tag} names charter requirement ${id.toUpperCase()} in the ` +
+          `wrong case. Write it as @${id.toUpperCase()}.`,
+      );
+    }
+  }
   for (const id of charterIds(tags)) {
     if (known === null) {
       errors.push(
