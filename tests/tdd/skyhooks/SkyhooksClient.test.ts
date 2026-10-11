@@ -36,59 +36,34 @@ describe('SkyhooksClient', () => {
   });
 
   it('should get sovereignty hubs', async () => {
-    const mockResponse = [
-      {
-        structure_id: 100000001,
-        system_id: 30000142,
-        corporation_id: 98000002,
-        alliance_id: 99000006,
-        online: true,
-        remaining_reagents: 500,
-        installed_upgrades: [1, 2, 3],
-      },
-    ];
+    const mockResponse = {
+      sovereignty_hubs: [{ id: 1046664001931, solar_system_id: 30000142 }],
+    };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() =>
       authSkyhooksClient.getSovereigntyHubs(98000002),
     );
-    expect(Array.isArray(result)).toBe(true);
-    result.forEach((hub: any) => {
-      expect(hub).toHaveProperty('structure_id');
-      expect(typeof hub.structure_id).toBe('number');
-      expect(hub).toHaveProperty('online');
-      expect(typeof hub.online).toBe('boolean');
-    });
+    expect(result).toEqual(mockResponse);
+    expect(result.sovereignty_hubs[0]!.solar_system_id).toBe(30000142);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/corporations/98000002/structures/sovereignty-hubs',
     );
   });
 
   it('should get orbital skyhooks', async () => {
-    const mockResponse = [
-      {
-        structure_id: 200000001,
-        system_id: 30000142,
-        corporation_id: 98000002,
-        alliance_id: 99000006,
-        online: true,
-        reagent_silo_capacity: 1000,
-        reagent_silo_level: 750,
-      },
-    ];
+    const mockResponse = {
+      skyhooks: [{ id: 1046664001932, planet_id: 40009077 }],
+    };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() =>
       authSkyhooksClient.getOrbitalSkyhooks(98000002),
     );
-    expect(Array.isArray(result)).toBe(true);
-    result.forEach((skyhook: any) => {
-      expect(skyhook).toHaveProperty('structure_id');
-      expect(typeof skyhook.structure_id).toBe('number');
-      expect(skyhook).toHaveProperty('online');
-    });
+    expect(result).toEqual(mockResponse);
+    expect(result.skyhooks[0]!.planet_id).toBe(40009077);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/corporations/98000002/structures/skyhooks',
     );
@@ -120,7 +95,7 @@ describe('SkyhooksClient', () => {
   });
 
   it('should send auth headers for sovereignty hubs', async () => {
-    fetchMock.mockResponseOnce(JSON.stringify([]));
+    fetchMock.mockResponseOnce(JSON.stringify({ sovereignty_hubs: [] }));
 
     await getBody(() => authSkyhooksClient.getSovereigntyHubs(98000002));
 
@@ -131,7 +106,7 @@ describe('SkyhooksClient', () => {
   });
 
   it('should send auth headers for orbital skyhooks', async () => {
-    fetchMock.mockResponseOnce(JSON.stringify([]));
+    fetchMock.mockResponseOnce(JSON.stringify({ skyhooks: [] }));
 
     await getBody(() => authSkyhooksClient.getOrbitalSkyhooks(98000002));
 
@@ -180,13 +155,16 @@ describe('SkyhooksClient', () => {
       upgrades: [{ type_id: 32458, power_state: 'Online' }],
       reagent_bay: {
         last_updated: '2026-05-20T12:00:00Z',
-        reagents: [{ type_id: 81143, amount: 500 }],
+        reagents: [{ type_id: 81143, amount: 500, burning_per_hour: 10 }],
       },
       resources: {
-        power: { available: 100, used: 60 },
-        workforce: { available: 1000, used: 750 },
+        power: { available: 100, allocated: 60 },
+        workforce: { available: 1000, allocated: 750 },
       },
-      workforce_transport: {},
+      workforce_transport: {
+        configuration: { transit: true },
+        state: { transit: true },
+      },
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
@@ -199,6 +177,7 @@ describe('SkyhooksClient', () => {
     expect(result.upgrades).toHaveLength(1);
     expect(result.upgrades[0]).toHaveProperty('power_state', 'Online');
     expect(result.reagent_bay.reagents).toHaveLength(1);
+    expect(result.resources.power.allocated).toBe(60);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/corporations/98000002/structures/sovereignty-hubs/100000001',
     );
@@ -231,8 +210,11 @@ describe('SkyhooksClient', () => {
         solar_system_id: 30000142,
         upgrades: [],
         reagent_bay: { last_updated: '2026-05-20T12:00:00Z', reagents: [] },
-        resources: { power: {}, workforce: {} },
-        workforce_transport: {},
+        resources: {
+          power: { available: 0, allocated: 0 },
+          workforce: { available: 0, allocated: 0 },
+        },
+        workforce_transport: { configuration: {}, state: {} },
       }),
     );
 

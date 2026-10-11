@@ -113,7 +113,7 @@ describe('CosmeticsClient', () => {
       line: 'Crimson',
       tier: { level: 3 },
       layout: {
-        slots: [{}],
+        slots: [{ id: 1, configuration: { nanocoating: { id: 40 } } }],
         pattern_blend_mode: 'normal',
       },
     };

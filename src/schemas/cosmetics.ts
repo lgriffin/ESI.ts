@@ -30,7 +30,11 @@ export const SkinrTierSchema = z.looseObject({
   level: z.number(),
 });
 
-export const SkinrLayoutSlotSchema = z.looseObject({});
+/** A layout slot. `configuration` is a `nanocoating` or a `pattern` (a `oneOf` in the spec), kept free-form. */
+export const SkinrLayoutSlotSchema = z.looseObject({
+  id: z.number(),
+  configuration: z.looseObject({}),
+});
 
 export const SkinrLayoutSchema = z.looseObject({
   slots: z.array(SkinrLayoutSlotSchema),

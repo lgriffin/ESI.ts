@@ -2,8 +2,8 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { mercenaryEndpoints } from '../core/endpoints/mercenaryEndpoints';
 import {
-  MercenaryDen,
-  MercenaryTacticalOperation,
+  MercenaryDensResponse,
+  MercenaryTacticalOperationsResponse,
   MercenaryDenDetail,
   MercenaryTacticalOperationDetail,
 } from '../types/api-responses';
@@ -20,7 +20,7 @@ export class MercenaryClient extends BaseEsiClient<typeof mercenaryEndpoints> {
    * @returns A list of mercenary dens
    * @requires Authentication
    */
-  getMercenaryDens(characterId: number): Promise<MercenaryDen[]> {
+  getMercenaryDens(characterId: number): Promise<MercenaryDensResponse> {
     return this.api.getMercenaryDens(characterId);
   }
 
@@ -33,7 +33,7 @@ export class MercenaryClient extends BaseEsiClient<typeof mercenaryEndpoints> {
    */
   getMercenaryTacticalOperations(
     characterId: number,
-  ): Promise<MercenaryTacticalOperation[]> {
+  ): Promise<MercenaryTacticalOperationsResponse> {
     return this.api.getMercenaryTacticalOperations(characterId);
   }
 

@@ -44,6 +44,7 @@ import {
   ratchetProblems,
   serializeBaseline,
 } from './schema-drift-core';
+import { COMPATIBILITY_DATE } from '../../src/core/constants';
 
 const ciMode = process.argv.includes('--ci');
 const updateBaseline = process.argv.includes('--update-baseline');
@@ -51,7 +52,6 @@ const beadArg = process.argv
   .find((arg) => arg.startsWith('--bead='))
   ?.slice('--bead='.length);
 
-const COMPATIBILITY_DATE = '2025-12-16';
 const ESI_OPENAPI_URL = `https://esi.evetech.net/meta/openapi.json?compatibility_date=${COMPATIBILITY_DATE}`;
 
 const REPO_ROOT = path.resolve(__dirname, '../..');

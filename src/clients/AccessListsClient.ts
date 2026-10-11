@@ -1,7 +1,10 @@
 import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { accessListEndpoints } from '../core/endpoints/accessListEndpoints';
-import { AccessList } from '../types/api-responses';
+import {
+  AccessList,
+  CharacterAccessListsResponse,
+} from '../types/api-responses';
 
 export class AccessListsClient extends BaseEsiClient<
   typeof accessListEndpoints
@@ -32,7 +35,9 @@ export class AccessListsClient extends BaseEsiClient<
    * @returns An array of the character's access lists
    * @requires Authentication
    */
-  getCharacterAccessLists(characterId: number): Promise<AccessList[]> {
+  getCharacterAccessLists(
+    characterId: number,
+  ): Promise<CharacterAccessListsResponse> {
     return this.api.getCharacterAccessLists(characterId);
   }
 }

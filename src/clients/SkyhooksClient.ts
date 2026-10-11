@@ -2,8 +2,8 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { skyhookEndpoints } from '../core/endpoints/skyhookEndpoints';
 import {
-  SovereigntyHub,
-  OrbitalSkyhook,
+  SovereigntyHubsResponse,
+  OrbitalSkyhooksResponse,
   RaidableSkyhooksResponse,
   SkyhookDetail,
   SovereigntyHubDetail,
@@ -21,7 +21,7 @@ export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
    * @returns A list of sovereignty hubs
    * @requires Authentication
    */
-  getSovereigntyHubs(corporationId: number): Promise<SovereigntyHub[]> {
+  getSovereigntyHubs(corporationId: number): Promise<SovereigntyHubsResponse> {
     return this.api.getSovereigntyHubs(corporationId);
   }
 
@@ -32,7 +32,7 @@ export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
    * @returns A list of orbital skyhooks
    * @requires Authentication
    */
-  getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhook[]> {
+  getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhooksResponse> {
     return this.api.getOrbitalSkyhooks(corporationId);
   }
 

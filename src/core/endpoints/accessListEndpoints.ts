@@ -1,6 +1,8 @@
-import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
-import { AccessListSchema } from '../../schemas/access-lists';
+import {
+  AccessListSchema,
+  CharacterAccessListsResponseSchema,
+} from '../../schemas/access-lists';
 
 export const accessListEndpoints = {
   getAccessList: {
@@ -15,6 +17,6 @@ export const accessListEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
-    responseSchema: z.array(AccessListSchema),
+    responseSchema: CharacterAccessListsResponseSchema,
   },
 } as const satisfies EndpointMap;

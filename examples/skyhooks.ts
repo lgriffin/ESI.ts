@@ -63,32 +63,25 @@ async function main() {
       throw err;
     }
 
+    const hubList = hubs.sovereignty_hubs;
+    const skyhookList = skyhooks.skyhooks;
+
     log.info('Sovereignty Hubs');
     log.info('-'.repeat(60));
-    const onlineHubs = hubs.filter((h) => h.online);
-    log.info(`  Total: ${hubs.length}   Online: ${onlineHubs.length}`);
-    for (const hub of hubs.slice(0, 5)) {
-      const upgrades = hub.installed_upgrades?.length ?? 0;
-      log.info(
-        `  System ${hub.system_id} — Corp ${hub.corporation_id} — ` +
-          `${hub.online ? 'Online' : 'Offline'} — ${upgrades} upgrade(s)`,
-      );
+    log.info(`  Total: ${hubList.length}`);
+    for (const hub of hubList.slice(0, 5)) {
+      log.info(`  Hub ${hub.id} — System ${hub.solar_system_id}`);
     }
-    if (hubs.length > 5) log.info(`  ... and ${hubs.length - 5} more`);
+    if (hubList.length > 5) log.info(`  ... and ${hubList.length - 5} more`);
 
     log.info('\nOrbital Skyhooks');
     log.info('-'.repeat(60));
-    log.info(`  Total: ${skyhooks.length}`);
-    for (const sk of skyhooks.slice(0, 5)) {
-      const fill =
-        sk.reagent_silo_capacity && sk.reagent_silo_level
-          ? `${((sk.reagent_silo_level / sk.reagent_silo_capacity) * 100).toFixed(0)}% full`
-          : 'N/A';
-      log.info(
-        `  System ${sk.system_id} — Corp ${sk.corporation_id} — Silo: ${fill}`,
-      );
+    log.info(`  Total: ${skyhookList.length}`);
+    for (const sk of skyhookList.slice(0, 5)) {
+      log.info(`  Skyhook ${sk.id} — Planet ${sk.planet_id}`);
     }
-    if (skyhooks.length > 5) log.info(`  ... and ${skyhooks.length - 5} more`);
+    if (skyhookList.length > 5)
+      log.info(`  ... and ${skyhookList.length - 5} more`);
 
     log.info('\nRaidable Skyhooks');
     log.info('-'.repeat(60));
@@ -116,13 +109,13 @@ async function main() {
     }
 
     // Fetch detail for the first skyhook
-    const firstSkyhooks = skyhooks[0];
+    const firstSkyhooks = skyhookList[0];
     if (firstSkyhooks) {
       log.info('\nSkyhook Detail');
       log.info('-'.repeat(60));
       const detail = await client.skyhooks.getSkyhookDetail(
         corporationId,
-        firstSkyhooks.structure_id,
+        firstSkyhooks.id,
       );
       log.info(
         `  Skyhook ${detail.id} — Planet ${detail.planet_id} — State: ${detail.state}`,
@@ -145,19 +138,24 @@ async function main() {
     }
 
     // Fetch detail for the first sovereignty hub
-    const firstHubs = hubs[0];
+    const firstHubs = hubList[0];
     if (firstHubs) {
       log.info('\nSovereignty Hub Detail');
       log.info('-'.repeat(60));
       const hubDetail = await client.skyhooks.getSovereigntyHubDetail(
         corporationId,
-        firstHubs.structure_id,
+        firstHubs.id,
       );
       log.info(`  Hub ${hubDetail.id} — System ${hubDetail.solar_system_id}`);
       log.info(`  Upgrades: ${hubDetail.upgrades.length}`);
       for (const u of hubDetail.upgrades.slice(0, 5)) {
         log.info(`    Type ${u.type_id} — ${u.power_state}`);
       }
+      const { power, workforce } = hubDetail.resources;
+      log.info(`  Power: ${power.allocated} / ${power.available} allocated`);
+      log.info(
+        `  Workforce: ${workforce.allocated} / ${workforce.available} allocated`,
+      );
       log.info(
         `  Reagent bay last updated: ${hubDetail.reagent_bay.last_updated}`,
       );

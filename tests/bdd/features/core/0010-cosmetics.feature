@@ -49,8 +49,9 @@ Feature: Cosmetics SKINR
 
   Rule: When a SKINR design is requested by design ID, the Cosmetics client shall return a record carrying id, name, tier, and layout.
     The design record is public, so a caller can render someone else's ship
-    without holding a licence for it. The layout holds the slots and the blend
-    mode that decide how the design is drawn, and the tier ranks it.
+    without holding a licence for it. The layout holds the slots, each an id
+    and its nanocoating or pattern configuration, and the blend mode that
+    decide how the design is drawn, and the tier ranks it.
 
     Scenario: Public design record with tier level and layout slots
       Given a public SKINR design exists
