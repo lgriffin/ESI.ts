@@ -368,16 +368,17 @@ For the newest commit it also ranks hotspots, which are files by commits in the 
 
 ### `maintenance.yml` — Maintenance & Security
 
-Weekly on Mondays at 09:00 UTC, and manually. Every job produces a report artifact and none of them fail on findings:
+Weekly on Mondays at 09:00 UTC, and manually. Every job but Branch Protection produces a report artifact and none of those fail on findings:
 
-| Job                 | Report                                                                                                         |
-| ------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Dependency Updates  | `npm outdated` → `dependency-report.md`, `outdated.json`                                                       |
-| Security Audit      | `npm audit`, then `--audit-level=high` → `security-report.md` and JSON (does not apply the allowlist)          |
-| Code Quality        | lint, format check and knip output captured to files; `npm run coverage` (this step can fail the job)          |
-| Health Check        | Build, `npm run health-check` against live ESI, dist size and versions → `health-report.md`                    |
-| ESI Spec Drift      | `contract:snapshot`, live contract tests, `contract:diff` (oasdiff breaking changes) → `spec-drift-summary.md` |
-| Maintenance Summary | Result of each job → `maintenance-summary.md`                                                                  |
+| Job                 | Report                                                                                                                                                                                                                                                               |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dependency Updates  | `npm outdated` → `dependency-report.md`, `outdated.json`                                                                                                                                                                                                             |
+| Security Audit      | `npm audit`, then `--audit-level=high` → `security-report.md` and JSON (does not apply the allowlist)                                                                                                                                                                |
+| Code Quality        | lint, format check and knip output captured to files; `npm run coverage` (this step can fail the job)                                                                                                                                                                |
+| Health Check        | Build, `npm run health-check` against live ESI, dist size and versions → `health-report.md`                                                                                                                                                                          |
+| ESI Spec Drift      | `contract:snapshot`, live contract tests, `contract:diff` (oasdiff breaking changes) → `spec-drift-summary.md`                                                                                                                                                       |
+| Branch Protection   | `scripts/quality/branch-protection.ts` reads `master`'s protection through the API and fails the job when `master` is unprotected or `ci-success` is no longer required (CHARTER PROC-03); what its token cannot read, and the administrator exemption, are warnings |
+| Maintenance Summary | Result of each job → `maintenance-summary.md`                                                                                                                                                                                                                        |
 
 Much of this overlaps the nightlies, which file issues rather than artifacts. It is the one place the oasdiff breaking-change report runs in CI.
 

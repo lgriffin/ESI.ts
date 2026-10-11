@@ -282,7 +282,36 @@ jobs:
             spec-drift-report.txt
           retention-days: 30
 
-  # Job 6: Summary
+  # Job 6: Branch protection (CHARTER PROC-03)
+  # master's protection is a repository setting, so nothing in the tree shows
+  # it holds. This reads it through the API and fails when master is no longer
+  # protected or ci-success is no longer required. Strict status checks and
+  # force pushes need an admin token, so this token reports them unchecked.
+  branch-protection:
+    name: Branch protection
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Check master's protection
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx ts-node scripts/quality/branch-protection.ts
+
+  # Job 7: Summary
   maintenance-summary:
     name: 📋 Maintenance Summary
     runs-on: ubuntu-latest
@@ -293,6 +322,7 @@ jobs:
         code-quality,
         health-check,
         spec-drift,
+        branch-protection,
       ]
     if: always()
 
@@ -308,6 +338,7 @@ jobs:
           echo "- Code Quality: ${{ needs.code-quality.result }}" >> maintenance-summary.md
           echo "- Health Check: ${{ needs.health-check.result }}" >> maintenance-summary.md
           echo "- Spec Drift: ${{ needs.spec-drift.result }}" >> maintenance-summary.md
+          echo "- Branch Protection: ${{ needs.branch-protection.result }}" >> maintenance-summary.md
           echo "" >> maintenance-summary.md
           echo "## Next Steps" >> maintenance-summary.md
           echo "1. Review dependency report for outdated packages" >> maintenance-summary.md
