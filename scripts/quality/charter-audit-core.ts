@@ -303,7 +303,7 @@ export interface EvidenceClause {
 
 // A label opens the bullet or a sentence (after `.` or `;`).
 const LABEL = new RegExp(
-  `(?:^|(?<=[.;]\\s))(${EVIDENCE_LABELS.join('|')}):\\s`,
+  `(?:^|(?<=[.;]\\s))(${EVIDENCE_LABELS.join('|')}):(?:\\s|$)`,
   'g',
 );
 
@@ -342,6 +342,7 @@ function isJestTest(file: string): boolean {
  * `.each` from a table is not.
  */
 export function testTitles(source: string): string[] {
+  source = withoutComments(source);
   const titles: string[] = [];
   const call =
     /\b(?:describe|it|test)(?:If[A-Z]\w*)?(?:\.(?:only|skip|concurrent|failing))?\s*\)?\s*\(\s*(['"`])/g;
@@ -350,6 +351,17 @@ export function testTitles(source: string): string[] {
     if (title !== null) titles.push(title);
   }
   return titles;
+}
+
+/**
+ * The source with its line comments and the block comments that open a line
+ * blanked, so a commented-out call does not count as a title. A `//` or `/*`
+ * after code on the same line is left alone: it may sit inside a string.
+ */
+function withoutComments(source: string): string {
+  return source
+    .replace(/^[ \t]*\/\*[\s\S]*?\*\//gm, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/^[ \t]*\/\/.*$/gm, '');
 }
 
 /**
@@ -406,6 +418,63 @@ function namesTest(token: string): boolean {
 }
 
 /**
+ * Whether a test a token names exists among the tracked files: the file
+ * itself, a file under the directory, or, for a bare name, a file ending
+ * with it.
+ */
+function testExists(token: string, files: readonly string[]): boolean {
+  if (token.endsWith('/')) return files.some((f) => f.startsWith(token));
+  if (token.includes('/')) return files.includes(token);
+  return files.some((f) => f.endsWith(`/${token}`));
+}
+
+// A label in the wrong case (`test:`, `GATE:`) where a clause may open.
+const MISCASED_LABEL = new RegExp(
+  `(?:^|(?<=[.;]\\s))(${EVIDENCE_LABELS.join('|')}):(?:\\s|$)`,
+  'gi',
+);
+
+/** Labels in the wrong case, and labelled clauses with nothing after them. */
+function clauseProblems(
+  verifiedBy: string,
+  clauses: readonly EvidenceClause[],
+): string[] {
+  const problems = [...verifiedBy.trim().matchAll(MISCASED_LABEL)]
+    .map((m) => m[1]!)
+    .filter((label) => !(EVIDENCE_LABELS as readonly string[]).includes(label))
+    .map(
+      (label) =>
+        `has the label \`${label}:\`; write it as one of ${LABEL_LIST}`,
+    );
+  for (const clause of clauses.filter((c) => c.text.length === 0)) {
+    problems.push(`has an empty \`${clause.label}:\` clause`);
+  }
+  return problems;
+}
+
+/** Each `Test:` clause names a test, and every test it names exists. */
+function testClauseProblems(
+  clauses: readonly EvidenceClause[],
+  files: readonly string[],
+): string[] {
+  const problems: string[] = [];
+  for (const clause of clauses.filter((c) => c.label === 'Test')) {
+    const named = backticked(clause.text).filter(namesTest);
+    if (named.length === 0) {
+      problems.push(
+        'has a `Test:` clause that names no test file or directory under `tests/`',
+      );
+    }
+    for (const token of named.filter((t) => !testExists(t, files))) {
+      problems.push(
+        `has a \`Test:\` clause citing \`${token}\`, which no tracked file matches`,
+      );
+    }
+  }
+  return problems;
+}
+
+/**
  * The evidence rules: labelled clauses, a `Test:` or `Gate:` clause on an
  * Enforced block, a `Test:` clause that names a test, and the block's id in
  * a title of every Jest test file the "Verified by" cites.
@@ -430,13 +499,10 @@ export function checkEvidence(
       'is Enforced but its "Verified by" has no `Test:` or `Gate:` clause',
     );
   }
-  for (const clause of clauses.filter((c) => c.label === 'Test')) {
-    if (!backticked(clause.text).some(namesTest)) {
-      problems.push(
-        'has a `Test:` clause that names no test file or directory under `tests/`',
-      );
-    }
-  }
+  problems.push(
+    ...clauseProblems(block.verifiedBy, clauses),
+    ...testClauseProblems(clauses, mechanisms.files),
+  );
   for (const { cited, files } of citedTestFiles(
     block.verifiedBy,
     mechanisms.files,

@@ -61,7 +61,13 @@ const MECHANISMS: Mechanisms = {
   scripts: new Set(['lint', 'spec:audit']),
   jobs: new Set(['api-surface', 'API Surface Check']),
   workflows: new Set(['ci.yml']),
-  files: ['scripts/spec/spec-audit.ts', ...SOURCES.keys()],
+  files: [
+    'scripts/spec/spec-audit.ts',
+    'tests/contract/esi.contract.test.ts',
+    'tests/typetests/sde.test-d.ts',
+    'tests/bdd/features/core/0051-resilience.feature',
+    ...SOURCES.keys(),
+  ],
   readFile: (file) => {
     const source = SOURCES.get(file);
     if (source === undefined) throw new Error(`no fixture source: ${file}`);
@@ -481,6 +487,19 @@ describe('PROC-06: the charter audit', () => {
     });
   });
 
+  describe('testTitles ignores commented-out calls', () => {
+    it('skips a call in a line or block comment, and keeps a // inside a title', () => {
+      const source = [
+        "// it('ARCH-01: retired', () => {});",
+        '/*',
+        "describe('ARCH-01: also retired', () => {});",
+        '*/',
+        "it('fetches https://esi.example', () => {});",
+      ].join('\n');
+      expect(testTitles(source)).toEqual(['fetches https://esi.example']);
+    });
+  });
+
   describe('citedTestFiles', () => {
     it('resolves a path and a bare file name, and ignores directories and other files', () => {
       expect(
@@ -526,6 +545,29 @@ describe('PROC-06: the charter audit', () => {
       expect(
         evidence('Test: `security.test.ts` host allowlist.', 'SEC-01'),
       ).toEqual([]);
+    });
+
+    it('fails a Test clause citing a test no tracked file matches', () => {
+      expect(
+        evidence('Gate: `npm run lint`. Test: `missing.test.ts`.'),
+      ).toEqual([
+        'has a `Test:` clause citing `missing.test.ts`, which no tracked file matches',
+      ]);
+      expect(
+        evidence('Gate: `npm run lint`. Test: `tests/tdd/gone/`.'),
+      ).toEqual([
+        'has a `Test:` clause citing `tests/tdd/gone/`, which no tracked file matches',
+      ]);
+    });
+
+    it('fails a later label in the wrong case and an empty clause', () => {
+      expect(evidence('Gate: `npm run lint`; test: the cache group.')).toEqual([
+        'has the label `test:`; write it as one of `Test:`, `Gate:`, `Review:`, `To add:`',
+      ]);
+      expect(evidence('Gate: `npm run lint`; Test:')).toEqual([
+        'has an empty `Test:` clause',
+        'has a `Test:` clause that names no test file or directory under `tests/`',
+      ]);
     });
 
     it('fails a Verified by that opens without a label', () => {
