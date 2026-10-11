@@ -2,6 +2,7 @@ import {
   BranchResponse,
   ProtectionResponse,
   REQUIRED_CHECK,
+  protectionNotes,
   protectionProblems,
 } from '../../../scripts/quality/branch-protection-core';
 
@@ -18,6 +19,7 @@ const protectedBranch: BranchResponse = {
 };
 
 const adminView: ProtectionResponse = {
+  required_pull_request_reviews: { required_approving_review_count: 0 },
   required_status_checks: { strict: true, contexts: [REQUIRED_CHECK] },
   allow_force_pushes: { enabled: false },
 };
@@ -80,6 +82,7 @@ describe('PROC-03: master accepts changes only through a pull request that passe
   it('fails, given an admin view, when a stale branch may merge or force pushes are allowed', () => {
     expect(
       protectionProblems(protectedBranch, {
+        required_pull_request_reviews: {},
         required_status_checks: { strict: false },
         allow_force_pushes: { enabled: true },
       }),
@@ -87,5 +90,43 @@ describe('PROC-03: master accepts changes only through a pull request that passe
       'a pull request need not be up to date with master',
       'force pushes to master are allowed',
     ]);
+  });
+
+  it('fails, given an admin view, when master does not require a pull request', () => {
+    expect(
+      protectionProblems(protectedBranch, {
+        ...adminView,
+        required_pull_request_reviews: null,
+      }),
+    ).toEqual(['master does not require a pull request']);
+  });
+});
+
+describe('PROC-03: what the weekly check reports but does not fail on', () => {
+  it('says what it could not read without an admin token', () => {
+    expect(protectionNotes(protectedBranch, null)).toEqual([
+      expect.stringContaining('not checked: the pull-request requirement'),
+      expect.stringContaining('administrators are exempt'),
+    ]);
+  });
+
+  it('notes the administrator exemption, which SEC-07 tracks', () => {
+    expect(protectionNotes(protectedBranch, adminView)).toEqual([
+      expect.stringContaining('SEC-07'),
+    ]);
+  });
+
+  it('has nothing to note when administrators are included and the admin view was read', () => {
+    const branch: BranchResponse = {
+      protected: true,
+      protection: {
+        enabled: true,
+        required_status_checks: {
+          enforcement_level: 'everyone',
+          contexts: [REQUIRED_CHECK],
+        },
+      },
+    };
+    expect(protectionNotes(branch, adminView)).toEqual([]);
   });
 });

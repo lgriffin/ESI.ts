@@ -10,7 +10,9 @@
 import {
   BranchResponse,
   ProtectionResponse,
+  protectionNotes,
   protectionProblems,
+  REQUIRED_CHECK,
 } from './branch-protection-core';
 
 const API = process.env.GITHUB_API_URL ?? 'https://api.github.com';
@@ -40,16 +42,18 @@ async function main(): Promise<number> {
   const protection = protectionRes.ok
     ? ((await protectionRes.json()) as ProtectionResponse)
     : null;
-  if (!protection) {
-    console.log(
-      `Strict status checks and force pushes not checked: the protection ` +
-        `endpoint needs an admin token (HTTP ${protectionRes.status}).`,
-    );
+  for (const note of protectionNotes(branch, protection)) {
+    console.log(`::warning::${note}`);
   }
 
   const problems = protectionProblems(branch, protection);
   if (problems.length === 0) {
-    console.log(`PASS: master on ${REPO} is protected as PROC-03 states.`);
+    console.log(
+      `PASS: master on ${REPO} is protected and requires ${REQUIRED_CHECK}` +
+        (protection
+          ? ' through a pull request.'
+          : '; see the warnings for what was not checked.'),
+    );
     return 0;
   }
   for (const problem of problems) console.error(`::error::${problem}`);
