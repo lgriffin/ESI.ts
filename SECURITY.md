@@ -6,7 +6,8 @@ This is the vulnerability disclosure policy for `@lgriffin/esi.ts`. The controls
 
 | Version | Supported                       | Node.js        |
 | ------- | ------------------------------- | -------------- |
-| 11.x    | Yes                             | 22.12 or later |
+| 12.x    | Yes                             | 22.12 or later |
+| 11.x    | Security fixes until 2027-04-30 | 22.12 or later |
 | 10.x    | Security fixes until 2027-03-31 | 18 or later    |
 | 9.x     | Yes                             | 18 or later    |
 | 8.x     | No                              |                |

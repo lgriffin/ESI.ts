@@ -16,7 +16,7 @@ A TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), buil
 **Documentation site: [lgriffin.github.io/ESI.ts](https://lgriffin.github.io/ESI.ts/)**, with these guides, a page for every runnable example, and the [API reference](https://lgriffin.github.io/ESI.ts/api/) generated from the TSDoc.
 
 > **Release line.** Version <!-- metric:version -->11.3.0<!-- /metric --> <!-- x-release-please-version -->
-> is current on npm, released on 2026-09-28. It raises the floor to Node 22.12 and adds a new client built on one shared runtime, with typed public and per-character views. The 10.x line stays available for Node 18 and 20. [What 11.0 changes](guides/USAGE.md#9-what-1100-changes) · [Changelog](CHANGELOG.md)
+> is the current release line. 12.0 corrects five list methods and their detail schemas to the shapes ESI actually sends, which changes their return types; nothing else breaks. The 10.x line stays available for Node 18 and 20. [What 12.0 changes](guides/USAGE.md#10-what-1200-changes) · [What 11.0 changed](guides/USAGE.md#9-what-1100-changes) · [Changelog](CHANGELOG.md)
 
 ## Install
 
@@ -148,7 +148,7 @@ Measured on `master` at `9486fe2c` on 2026-09-28 with the commands shown; the mu
 | Recorded ESI payloads     | 121 replay tests, re-recorded nightly with a drift PR                                                                                                                                                                                                                                                                                                                                                                                       | `npm run contract:replay`                                                   |
 | Mutation score            | 84.1% of 1,355 mutants in `src/core` killed by the unit suite ([nightly of 2026-09-27](https://github.com/lgriffin/ESI.ts/actions/runs/36307924185)); 100% in `middleware`, `pagination` and `util`; floors per directory, ratcheted nightly, changed files on every PR                                                                                                                                                                     | `npm run mutation:ratchet`                                                  |
 | Static data (SDE)         | <!-- metric:requirementsSde -->162<!-- /metric --> EARS requirements and <!-- metric:scenariosSde -->227<!-- /metric --> scenarios in <!-- metric:featureFilesSde -->23<!-- /metric --> feature files; at least 90% of mutants killed in every SDE directory by the unit suite and by the BDD scenarios alone (2026-10-08, [#458](https://github.com/lgriffin/ESI.ts/issues/458)); a real-data run against CCP's current export every night | [sde/TESTING.md](guides/sde/TESTING.md)                                     |
-| CI                        | One required check (`ci-success`) over the full matrix; 28 workflows, 17 of them scheduled                                                                                                                                                                                                                                                                                                                                                  | [QUALITY-GATES.md](guides/QUALITY-GATES.md)                                 |
+| CI                        | One required check (`ci-success`) over the full matrix; 29 workflows, 18 of them scheduled                                                                                                                                                                                                                                                                                                                                                  | [QUALITY-GATES.md](guides/QUALITY-GATES.md)                                 |
 | OpenSSF Scorecard         | 8.3 / 10 on 2026-09-28; the checks still open need settings only the maintainer can change                                                                                                                                                                                                                                                                                                                                                  | [SECURITY.md](guides/SECURITY.md#5-settings-only-the-maintainer-can-change) |
 
 Every tier has to prove it can fail: a negative fixture, a killed mutant or a caught fault. Every floor is a one-way ratchet.
@@ -182,21 +182,21 @@ sdeData.close();
 
 The README orients and the guides are canonical. Each guide opens with the charter requirements it implements.
 
-| Using ESI.ts                                       |                                                                                                      |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| [Using the client](guides/USAGE.md)                | Construction, configuration, every domain client, metadata, batching, examples, what 11.0 changes    |
-| [Authentication](guides/AUTHENTICATION.md)         | Tokens, refresh on 401, SSO with PKCE, the multi-character token manager                             |
-| [Many characters](guides/MULTI-CHARACTER.md)       | One runtime, `esi.public`, `esi.as(identity)`, what the views share, moving from `createClient`      |
-| [Pagination](guides/PAGINATION.md)                 | Offset and cursor paging, `stream*`, `fetchAll*`, failure behaviour                                  |
-| [Errors](guides/ERRORS.md)                         | Error classes, type guards, retryability, safe mode                                                  |
-| [Runtime validation](guides/RUNTIME-VALIDATION.md) | Zod response and request validation                                                                  |
-| [Logging](guides/LOGGING.md)                       | `ILogger`, per-client loggers, pino, `ESI_LOG_LEVEL`                                                 |
-| [Static data (SDE)](guides/SDE.md)                 | The offline Static Data Export module: its role, isolation, API ([module README](src/sde/README.md)) |
+| Using ESI.ts                                       |                                                                                                       |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| [Using the client](guides/USAGE.md)                | Construction, configuration, every domain client, metadata, batching, examples, 11.0 and 12.0 changes |
+| [Authentication](guides/AUTHENTICATION.md)         | Tokens, refresh on 401, SSO with PKCE, the multi-character token manager                              |
+| [Many characters](guides/MULTI-CHARACTER.md)       | One runtime, `esi.public`, `esi.as(identity)`, what the views share, moving from `createClient`       |
+| [Pagination](guides/PAGINATION.md)                 | Offset and cursor paging, `stream*`, `fetchAll*`, failure behaviour                                   |
+| [Errors](guides/ERRORS.md)                         | Error classes, type guards, retryability, safe mode                                                   |
+| [Runtime validation](guides/RUNTIME-VALIDATION.md) | Zod response and request validation                                                                   |
+| [Logging](guides/LOGGING.md)                       | `ILogger`, per-client loggers, pino, `ESI_LOG_LEVEL`                                                  |
+| [Static data (SDE)](guides/SDE.md)                 | The offline Static Data Export module: its role, isolation, API ([module README](src/sde/README.md))  |
 
 | How it is built                                        |                                                                                 |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------- |
 | [Engineering charter](guides/CHARTER.md)               | The requirements the project holds itself to, with status and gap register      |
-| [Roadmap to 11.0.0](guides/ROADMAP.md)                 | Phases, definitions of done, the SDE programme, the release gate                |
+| [Roadmap](guides/ROADMAP.md)                           | Phases, definitions of done, the SDE programme, the release gate                |
 | [Lean decisions](guides/LEAN-DECISIONS.md)             | Why it is run this way: every decision since v7, with value stream maps         |
 | [Architecture](guides/ARCHITECTURE.md)                 | Layers, ports, the request path, caching, retry, rate limiting, circuit breaker |
 | [Design rules](guides/DESIGN-RULES.md)                 | Naming, schemas, adding an endpoint or a client, generated files                |
