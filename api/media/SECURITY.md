@@ -56,9 +56,9 @@ Log lines pass through `sanitizeUrl` too, at the logger boundary: every URL in a
 
 | Group                                    | Proves                                                                                        |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `Security: Token Handling`               | No `Authorization` header on a public endpoint; the header is present on an authenticated one |
-| `Security: HTTPS Enforcement`            | `http://` is rejected by the client constructor and by `validateBaseUrl` directly             |
-| `Security: Host Allowlist`               | Unknown hosts are rejected by default and accepted only with the unsafe flag                  |
+| `SEC-02: Security: Token Handling`       | No `Authorization` header on a public endpoint; the header is present on an authenticated one |
+| `SEC-01: Security: HTTPS Enforcement`    | `http://` is rejected by the client constructor and by `validateBaseUrl` directly             |
+| `SEC-01: Security: Host Allowlist`       | Unknown hosts are rejected by default and accepted only with the unsafe flag                  |
 | `Security: Path Parameter Injection`     | `../`, `?`, `#`, `\`, `/` and `@` are rejected; ordinary IDs and names pass                   |
 | `Security: Query Parameter Length Limit` | A query value over 2000 characters is rejected; one within the limit passes                   |
 | `Security: NaN/Infinity Path Params`     | `NaN`, `Infinity` and `-Infinity` are rejected as path parameters                             |

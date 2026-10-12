@@ -503,7 +503,7 @@ flowchart BT
     style sde fill:#eceff1,stroke:#37474f
 ```
 
-Solid arrows are the directions the rule permits for the ruled trees (ports, generated, core, adapters, SDE). Auth and the legacy tree have no rule between them: `index.ts` re-exports `src/auth`, and `EsiTokenManager.createClient` constructs an `EsiClient` (the dashed arrow), so the two import each other at the directory level. Phase 7 deprecates `EsiTokenManager.createClient` in favour of `as()`; removal is 12.0.0 at the earliest.
+Solid arrows are the directions the rule permits for the ruled trees (ports, generated, core, adapters, SDE). Auth and the legacy tree have no rule between them: `index.ts` re-exports `src/auth`, and `EsiTokenManager.createClient` constructs an `EsiClient` (the dashed arrow), so the two import each other at the directory level. Phase 7 deprecates `EsiTokenManager.createClient` in favour of `as()`; 12.0.0 keeps it, and removal is 13.0.0 at the earliest.
 
 ### What 11.0.0 still changes
 
@@ -938,7 +938,7 @@ client.resetCircuitBreaker(); // all circuits
 client.shutdown(); // stops the cleanup timer and clears circuits
 ```
 
-`CircuitOpenError` is not a subclass of `EsiError`. See [ERRORS.md](ERRORS.md).
+`CircuitOpenError` extends `EsiError` with `statusCode` 0 and `.retryable` false, so `isEsiError(err)` is true for it. See [ERRORS.md](ERRORS.md#circuitopenerror-extends-esierror).
 
 ---
 
@@ -1028,7 +1028,7 @@ All three surfaces call `setCompatibilityDate()` from the config before `configu
 
 **`ApiClientBuilder`** (`src/core/ApiClientBuilder.ts`, exported from the root) is a fourth, lower-level way in. It builds a bare `ApiClient` with a rate limiter (the default `RateLimiter` unless one is given) and whatever cache, circuit breaker, timeout and fetch it is handed. It does not call `configureApiClient()`, so there is no deduplicator, no default cache, and no retry configuration: `resolveRetryStrategy` then builds a `RetryStrategy` with its own defaults, which retry nothing. Use it to hand-assemble a client for a test or an unusual host, not as a construction surface.
 
-**`EsiTokenManager.createClient(characterId)`** returns an `EsiClient` bound to one character's token and refresh provider. 11.0.0 deprecates it and `EsiApiFactory`'s named methods (JSDoc `@deprecated`, no runtime warning) in favour of `createEsi` and `esi.as(tokens.identity(characterId))` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)); removal is 12.0.0 at the earliest.
+**`EsiTokenManager.createClient(characterId)`** returns an `EsiClient` bound to one character's token and refresh provider. 11.0.0 deprecates it and `EsiApiFactory`'s named methods (JSDoc `@deprecated`, no runtime warning) in favour of `createEsi` and `esi.as(tokens.identity(characterId))` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)); 12.0.0 keeps them, and removal is 13.0.0 at the earliest.
 
 Timers are owned by the client: call `shutdown()` to stop the cache sweep and circuit-breaker cleanup and clear the deduplicator.
 

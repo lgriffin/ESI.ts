@@ -9,9 +9,9 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 | Domain clients                                                 | <!-- metric:clients -->39<!-- /metric -->                                                                         |
 | ESI endpoints wired                                            | <!-- metric:routes -->235<!-- /metric -->                                                                         |
 | Generated operations (`src/generated/operations.generated.ts`) | <!-- metric:operations -->233<!-- /metric -->                                                                     |
-| EARS requirements in the specification                         | <!-- metric:requirements -->619<!-- /metric --> (<!-- metric:featureFiles -->77<!-- /metric --> feature files)    |
-| Gherkin scenarios                                              | <!-- metric:scenarios -->792<!-- /metric -->                                                                      |
-| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->351<!-- /metric -->                                                                      |
+| EARS requirements in the specification                         | <!-- metric:requirements -->623<!-- /metric --> (<!-- metric:featureFiles -->77<!-- /metric --> feature files)    |
+| Gherkin scenarios                                              | <!-- metric:scenarios -->805<!-- /metric -->                                                                      |
+| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->357<!-- /metric -->                                                                      |
 | Statement coverage                                             | 97.8% (`npm run coverage` on master `114a485a`, 2026-09-28; floor 90%)                                            |
 | OpenSSF Scorecard                                              | 8.3 / 10 (`scorecard.yml` run 36409177565 on master `9486fe2c`, 2026-09-28; 8.2 on 2026-09-21, 6.7 on 2026-08-24) |
 
@@ -32,6 +32,11 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 ### Amendments after revision 2 (the detail behind revision 3)
 
+- **2026-10-12, the SDE errors and ingestion ([#640](https://github.com/lgriffin/ESI.ts/issues/640) follow-up).** Tagging the features with the charter showed two that no requirement covered: `sde/0007-sde-error-handling.feature` and `sde/0023-sde-ingestion.feature`. The maintainer ruled that a gap, not an exception. ARCH-11 states the SDE error family and its guards, ARCH-12 what ingestion writes, and ARCH-13 how it fails. Both features carry their tags, and the shrink-only `unchartedFeatures` list in `scripts/spec/spec-audit-exceptions.json` is empty. Gap register row 34 records it.
+
+- **2026-10-11, tests name their requirement ([#639](https://github.com/lgriffin/ESI.ts/issues/639)).** A review joined a Jest run to this charter and found only nine requirement IDs in any test title; the rest were linked, if at all, by a file name in "Verified by". Every "Verified by" now opens each clause with `Test:`, `Gate:`, `Review:` or `To add:` (Part 0, Evidence), so a row whose evidence is a gate says so and no test is expected. Every Jest test file a row cites now carries the row's ID in a `describe`, `it` or `test` title: ARCH-08, ARCH-09, ARCH-10, TEST-08, TEST-10, TEST-11, GATE-05, GATE-07, SEC-01, SEC-02, SEC-03, SEC-04, SEC-06, DOC-03, DOC-04 and PROC-06 joined the rows that already did. `npm run charter:audit` checks both (PROC-06). No status changed.
+- **2026-10-11, features name their requirement ([#640](https://github.com/lgriffin/ESI.ts/issues/640)).** No scenario cited a requirement of this charter, so a passing scenario was evidence for nothing here. Every feature now carries a charter tag on the Feature or on the Rule that backs it: `@TEST-10` on the domain-client, integration, performance and SDE provider features, `@TEST-11` on every exclusion Rule, `@SEC-10` on every `@sec-<id>` Rule, `@ARCH-04` on the resilience, caching, rate-limit and transport features, and the narrower ids (DES-01, DES-04, DES-08, SEC-02, ARCH-07 to ARCH-10) on the Rules whose statement matches. `npm run spec:audit` fails a feature with no tag, a tag naming no requirement, and a feature a "Verified by" line cites without its id (TEST-02). Two SDE features no requirement covers are listed in `unchartedFeatures`. `npm run bdd:report` writes the tags with each result to `reports/bdd/scenarios.json`.
+- **2026-10-11, evidence for nine rows ([#634](https://github.com/lgriffin/ESI.ts/issues/634)).** A review found nine requirements whose "Verified by" named nothing in the repository. Each now names a file: ARCH-03 a unit test that fails when a request-pipeline stage imports a cache, rate limiter or circuit breaker implementation; DES-05 the deprecation-warning tests in `createClient.test.ts`, which now also check every call warns; PROC-01, PROC-02 and PROC-05 `tests/tdd/scripts/agent-process.test.ts`, which holds the instructions those habits come from; REL-04 a test that keeps the twelve `(not published)` changelog headings; PROC-04 and DOC-06 the files that do part of the job. PROC-03 named only branch protection, a setting: the `branch-protection` job in `maintenance.yml` now reads it through the API weekly and fails when `master` is unprotected or `ci-success` is not required, and the requirement no longer names `Lint, Build & Test`, which protection stopped requiring when `ci-success` took over; GATE-01 now says the same. No status changed.
 - **2026-10-10, the security model.** From the maintainer's security model document, distilled from the Apache Camel security model. `guides/SECURITY-MODEL.md` names every role and its trust, the untrusted inputs, twelve claimed properties with severities and tests, the properties not provided, scope, nine closed triage dispositions and the known non-findings; `guides/security-model.yaml` indexes it and `guides/security-triage-log.md` logs closed reports ([#628](https://github.com/lgriffin/ESI.ts/pull/628)). Reading master against it found three gaps, fixed as hardening: the async page iterators read `X-Pages` uncapped, redirects were followed, and SDE archive entry names reached adm-zip unchecked ([#629](https://github.com/lgriffin/ESI.ts/pull/629)). SEC-09 to SEC-12 are new and Enforced: `npm run security:model` runs in the `security-model` job of `ci-success`, and the Rules that state each property carry `@sec-<id>` tags ([#627](https://github.com/lgriffin/ESI.ts/issues/627)).
 - **2026-10-08, a quality trend.** From the static analysis audit of 2026-10-08, which found that each number the gates produce exists only inside one run. `quality-trend.yml` runs `npm run quality:trend` every Monday. It measures the last twelve weekly commits of master in worktrees: hand-written `src/` lines, total and per-1,000-line cognitive complexity, functions over 20, `any` identifiers, `eslint-disable` comments and the lint warning total. It also ranks hotspots by churn × complexity. The trend is recomputed from git, so it needs no stored state and no write scope. It is a report, not a gate. The first run measured complexity per 1,000 lines falling from 40.9 to 38.4 since 2026-07-21 while `src/` doubled, and `createClient` as the top hotspot.
 - **2026-10-08, no import cycles.** From the static analysis audit of 2026-10-08, which found the core's interfaces importing their implementations: `IRetryStrategy` took `RetryContext` from `RetryStrategy`, and `ICircuitBreaker` took `CircuitState` from `CircuitBreaker`, which import `ApiClient`, which imports both interfaces. Each type now lives in its interface module and is re-exported from the old one, so every import path and the API report are unchanged, and the implementations import `ApiClient` with `import type`. `npm run lint:cycles` (`scripts/quality/import-cycles.ts`) builds the runtime import graph of `src/` with the TypeScript parser and fails on any cycle; it runs in `lint-and-build` and `check:local`. `lint:layers` still owns direction between layers; this covers cycles inside one.
@@ -111,6 +116,19 @@ This is a control document, not a tutorial. It states what the project holds its
 | **Partial**   | Holds in some places                      |
 | **Gap**       | Stated intent, not yet true               |
 
+### Evidence
+
+The "Verified by" bullet of a requirement is one or more clauses, and each clause opens with a label:
+
+| Label     | The clause names                                                               |
+| --------- | ------------------------------------------------------------------------------ |
+| `Test:`   | A test that exercises the requirement: a test file or directory under `tests/` |
+| `Gate:`   | A script, workflow job, tool or setting that fails on a violation              |
+| `Review:` | What only a person checks                                                      |
+| `To add:` | Evidence that does not exist yet                                               |
+
+A row that cites both a test and a gate carries both clauses. An Enforced row has at least one `Test:` or `Gate:` clause; a row with `Gate:` and no `Test:` is checked by its gate, and no test is expected. Every Jest test file a "Verified by" cites, as a path or a bare file name, names the requirement's ID in a `describe`, `it` or `test` title, as in `describe('SEC-03: workflow token permissions', ...)`, so a test run shows which requirement each test backs. `npm run charter:audit` fails a row that breaks any of these (PROC-06).
+
 ### Form and precedence
 
 Each requirement uses one of the five EARS patterns already enforced on the feature files by `npm run spec:audit`: ubiquitous, event-driven (_When_), state-driven (_While_), optional (_Where_) and unwanted (_If … then_). One _shall_ per requirement, the system named, no vague quantifiers.
@@ -143,7 +161,7 @@ Five layers, one request path, and side modules that deliberately share nothing 
 | Domain clients       | `src/clients` (<!-- metric:clients -->39<!-- /metric --> + `BaseEsiClient`)                                                      | One class per ESI domain. Adds ergonomics only: named methods, `stream*` and `fetchAll*` wrappers, `withSafeMode()` envelopes. No HTTP knowledge.                                                                                                                                                                                                              |
 | Endpoint definitions | `src/core/endpoints` (<!-- metric:endpointMaps -->39<!-- /metric --> files, <!-- metric:routes -->235<!-- /metric --> endpoints) | Declarative maps (`as const satisfies EndpointMap`) wiring path, method, `requiresAuth`, pagination kind, `responseSchema`, `requestSchema`, deprecation. `createClient()` turns a map into typed methods; return types are inferred from the schema.                                                                                                          |
 | Request pipeline     | `src/core`, `src/core/requestPipeline/*`                                                                                         | Pure functions receiving their dependencies as parameters (`dependencies.ts` is the only resolver). Cache policy, headers, fetch execution, status handling, pagination orchestration, middleware bridge.                                                                                                                                                      |
-| Transport            | `FetchLike`, `globalThis.fetch`                                                                                                  | Injectable via `setFetch()`. Timeout by `AbortController`. The Node floor (18 today, 22 from 11.0.0) exists because this layer relies on the global fetch.                                                                                                                                                                                                     |
+| Transport            | `FetchLike`, `globalThis.fetch`                                                                                                  | Injectable via `setFetch()`. Timeout by `AbortController`. The Node floor (`engines.node` `>=22.12.0` since 11.0.0, REL-05) exists because this layer relies on the global fetch.                                                                                                                                                                              |
 | Ports                | `src/core/ports`                                                                                                                 | Type-only interfaces (`CacheStore`, `Clock`, `HttpTransport`, `Identity`, `Logger`, `OperationTransport`, `TokenProvider`) that import nothing. Exported from `./client`.                                                                                                                                                                                      |
 | Generated operations | `src/generated/operations.generated.ts`                                                                                          | One function per spec operation, importing only ports. Checked by `spec:generate:check` and `spec:coverage` in CI; called through `src/client`.                                                                                                                                                                                                                |
 | Client               | `src/client` (`./client`)                                                                                                        | `createEsi`: one runtime over `configureApiClient`, `esi.public` (a `PublicScopeTree`) and `esi.as(identity)` (a `ScopeTree` sharing the runtime's budgets and cache). Imports core, adapters and generated code, never the legacy tree; `lint:layers` enforces it (Enforced).                                                                                 |
@@ -186,19 +204,26 @@ Every domain method takes this route. Order is the information: a stage cannot s
 Error
 ├── EsiError (statusCode, sanitised url, requestId)      .retryable ⇐ {0, 420, 429, 502, 503, 504}
 │   ├── TimeoutError (+ timeoutMs)
-│   └── EsiValidationError (+ ZodError, direction: request | response)
-├── CircuitOpenError (endpoint, failures, retryAfterMs)   not an EsiError
+│   ├── EsiNetworkError (+ cause)
+│   ├── EsiValidationError (+ ZodError, direction: request | response)
+│   ├── CircuitOpenError (endpoint, failures, retryAfterMs)   statusCode 0, never retryable
+│   └── EsiFaultError (+ code, cause)                     raised by the library, not ESI
+│       ├── EsiConfigurationError                         VALIDATION_ERROR, NO_AUTH_TOKEN, CONFIGURATION_ERROR
+│       ├── EsiParseError                                 JSON_PARSE_ERROR
+│       ├── EsiPaginationError                            PAGINATION_INCOMPLETE
+│       └── EsiTokenRefreshError                          TOKEN_REFRESH_FAILED
 ├── AuthError
 │   ├── SsoError (+ statusCode)                           .retryable ⇐ 429 or ≥ 500
 │   ├── TokenRevokedError
 │   ├── TokenDecodeError                                  no type guard yet
+│   ├── TokenVerificationError
 │   └── CharacterNotFoundError
 └── SdeError → SdeDatabaseError | SdeValidationError | SdeVersionMismatchError
 ```
 
-The auth subtree is exported from the root and from `./errors`, with guards `isAuthError`, `isSsoError`, `isTokenRevoked` and `isCharacterNotFound`.
+Every failure the request pipeline raises is an `EsiError`, `CircuitOpenError` included, so `isEsiError(err)` is true for all of them ([ERRORS.md](ERRORS.md#hierarchy)). The auth subtree is exported from the root and from `./errors`, with guards `isAuthError`, `isSsoError`, `isTokenRevoked`, `isTokenVerificationError` and `isCharacterNotFound`.
 
-Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `PAGINATION_INCOMPLETE`, `TOKEN_REFRESH_FAILED`, `VALIDATION_ERROR`) are plain `Error`s with a bracketed type prefix, built by `buildError` in `src/core/util/error.ts`. That is a known inconsistency, registered in Part 10.
+Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `PAGINATION_INCOMPLETE`, `TOKEN_REFRESH_FAILED`, `VALIDATION_ERROR`) are `EsiFaultError` subclasses carrying the code. Until 11.0.0 they were plain `Error`s with a bracketed type prefix, built by `buildError`; Part 10 row 5 records that history.
 
 ### Requirements
 
@@ -207,48 +232,48 @@ Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON
 The library **shall** derive response types, cache TTLs, rate-limit groups and endpoint scopes from the live ESI OpenAPI specification and commit the generated output.
 
 - **Why:** CCP changes ESI on its own schedule. Generated metadata is the only way to keep <!-- metric:routes -->235<!-- /metric --> endpoints honest.
-- **Verified by:** `npm run generate:types` then `git diff --exit-code` on `src/types/generated/` and every `src/core/endpoints/esi-*.generated.ts` (cache TTLs, rate-limit groups, scopes) in CI, the release gate and the nightly spec-drift run. The PR check fails only when a PR touches the generator inputs and warns otherwise. `spec:generate:check` does the same for the generated operations, on pull requests and at release.
+- **Verified by:** Gate: `npm run generate:types` then `git diff --exit-code` on `src/types/generated/` and every `src/core/endpoints/esi-*.generated.ts` (cache TTLs, rate-limit groups, scopes) in CI, the release gate and the nightly spec-drift run. The PR check fails only when a PR touches the generator inputs and warns otherwise. `spec:generate:check` does the same for the generated operations, on pull requests and at release.
 
 #### ARCH-02 · Ubiquitous · Enforced
 
 Every endpoint exposed by a domain client **shall** be declared in exactly one `*Endpoints.ts` definition map that names its path, method, authentication requirement and response schema.
 
 - **Why:** The definition is the contract. `createClient`, the contract tests, the scope validator and the OKF bundle all read from it.
-- **Verified by:** `npm run validate:esi` and `npm run validate:auth-scopes` in the CI static-analysis job and the release gate (a definition the spec does not list fails unless `scripts/spec/esi-endpoint-exceptions.json` gives a reason; `validate:esi:vendored` runs the same check offline in `check:local`), `tests/contract/`.
+- **Verified by:** Gate: `npm run validate:esi` and `npm run validate:auth-scopes` in the CI static-analysis job and the release gate (a definition the spec does not list fails unless `scripts/spec/esi-endpoint-exceptions.json` gives a reason; `validate:esi:vendored` runs the same check offline in `check:local`). Test: `tests/contract/`.
 
 #### ARCH-03 · Ubiquitous · Practised
 
 Request-pipeline modules under `src/core/requestPipeline` **shall** receive cache, rate limiter and circuit breaker as function parameters rather than importing a concrete implementation.
 
 - **Why:** Keeps every stage unit-testable without an `ApiClient` and keeps `dependencies.ts` the one place resolution happens.
-- **Verified by:** Code review. `lint:layers` keeps `src/core` away from clients and entry points but does not check this rule; candidate for an extra rule in `config/eslint/layers.rules.cjs` scoped to that directory.
+- **Verified by:** Test: `tests/tdd/core/pipelineDependencyParameters.test.ts` fails when a module in `src/core/requestPipeline` other than `dependencies.ts` makes a value import of a cache, rate limiter or circuit breaker implementation (the `I*` interfaces and `cacheKey` helpers are allowed). Review: code review covers the parameter shape itself.
 
 #### ARCH-04 · Ubiquitous · Enforced
 
 Each resilience concern (retry, rate limiting, circuit breaking, deduplication, caching, transport, logging) **shall** be exposed as an interface with a default implementation and a setter on `ApiClient`.
 
 - **Why:** Consumers embed the client in very different runtimes. Swapping a strategy must not require a fork.
-- **Verified by:** `tests/typetests/` and `etc/esi.ts.api.md` (API surface check fails on removal).
+- **Verified by:** Test: `tests/typetests/`. Gate: `etc/esi.ts.api.md` (API surface check fails on removal).
 
 #### ARCH-05 · Ubiquitous · Enforced
 
-The package **shall** publish a dual CJS and ESM build with declaration files for the six entry points: root, `schemas`, `errors`, `testing`, `sde` and `sde/memory`.
+The package **shall** publish a dual CJS and ESM build with declaration files for the seven entry points: root, `client`, `schemas`, `errors`, `testing`, `sde` and `sde/memory`.
 
 - **Why:** Subpath entries are the tree-shaking story while the root barrel stays wide.
-- **Verified by:** `tsup.config.ts`, the `package-lint` job in `ci.yml` (publint and Are The Types Wrong on the packed tarball), and the consumer contract.
+- **Verified by:** Gate: `tsup.config.ts`, the `package-lint` job in `ci.yml` (publint and Are The Types Wrong on the packed tarball), and the consumer contract.
 
 #### ARCH-06 · Ubiquitous · Enforced
 
 The package **shall** declare `"sideEffects": false` in its manifest and construct no logger, timer or network client at import time in any module under `src/`.
 
 - **Why:** Seven entry points are wasted if bundlers must assume side effects. The default logger builds its pino instance on first use, not on import ([#268](https://github.com/lgriffin/ESI.ts/issues/268)).
-- **Verified by:** `tests/tdd/core/importSideEffects.test.ts`: it imports the source of every `exports` entry with pino replaced by a spy and fails if the spy was called, asserts the manifest flag, and bundles `import { EsiError }` from the root entry with esbuild (ESM and CJS) and fails if the bundle reaches pino. `npm run size` holds every entry to its budget.
+- **Verified by:** Test: `tests/tdd/core/importSideEffects.test.ts`: it imports the source of every `exports` entry with pino replaced by a spy and fails if the spy was called, asserts the manifest flag, and bundles `import { EsiError }` from the root entry with esbuild (ESM and CJS) and fails if the bundle reaches pino. Gate: `npm run size` holds every entry to its budget.
 
 #### ARCH-07 · Ubiquitous · Partial
 
 Every public error the pipeline can throw **shall** be an instance of a class exported from `@lgriffin/esi.ts/errors` with a matching type guard.
 
-- **Why:** Consumers branch on errors. String-prefixed plain `Error`s, the missing `isCircuitOpen` export on the subpath and the missing `TokenDecodeError` guard break that.
+- **Why:** Consumers branch on errors. Before 11.0.0, string-prefixed plain `Error`s and the missing `isCircuitOpen` export on the subpath broke that; both are fixed ([#266](https://github.com/lgriffin/ESI.ts/issues/266)). The missing `TokenDecodeError` guard still does.
 - **Verified by:** To add: a type test that the guard set on `.` equals the guard set on `./errors`.
 
 #### ARCH-08 · Ubiquitous · Partial
@@ -256,21 +281,42 @@ Every public error the pipeline can throw **shall** be an instance of a class ex
 Every construction surface (`EsiClient`, `CustomEsiClient`, `EsiApiFactory`, and `createEsi` for the generated operations) **shall** expose the same set of operations and configure the pipeline through `configureApiClient`.
 
 - **Why:** `CustomEsiClient` now has a getter for every registered client ([#267](https://github.com/lgriffin/ESI.ts/issues/267)). `EsiApiFactory` reaches all <!-- metric:clients -->39<!-- /metric --> through the generic `createClient(type)`, but has named `create*Client` methods for only 9, deprecated since 11.0.0 in favour of `createEsi`.
-- **Verified by:** `tests/tdd/core/customClientGetters.test.ts` for `CustomEsiClient` (a missing getter fails to compile). `constructionParity.test.ts` checks that the three legacy surfaces configure middleware the same way, not that they expose the same clients. `createEsi` (`src/client/runtime.ts`) calls `configureApiClient` and exposes every generated operation through `ScopeTree`, which `spec:coverage` keeps complete. To add: a client-set check for `EsiApiFactory`. Its named methods are `@deprecated` in favour of `createEsi` (Phase 7) and go no earlier than 12.0.0.
+- **Verified by:** Test: `tests/tdd/core/customClientGetters.test.ts` for `CustomEsiClient` (a missing getter fails to compile); `constructionParity.test.ts` checks that the three legacy surfaces configure middleware the same way, not that they expose the same clients. Gate: `createEsi` (`src/client/runtime.ts`) calls `configureApiClient` and exposes every generated operation through `ScopeTree`, which `spec:coverage` keeps complete. To add: a client-set check for `EsiApiFactory`. Its named methods are `@deprecated` in favour of `createEsi` (Phase 7); 12.0.0 keeps them, and they go no earlier than 13.0.0.
 
 #### ARCH-09 · Ubiquitous · Enforced
 
 All pipeline logging **shall** go through the per-client logger with structured context, with the global logger existing only as a fallback for callers with no client handle.
 
 - **Why:** Per-client logging makes log lines attributable when several clients share a process.
-- **Verified by:** `npm run lint` and `npm run lint:layers` (`--no-inline-config`) forbid the global `loggerUtil` in `src/core/requestPipeline/` and `src/clients/` (`config/eslint/logger-imports.rules.cjs`, proved by `tests/tdd/layers/logger-imports-lint.test.ts`, [#265](https://github.com/lgriffin/ESI.ts/issues/265)). The rate limiter, the ETag cache's startup line, `EsiClient.batch` and the token manager's fallback are covered by `tests/tdd/core/loggerThreading.test.ts` ([#296](https://github.com/lgriffin/ESI.ts/issues/296)). The global logger serves only the standalone batch exports and `EsiTokenManager`, which hold no client.
+- **Verified by:** Gate: `npm run lint` and `npm run lint:layers` (`--no-inline-config`) forbid the global `loggerUtil` in `src/core/requestPipeline/` and `src/clients/` (`config/eslint/logger-imports.rules.cjs`, proved by `tests/tdd/layers/logger-imports-lint.test.ts`, [#265](https://github.com/lgriffin/ESI.ts/issues/265)). Test: the rate limiter, the ETag cache's startup line, `EsiClient.batch` and the token manager's fallback are covered by `tests/tdd/core/loggerThreading.test.ts` ([#296](https://github.com/lgriffin/ESI.ts/issues/296)). The global logger serves only the standalone batch exports and `EsiTokenManager`, which hold no client.
 
 #### ARCH-10 · Ubiquitous · Enforced
 
 `src/sde` **shall** import only Node built-ins, its own files, its peer packages (`zod`, `js-yaml`, `adm-zip`, `better-sqlite3`) and `src/core/ports`, be imported by no file under `src/` outside `src/sde`, and keep the `./sde/memory` bundle free of file-system, YAML, ZIP or SQLite code.
 
 - **Why:** The SDE is a side module: an offline lookup layer that enriches ESI responses without a consumer in the pipeline. Holding the boundary in both directions keeps the SDE free to change without a release of the client, and keeps the client free of the SDE's optional peers. A bridge between the two was considered on 2026-09-27 and cut, and so was a static-data port under `src/core/ports` for the client to resolve names through; if either is ever wanted it is a separate package above both, so nothing here is added for it.
-- **Verified by:** `npm run lint:layers` (the `sde` and `sideModule` messages of `layers/inward-imports`, covered in both directions by `tests/tdd/layers/layers-lint.test.ts`) and `tests/tdd/sde/memory-entry-bundle.test.ts`, which bundles `src/sde/memory.ts` and the built `dist/sde/memory.{mjs,js}` and fails on `node:fs`, `js-yaml`, `adm-zip` or `better-sqlite3`.
+- **Verified by:** Gate: `npm run lint:layers` (the `sde` and `sideModule` messages of `layers/inward-imports`, covered in both directions by `tests/tdd/layers/layers-lint.test.ts`). Test: `tests/tdd/sde/memory-entry-bundle.test.ts`, which bundles `src/sde/memory.ts` and the built `dist/sde/memory.{mjs,js}` and fails on `node:fs`, `js-yaml`, `adm-zip` or `better-sqlite3`.
+
+#### ARCH-11 · Ubiquitous · Enforced
+
+Every error class of the SDE module (`SdeError`, `SdeDatabaseError`, `SdeValidationError` and `SdeVersionMismatchError`) **shall** descend from `SdeError`, carry the context of its failure as fields as well as in its message, and be exported from `@lgriffin/esi.ts/sde` with a type guard that is true for its own class and its subclasses.
+
+- **Why:** The SDE shares no code with the pipeline (ARCH-10), so ARCH-07 does not reach its errors, yet a consumer branches on them the same way: a validation failure names the entity type and ID, a version mismatch names both versions, a storage fault keeps its cause. Until 2026-10-12 no requirement named them, and their feature carried no charter tag.
+- **Verified by:** Test: `tests/bdd/features/sde/0007-sde-error-handling.feature`, `tests/tdd/sde/errors.test.ts` (the classes, their fields and the four guards) and `tests/tdd/sde/index.test.ts` (the exports of `./sde`).
+
+#### ARCH-12 · Event-driven · Enforced
+
+When an SDE export is ingested, the ingestion pipeline (`SdeDownloader`, `SdeExtractor`, `SdeDatabaseBuilder` and the record transforms) **shall** read the build number and release date from the export, parse every registry file the archive holds, and write one database table per non-empty file holding every record with a column for every field any record carries.
+
+- **Why:** The ingestion pipeline is the only path from CCP's published export to a database a tool can query. A field that first appears after the fiftieth record was once dropped from its table (#609); a requirement makes that class of loss a test failure rather than a support question.
+- **Verified by:** Test: `tests/bdd/features/sde/0023-sde-ingestion.feature`, `tests/tdd/sde/ingestion/SdeExtractor.test.ts`, `tests/tdd/sde/ingestion/SdeDatabaseBuilder.test.ts` and `tests/tdd/sde/ingestion/transforms.test.ts`.
+
+#### ARCH-13 · Unwanted · Enforced
+
+If the SDE ingestion pipeline cannot fetch the export, find a file in the archive, or store a record or the database, then the SDE ingestion pipeline **shall** throw an `SdeError` or `SdeDatabaseError` that names the failure: the HTTP status, the abort, the missing file, or the table and record ID.
+
+- **Why:** Ingestion runs unattended (`nightly-sde.yml`, a consumer's build step). An untyped or unnamed failure there leaves the reader of a log with nothing to act on, and a consumer catching `isSdeError` would miss it.
+- **Verified by:** Test: the `If …` Rules of `tests/bdd/features/sde/0023-sde-ingestion.feature`, `tests/tdd/sde/ingestion/SdeDownloader.test.ts` and the failures group of `tests/tdd/sde/ingestion/SdeDatabaseBuilder.test.ts`.
 
 ---
 
@@ -294,56 +340,56 @@ Conventions that make a <!-- metric:clients -->39<!-- /metric -->-client codebas
 Every hand-written response schema **shall** use `z.looseObject` so that fields ESI adds later are preserved in the validated body.
 
 - **Why:** Validation replaces the body with `safeParse().data`. A strict object would silently strip new fields from consumers.
-- **Verified by:** `npm run schema:drift` against the spec; 398 uses of `looseObject` versus 2 of `z.object`, both internal.
+- **Verified by:** Gate: `npm run schema:drift` against the spec; 398 uses of `looseObject` versus 2 of `z.object`, both internal.
 
 #### DES-02 · Event-driven · Enforced
 
 When an endpoint is added to a definition map, the library **shall** ship a `responseSchema` for it, since a missing schema degrades the inferred return type to `unknown`.
 
 - **Why:** Types are inferred from the schema. No schema means no type, which is a silent regression for consumers.
-- **Verified by:** `npm run spec:response-schemas` in `ci.yml` `lint-and-build` (every definition whose spec operation returns JSON declares a schema); `tests/typetests/domain-responses.test-d.ts`.
+- **Verified by:** Gate: `npm run spec:response-schemas` in `ci.yml` `lint-and-build` (every definition whose spec operation returns JSON declares a schema). Test: `tests/typetests/domain-responses.test-d.ts`.
 
 #### DES-03 · Ubiquitous · Enforced
 
 Files ending in `.generated.ts`, the `okf/` bundle and `etc/esi.ts.api.md` **shall** be regenerated by their script and never edited by hand.
 
 - **Why:** A hand edit is overwritten on the next run and hides the real spec change.
-- **Verified by:** the generated-types freshness diff (`npm run generate:types` then `git diff --exit-code`) in `ci.yml`; the `api-surface` job for the report; `.prettierignore`.
+- **Verified by:** Gate: the generated-types freshness diff (`npm run generate:types` then `git diff --exit-code`) in `ci.yml`; the `api-surface` job for the report; `.prettierignore`.
 
 #### DES-04 · Ubiquitous · Enforced
 
 An endpoint definition **shall** declare `requiresAuth: true` if and only if the generated scope map lists at least one scope for it.
 
 - **Why:** The bearer token is attached only when `requiresAuth` is set. A mismatch either leaks a token or breaks a call.
-- **Verified by:** `npm run validate:auth-scopes` in the CI static-analysis job and the release gate; both directions exit 1, and so does an entry in `scripts/spec/auth-scope-exceptions.json` that no longer excuses a mismatch.
+- **Verified by:** Gate: `npm run validate:auth-scopes` in the CI static-analysis job and the release gate; both directions exit 1, and so does an entry in `scripts/spec/auth-scope-exceptions.json` that no longer excuses a mismatch.
 
 #### DES-05 · Event-driven · Practised
 
 When an endpoint is deprecated upstream, the client **shall** carry `DeprecationInfo` with a replacement and sunset date on the endpoint's definition and log a warning on every call to it.
 
 - **Why:** Deprecation is a first-class field, not a comment. Consumers get a log line before the endpoint vanishes. The warning is not memoised (`createClient.ts`), so a hot loop logs on each call; revision 1 said "once", which was never true.
-- **Verified by:** Nightly spec drift files an issue; code review adds the field.
+- **Verified by:** Test: `tests/tdd/core/createClient.test.ts` (the `DES-05` block: a call to a deprecated endpoint logs a warning naming its replacement and sunset date, on every call). Review: adding the field when ESI deprecates an endpoint is code review, prompted by the issue `nightly-spec-drift.yml` files.
 
 #### DES-06 · Ubiquitous · Practised
 
 Configuration and error objects **shall** be immutable after construction, with merges copying rather than mutating.
 
 - **Why:** `readonly` fields on every error and every strategy config; copy-on-write interceptor lists. Bucket and circuit records are the intentional exception because they are counters.
-- **Verified by:** TypeScript `readonly`; code review.
+- **Verified by:** Review: TypeScript `readonly`; code review.
 
 #### DES-07 · Ubiquitous · Enforced
 
 The compiler **shall** run with `strict`, `noUncheckedIndexedAccess`, `noImplicitReturns`, `noImplicitOverride` and `noFallthroughCasesInSwitch` for `src/`.
 
 - **Why:** The type-level endpoint inference only holds under strict settings. Tests relax `noUncheckedIndexedAccess` and nothing else.
-- **Verified by:** `tsconfig.json`; `npm run typecheck` on every push.
+- **Verified by:** Gate: `tsconfig.json`; `npm run typecheck` on every push.
 
 #### DES-08 · Ubiquitous · Partial
 
 Pagination helpers **shall** propagate the caller's HTTP method into the retry context and surface partial results as an error rather than a silent truncation.
 
 - **Why:** A helper that retries a mutation, or returns a short list as if it were complete, surprises the consumer. The retry method and the cursor `fetchAll` meet it; the eager 1000-page cap still ends with a log line, not an error ([PAGINATION.md](PAGINATION.md#known-gaps)).
-- **Verified by:** `tests/bdd/features/core/0051-resilience.feature` (a streamed POST answered with 503 is sent once; three failed cursor pages reject).
+- **Verified by:** Test: `tests/bdd/features/core/0051-resilience.feature`, the two Rules tagged `@DES-08` (a streamed POST answered with 503 is sent once; three failed cursor pages reject).
 
 ---
 
@@ -353,13 +399,13 @@ This table is the canonical tier order. Both testing guides merge into one and c
 
 | Tier | Name                           | Where                            | Files                                                                                                                                                                    | Runner                    | Runs on                                                        |
 | ---- | ------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | -------------------------------------------------------------- |
-| 1    | Unit (TDD)                     | `tests/tdd`                      | 192                                                                                                                                                                      | jest.unit                 | push (Node 22), PR (Node 22/24)                                |
-| 2    | Specification (EARS/BDD)       | `tests/bdd`                      | <!-- metric:featureFiles -->77<!-- /metric --> features · <!-- metric:requirements -->619<!-- /metric --> rules · <!-- metric:scenarios -->792<!-- /metric --> scenarios | jest.unit + jest-cucumber | push (`npm test`), PR (`bdd-tests`), plus `spec:audit`         |
-| 3    | Type tests                     | `tests/typetests`                | 7                                                                                                                                                                        | tsd                       | PR (full suite)                                                |
-| 4    | Property fuzz                  | `tests/fuzz`                     | 15                                                                                                                                                                       | jest.fuzz + fast-check    | PR, nightly properties                                         |
+| 1    | Unit (TDD)                     | `tests/tdd`                      | <!-- metric:unitSuites -->228<!-- /metric -->                                                                                                                            | jest.unit                 | push (Node 22), PR (Node 22/24)                                |
+| 2    | Specification (EARS/BDD)       | `tests/bdd`                      | <!-- metric:featureFiles -->77<!-- /metric --> features · <!-- metric:requirements -->623<!-- /metric --> rules · <!-- metric:scenarios -->805<!-- /metric --> scenarios | jest.unit + jest-cucumber | push (`npm test`), PR (`bdd-tests`), plus `spec:audit`         |
+| 3    | Type tests                     | `tests/typetests`                | <!-- metric:typeTestFiles -->13<!-- /metric -->                                                                                                                          | tsd                       | PR (full suite)                                                |
+| 4    | Property fuzz                  | `tests/fuzz`                     | <!-- metric:fuzzSuites -->15<!-- /metric -->                                                                                                                             | jest.fuzz + fast-check    | PR, nightly properties                                         |
 | 5    | Contract                       | `tests/contract`                 | 6 (2 live + 4 replay) + snapshot                                                                                                                                         | jest.contract(.replay)    | PR (`contract-replay`), soft-skip on ESI 503                   |
 | 6    | Fault catalogue                | `tests/faults`                   | 3                                                                                                                                                                        | jest.faults               | PR (`fault-catalogue`), nightly                                |
-| 7    | Integration, mocked full stack | `tests/integration`              | 6                                                                                                                                                                        | jest.integration          | PR (full suite)                                                |
+| 7    | Integration, mocked full stack | `tests/integration`              | <!-- metric:integrationSuites -->6<!-- /metric -->                                                                                                                       | jest.integration          | PR (full suite)                                                |
 | 8    | Integration, live              | same, `ESI_LIVE_TESTS`           | ~50                                                                                                                                                                      | jest.integration.live     | manual                                                         |
 | 9    | Integration, gated auth        | same, `ESI_GATED_TESTS` + `.env` | 30+                                                                                                                                                                      | jest.integration.live     | manual                                                         |
 | 10   | Benchmark and heap soak        | `tests/benchmark`                | 24 tasks (18 client, 6 SDE) + client soak + SDE soak                                                                                                                     | mitata + soak drivers     | PR (A/B on hot paths), nightly; SDE nightly on the real export |
@@ -380,42 +426,42 @@ Other nightlies: interleave, no-retry, recorded payloads, consumer matrix, examp
 When observable client behaviour changes, the change **shall** be preceded by an EARS requirement in a `Rule:` block and a scenario that fails before the implementation exists.
 
 - **Why:** The most common defect in the suite has been scenarios that cannot fail. Red before green is the only defence. The form of the requirement is machine-checked; that the scenario failed first is a step in a workflow, and no check can establish it after the fact, so the status is Practised (moved from Enforced on 2026-09-27 for that reason, not because the code regressed).
-- **Verified by:** The `ears-gherkin-dev` workflow for the RED step. The form is enforced: `npm run spec:audit` on PR; the ratchet file `scripts/spec/spec-audit-exceptions.json` has an empty `unconverted` list and a `legacyStepFiles` list, and both may only shrink.
+- **Verified by:** Review: the `ears-gherkin-dev` workflow for the RED step. Gate: `npm run spec:audit` holds the form on PR; the ratchet file `scripts/spec/spec-audit-exceptions.json` has an empty `unconverted` list and a `legacyStepFiles` list, and both may only shrink.
 
 #### TEST-02 · Ubiquitous · Enforced
 
 Each `Rule:` block **shall** state exactly one requirement with one _shall_, name the system, use one of the five EARS patterns, and contain no vague language.
 
 - **Why:** A requirement you cannot falsify is not a requirement.
-- **Verified by:** `scripts/spec/spec-audit.ts`: eleven finding types, inline GitHub annotations, PR gate.
+- **Verified by:** Gate: `scripts/spec/spec-audit.ts`: eleven finding types, inline GitHub annotations, PR gate. The same audit holds every feature to a charter tag (`@DES-08`) naming the requirement it verifies, on the Feature or a Rule, fails a tag naming an id this charter does not define, and fails a feature a "Verified by" line cites that does not carry the citing id; the features no requirement covers are the shrink-only `unchartedFeatures` list in `scripts/spec/spec-audit-exceptions.json`. `npm run bdd:report` copies each scenario's charter tags into `reports/bdd/scenarios.json` beside its result.
 
 #### TEST-03 · Ubiquitous · Enforced
 
 Scenario steps **shall** mock at the transport seam with `jest-fetch-mock` rather than spying on the client method under test.
 
 - **Why:** Spying on the method makes the pipeline invisible to the test. Reference implementations: `etag-caching.steps.ts`, `resilience.steps.ts`.
-- **Verified by:** `npm run lint:bdd-seam` (`config/eslint/bdd-seam.config.mjs`) on every push (`ci-fast.yml`) and PR (`ci.yml`).
+- **Verified by:** Gate: `npm run lint:bdd-seam` (`config/eslint/bdd-seam.config.mjs`) on every push (`ci-fast.yml`) and PR (`ci.yml`).
 
 #### TEST-04 · Ubiquitous · Enforced
 
 Unit coverage **shall** stay at or above 90% statements, 80% branches, 75% functions and 90% lines, measured on `src/**` excluding generated files.
 
 - **Why:** Floors far below the current numbers stop a bad week becoming a broken gate, while still catching an untested module.
-- **Verified by:** `config/jest/unit.config.cjs` thresholds; coverage job posts a PR comment.
+- **Verified by:** Gate: `config/jest/unit.config.cjs` thresholds; coverage job posts a PR comment.
 
 #### TEST-05 · Ubiquitous · Enforced
 
 Every endpoint definition **shall** be validated against the live ESI OpenAPI document for path, method, cache TTL and scopes, with a committed snapshot as fallback.
 
 - **Why:** This is the only test that can tell the project CCP moved something.
-- **Verified by:** `tests/contract/`; `npm run contract:diff` (oasdiff, breaking changes only). SDE: `npm run sde:drift` in `nightly-sde.yml` compares CCP's current export with `SDE_FILE_REGISTRY` and the Zod schemas every night (GATE-07).
+- **Verified by:** Test: `tests/contract/`. Gate: `npm run contract:diff` (oasdiff, breaking changes only). SDE: `npm run sde:drift` in `nightly-sde.yml` compares CCP's current export with `SDE_FILE_REGISTRY` and the Zod schemas every night (GATE-07).
 
 #### TEST-06 · Ubiquitous · Enforced
 
 The consumer-facing type surface **shall** be asserted by tsd tests covering endpoint argument inference, branded IDs, error guards and the result envelope.
 
 - **Why:** Half the value of the library is at the type level. A refactor can break inference without failing a runtime test.
-- **Verified by:** `npm run test:types`. SDE: `tests/typetests/sde.test-d.ts` and `sde-memory.test-d.ts` pin every provider method, entity and error of `./sde` and `./sde/memory`, with type-mutation floors of 32 and 25 in `config/mutation/type-thresholds.json`.
+- **Verified by:** Test: `npm run test:types` over `tests/typetests/`. SDE: `tests/typetests/sde.test-d.ts` and `sde-memory.test-d.ts` pin every provider method, entity and error of `./sde` and `./sde/memory`. Gate: type-mutation floors of 32 and 25 for them in `config/mutation/type-thresholds.json`.
 
 #### TEST-07 · Ubiquitous · Enforced
 
@@ -423,35 +469,35 @@ Mutation testing **shall** hold each directory at or above its floor in `config/
 
 - **Why:** Nightly-only mutation means a weak test lands before anyone sees the score. Per-directory floors replace the single score of 65, which let a strong directory hide a weak one. Incremental Stryker on changed files keeps the PR cost bounded.
 - **Target floors (decided 2026-09-27; off the 11.0.0 release path since 2026-09-28).** The ratchets only rise, and these are where they must stand, in 11.x: every directory in `config/mutation/unit-thresholds.json` at 60 or above, every directory in `config/mutation/bdd-thresholds.json` at 20 or above, and every SDE directory at 90 or with each survivor carrying an equivalence reason (Track S Run M). `src/schemas` is measured by the unit tier and `schema:drift` only: scenarios send valid ESI-shaped bodies through the transport seam, so a mutant that relaxes a field is invisible to them by design, and its BDD entry stays at 0 rather than pretending otherwise.
-- **Verified by:** `mutation-pr` job ("Mutation (changed files)") in `mutation-pr.yml`, advisory on every pull request since 2026-09-27, back inside `ci-success` once the target floors hold (after 11.0.0); nightly ratchets in `nightly-mutation.yml`. A pull request that changes or deletes a test file re-runs every mutant whose nightly verdict rests on it (killed by it, or covered by it and survived or timed out) and reuses the rest ([#571](https://github.com/lgriffin/ESI.ts/issues/571)); one that changes a test helper, setup file or fixture re-mutates, with `--force`, every reused file a changed test covered (a test-only pull request, over the directories its tests reach). Either way a weakened or deleted test lowers a score from the pull request and a strengthened one raises it; a test the report never saw can only raise a score and waits for the next nightly ([#380](https://github.com/lgriffin/ESI.ts/issues/380), `planPrRun` in `scripts/mutation/mutation-ratchet-core.ts`). Open: flip-flopping mutants ([#382](https://github.com/lgriffin/ESI.ts/issues/382)). SDE: `src/sde` and `src/sde/ingestion` are their own directories in both floor files and `src/sde` its own shard in `config/mutation/unit-shards.json` and `bdd-shards.json` (Track S Run 2).
+- **Verified by:** Gate: `mutation-pr` job ("Mutation (changed files)") in `mutation-pr.yml`, advisory on every pull request since 2026-09-27, back inside `ci-success` once the target floors hold (after 11.0.0); nightly ratchets in `nightly-mutation.yml`. A pull request that changes or deletes a test file re-runs every mutant whose nightly verdict rests on it (killed by it, or covered by it and survived or timed out) and reuses the rest ([#571](https://github.com/lgriffin/ESI.ts/issues/571)); one that changes a test helper, setup file or fixture re-mutates, with `--force`, every reused file a changed test covered (a test-only pull request, over the directories its tests reach). Either way a weakened or deleted test lowers a score from the pull request and a strengthened one raises it; a test the report never saw can only raise a score and waits for the next nightly ([#380](https://github.com/lgriffin/ESI.ts/issues/380), `planPrRun` in `scripts/mutation/mutation-ratchet-core.ts`). Open: flip-flopping mutants ([#382](https://github.com/lgriffin/ESI.ts/issues/382)). SDE: `src/sde` and `src/sde/ingestion` are their own directories in both floor files and `src/sde` its own shard in `config/mutation/unit-shards.json` and `bdd-shards.json` (Track S Run 2).
 
 #### TEST-08 · Optional · Enforced
 
 Where a test needs live ESI or a real token, the test **shall** be gated behind `ESI_LIVE_TESTS` or `ESI_GATED_TESTS` and soft-skip when ESI returns 503.
 
 - **Why:** Tranquility downtime must not fail a PR that changed nothing about networking.
-- **Verified by:** `config/jest/integration.live.config.cjs` and `config/jest/contract.live.config.cjs` refuse to run without `ESI_LIVE_TESTS`; `tests/integration/gated-auth.test.ts` reads `ESI_GATED_TESTS`; the 503 soft-skip sits in the CI jobs that run those tiers. SDE: `tests/integration/sde/sde-real-data.test.ts` skips without an export on disk and fails instead when `SDE_REQUIRE_DATA=1`, which `nightly-sde.yml` sets.
+- **Verified by:** Gate: `config/jest/integration.live.config.cjs` and `config/jest/contract.live.config.cjs` refuse to run without `ESI_LIVE_TESTS`, and the 503 soft-skip sits in the CI jobs that run those tiers. Test: `tests/integration/gated-auth.test.ts` reads `ESI_GATED_TESTS`. SDE: `tests/integration/sde/sde-real-data.test.ts` skips without an export on disk and fails instead when `SDE_REQUIRE_DATA=1`, which `nightly-sde.yml` sets.
 
 #### TEST-09 · Ubiquitous · Enforced
 
 Test source under `tests/` **shall** be linted with the same ESLint configuration as `src/`, with test-specific relaxations declared explicitly.
 
 - **Why:** Floating promises in a step file produce a scenario that passes without asserting.
-- **Verified by:** `npm run lint` over `src` and `tests`, on push (`ci-fast.yml`) and PR (`ci.yml` `lint-and-build`), with the relaxations declared, each with its reason, in the `tests/**` block of `eslint.config.mjs`; `no-floating-promises`, `no-misused-promises` and `await-thenable` stay errors there. `tests/` is parsed against `tsconfig.test.json`; fixture trees and the packed-tarball consumer in `tests/consumer/` are ignored. `lint-staged` runs `eslint --fix` on staged test files. Alongside it, `lint:suite-health` over `tests/` (no `.only`/`.skip`/`.todo`, no assertion-free tests or Then steps, no swallowed assertions) and `lint:bdd-seam` over `tests/bdd` ([#271](https://github.com/lgriffin/ESI.ts/issues/271)).
+- **Verified by:** Gate: `npm run lint` over `src` and `tests`, on push (`ci-fast.yml`) and PR (`ci.yml` `lint-and-build`), with the relaxations declared, each with its reason, in the `tests/**` block of `eslint.config.mjs`; `no-floating-promises`, `no-misused-promises` and `await-thenable` stay errors there. `tests/` is parsed against `tsconfig.test.json`; fixture trees and the packed-tarball consumer in `tests/consumer/` are ignored. `lint-staged` runs `eslint --fix` on staged test files. Alongside it, `lint:suite-health` over `tests/` (no `.only`/`.skip`/`.todo`, no assertion-free tests or Then steps, no swallowed assertions) and `lint:bdd-seam` over `tests/bdd` ([#271](https://github.com/lgriffin/ESI.ts/issues/271)).
 
 #### TEST-10 · Ubiquitous · Enforced
 
 Every public method of a domain client and of `IStaticDataProvider` **shall** be named by at least one `Rule:` block or bound step, with the list of methods without one only ever shrinking.
 
 - **Why:** The audit proves every Rule has a scenario, but nothing proves every behaviour has a Rule. Two hundred and thirty-five wired endpoints and 101 provider methods can each lose their specification without a check noticing. The provider half is closed (Track S Runs 4 to 6: 101 of 101 methods covered, an empty baseline); the domain clients have the same gate since Phase 5 item 8, with 210 of 384 methods still in their baseline. A shrink-only baseline turns "specified" into a number that cannot go down.
-- **Verified by:** The provider: `npm run spec:coverage:sde:ci` (`scripts/sde/sde-spec-coverage.ts`, checks in `sde-spec-coverage-core.ts`, tested under `tests/tdd/scripts/`) parses `IStaticDataProvider.ts` for its methods and counts one as covered when a `Rule:` in `tests/bdd/features/sde/` names it or the step function a scenario binds calls it on the provider, directly or through any `tests/bdd` function, with the TypeScript type checker deciding what the receiver is; the uncovered list, grouped by entity family, is `scripts/sde/sde-spec-coverage-baseline.json`, which may only shrink against `origin/master`'s copy (23 of 101 covered at the first commit). In `check:all` and `ci.yml`'s `spec-audit` job; `verify-local` runs `spec:coverage:sde`, which checks the committed baseline without a base ref. The clients: `npm run spec:coverage:clients:ci` (`scripts/spec/client-spec-coverage.ts`, checks in `client-spec-coverage-core.ts`, sharing the call graph, baseline and command line with the provider check through `scripts/spec/method-coverage-core.ts`, tested under `tests/tdd/scripts/`) reads the public instance methods each class extending `BaseEsiClient` declares and counts one as covered when a `Rule:` names it (qualified as `Client.method`, or bare when one client declares the name) or a bound step calls it on that client, legacy `defineFeature` scenarios bound by title included; the uncovered list, grouped by client, is `scripts/spec/client-spec-coverage-baseline.json`, which may only shrink against `origin/master`'s copy (173 of 384 covered at the first commit). In `check:all` and `ci.yml`'s `spec-audit` job; `verify-local` runs `spec:coverage:clients`.
+- **Verified by:** Gate: the provider: `npm run spec:coverage:sde:ci` (`scripts/sde/sde-spec-coverage.ts`, checks in `sde-spec-coverage-core.ts`, tested under `tests/tdd/scripts/`) parses `IStaticDataProvider.ts` for its methods and counts one as covered when a `Rule:` in `tests/bdd/features/sde/` names it or the step function a scenario binds calls it on the provider, directly or through any `tests/bdd` function, with the TypeScript type checker deciding what the receiver is; the uncovered list, grouped by entity family, is `scripts/sde/sde-spec-coverage-baseline.json`, which may only shrink against `origin/master`'s copy (23 of 101 covered at the first commit). In `check:all` and `ci.yml`'s `spec-audit` job; `verify-local` runs `spec:coverage:sde`, which checks the committed baseline without a base ref. The clients: `npm run spec:coverage:clients:ci` (`scripts/spec/client-spec-coverage.ts`, checks in `client-spec-coverage-core.ts`, sharing the call graph, baseline and command line with the provider check through `scripts/spec/method-coverage-core.ts`, tested under `tests/tdd/scripts/`) reads the public instance methods each class extending `BaseEsiClient` declares and counts one as covered when a `Rule:` names it (qualified as `Client.method`, or bare when one client declares the name) or a bound step calls it on that client, legacy `defineFeature` scenarios bound by title included; the uncovered list, grouped by client, is `scripts/spec/client-spec-coverage-baseline.json`, which may only shrink against `origin/master`'s copy (173 of 384 covered at the first commit). In `check:all` and `ci.yml`'s `spec-audit` job; `verify-local` runs `spec:coverage:clients`. Test: `tests/tdd/scripts/sde-spec-coverage.test.ts` and `tests/tdd/scripts/client-spec-coverage.test.ts` drive both checks with fixtures and over this repository.
 
 #### TEST-11 · Optional · Enforced
 
 Where the client deliberately does not act on an ESI behaviour (a status, a header, a field, an endpoint feature), the exclusion **shall** be stated as an unwanted-behaviour Rule (`If <condition>, then the <system> shall not <response>.`) with a scenario that proves the absence.
 
 - **Why:** The specification governs what the client does; what it ignores is a decision too, and an unstated exclusion reads as an omission the next contributor "fixes". Every exclusion the guides stated in prose (`SECURITY.md`, `AUTHENTICATION.md`, `LOGGING.md`, `ERRORS.md`, `PAGINATION.md`, `ARCHITECTURE.md`, `TESTING.md`'s fault-tier decisions, `SDE.md` and `guides/sde/`) is a Rule on 2026-09-28, in the feature for its area: the headers not honoured in `0052-response-headers` and `0055-request-headers`, the statuses not retried in `0051-resilience`, the cache features skipped in `0050-etag-caching`, the values not validated in `0053-runtime-validation`, the token not logged in `0058-logging`, the signature not verified in `0054-token-management`, the files and peers not read in `sde/0020` and `sde/0021`. The client's own configuration and extension points (which interceptors run on which path, `circuitBreakerConfig` without `enableCircuitBreaker`, which logger a component reads) are not ESI behaviours and are documented, not registered.
-- **Verified by:** The form: `npm run spec:audit` accepts the unwanted pattern with a negated response. The register: `npm run ears` lists every `shall not` Rule with its verdict and scenarios in the "Exclusion register" section of `reports/ears/ears-report.md` and the job summary (`scripts/quality/ears-core.ts`, `isExclusion`; `tests/tdd/spec-audit/ears-report.test.ts`), 29 Rules, all verified, on 2026-09-28; TESTING.md documents it and `tests/bdd/GUIDE.md` shows how to write one. A new exclusion: the AGENTS.md reviewer checklist item "Exclusions stated (R2a)", at major severity, requires it as a Rule rather than prose or a code comment. No script can know what the client should ignore, so completeness stays a review question; what the check guarantees is that every stated exclusion executes on every run.
+- **Verified by:** Gate: the form: `npm run spec:audit` accepts the unwanted pattern with a negated response. Gate: the register: `npm run ears` lists every `shall not` Rule with its verdict and scenarios in the "Exclusion register" section of `reports/ears/ears-report.md` and the job summary (`scripts/quality/ears-core.ts`, `isExclusion`), 29 Rules, all verified, on 2026-09-28; TESTING.md documents it and `tests/bdd/GUIDE.md` shows how to write one. Test: `tests/tdd/spec-audit/ears-report.test.ts` (`isExclusion` and the register). Review: a new exclusion: the AGENTS.md reviewer checklist item "Exclusions stated (R2a)", at major severity, requires it as a Rule rather than prose or a code comment. No script can know what the client should ignore, so completeness stays a review question; what the check guarantees is that every stated exclusion executes on every run.
 
 ---
 
@@ -495,49 +541,49 @@ What runs where. ● blocks; ◐ runs but does not block; · does not run.
 A pull request to `master` **shall** merge only when the aggregate `ci-success` job reports every blocking job green.
 
 - **Why:** One required check that fans in every PR job keeps branch protection simple and complete.
-- **Verified by:** `ci.yml` `ci-success` with `if: always()`, needing 23 jobs, plus a self-check that fails if a job is missing from its `needs`; branch protection requires it alongside Lint, Build & Test. The pull-request mutation job is in `mutation-pr.yml`, outside the gate until the release gate row in ROADMAP.md moves it back (decided 2026-09-27).
+- **Verified by:** Gate: `ci.yml` `ci-success` with `if: always()`, needing 23 jobs, plus a self-check that fails if a job is missing from its `needs`; branch protection requires it, and it alone (`Lint, Build & Test` was required until `ci-success` replaced `Quality Gate`). The pull-request mutation job is in `mutation-pr.yml`, outside the gate until the release gate row in ROADMAP.md moves it back (decided 2026-09-27).
 
 #### GATE-02 · Ubiquitous · Enforced
 
 Every push on every branch **shall** run lint, format check, build, typecheck and the unit and BDD tests on Node 22.
 
 - **Why:** Fast feedback before a PR exists.
-- **Verified by:** `ci-fast.yml` ("Lint, Build & Test"): lint, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, format, build, typecheck, `typecheck:examples` and `npm test`, whose Jest config includes the BDD specs.
+- **Verified by:** Gate: `ci-fast.yml` ("Lint, Build & Test"): lint, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, format, build, typecheck, `typecheck:examples` and `npm test`, whose Jest config includes the BDD specs.
 
 #### GATE-03 · Ubiquitous · Enforced
 
 A change to the public API surface **shall** be visible as a diff to `etc/esi.ts.api.md` in the same pull request.
 
 - **Why:** This is the breaking-change tripwire. Reviewers see the exported shape change, not just the implementation.
-- **Verified by:** the `api-surface` job ("API Surface Check") in `ci.yml`, a CRLF-normalised diff against HEAD.
+- **Verified by:** Gate: the `api-surface` job ("API Surface Check") in `ci.yml`, a CRLF-normalised diff against HEAD.
 
 #### GATE-04 · Ubiquitous · Enforced
 
 knip **shall** block the release gate on unused exports and dependencies, with an explicit ignore list for intentional public re-exports.
 
 - **Why:** Non-blocking everywhere means the report is never read. Blocking only at release keeps PR friction low.
-- **Verified by:** the "Dead code detection" step of `validate-release` in `release.yml` runs `npx knip` without `--no-exit-code`, so an unused file, export or dependency fails the release. The ignore list is `knip.jsonc`, each entry with its reason. Since 2026-10-08 `ci.yml` (`static-analysis`) blocks on it too (`npm run knip`), and `check:local` runs it; `npm run validate` and `npm run check:all` block on it.
+- **Verified by:** Gate: the "Dead code detection" step of `validate-release` in `release.yml` runs `npx knip` without `--no-exit-code`, so an unused file, export or dependency fails the release. The ignore list is `knip.jsonc`, each entry with its reason. Since 2026-10-08 `ci.yml` (`static-analysis`) blocks on it too (`npm run knip`), and `check:local` runs it; `npm run validate` and `npm run check:all` block on it.
 
 #### GATE-05 · Ubiquitous · Enforced
 
 Every nightly job that finds a problem **shall** file or update a labelled GitHub issue rather than only failing the run.
 
 - **Why:** A red nightly nobody reads is the same as no nightly. Revision 1 marked this Enforced while two nightlies still filed nothing; revision 2 corrected it, and [#277](https://github.com/lgriffin/ESI.ts/issues/277) (bead `esi-mbr`) closed those two, and the last three followed on 2026-09-28.
-- **Verified by:** Audit, spec drift, faults, properties, benchmarks, examples, mutation, Schemathesis, the real SDE export (`nightly-sde.yml`), the Tranquility smoke (`nightly-live-health.yml`) and the post-publish canary file issues. `nightly-mutation.yml`, `nightly-schemathesis.yml`, `nightly-no-retry.yml`, `nightly-interleave.yml` and `consumer-matrix-nightly.yml` each end in a `report` job that opens or comments on one fixed-title issue (labels `mutation`, `api-fuzz`, `no-retry`, `interleave` and `consumer-matrix`) and closes it on the next green run. Recorded-payload drift opens a pull request instead, and only a failed run files an issue. `tests/tdd/workflows/workflow-permissions.test.ts` lists every job allowed `issues: write`, so a new report job is a reviewed change.
+- **Verified by:** Gate: audit, spec drift, faults, properties, benchmarks, examples, mutation, Schemathesis, the real SDE export (`nightly-sde.yml`), the Tranquility smoke (`nightly-live-health.yml`) and the post-publish canary file issues. `nightly-mutation.yml`, `nightly-schemathesis.yml`, `nightly-no-retry.yml`, `nightly-interleave.yml` and `consumer-matrix-nightly.yml` each end in a `report` job that opens or comments on one fixed-title issue (labels `mutation`, `api-fuzz`, `no-retry`, `interleave` and `consumer-matrix`) and closes it on the next green run. Recorded-payload drift opens a pull request instead, and only a failed run files an issue. Test: `tests/tdd/workflows/workflow-permissions.test.ts` lists every job allowed `issues: write`, so a new report job is a reviewed change.
 
 #### GATE-06 · Ubiquitous · Enforced
 
 `package.json` **shall** hold every npm script a document references, each resolving to an existing file.
 
 - **Why:** A script that points at a missing file (`sde:seed`, fixed in [#274](https://github.com/lgriffin/ESI.ts/issues/274)) fails only when someone runs it, and a document that tells the reader to run a script that does not exist fails only the reader.
-- **Verified by:** `tests/tdd/scripts/package-scripts.test.ts`, in `npm test`: every script target exists, and every `npm run <name>` in `README.md`, `CLAUDE.md`, `AGENTS.md`, `guides/` (ROADMAP.md aside, which names scripts later items add) and the BDD README and GUIDE is a defined script.
+- **Verified by:** Test: `tests/tdd/scripts/package-scripts.test.ts`, in `npm test`: every script target exists, and every `npm run <name>` in `README.md`, `CLAUDE.md`, `AGENTS.md`, `guides/` (ROADMAP.md aside, which names scripts later items add) and the BDD README and GUIDE is a defined script.
 
 #### GATE-07 · Ubiquitous · Enforced
 
 The nightly SDE run **shall** load CCP's current Static Data Export and report every file, record key and failing lookup the module does not know about as one tracked issue.
 
 - **Why:** `SDE_FILE_REGISTRY` and the Zod schemas are hand-written, and CCP publishes a new export without notice. Without a nightly against the real export, a new file or field is found by the first user who asks for it, and `sde-real-data.test.ts` skipping wherever `sde-data/` is absent meant the suite never ran in CI at all.
-- **Verified by:** `.github/workflows/nightly-sde.yml` (Track S Run 9): the build is resolved from CCP's feed, the ZIP restored from the cache keyed on it, `npm run sde:ingest -- --from-zip` extracts it, the real-data suite runs with `SDE_REQUIRE_DATA=1` so a missing export fails, `npm run sde:drift` writes `reports/sde-drift.json` and exits 1 on drift, `npm run examples:nightly -- --tier sde` runs the SDE examples, and the `report` job keeps one issue titled "sde: nightly real-data run failed or the export drifted". `tests/tdd/scripts/sde-drift.test.ts` proves the check names an unknown file and a new key over a fixture export, keeps a schema for every registered file, and pins the workflow to the module's download URLs.
+- **Verified by:** Gate: `.github/workflows/nightly-sde.yml` (Track S Run 9): the build is resolved from CCP's feed, the ZIP restored from the cache keyed on it, `npm run sde:ingest -- --from-zip` extracts it, the real-data suite runs with `SDE_REQUIRE_DATA=1` so a missing export fails, `npm run sde:drift` writes `reports/sde-drift.json` and exits 1 on drift, `npm run examples:nightly -- --tier sde` runs the SDE examples, and the `report` job keeps one issue titled "sde: nightly real-data run failed or the export drifted". Test: `tests/tdd/scripts/sde-drift.test.ts` proves the check names an unknown file and a new key over a fixture export, keeps a schema for every registered file, and pins the workflow to the module's download URLs.
 
 ---
 
@@ -563,84 +609,84 @@ What the library claims, disclaims and who it trusts is the security model, [`gu
 If a consumer supplies a base URL that is not HTTPS, or whose host is not on the allowlist while `unsafeAllowCustomHost` is unset, then the client **shall** refuse construction.
 
 - **Why:** Server-side request forgery through a configurable base URL is the classic SDK hole. `unsafeAllowCustomHost` exists for proxies and mocks, and lifts only the host check; there is no way to turn HTTPS off.
-- **Verified by:** `security.test.ts` host allowlist and HTTPS groups; `src/core/util/validation.ts`.
+- **Verified by:** Test: `security.test.ts` host allowlist and HTTPS groups; `src/core/util/validation.ts`.
 
 #### SEC-02 · Ubiquitous · Enforced
 
 The library **shall** never write an access token to a log line, an error message or a cache key in clear text.
 
 - **Why:** Tokens end up in bug reports. Redaction and hashing make the report safe to paste.
-- **Verified by:** `security.test.ts` token leakage group; `cacheKey.ts`; for log lines, `sanitizeUrl` at the logger boundary (`src/core/logger/redactLog.ts`), covered by `redactLog.test.ts`, `clientLog.test.ts` and `tests/bdd/features/core/0058-logging.feature`.
+- **Verified by:** Test: `security.test.ts` token leakage group; `cacheKey.ts`; for log lines, `sanitizeUrl` at the logger boundary (`src/core/logger/redactLog.ts`), covered by `redactLog.test.ts`, `clientLog.test.ts` and `tests/bdd/features/core/0058-logging.feature`.
 
 #### SEC-03 · Ubiquitous · Enforced
 
 Every GitHub Action **shall** be pinned to a full commit SHA with a version comment, inside a workflow that declares top-level read-only permissions with per-job escalation.
 
 - **Why:** Tag pinning is mutable. Scorecard scores both dimensions and zizmor enforces them.
-- **Verified by:** the zizmor job in `ci.yml` (config `.zizmor.yml`); `npm run lint:workflows` (`scripts/quality/workflow-lint.ts`); `tests/tdd/workflows/workflow-permissions.test.ts`, which fails a workflow without read-only top-level permissions and any job-level write scope not on its list; weekly Scorecard; Dependabot keeps the SHAs current.
+- **Verified by:** Gate: the zizmor job in `ci.yml` (config `.zizmor.yml`); `npm run lint:workflows` (`scripts/quality/workflow-lint.ts`); weekly Scorecard; Dependabot keeps the SHAs current. Test: `tests/tdd/workflows/workflow-permissions.test.ts`, which fails a workflow without read-only top-level permissions and any job-level write scope not on its list.
 
 #### SEC-04 · Ubiquitous · Enforced
 
 Published packages **shall** carry npm provenance, with release assets carrying keyless cosign signatures and SHA-256 checksums minted in an isolated job.
 
 - **Why:** A consumer can verify that the tarball came from this repository's workflow, not from a laptop.
-- **Verified by:** `release.yml`: `npm publish --provenance`, `sign-and-publish-assets` job, which also attests SLSA build provenance for the tarball, SBOM and docs archive (`actions/attest-build-provenance`), checks it with `gh attestation verify` and attaches it as a `.intoto.jsonl` asset; `tests/tdd/workflows/workflow-permissions.test.ts` fails if the job stops signing, attesting or uploading any of them.
+- **Verified by:** Gate: `release.yml`: `npm publish --provenance`, `sign-and-publish-assets` job, which also attests SLSA build provenance for the tarball, SBOM and docs archive (`actions/attest-build-provenance`), checks it with `gh attestation verify` and attaches it as a `.intoto.jsonl` asset. Test: `tests/tdd/workflows/workflow-permissions.test.ts` fails if the job stops signing, attesting or uploading any of them.
 
 #### SEC-05 · Unwanted · Enforced
 
 If a dependency advisory is accepted rather than fixed, then the acceptance **shall** carry a reason and an expiry date, after which the release fails.
 
 - **Why:** Allowlists rot. An expiry forces the conversation again.
-- **Verified by:** `scripts/quality/audit-check.ts` with `scripts/quality/audit-exceptions.json`.
+- **Verified by:** Gate: `scripts/quality/audit-check.ts` with `scripts/quality/audit-exceptions.json`.
 
 #### SEC-06 · Ubiquitous · Enforced
 
 Each release **shall** publish a CycloneDX or SPDX SBOM as a signed release asset.
 
 - **Why:** Provenance says who built it. An SBOM says what is inside. Scorecard and downstream policy tooling look for both.
-- **Verified by:** `release.yml` `create-assets` runs `npm run release:sbom`, which fails the release unless the CycloneDX SBOM names the package at the tagged version and lists every runtime dependency, and adds it to `checksums.txt`; `sign-and-publish-assets` signs it. `tests/tdd/release-sbom/` runs the generator against the repository.
+- **Verified by:** Gate: `release.yml` `create-assets` runs `npm run release:sbom`, which fails the release unless the CycloneDX SBOM names the package at the tagged version and lists every runtime dependency, and adds it to `checksums.txt`; `sign-and-publish-assets` signs it. Test: `tests/tdd/release-sbom/release-sbom.test.ts` checks the document and runs the generator against the repository.
 
 #### SEC-07 · Ubiquitous · Partial
 
 The repository **shall** carry a `CODEOWNERS` file and branch protection on `master` that applies to administrators.
 
 - **Why:** Both are Scorecard code-review inputs. A solo maintainer can still enforce "admins included" and own every path.
-- **Verified by:** `.github/CODEOWNERS` exists and assigns every path to `@lgriffin`. Admin enforcement lives in GitHub settings and cannot be seen from the repository; the steps the maintainer takes, and the API call that verifies them, are in `guides/SECURITY.md` §5 ([#270](https://github.com/lgriffin/ESI.ts/issues/270)). The row moves to Enforced when that call shows administrators included.
+- **Verified by:** Gate: `.github/CODEOWNERS` exists and assigns every path to `@lgriffin`. Review: admin enforcement lives in GitHub settings and cannot be seen from the repository; the steps the maintainer takes, and the API call that verifies them, are in `guides/SECURITY.md` §5 ([#270](https://github.com/lgriffin/ESI.ts/issues/270)). The row moves to Enforced when that call shows administrators included.
 
 #### SEC-08 · Ubiquitous · Enforced
 
 Local credentials **shall** be minted by the PKCE script into a git-ignored `.env`, never appearing in a committed file, fixture or example.
 
 - **Why:** The example file is the only one that belongs in git.
-- **Verified by:** `.gitignore`; `scripts/auth/create-token.ts`; consider a secret-scanning pre-commit hook.
+- **Verified by:** Gate: `.gitignore`; `scripts/auth/create-token.ts`. To add: a secret-scanning pre-commit hook, under consideration.
 
 #### SEC-09 · Ubiquitous · Enforced
 
 The security model audit **shall** fail when a property, disclaimed property, non-finding or disposition appears in only one of `guides/SECURITY-MODEL.md` and `guides/security-model.yaml`, or when a property's severity differs between them.
 
 - **Why:** The prose is canonical and the index is what scanners and agents read. Two copies that drift tell a reviewer two different things.
-- **Verified by:** `npm run security:model` in the `security-model` job of `ci.yml`; `tests/tdd/scripts/security-model-audit.test.ts` drives each rule with a fixture.
+- **Verified by:** Gate: `npm run security:model` in the `security-model` job of `ci.yml`. Test: `tests/tdd/scripts/security-model-audit.test.ts` drives each rule with a fixture.
 
 #### SEC-10 · Unwanted · Enforced
 
 If a claimed security property names no existing test file, has no `@sec-<id>` Rule that ran and passed and no stated reason for having none, or is a gap without an issue and an unexpired date, then the security model audit **shall** fail.
 
 - **Why:** A claim with no test is a hope. A gap with no owner or date never closes, so the count of gaps may only shrink against `master`.
-- **Verified by:** `npm run security:model` with `--results` in the `security-model` job of `ci.yml`; `tests/tdd/scripts/security-model-audit.test.ts`.
+- **Verified by:** Gate: `npm run security:model` with `--results` in the `security-model` job of `ci.yml`. Test: `tests/tdd/scripts/security-model-audit.test.ts`.
 
 #### SEC-11 · Unwanted · Enforced
 
 If a file under `src/` makes a network call or reads a response header that `guides/security-model.yaml` does not list, then the security model audit **shall** fail.
 
 - **Why:** The list of untrusted inputs is only useful while it is complete. A new call site or header read is a new input the model must name before it ships.
-- **Verified by:** `tests/tdd/core/untrusted-input-sites.test.ts`; `npm run security:model`.
+- **Verified by:** Test: `tests/tdd/core/untrusted-input-sites.test.ts`. Gate: `npm run security:model`.
 
 #### SEC-12 · Unwanted · Enforced
 
 If a non-finding or disposition cites a section the security model does not have, or a line of `guides/security-triage-log.md` carries a disposition outside the closed set, then the security model audit **shall** fail.
 
 - **Why:** The dispositions are a closed set so every report ends in a classified outcome; a report that fits none is a revision of the model, not an ad hoc call.
-- **Verified by:** `npm run security:model`; `tests/tdd/scripts/security-model-audit.test.ts`.
+- **Verified by:** Gate: `npm run security:model`. Test: `tests/tdd/scripts/security-model-audit.test.ts`.
 
 ---
 
@@ -724,28 +770,28 @@ etc/doc-metrics.json            generated counts (npm run docs:metrics): clients
 Each documentation topic **shall** have exactly one canonical file under `guides/`, with every other mention linking to it rather than restating it.
 
 - **Why:** Four copies of the testing story drifted to two different tier numberings within a month.
-- **Verified by:** `tests/tdd/scripts/sync-docs.test.ts` ("one canonical file per topic"): the retired copies of a folded guide (root `TESTING.md`, `guides/MUTATION-TESTING.md`) stay deleted, the test tier table is stated in `guides/TESTING.md` only, and every link from README.md or a guide to another guide lands on a file and a heading that exist; VitePress's dead-link check fails the site build on a missing page. The roadmap table above is the migration plan for the topics still to merge.
+- **Verified by:** Test: `tests/tdd/scripts/sync-docs.test.ts` ("one canonical file per topic"): the retired copies of a folded guide (root `TESTING.md`, `guides/MUTATION-TESTING.md`) stay deleted, the test tier table is stated in `guides/TESTING.md` only, and every link from README.md or a guide to another guide lands on a file and a heading that exist. Gate: VitePress's dead-link check fails the site build on a missing page. The roadmap table above is the migration plan for the topics still to merge.
 
 #### DOC-02 · Ubiquitous · Enforced
 
 Generated API reference output **shall** be written to a git-ignored directory outside `docs/`, with no npm script deleting a directory containing committed markdown.
 
 - **Why:** The previous configuration wiped five committed files on every `npm run docs`.
-- **Verified by:** `typedoc.json` `out: docs-site/public/api`; `clean` and `clean:docs` scripts updated; `.gitignore` entry.
+- **Verified by:** Gate: `typedoc.json` `out: docs-site/public/api`; `clean` and `clean:docs` scripts updated; `.gitignore` entry.
 
 #### DOC-03 · Ubiquitous · Enforced
 
 The published documentation site **shall** be built from `guides/` by a script in the repository and deployed by the release workflow alongside the API reference.
 
 - **Why:** A site nobody can reach is a maintenance cost with no reader. A site built from the canonical files cannot drift.
-- **Verified by:** `npm run docs:site` builds TypeDoc, then `scripts/docs/sync-docs.ts` generates the git-ignored guide pages from README.md and `guides/` and the example pages from `examples/` (logic in `scripts/docs/sync-docs-core.ts` and `scripts/docs/examples-showcase-core.ts`, tested by `tests/tdd/scripts/sync-docs.test.ts`, which also fails on a guide link to a repository file that does not exist), then VitePress, whose dead-link check fails the build. `ci.yml`'s `documentation` job builds it on every pull request; `release.yml`'s `deploy-docs` calls `.github/workflows/docs-site.yml`, which publishes it to gh-pages with TypeDoc under `/api/` and can be dispatched between releases.
+- **Verified by:** Gate: `npm run docs:site` builds TypeDoc, then `scripts/docs/sync-docs.ts` generates the git-ignored guide pages from README.md and `guides/` and the example pages from `examples/` (logic in `scripts/docs/sync-docs-core.ts` and `scripts/docs/examples-showcase-core.ts`, tested by `tests/tdd/scripts/sync-docs.test.ts`, which also fails on a guide link to a repository file that does not exist), then VitePress, whose dead-link check fails the build. `ci.yml`'s `documentation` job builds it on every pull request; `release.yml`'s `deploy-docs` calls `.github/workflows/docs-site.yml`, which publishes it to gh-pages with TypeDoc under `/api/` and can be dispatched between releases.
 
 #### DOC-04 · Ubiquitous · Enforced
 
 Counts quoted in documentation (clients, endpoints, requirements, scenarios, test files, coverage) **shall** be generated into `etc/doc-metrics.json` and inserted by a script, never typed by hand.
 
 - **Why:** At the time of the survey the docs carried 33, 35, 36, 37 and 39 as the number of clients. Only one is right.
-- **Verified by:** `npm run docs:metrics` (`scripts/docs/doc-metrics.ts`, counting in `scripts/docs/doc-metrics-core.ts`, tested by `tests/tdd/scripts/doc-metrics.test.ts`) computes the counts from the source with no test run and no network: domain clients, endpoint maps and routes, generated operations, the compatibility date, `stream*` methods, schema and type modules, examples, feature files, `Rule:` requirements, scenarios, test files per tier, the charter's statuses and the package version. It writes them to `etc/doc-metrics.json` and rewrites every `<!-- metric:name -->` marker in README.md, `guides/*.md` and `docs-site/index.md`. `npm run validate:versions`, in `ci.yml` `static-analysis` and `release.yml` `validate-release`, fails on a stale marked count, a stale README release line, a stale JSON file, an unknown metric or a malformed marker; release-please bumps the release line and the JSON's `version` through `extra-files`. Test counts that only a Jest run measures, and coverage, stay unmarked prose with the date they were measured.
+- **Verified by:** Gate: `npm run docs:metrics` (`scripts/docs/doc-metrics.ts`, counting in `scripts/docs/doc-metrics-core.ts`, tested by `tests/tdd/scripts/doc-metrics.test.ts`) computes the counts from the source with no test run and no network: domain clients, endpoint maps and routes, generated operations, the compatibility date, `stream*` methods, schema and type modules, examples, feature files, `Rule:` requirements, scenarios, test files per tier, the charter's statuses and the package version. It writes them to `etc/doc-metrics.json` and rewrites every `<!-- metric:name -->` marker in README.md, `guides/*.md` and `docs-site/index.md`. `npm run validate:versions`, in `ci.yml` `static-analysis` and `release.yml` `validate-release`, fails on a stale marked count, a stale README release line, a stale JSON file, an unknown metric or a malformed marker; release-please bumps the release line and the JSON's `version` through `extra-files`. Test counts that only a Jest run measures, and coverage, stay unmarked prose with the date they were measured.
 
 #### DOC-05 · Ubiquitous · Partial
 
@@ -759,7 +805,7 @@ Every guide **shall** open with the charter requirement identifiers it implement
 When a public export is added, the pull request **shall** include its JSDoc, its guide section and, where user-facing, an example under `examples/`.
 
 - **Why:** `fetchAll*` (73 methods), `InMemoryFetch` and `createNoopLogger` exist only in the changelog.
-- **Verified by:** To add: a PR template checklist (the repository has none). Today the API surface diff makes the addition visible to the reviewer, and `test:export-coverage --ci` fails a PR that adds an export no test references.
+- **Verified by:** To add: a PR template checklist (the repository has none). Gate: today the API surface diff (`etc/esi.ts.api.md`) makes the addition visible to the reviewer, and `test:export-coverage --ci` (`scripts/package/export-coverage-baseline.json`) fails a PR that adds an export no test references. Neither checks for JSDoc, a guide section or an example.
 
 ---
 
@@ -772,42 +818,42 @@ Releases are cut by release-please from conventional commits, validated by the f
 Every commit on `master` **shall** follow the conventional-commit format so that release-please can derive the version bump and changelog section.
 
 - **Why:** `feat` bumps minor, `fix` bumps patch, `!` bumps major. The changelog writes itself only if the commits are honest.
-- **Verified by:** commitlint on the commit-msg hook; `release-please.yml`.
+- **Verified by:** Gate: commitlint on the commit-msg hook; `release-please.yml`.
 
 #### REL-02 · Ubiquitous · Enforced
 
 A release **shall** publish only after lint, format, audit allowlist, changelog presence, build, schema drift, generated-type freshness and the full test suite pass on the tag.
 
 - **Why:** The tag is the last place to stop a bad build.
-- **Verified by:** `release.yml` `validate-release` job, which also runs `validate:versions`, `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`, `contract:replay`, the fault catalogue and the live contract tests.
+- **Verified by:** Gate: `release.yml` `validate-release` job, which also runs `validate:versions`, `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`, `contract:replay`, the fault catalogue and the live contract tests.
 
 #### REL-03 · Ubiquitous · Enforced
 
 The version string **shall** be identical in `package.json`, `src/core/constants.ts` and the docs-site version selector.
 
 - **Why:** The site selector had lagged the package by a major (v9.6.1 against 10.2.3) because nothing checked it and release-please did not bump it. The README's release line had lagged the same way (v9.5.2).
-- **Verified by:** `scripts/package/validate-versions.ts` (`npm run validate:versions`) in `ci.yml` `static-analysis` and `release.yml` `validate-release`; release-please bumps `src/core/constants.ts` through `extra-files`, and `docs-site/.vitepress/config.ts` reads the selector from `package.json` at build time, which the script checks it still does. `npm run validate:versions -- --site` checks the built page before `docs-site.yml` deploys it and in `ci.yml`'s `documentation` job. The README's release line carries the version in a `metric:version` marker, which release-please bumps through `extra-files` and the same script checks (DOC-04).
+- **Verified by:** Gate: `scripts/package/validate-versions.ts` (`npm run validate:versions`) in `ci.yml` `static-analysis` and `release.yml` `validate-release`; release-please bumps `src/core/constants.ts` through `extra-files`, and `docs-site/.vitepress/config.ts` reads the selector from `package.json` at build time, which the script checks it still does. `npm run validate:versions -- --site` checks the built page before `docs-site.yml` deploys it and in `ci.yml`'s `documentation` job. The README's release line carries the version in a `metric:version` marker, which release-please bumps through `extra-files` and the same script checks (DOC-04).
 
 #### REL-04 · Unwanted · Partial
 
 If a version is bumped but not published, then the changelog **shall** record it as unreleased rather than skipping the number.
 
 - **Why:** The changelog jumped from 9.1.0 to 9.7.0, so consumers could not tell whether 9.2 to 9.6 existed. Every number from 7.4.0 through 9.9.0 now has an entry ([#275](https://github.com/lgriffin/ESI.ts/issues/275)); numbers before 7.4.0 and the 10.x releases that never reached npm are not yet marked.
-- **Verified by:** Release guide procedure; nothing checks the changelog against the registry.
+- **Verified by:** Review: `guides/RELEASE.md` ("Bumped but not published") is the procedure. Test: `tests/tdd/scripts/changelog-unpublished.test.ts` keeps the twelve 9.x numbers already marked `(not published)`. Nothing checks the changelog against the registry, so the 10.x numbers that never reached npm are still unmarked.
 
 #### REL-05 · Ubiquitous · Enforced
 
 From 11.0.0 the package **shall** support Node 22 or newer, tested on every supported Node line before merge.
 
 - **Why:** Node 18 and 20 have reached end of life (20 in April 2026). Raising the floor is a major version and needs a `feat!:` commit with a `BREAKING CHANGE:` footer, not a silent engines bump; decided for 11.0.0 on 2026-09-26.
-- **Verified by:** `engines` says `>=22.12.0` and `.nvmrc` 22; the `unit-tests` job in `ci.yml` runs on Node 22 and 24, and `consumer-contract` in `ci.yml` and `release.yml` runs the packed tarball on Node 22.12 (the floor, pinned), the latest 22 and 24, both inside the gates that block a merge and a publish.
+- **Verified by:** Gate: `engines` says `>=22.12.0` and `.nvmrc` 22; the `unit-tests` job in `ci.yml` runs on Node 22 and 24, and `consumer-contract` in `ci.yml` and `release.yml` runs the packed tarball on Node 22.12 (the floor, pinned), the latest 22 and 24, both inside the gates that block a merge and a publish.
 
 #### REL-06 · Unwanted · Partial
 
 If a change can make code that works against the previous release fail to compile, throw, or return a different result, then the commit introducing that change **shall** be marked breaking (`type!:` and a `BREAKING CHANGE:` footer with the migration), with anything the change removes deprecated in an earlier minor release unless ESI has already removed it.
 
 - **Why:** `^9.x` in a consumer's manifest installs every minor and patch automatically. A break released as a minor breaks those installs silently.
-- **Verified by:** `guides/SEMVER.md` classification and the Reviewer Checklist; the `api-semver` job in `ci.yml` (`npm run api-report:semver`) for the root entry point's type surface. Runtime behaviour, schema tightening, sub-path exports and required members on implemented interfaces are review-only.
+- **Verified by:** Review: `guides/SEMVER.md` classification and the Reviewer Checklist. Gate: the `api-semver` job in `ci.yml` (`npm run api-report:semver`) for the root entry point's type surface. Runtime behaviour, schema tightening, sub-path exports and required members on implemented interfaces are review-only.
 
 ---
 
@@ -820,42 +866,42 @@ Agents are contributors here and are bound by the same rules as people, with les
 All task tracking **shall** live in the Beads tracker (`bd`), with `.beads/issues.jsonl` treated as a passive export and never as the source of truth.
 
 - **Why:** One tracker, shared by people and agents. Markdown TODO lists are forbidden by AGENTS.md.
-- **Verified by:** Repository instruction files.
+- **Verified by:** Test: `tests/tdd/scripts/agent-process.test.ts` (the `PROC-01` block): `CLAUDE.md` and `AGENTS.md` name `bd` as the tracker and rule out markdown TODO lists, and `guides/BEADS.md` treats `.beads/issues.jsonl` as an exported snapshot. It checks the instruction, not that every task is in Beads.
 
 #### PROC-02 · State-driven · Practised
 
 While an agent operates under the default conservative profile, the agent **shall not** commit, push or sync the tracker without an explicit instruction.
 
 - **Why:** Autonomy is earned per session. The handoff reports changed files and proposed commands instead.
-- **Verified by:** AGENTS.md and CLAUDE.md managed blocks.
+- **Verified by:** Test: `tests/tdd/scripts/agent-process.test.ts` (the `PROC-02` block): `guides/BEADS.md` states the conservative policy as the default, and both agent files point at it. It checks the instruction, not what an agent does.
 
 #### PROC-03 · Ubiquitous · Enforced
 
-`master` **shall** accept changes only through a pull request that is up to date with the base and passes the `ci-success` and Lint, Build & Test checks.
+`master` **shall** accept changes only through a pull request that is up to date with the base and passes the `ci-success` check.
 
 - **Why:** Recorded in bead `esi-8we`. Force-push is disabled.
-- **Verified by:** GitHub `branch protection` on `master`, a repository setting.
+- **Verified by:** Gate: GitHub `branch protection` on `master`, a repository setting, which requires `ci-success` (it gates every other job, Lint & Build included). The `branch-protection` job in `maintenance.yml` reads the setting through the API each week (`scripts/quality/branch-protection.ts`, tested in `tests/tdd/scripts/branch-protection.test.ts`) and fails when `master` is unprotected or `ci-success` is no longer required. The pull-request requirement, strict status checks and the force-push block need an admin token to read; the job's token cannot, so it prints them as unchecked warnings (run with an admin token, it fails on them too). Administrators are exempt from the required checks, which SEC-07 tracks; the job prints that as a warning as well.
 
 #### PROC-04 · Ubiquitous · Partial
 
 A branch **shall** carry one concern, named by its conventional-commit type and scope.
 
 - **Why:** Reviewers cannot review two things at once.
-- **Verified by:** Code review. There is no PR template yet (see DOC-06).
+- **Verified by:** Gate: `commitlint.config.cjs`, run by the `.husky/commit-msg` hook, holds each commit to a conventional type. Review: nothing checks the branch name or that a branch carries one concern; that is code review, and there is no PR template yet (see DOC-06).
 
 #### PROC-05 · Ubiquitous · Partial
 
 Agent instruction files (`AGENTS.md`, `CLAUDE.md`) **shall** contain pointers to guides, not copies of them.
 
-- **Why:** The Beads quick reference still appears three times in `AGENTS.md` and once in `CLAUDE.md`. Pointers cannot drift. The persona files are gone from the repository root.
-- **Verified by:** Roadmap item for BEADS.md; a line-count ceiling on the managed blocks.
+- **Why:** Pointers cannot drift. The Beads quick reference once appeared three times in `AGENTS.md` and once in `CLAUDE.md`; both now point at `guides/BEADS.md` and `bd prime`. The persona files are gone from the repository root.
+- **Verified by:** Test: `tests/tdd/scripts/agent-process.test.ts` (the `PROC-05` block) holds the Beads section of each agent file to one pointer of at most twelve lines with no command reference. Other sections are not yet held to a ceiling.
 
 #### PROC-06 · Ubiquitous · Enforced
 
 Every requirement block in this charter **shall** satisfy the rules `spec:audit` applies to a `Rule:` block (one _shall_, a named system, one of the five patterns, no vague language) and, when its status is Enforced, name the script or job that proves it.
 
 - **Why:** The charter claims to be auditable the way the specification is. Before the audit it was EARS by convention only: a row could say Enforced with a "Verified by" that named nothing, and nobody was told.
-- **Verified by:** `npm run charter:audit` (`scripts/quality/charter-audit.ts`; the checks in `scripts/quality/charter-audit-core.ts`, tested by `tests/tdd/scripts/charter-audit.test.ts`) parses every `####` block with the spec-audit rules and fails an Enforced row that names no script, job or file that exists. Runs in `check:all`, `scripts/quality/verify-local-core.ts` and `ci.yml`'s `spec-audit` job.
+- **Verified by:** Gate: `npm run charter:audit` (`scripts/quality/charter-audit.ts`; the checks in `scripts/quality/charter-audit-core.ts`, tested by `tests/tdd/scripts/charter-audit.test.ts`) parses every `####` block with the spec-audit rules and fails an Enforced row that names no script, job or file that exists or has no `Test:` or `Gate:` clause, a "Verified by" that opens without a label, and a cited test file whose `describe`, `it` and `test` titles do not name the row. Runs in `check:all`, `scripts/quality/verify-local-core.ts` and `ci.yml`'s `spec-audit` job.
 
 ---
 
@@ -898,6 +944,7 @@ Everything found during the survey, and since, that contradicts a requirement ab
 | 31  | MED  | No check that every public client method or provider method has a Rule                                                          | TEST-10                   | **Done** 2026-09-28: `spec:coverage:sde:ci` (Track S Run 4, baseline empty since Run 6) and `spec:coverage:clients:ci` (Phase 5 item 8), each with a shrink-only baseline         | —            | —                                                                                                            |
 | 32  | LOW  | Exclusions (what the client ignores) stated in prose, not as executable unwanted-behaviour Rules; one such Rule exists          | TEST-11                   | **Done**: every stated exclusion is a Rule, and `ears` lists the 29 `shall not` Rules with their verdicts (2026-09-28)                                                            | —            | —                                                                                                            |
 | 33  | LOW  | The charter is EARS by convention; no audit parses its requirement blocks or checks Enforced rows name a mechanism              | PROC-06                   | **Done**: `npm run charter:audit` (Phase 5 item 7)                                                                                                                                | —            | —                                                                                                            |
+| 34  | MED  | Two SDE features (errors, ingestion) verified no charter requirement; they sat on a shrink-only exception list                  | ARCH-11..13               | **Done** 2026-10-12: ARCH-11, ARCH-12 and ARCH-13 added; both features tagged; `unchartedFeatures` empty                                                                          | —            | [#640](https://github.com/lgriffin/ESI.ts/issues/640)                                                        |
 
 ---
 

@@ -1,5 +1,5 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>EsiApiFactory | @lgriffin/esi.ts - EVE Online ESI API Client - v11.3.0</title><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
-<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v11.3.0</a>
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>EsiApiFactory | @lgriffin/esi.ts - EVE Online ESI API Client - v12.0.0</title><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v12.0.0</a>
 <div id="tsd-toolbar-links"><a href="https://github.com/lgriffin/ESI.ts">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts">NPM</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
 <div id="tsd-search-status" aria-live="polite" aria-atomic="true">
@@ -15,7 +15,7 @@
 <div class="tsd-comment tsd-typography"><p>One legacy domain client on its own <code>ApiClient</code>.</p>
 <p>The nine named <code>create*Client</code> methods are deprecated since 11.0.0 in
 favour of <code>createEsi</code> and <code>esi.as(identity)</code> from <code>@lgriffin/esi.ts/client</code>,
-and are removed no earlier than 12.0.0. <a href="#createclient" class="tsd-kind-method">EsiApiFactory.createClient</a>
+and are removed no earlier than 13.0.0. <a href="#createclient" class="tsd-kind-method">EsiApiFactory.createClient</a>
 is not deprecated.</p>
 </div>
 <div class="tsd-comment tsd-typography">
@@ -76,7 +76,7 @@ is not deprecated.</p>
 <h4 class="tsd-returns-title">Returns <a href="src_clients_AllianceClient.AllianceClient.html" class="tsd-signature-type tsd-kind-class">AllianceClient</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-deprecated">
-<h4 class="tsd-anchor-link" id="deprecated">Deprecated<a href="#deprecated" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+<h4 class="tsd-anchor-link" id="deprecated">Deprecated<a href="#deprecated" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
 shared runtime from <code>@lgriffin/esi.ts/client</code>: <code>createEsi({ userAgent })</code>
 once, then <code>esi.public</code> for public operations and <code>esi.as(identity)</code> for
 authenticated ones. For an alliance's public record:
@@ -101,7 +101,7 @@ is not deprecated. See guides/MULTI-CHARACTER.md.</p>
 <h4 class="tsd-returns-title">Returns <a href="src_clients_CharacterClient.CharacterClient.html" class="tsd-signature-type tsd-kind-class">CharacterClient</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-deprecated">
-<h4 class="tsd-anchor-link" id="deprecated-1">Deprecated<a href="#deprecated-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+<h4 class="tsd-anchor-link" id="deprecated-1">Deprecated<a href="#deprecated-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
 shared runtime from <code>@lgriffin/esi.ts/client</code>: <code>createEsi({ userAgent })</code>
 once, then <code>esi.public</code> for public operations and <code>esi.as(identity)</code> for
 authenticated ones. For a character's public record:
@@ -126,7 +126,7 @@ is not deprecated. See guides/MULTI-CHARACTER.md.</p>
 <h4 class="tsd-returns-title">Returns <a href="src_clients_CorporationsClient.CorporationsClient.html" class="tsd-signature-type tsd-kind-class">CorporationsClient</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-deprecated">
-<h4 class="tsd-anchor-link" id="deprecated-2">Deprecated<a href="#deprecated-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+<h4 class="tsd-anchor-link" id="deprecated-2">Deprecated<a href="#deprecated-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
 shared runtime from <code>@lgriffin/esi.ts/client</code>: <code>createEsi({ userAgent })</code>
 once, then <code>esi.public</code> for public operations and <code>esi.as(identity)</code> for
 authenticated ones. For a corporation's public record:
@@ -151,7 +151,7 @@ is not deprecated. See guides/MULTI-CHARACTER.md.</p>
 <h4 class="tsd-returns-title">Returns <a href="src_clients_MarketClient.MarketClient.html" class="tsd-signature-type tsd-kind-class">MarketClient</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-deprecated">
-<h4 class="tsd-anchor-link" id="deprecated-3">Deprecated<a href="#deprecated-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+<h4 class="tsd-anchor-link" id="deprecated-3">Deprecated<a href="#deprecated-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
 shared runtime from <code>@lgriffin/esi.ts/client</code>: <code>createEsi({ userAgent })</code>
 once, then <code>esi.public</code> for public operations and <code>esi.as(identity)</code> for
 authenticated ones. For a region's sell orders, every page followed:
@@ -176,7 +176,7 @@ is not deprecated. See guides/MULTI-CHARACTER.md.</p>
 <h4 class="tsd-returns-title">Returns <a href="src_clients_UniverseClient.UniverseClient.html" class="tsd-signature-type tsd-kind-class">UniverseClient</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-deprecated">
-<h4 class="tsd-anchor-link" id="deprecated-4">Deprecated<a href="#deprecated-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+<h4 class="tsd-anchor-link" id="deprecated-4">Deprecated<a href="#deprecated-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
 shared runtime from <code>@lgriffin/esi.ts/client</code>: <code>createEsi({ userAgent })</code>
 once, then <code>esi.public</code> for public operations and <code>esi.as(identity)</code> for
 authenticated ones. For a type:
@@ -201,7 +201,7 @@ is not deprecated. See guides/MULTI-CHARACTER.md.</p>
 <h4 class="tsd-returns-title">Returns <a href="src_clients_FleetClient.FleetClient.html" class="tsd-signature-type tsd-kind-class">FleetClient</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-deprecated">
-<h4 class="tsd-anchor-link" id="deprecated-5">Deprecated<a href="#deprecated-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+<h4 class="tsd-anchor-link" id="deprecated-5">Deprecated<a href="#deprecated-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
 shared runtime from <code>@lgriffin/esi.ts/client</code>: <code>createEsi({ userAgent })</code>
 once, then <code>esi.public</code> for public operations and <code>esi.as(identity)</code> for
 authenticated ones. For a fleet, as its member:
@@ -226,7 +226,7 @@ is not deprecated. See guides/MULTI-CHARACTER.md.</p>
 <h4 class="tsd-returns-title">Returns <a href="src_clients_AssetsClient.AssetsClient.html" class="tsd-signature-type tsd-kind-class">AssetsClient</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-deprecated">
-<h4 class="tsd-anchor-link" id="deprecated-6">Deprecated<a href="#deprecated-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+<h4 class="tsd-anchor-link" id="deprecated-6">Deprecated<a href="#deprecated-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
 shared runtime from <code>@lgriffin/esi.ts/client</code>: <code>createEsi({ userAgent })</code>
 once, then <code>esi.public</code> for public operations and <code>esi.as(identity)</code> for
 authenticated ones. For a character's assets:
@@ -251,7 +251,7 @@ is not deprecated. See guides/MULTI-CHARACTER.md.</p>
 <h4 class="tsd-returns-title">Returns <a href="src_clients_WalletClient.WalletClient.html" class="tsd-signature-type tsd-kind-class">WalletClient</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-deprecated">
-<h4 class="tsd-anchor-link" id="deprecated-7">Deprecated<a href="#deprecated-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+<h4 class="tsd-anchor-link" id="deprecated-7">Deprecated<a href="#deprecated-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
 shared runtime from <code>@lgriffin/esi.ts/client</code>: <code>createEsi({ userAgent })</code>
 once, then <code>esi.public</code> for public operations and <code>esi.as(identity)</code> for
 authenticated ones. For a character's wallet balance:
@@ -276,7 +276,7 @@ is not deprecated. See guides/MULTI-CHARACTER.md.</p>
 <h4 class="tsd-returns-title">Returns <a href="src_clients_MailClient.MailClient.html" class="tsd-signature-type tsd-kind-class">MailClient</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-deprecated">
-<h4 class="tsd-anchor-link" id="deprecated-8">Deprecated<a href="#deprecated-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+<h4 class="tsd-anchor-link" id="deprecated-8">Deprecated<a href="#deprecated-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
 shared runtime from <code>@lgriffin/esi.ts/client</code>: <code>createEsi({ userAgent })</code>
 once, then <code>esi.public</code> for public operations and <code>esi.as(identity)</code> for
 authenticated ones. For a character's mail headers:
@@ -323,7 +323,7 @@ Not deprecated; use it to stay on the legacy domain clients.</p>
 <div><a href="#createallianceclient"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Alliance<wbr/>Client</span></a><a href="#createcharacterclient"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Character<wbr/>Client</span></a><a href="#createcorporationclient"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Corporation<wbr/>Client</span></a><a href="#createmarketclient"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Market<wbr/>Client</span></a><a href="#createuniverseclient"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Universe<wbr/>Client</span></a><a href="#createfleetclient"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Fleet<wbr/>Client</span></a><a href="#createassetsclient"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Assets<wbr/>Client</span></a><a href="#createwalletclient"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Wallet<wbr/>Client</span></a><a href="#createmailclient"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Mail<wbr/>Client</span></a><a href="#createclient"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Client</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://esi.evetech.net/ui/">ESI Documentation</a><a href="https://www.eveonline.com/">EVE Online</a><a href="https://github.com/lgriffin/ESI.ts" class="tsd-nav-link">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts" class="tsd-nav-link">NPM</a></nav>
-<nav class="tsd-navigation"><a href="../modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v11.3.0</a>
+<nav class="tsd-navigation"><a href="../modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v12.0.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
 <li>Loading...</li></ul></nav></div></div></div><footer>
 <p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
