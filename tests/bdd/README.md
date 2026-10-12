@@ -308,23 +308,22 @@ Feature: Resilience and Error Recovery
 
 The tags in use, and what each means here:
 
-| Tag        | On                                                                                                                                                                                                                                                                                                       |
-| :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@TEST-10` | Every domain-client feature (`core/0001` to `0039`), the integration and performance features, and the SDE provider features: their Rules and bound steps are what `spec:coverage:clients` and `spec:coverage:sde` count                                                                                 |
-| `@TEST-11` | Every exclusion Rule (`If …, then the <system> shall not …`), the Rules `npm run ears` lists in its exclusion register                                                                                                                                                                                   |
-| `@SEC-10`  | Every Rule tagged `@sec-<id>`, the evidence the security model audit reads                                                                                                                                                                                                                               |
-| `@ARCH-04` | The features specifying the default retry, circuit breaker, deduplication, rate limiter, cache and transport                                                                                                                                                                                             |
-| others     | The Rule or feature whose statement matches the requirement: `@DES-08` pagination, `@SEC-02` token redaction, `@DES-04` scope and bearer, `@DES-01` undeclared fields kept, `@ARCH-07` error guards, `@ARCH-08` construction surfaces, `@ARCH-09` the client logger, `@ARCH-10` the `./sde/memory` entry |
+| Tag        | On                                                                                                                                                                                                                                                                                                                                                                                             |
+| :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@TEST-10` | Every domain-client feature (`core/0001` to `0039`), the integration and performance features, and the SDE provider features: their Rules and bound steps are what `spec:coverage:clients` and `spec:coverage:sde` count                                                                                                                                                                       |
+| `@TEST-11` | Every exclusion Rule (`If …, then the <system> shall not …`), the Rules `npm run ears` lists in its exclusion register                                                                                                                                                                                                                                                                         |
+| `@SEC-10`  | Every Rule tagged `@sec-<id>`, the evidence the security model audit reads                                                                                                                                                                                                                                                                                                                     |
+| `@ARCH-04` | The features specifying the default retry, circuit breaker, deduplication, rate limiter, cache and transport                                                                                                                                                                                                                                                                                   |
+| others     | The Rule or feature whose statement matches the requirement: `@DES-08` pagination, `@SEC-02` token redaction, `@DES-04` scope and bearer, `@DES-01` undeclared fields kept, `@ARCH-07` error guards, `@ARCH-08` construction surfaces, `@ARCH-09` the client logger, `@ARCH-10` the `./sde/memory` entry, `@ARCH-11` the SDE errors, `@ARCH-12` SDE ingestion and `@ARCH-13` its failure Rules |
 
 Charter tags are upper case, so they never collide with the security model's
 `@sec-<id>` tags or bead tags. A feature no requirement covers is listed under
 `unchartedFeatures` in `scripts/spec/spec-audit-exceptions.json`, with the
 reason in the file's comment. That list ratchets like `unconverted`: it gains
 no entry against the integration branch, each entry must name an existing
-feature, and an entry whose feature gains a charter tag must come out. Two
-features are on it today: `sde/0007-sde-error-handling.feature` (the SDE error
-classes) and `sde/0023-sde-ingestion.feature` (the downloader, extractor and
-database builder), which no requirement names.
+feature, and an entry whose feature gains a charter tag must come out. It is
+empty: the two SDE features once on it, the error classes and ingestion, are
+covered by ARCH-11 to ARCH-13 since 2026-10-12.
 
 `npm run bdd:report` copies each scenario's charter tags (Feature, Rule and
 Scenario, merged) into `reports/bdd/scenarios.json`, so a passing scenario can

@@ -1,6 +1,6 @@
 import * as sde from '../../../src/sde/index';
 
-describe('src/sde/index barrel export', () => {
+describe('ARCH-11: src/sde/index barrel export', () => {
   it('should export SdeDataProvider', () => {
     expect(sde.SdeDataProvider).toBeDefined();
   });

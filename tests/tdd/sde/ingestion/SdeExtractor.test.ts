@@ -18,7 +18,7 @@ function createTestZip(files: Record<string, unknown>): string {
   return zipPath;
 }
 
-describe('SdeExtractor', () => {
+describe('ARCH-12: SdeExtractor', () => {
   let extractor: SdeExtractor;
   const tempFiles: string[] = [];
 
