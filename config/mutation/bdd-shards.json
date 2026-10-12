@@ -1,7 +1,7 @@
 {
   "$comment": "How the BDD-only mutation run (config/mutation/stryker.bdd.config.mjs) is split across jobs. One unsharded run mutates every file in src/ against the BDD suite alone and does not finish: its first and only attempt was killed at 30 minutes (nightly-mutation.yml, 2026-09-17), so config/mutation/bdd-thresholds.json could not be seeded until the sharded run first completed (2026-09-19). Each shard here is a set of directories; nightly-mutation.yml runs one job per shard and merges the reports before the ratchet, so the gate still sees one score per directory.",
   "$invariant": "The shards partition src/: every TypeScript file under it belongs to exactly one shard. src/sde has its own shard (Track S Run 2) so its directories are scored, ratcheted and restored on their own. tests/tdd/mutation-ratchet/bddShards.test.ts fails on a file claimed twice or not at all, so a shard boundary cannot quietly drop a directory from the run. The exclusions in config/mutation/stryker.bdd.config.mjs apply to every shard alike, so the union of the shards mutates exactly what the unsharded glob did.",
-  "$balance": "Balanced on 2026-10-07 so each shard should finish inside 30 minutes, because GitHub reclaims long-running runners (\"The runner has received a shutdown signal\") often enough that the 37-138 minute shards before it lost one most nights. Method: Stryker's instrumenter counted each file's mutants (StringLiteral excluded, as in stryker.bdd.config.mjs), each file was weighted by its old shard's observed minutes per mutant (2026-10-04 to 10-07 nightlies: core 10-15 per 100, rest 11, sde 4.4, clients 2.5, schemas 1.6), and the files were packed into shards of about 22 minutes. A heavy file gets a shard of its own. Each original area keeps its old name as the catch-all shard: it includes the area's directories and excludes what the split-out shards claim, so a new file lands in it rather than in no shard. Known over budget: src/core/rateLimiter/RateLimiter.ts alone (402 mutants, estimated 54 minutes) is the core-rate-limiter shard; one file cannot be split by directory, so it stays a single long shard. Re-balance from the job durations in nightly-mutation.yml when a shard drifts past 30 minutes.",
+  "$balance": "Balanced on 2026-10-07 so each shard should finish inside 30 minutes, because GitHub reclaims long-running runners (\"The runner has received a shutdown signal\") often enough that the 37-138 minute shards before it lost one most nights. Method: Stryker's instrumenter counted each file's mutants (StringLiteral excluded, as in stryker.bdd.config.mjs), each file was weighted by its old shard's observed minutes per mutant (2026-10-04 to 10-07 nightlies: core 10-15 per 100, rest 11, sde 4.4, clients 2.5, schemas 1.6), and the files were packed into shards of about 22 minutes. A heavy file gets a shard of its own. Each original area keeps its old name as the catch-all shard: it includes the area's directories and excludes what the split-out shards claim, so a new file lands in it rather than in no shard. Known over budget: src/core/rateLimiter/RateLimiter.ts alone (402 mutants, estimated 54 minutes) is the core-rate-limiter shard; one file cannot be split by directory, so it stays a single long shard. Re-balance from the job durations in nightly-mutation.yml when a shard drifts past 30 minutes. A shard may set `concurrency` below the default 6 when its runner runs out of memory: core-root-1 and core-request-pipeline were killed every night from 2026-10-05 (SIGKILL in Stryker's child processes, 15-51 minutes in, #587) and run 3 test runners.",
   "shards": [
     {
       "name": "core-endpoints-client",
@@ -40,7 +40,8 @@
         "src/core/requestPipeline/middlewareBridge.ts",
         "src/core/requestPipeline/paginationOrchestration.ts",
         "src/core/requestPipeline/statusHandling.ts"
-      ]
+      ],
+      "concurrency": 3
     },
     {
       "name": "core-rate-limiter",
@@ -116,7 +117,11 @@
     },
     {
       "name": "core-root-1",
-      "include": ["src/core/ApiRequestHandler.ts", "src/core/EsiDiagnostics.ts"]
+      "include": [
+        "src/core/ApiRequestHandler.ts",
+        "src/core/EsiDiagnostics.ts"
+      ],
+      "concurrency": 3
     },
     {
       "name": "core-root-2",

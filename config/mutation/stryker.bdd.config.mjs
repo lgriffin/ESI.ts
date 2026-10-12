@@ -62,6 +62,17 @@ if (shardName && !shard) {
   );
 }
 
+// Checked here as well as in parseShards (mutation-merge-core.ts), which
+// only runs at merge time: a bad value must fail the shard job itself.
+if (
+  shard?.concurrency !== undefined &&
+  (!Number.isInteger(shard.concurrency) || shard.concurrency < 1)
+) {
+  throw new Error(
+    `config/mutation/bdd-shards.json shard ${shard.name} has a 'concurrency' that is not a positive integer.`,
+  );
+}
+
 /** A shard entry as a Stryker glob: a `.ts` entry is one file, else a directory. */
 function globFor(entry) {
   return entry.endsWith('.ts') ? entry : `${entry}/**/*.ts`;
@@ -118,7 +129,9 @@ export default {
   },
   // No global break: the gate is per directory, in config/mutation/bdd-thresholds.json.
   thresholds: { high: 80, low: 60, break: null },
-  concurrency: 6,
+  // A shard may lower this in bdd-shards.json: ApiRequestHandler's mutants
+  // ran the runner out of memory at 6 (#587).
+  concurrency: shard?.concurrency ?? 6,
   timeoutMS: 30000,
   tempDirName: shard ? `.stryker-tmp-bdd-${shard.name}` : '.stryker-tmp-bdd',
   cleanTempDir: true,

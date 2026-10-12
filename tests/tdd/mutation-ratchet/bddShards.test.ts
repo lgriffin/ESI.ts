@@ -156,6 +156,34 @@ describe('parseShards', () => {
       ),
     ).toThrow(/names the shard a twice/);
   });
+
+  it('keeps a shard concurrency and rejects one that is not a positive integer', () => {
+    expect(
+      parseShards(
+        '{"shards":[{"name":"a","include":["src"],"concurrency":3}]}',
+        SHARDS_FILE,
+      )[0].concurrency,
+    ).toBe(3);
+    for (const bad of ['0', '2.5', '"3"']) {
+      expect(() =>
+        parseShards(
+          `{"shards":[{"name":"a","include":["src"],"concurrency":${bad}}]}`,
+          SHARDS_FILE,
+        ),
+      ).toThrow(/'concurrency' that is not a positive integer/);
+    }
+  });
+
+  it('runs the shards that ran out of memory with fewer test runners', () => {
+    const byName = new Map(
+      parseShards(
+        readFileSync(path.join(ROOT, SHARDS_FILE), 'utf8'),
+        SHARDS_FILE,
+      ).map((s) => [s.name, s]),
+    );
+    expect(byName.get('core-root-1')?.concurrency).toBe(3);
+    expect(byName.get('core-request-pipeline')?.concurrency).toBe(3);
+  });
 });
 
 describe('mergeShardReports', () => {

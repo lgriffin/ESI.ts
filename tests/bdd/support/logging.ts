@@ -101,3 +101,67 @@ export function loggedText(logger: RecordingLogger): string[] {
     ...stringsIn(line.context),
   ]);
 }
+
+/** The console methods `createConsoleLogger` writes to. */
+export type ConsoleStream = 'log' | 'warn' | 'error';
+
+/** The stream names the console scenarios use, by the method behind each. */
+export const CONSOLE_STREAMS: Readonly<Record<string, ConsoleStream>> = {
+  'standard output': 'log',
+  'the warning stream': 'warn',
+  'the error stream': 'error',
+};
+
+export type ConsoleCapture = Record<ConsoleStream, string[]>;
+
+/**
+ * Records what reaches console.log, console.warn and console.error instead of
+ * printing it, until `restore` runs. The scenario registers `restore` as a
+ * cleanup, so the console is back before the next scenario starts.
+ */
+export function captureConsole(): {
+  lines: ConsoleCapture;
+  restore: () => void;
+} {
+  const lines: ConsoleCapture = { log: [], warn: [], error: [] };
+  const record =
+    (stream: ConsoleStream) =>
+    (...args: unknown[]): void => {
+      lines[stream].push(args.map(String).join(' '));
+    };
+  const logSpy = jest.spyOn(console, 'log').mockImplementation(record('log'));
+  const warnSpy = jest
+    .spyOn(console, 'warn')
+    .mockImplementation(record('warn'));
+  const errorSpy = jest
+    .spyOn(console, 'error')
+    .mockImplementation(record('error'));
+  return {
+    lines,
+    restore: () => {
+      logSpy.mockRestore();
+      warnSpy.mockRestore();
+      errorSpy.mockRestore();
+    },
+  };
+}
+
+/** Every line the console received, on any stream. */
+export function allConsoleLines(lines: ConsoleCapture): string[] {
+  return [...lines.log, ...lines.warn, ...lines.error];
+}
+
+/**
+ * Sets ESI_LOG_LEVEL (or deletes it, for `undefined`) and returns the cleanup
+ * that puts back whatever the process had before.
+ */
+export function withLogLevelEnv(value: string | undefined): () => void {
+  const had = Object.hasOwn(process.env, 'ESI_LOG_LEVEL');
+  const previous = process.env.ESI_LOG_LEVEL;
+  if (value === undefined) delete process.env.ESI_LOG_LEVEL;
+  else process.env.ESI_LOG_LEVEL = value;
+  return () => {
+    if (had) process.env.ESI_LOG_LEVEL = previous;
+    else delete process.env.ESI_LOG_LEVEL;
+  };
+}
