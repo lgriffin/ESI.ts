@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.0.0](https://github.com/lgriffin/ESI.ts/compare/v11.3.0...v12.0.0) (2026-10-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **schemas:** these methods resolve to ESI's envelope, not an array: getCharacterAccessLists -> { access_lists: [{ id }] }, getMercenaryDens -> { mercenary_dens: [{ id, planet_id }] }, getMercenaryTacticalOperations -> { operations: [{ id, mercenary_den_id }] }, getSovereigntyHubs -> { sovereignty_hubs: [{ id, solar_system_id }] }, getOrbitalSkyhooks -> { skyhooks: [{ id, planet_id }] }. Read the list from that property. getAccessList returns id, name, description and membership (alliances, corporations, characters with an access level) instead of access_list_id and entries; AccessListEntry, AccessListEntrySchema and TestDataFactory.createAccessListEntry are removed (use createAccessList). Den detail evolution levels are { amount, level: 'Level0'..'Level4' } instead of { level: number, progress }. Hub detail resources are { available, allocated } instead of { available?, used? }, reagents carry burning_per_hour and workforce_transport carries configuration and state. SKINR layout slots carry id and configuration. The old shapes never matched a real response.
+
+### Fixed
+
+* **schemas:** match the list and detail schemas to ESI at the client's date ([8c17a06](https://github.com/lgriffin/ESI.ts/commit/8c17a06f582901e288c49abfd05d00b0439b589a))
+* **spec:** default the drift check to the client's compatibility date ([46c1527](https://github.com/lgriffin/ESI.ts/commit/46c15274eef6d5e7930f7cabefc4d48146fb7da8)), closes [#633](https://github.com/lgriffin/ESI.ts/issues/633)
+
+
+### Changed
+
+* **deps:** refresh dev tooling and zod lockfile before 12.0 ([fd6e44d](https://github.com/lgriffin/ESI.ts/commit/fd6e44d5d86143df7fe966bfea8359a2d5e60912))
+
+
+### Documentation
+
+* bring the guides up to date for 12.0.0 ([f2d7473](https://github.com/lgriffin/ESI.ts/commit/f2d74732fe2d0f9518b35ab076bfe273eb62f713))
+* **charter:** add requirements for the SDE errors and ingestion ([183ed56](https://github.com/lgriffin/ESI.ts/commit/183ed569ee464b23f410117a6596964b01f53b36)), closes [#640](https://github.com/lgriffin/ESI.ts/issues/640)
+* **charter:** correct the error tree, node floor, entry points and tier counts ([48dcfbc](https://github.com/lgriffin/ESI.ts/commit/48dcfbc8770171284799374fe8367e85f3640232)), closes [#631](https://github.com/lgriffin/ESI.ts/issues/631) [#632](https://github.com/lgriffin/ESI.ts/issues/632)
+* **charter:** refresh the unit suite count after merging master ([c2afc7c](https://github.com/lgriffin/ESI.ts/commit/c2afc7c56aae6327867e11b5c3a10dd0da80cc81))
+* **clients:** describe the list envelopes on the changed methods ([214f21c](https://github.com/lgriffin/ESI.ts/commit/214f21ceddbba28d56eb6eaa47fd86ecbbc089e2))
+* **readme:** describe the release line in words that hold before and after 12.0 ([1a40ef9](https://github.com/lgriffin/ESI.ts/commit/1a40ef93ca662ae5ff6e2cc200c610f1a0e8856c))
+* **security:** stop listing 9.x as supported ([f5ab024](https://github.com/lgriffin/ESI.ts/commit/f5ab0247c4d1b2f9fd3ff5989e6a9950d95cdcc0))
+
+
+### Testing
+
+* **bdd:** reject a charter tag written in the wrong case ([186c6be](https://github.com/lgriffin/ESI.ts/commit/186c6be780dfbd6d50b009b5c15fde753e56d90e)), closes [#640](https://github.com/lgriffin/ESI.ts/issues/640)
+* **bdd:** specify the console logger ([e74022c](https://github.com/lgriffin/ESI.ts/commit/e74022cfda907cc98df784e23de986058574f696)), closes [#587](https://github.com/lgriffin/ESI.ts/issues/587)
+* **bdd:** tag each feature with the charter requirement it verifies ([2de37bc](https://github.com/lgriffin/ESI.ts/commit/2de37bc11621cb4f828aa6f1384fbbeb13e5b8d9)), closes [#640](https://github.com/lgriffin/ESI.ts/issues/640)
+* **charter:** back the nine unverified rows with tests and a protection check ([1550df3](https://github.com/lgriffin/ESI.ts/commit/1550df3a1f215a82f1c76ea0597529940da3d40e)), closes [#634](https://github.com/lgriffin/ESI.ts/issues/634)
+* **charter:** close the gaps review found in the protection and ARCH-03 checks ([25e6773](https://github.com/lgriffin/ESI.ts/commit/25e67736e279b80a725558baac0925f2359dd84a))
+* **charter:** fail missing cited tests, commented-out titles and bad labels ([ff996c0](https://github.com/lgriffin/ESI.ts/commit/ff996c03f02566a83c7daae27c72ff0da089ea1c)), closes [#639](https://github.com/lgriffin/ESI.ts/issues/639)
+* **charter:** name the requirement each test verifies ([750d5b6](https://github.com/lgriffin/ESI.ts/commit/750d5b65fb5ac9bdeeaeb4a610c63e39064b3c86)), closes [#639](https://github.com/lgriffin/ESI.ts/issues/639)
+* **mutation:** reject a bad shard concurrency in the shard job itself ([79df982](https://github.com/lgriffin/ESI.ts/commit/79df982c894001fecdd6e8da0be6d18075adc2df))
+* **mutation:** unblock the nightly mutation run ([4100565](https://github.com/lgriffin/ESI.ts/commit/4100565c5a11b8ea5edabd4641dd54eb896d59db)), closes [#587](https://github.com/lgriffin/ESI.ts/issues/587)
+* types:report writes one record per type test file. ([475b331](https://github.com/lgriffin/ESI.ts/commit/475b331381b0581e32e134e472e60ef17acf40a7))
+
 ## [11.3.0](https://github.com/lgriffin/ESI.ts/compare/v11.2.0...v11.3.0) (2026-10-10)
 
 
