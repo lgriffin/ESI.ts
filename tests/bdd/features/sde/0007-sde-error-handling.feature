@@ -1,3 +1,4 @@
+@ARCH-11
 Feature: SDE Error Handling
   The SDE layer raises a small family of errors that all descend from
   SdeError: SdeDatabaseError for storage faults, SdeValidationError for

@@ -6,7 +6,7 @@ import {
   transformRecordNative,
 } from '../../../../src/sde/ingestion/transforms';
 
-describe('extractLocale', () => {
+describe('ARCH-12: extractLocale', () => {
   it('should return en locale from a locale map', () => {
     expect(extractLocale({ en: 'Tritanium', de: 'Tritanium' })).toBe(
       'Tritanium',

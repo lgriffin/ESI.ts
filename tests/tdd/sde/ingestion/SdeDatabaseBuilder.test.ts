@@ -281,7 +281,7 @@ function createParsedFile(
     ]);
   });
 
-  describe('schema', () => {
+  describe('ARCH-12: schema', () => {
     type Column = { name: string; type: string; pk: number };
 
     function build(parsedFiles: ParsedSdeFile[]): void {
@@ -389,7 +389,7 @@ function createParsedFile(
     });
   });
 
-  describe('failures', () => {
+  describe('ARCH-13: failures', () => {
     it('wraps a database that cannot be opened in SdeDatabaseError', () => {
       const missing = path.join(
         os.tmpdir(),

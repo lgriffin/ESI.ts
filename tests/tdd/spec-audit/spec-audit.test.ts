@@ -307,7 +307,7 @@ describe('spec-audit', () => {
       ).toEqual([gone]);
     });
 
-    it('names only features that exist and carry no charter tag in the committed list', () => {
+    it('keeps the committed list empty, every feature naming its requirement', () => {
       const { unchartedFeatures } = loadExceptions();
       const problems = checkUnchartedList(
         unchartedFeatures,
@@ -315,7 +315,7 @@ describe('spec-audit', () => {
         new Set(),
       );
 
-      expect(unchartedFeatures.length).toBeGreaterThan(0);
+      expect(unchartedFeatures).toEqual([]);
       expect(problems.dangling).toEqual([]);
     });
   });

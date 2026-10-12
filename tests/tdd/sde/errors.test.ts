@@ -9,7 +9,7 @@ import {
   isSdeVersionMismatch,
 } from '../../../src/sde/errors';
 
-describe('SDE Error Classes', () => {
+describe('ARCH-11: SDE error classes', () => {
   describe('SdeError', () => {
     it('should create with correct name and message', () => {
       const err = new SdeError('test error');
@@ -66,7 +66,7 @@ describe('SDE Error Classes', () => {
   });
 });
 
-describe('SDE Type Guards', () => {
+describe('ARCH-11: SDE type guards', () => {
   const sdeError = new SdeError('base');
   const dbError = new SdeDatabaseError('db');
   const valError = new SdeValidationError('Type', 'err');

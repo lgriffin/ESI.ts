@@ -14,7 +14,7 @@ function mockFetch(impl: typeof fetch): void {
   global.fetch = jest.fn(impl) as typeof fetch;
 }
 
-describe('SdeDownloader', () => {
+describe('ARCH-13: SdeDownloader', () => {
   const downloader = new SdeDownloader();
 
   describe('getLatestBuild', () => {

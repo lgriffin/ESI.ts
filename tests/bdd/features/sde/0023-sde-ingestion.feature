@@ -1,3 +1,4 @@
+@ARCH-12
 Feature: SDE Ingestion
   The ingestion pipeline turns CCP's published export into what the provider
   loads: the downloader finds the latest build and fetches the archive, the
@@ -26,6 +27,7 @@ Feature: SDE Ingestion
       When I ask the downloader for the latest build
       Then the build number shall be "2026-09-15.1"
 
+  @ARCH-13
   Rule: If the latest-build feed holds no line with text on it, then the SdeDownloader shall throw an SdeError saying the response held no data.
     An empty feed names no build at all. Reading it as one would hand a
     caller a build number of "undefined" to compare against.
@@ -35,6 +37,7 @@ Feature: SDE Ingestion
       When I ask the downloader for the latest build
       Then the call shall fail with an SDE error naming "SDE build info response contained no data"
 
+  @ARCH-13
   Rule: If the latest-build feed answers with an HTTP error status, then the SdeDownloader shall throw an SdeError naming the status.
     A feed outage must not read as "no new build"; the error names the
     status so an operator can tell a CCP outage from a bug.
@@ -55,6 +58,7 @@ Feature: SDE Ingestion
       And the downloaded file shall hold the bytes that were served
       And the last progress report shall be 4096 of 4096 bytes
 
+  @ARCH-13
   Rule: If the archive download answers with an HTTP error status, then the SdeDownloader shall throw an SdeError naming the status.
     A failed download leaves no partial archive behind that a later step
     might try to read; the error names the status.
@@ -64,6 +68,7 @@ Feature: SDE Ingestion
       When I download the archive to a temporary file
       Then the call shall fail with an SDE error naming "HTTP 404"
 
+  @ARCH-13
   Rule: If the archive download answers with no body, then the SdeDownloader shall throw an SdeError saying the response body is empty.
     A success status with nothing to stream would otherwise leave an empty
     file where the archive should be.
@@ -83,6 +88,7 @@ Feature: SDE Ingestion
       Then the downloaded file shall hold 4096 bytes
       And no progress report shall have been made
 
+  @ARCH-13
   Rule: If the caller aborts the archive download, then the SdeDownloader shall throw an SdeError naming the abort.
     The archive is large, so a caller passes an AbortSignal to give up on a
     slow download. The signal reaches the request itself.
@@ -92,6 +98,7 @@ Feature: SDE Ingestion
       When I download the archive and abort it after 20 ms
       Then the call shall fail with an SDE error naming "This operation was aborted"
 
+  @ARCH-13
   Rule: If the archive cannot be written to the output path, then the SdeDownloader shall throw an SdeError naming the write failure.
     A missing or read-only directory is found only when the first byte is
     written. The error says it was the write that failed, not the download.
@@ -114,6 +121,7 @@ Feature: SDE Ingestion
       Then the build number shall be "2026-09-15.1"
       And the release date shall be "2026-09-15"
 
+  @ARCH-13
   Rule: If an archive holds no _sde.yaml, then the SdeExtractor shall throw an SdeError naming the file.
     An archive without metadata is not CCP's export; refusing it early
     beats loading tables with no build to attribute them to.
@@ -284,6 +292,7 @@ Feature: SDE Ingestion
       When I build a SQLite database from the archive
       Then the progress reports for "eve_types" shall be "1000 of 1001, 1001 of 1001"
 
+  @ARCH-13
   Rule: If a record cannot be stored, then the SdeDatabaseBuilder shall throw an SdeDatabaseError naming the table and the record's ID.
     A record that breaks its table's types fails the whole build. The error
     names where the bad record is, so it can be found in a file of
@@ -295,6 +304,7 @@ Feature: SDE Ingestion
       When I build a SQLite database from the archive
       Then the call shall fail with an SDE database error naming "Failed to insert into eve_types (id=34)"
 
+  @ARCH-13
   Rule: If the database file cannot be created, then the SdeDatabaseBuilder shall throw an SdeDatabaseError saying the build failed.
     SQLite's own error is kept as the cause. The message says it was the
     database build, not the download or the parse, that failed.
