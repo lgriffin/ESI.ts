@@ -123,15 +123,15 @@ A decision procedure, in order:
 5. **Otherwise** it is Ubiquitous. Use these sparingly — an unconditional
    requirement is usually a sign the condition has been left implicit.
 
-The current distribution across the 327 requirements, for calibration:
+The distribution across the 619 requirements on 2026-10-12, for calibration:
 
 | Pattern            | Count |
 | :----------------- | ----: |
-| `When`             |   228 |
-| `If`               |    71 |
-| `The` (ubiquitous) |    16 |
-| `While`            |     8 |
-| `Where`            |     4 |
+| `When`             |   372 |
+| `If`               |   186 |
+| `Where`            |    21 |
+| `The` (ubiquitous) |    20 |
+| `While`            |    20 |
 
 `When` dominating is expected for a client wrapper — most requirements describe
 what a call returns. If you are writing a `While` or a `Where`, check the

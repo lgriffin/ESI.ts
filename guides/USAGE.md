@@ -49,7 +49,7 @@ const marketClient = EsiApiFactory.createClient('market', {
 const prices = await marketClient.getMarketPrices();
 ```
 
-**Deprecated in 11.0.0:** `EsiApiFactory`'s nine named methods (`createMarketClient`, `createWalletClient` and the rest) and `EsiTokenManager.createClient`. They still work; removal is 12.0.0 at the earliest. Use `createEsi()` from `@lgriffin/esi.ts/client` and `esi.public` or `esi.as(identity)` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)), or `EsiApiFactory.createClient(type)` to stay on the legacy clients.
+**Deprecated in 11.0.0:** `EsiApiFactory`'s nine named methods (`createMarketClient`, `createWalletClient` and the rest) and `EsiTokenManager.createClient`. They still work, and 12.0.0 keeps them; removal is 13.0.0 at the earliest. Use `createEsi()` from `@lgriffin/esi.ts/client` and `esi.public` or `esi.as(identity)` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)), or `EsiApiFactory.createClient(type)` to stay on the legacy clients.
 
 Call `shutdown()` when you are done with a client. It stops the cache sweep timer and the circuit-breaker cleanup timer, so a script can exit. It is synchronous.
 
@@ -126,7 +126,7 @@ Every domain is a property on `EsiClient`. Auth is **Yes** when every method nee
 
 | Domain             | Property                     | Auth | For example                                                                           |
 | ------------------ | ---------------------------- | ---- | ------------------------------------------------------------------------------------- |
-| Access Lists       | `client.accessLists`         | Yes  | `getAccessList(id)`                                                                   |
+| Access Lists       | `client.accessLists`         | Yes  | `getCharacterAccessLists(charId)`, `getAccessList(charId, listId)`                    |
 | Alliance           | `client.alliance`            | Some | `getAlliances()`, `getAllianceById(id)`                                               |
 | Assets             | `client.assets`              | Yes  | `getCharacterAssets(id)`                                                              |
 | Calendar           | `client.calendar`            | Yes  | `getCalendarEvents(id)`                                                               |
@@ -368,3 +368,28 @@ npm run example:sde-basic
   - The default compatibility date is 2026-08-18.
   - Several schemas now match what ESI sends: raidable skyhooks, military campaigns, and `meta.getChangelog`, which returns `{ changelog }`.
   - A path parameter of `.` or `..` is rejected.
+
+## 10. What 12.0.0 changes
+
+12.0.0 has one breaking change: five list methods, and the detail schemas next to them, now match what ESI sends at the compatibility date (2026-08-18). The old shapes never matched a real response, so code written against them failed validation on every call; if your code worked on 11.x it did not call these methods. [CHANGELOG.md](../CHANGELOG.md) has the full entry. Nothing else is removed, and the Node floor is unchanged.
+
+- **Five list methods return ESI's envelope, not an array.** Read the list from the named property:
+
+  | Method                                             | 12.0 resolves to                                  |
+  | -------------------------------------------------- | ------------------------------------------------- |
+  | `accessLists.getCharacterAccessLists(charId)`      | `{ access_lists: [{ id }] }`                      |
+  | `mercenary.getMercenaryDens(charId)`               | `{ mercenary_dens: [{ id, planet_id }] }`         |
+  | `mercenary.getMercenaryTacticalOperations(charId)` | `{ operations: [{ id, mercenary_den_id }] }`      |
+  | `skyhooks.getSovereigntyHubs(corpId)`              | `{ sovereignty_hubs: [{ id, solar_system_id }] }` |
+  | `skyhooks.getOrbitalSkyhooks(corpId)`              | `{ skyhooks: [{ id, planet_id }] }`               |
+
+  ```ts
+  const { mercenary_dens } =
+    await client.mercenary.getMercenaryDens(characterId);
+  for (const den of mercenary_dens)
+    log.info(`den ${den.id} on planet ${den.planet_id}`);
+  ```
+
+- **`getAccessList(characterId, accessListId)`** returns `id`, `name`, `description` and `membership` (`allow_everyone`, plus `alliances`, `corporations` and `characters`, each with an `access` level) instead of `access_list_id` and `entries`. `AccessListEntry`, `AccessListEntrySchema` and `TestDataFactory.createAccessListEntry` are removed; use `AccessList`, `AccessListSchema` and `createAccessList`.
+- **Detail shapes.** Mercenary den evolution levels are `{ amount, level }` with `level` one of `'Level0'` to `'Level4'`, instead of `{ level: number, progress }`. Sovereignty hub resources are `{ available, allocated }` instead of `{ available?, used? }`; reagents carry `burning_per_hour`, and `workforce_transport` carries `configuration` and `state`. SKINR layout slots carry `id` and `configuration`.
+- **Still deprecated, not removed.** `EsiApiFactory`'s nine named methods and `EsiTokenManager.createClient` keep working in 12.0.0; removal is 13.0.0 at the earliest.
