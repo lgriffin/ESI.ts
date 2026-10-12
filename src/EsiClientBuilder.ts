@@ -253,7 +253,7 @@ export class CustomEsiClient {
  *
  * The nine named `create*Client` methods are deprecated since 11.0.0 in
  * favour of `createEsi` and `esi.as(identity)` from `@lgriffin/esi.ts/client`,
- * and are removed no earlier than 12.0.0. {@link EsiApiFactory.createClient}
+ * and are removed no earlier than 13.0.0. {@link EsiApiFactory.createClient}
  * is not deprecated.
  *
  * @example
@@ -272,7 +272,7 @@ export class EsiApiFactory {
   /**
    * A standalone `AllianceClient` on its own `ApiClient`.
    *
-   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * @deprecated Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
    * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
    * once, then `esi.public` for public operations and `esi.as(identity)` for
    * authenticated ones. For an alliance's public record:
@@ -290,7 +290,7 @@ export class EsiApiFactory {
   /**
    * A standalone `CharacterClient` on its own `ApiClient`.
    *
-   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * @deprecated Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
    * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
    * once, then `esi.public` for public operations and `esi.as(identity)` for
    * authenticated ones. For a character's public record:
@@ -308,7 +308,7 @@ export class EsiApiFactory {
   /**
    * A standalone `CorporationsClient` on its own `ApiClient`.
    *
-   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * @deprecated Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
    * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
    * once, then `esi.public` for public operations and `esi.as(identity)` for
    * authenticated ones. For a corporation's public record:
@@ -326,7 +326,7 @@ export class EsiApiFactory {
   /**
    * A standalone `MarketClient` on its own `ApiClient`.
    *
-   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * @deprecated Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
    * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
    * once, then `esi.public` for public operations and `esi.as(identity)` for
    * authenticated ones. For a region's sell orders, every page followed:
@@ -344,7 +344,7 @@ export class EsiApiFactory {
   /**
    * A standalone `UniverseClient` on its own `ApiClient`.
    *
-   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * @deprecated Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
    * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
    * once, then `esi.public` for public operations and `esi.as(identity)` for
    * authenticated ones. For a type:
@@ -362,7 +362,7 @@ export class EsiApiFactory {
   /**
    * A standalone `FleetClient` on its own `ApiClient`.
    *
-   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * @deprecated Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
    * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
    * once, then `esi.public` for public operations and `esi.as(identity)` for
    * authenticated ones. For a fleet, as its member:
@@ -380,7 +380,7 @@ export class EsiApiFactory {
   /**
    * A standalone `AssetsClient` on its own `ApiClient`.
    *
-   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * @deprecated Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
    * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
    * once, then `esi.public` for public operations and `esi.as(identity)` for
    * authenticated ones. For a character's assets:
@@ -398,7 +398,7 @@ export class EsiApiFactory {
   /**
    * A standalone `WalletClient` on its own `ApiClient`.
    *
-   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * @deprecated Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
    * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
    * once, then `esi.public` for public operations and `esi.as(identity)` for
    * authenticated ones. For a character's wallet balance:
@@ -416,7 +416,7 @@ export class EsiApiFactory {
   /**
    * A standalone `MailClient` on its own `ApiClient`.
    *
-   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * @deprecated Since 11.0.0; removal is 13.0.0 at the earliest (12.0.0 keeps them). Use the
    * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
    * once, then `esi.public` for public operations and `esi.as(identity)` for
    * authenticated ones. For a character's mail headers:

@@ -33,9 +33,10 @@ Response validation replaces the body with `safeParse().data`. A strict `z.objec
 import { z } from 'zod';
 import { esiEnum } from './esiEnum';
 
-export const AccessListEntrySchema = z.looseObject({
-  entity_id: z.number(),
-  entity_type: esiEnum(['character', 'corporation', 'alliance']),
+export const StandingSchema = z.looseObject({
+  from_id: z.number(),
+  from_type: esiEnum(['agent', 'npc_corp', 'faction']),
+  standing: z.number(),
 });
 ```
 

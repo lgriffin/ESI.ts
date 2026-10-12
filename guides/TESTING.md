@@ -237,7 +237,7 @@ tests/
     helpers/           describeClientErrors and shared test utilities
   bdd/
     features/          the .feature files: core/, integration/, performance/, sde/
-    specs/             43 spec entries: 42 converted domains, plus step-library.spec.ts (the dry run)
+    specs/             47 spec entries: 23 core and 23 SDE features, plus step-library.spec.ts (the dry run)
     steps/             given/ when/ then/, one step per file
     step-definitions/  31 legacy defineFeature files, shrink-only (legacyStepFiles)
     support/           binder, transport seam, World, per-domain fixtures
@@ -536,7 +536,7 @@ The Given queues what ESI sends back; the When calls the real client method; the
 
 ### The legacy step-file migration
 
-Each feature file is run by exactly one of two things, and the audit fails a feature with neither or both. Sixteen domains are converted to spec entries and the global step library (`tests/bdd/specs/core/`, 16 files, plus `step-library.spec.ts`, the dry run). The other 38 features still run through legacy `defineFeature` files in `tests/bdd/step-definitions/`, each listed in `legacyStepFiles` in `scripts/spec/spec-audit-exceptions.json`. That list ratchets against the integration branch: it gains no entry, every entry must exist, and a legacy file not on it fails the audit. Converting a domain moves each step into its own file, moves fixtures and paths into `tests/bdd/support/<domain>.ts`, adds the spec entry, deletes the legacy file and removes its line from the list. The `unconverted` list in the same file, for features not yet in Rule form, is empty.
+Each feature file is run by exactly one of two things, and the audit fails a feature with neither or both. Twenty-three core features are converted to spec entries and the global step library (`tests/bdd/specs/core/`, 23 files, plus `step-library.spec.ts`, the dry run); the 23 SDE features in `tests/bdd/specs/sde/` were written that way. The other 31 features still run through legacy `defineFeature` files in `tests/bdd/step-definitions/`, each listed in `legacyStepFiles` in `scripts/spec/spec-audit-exceptions.json`. That list ratchets against the integration branch: it gains no entry, every entry must exist, and a legacy file not on it fails the audit. Converting a domain moves each step into its own file, moves fixtures and paths into `tests/bdd/support/<domain>.ts`, adds the spec entry, deletes the legacy file and removes its line from the list. The `unconverted` list in the same file, for features not yet in Rule form, is empty.
 
 ## Type tests
 
@@ -1205,7 +1205,7 @@ Available factory methods:
 | `createRaidableSkyhook()`              | Raidable skyhook               |
 | `createMercenaryDen()`                 | Mercenary den                  |
 | `createMercenaryTacticalOperation()`   | Mercenary tactical operation   |
-| `createAccessListEntry()`              | Access list entry              |
+| `createAccessList()`                   | Access list                    |
 | `createError(statusCode)`              | `EsiError`                     |
 | `createTestScenarios()`                | Full test scenario set         |
 | `createPerformanceTestData(size)`      | Bulk test data                 |

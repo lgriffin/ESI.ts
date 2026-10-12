@@ -83,9 +83,9 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `src/core/requestPipeline/` — the single-purpose modules `ApiRequestHandler` coordinates: headers, cache policy, status handling, fetch execution, pagination orchestration, middleware bridge, dependency resolution. Area notes in its `AGENTS.md`
 - `src/core/endpoints/` — 39 endpoint maps (`*Endpoints.ts`), `createClient()`, and the generated TTL, rate-limit-group and scope tables
 - `src/core/circuitBreaker/` — Circuit breaker implementation + `ICircuitBreaker` interface
-- `src/core/ports/` — six type-only ports (`CacheStore`, `Clock`, `HttpTransport`, `Logger`, `OperationTransport`, `TokenProvider`). They import nothing; not exported until the 11.0 builder (ROADMAP Phase 2 PR 11)
-- `src/adapters/` — `PipelineTransport`, which implements `OperationTransport` over the existing pipeline. Not exported yet
-- `src/generated/` — `operations.generated.ts`: 233 typed operations, `ScopeTree`, `PublicScopeTree` and `createScopeTree`, generated from the vendored spec. Imports only the ports. Not exported yet
+- `src/core/ports/` — seven type-only ports (`CacheStore`, `Clock`, `HttpTransport`, `Identity`, `Logger`, `OperationTransport`, `TokenProvider`). They import nothing; exported from `./client`
+- `src/adapters/` — `PipelineTransport`, which implements `OperationTransport` over the existing pipeline. Internal; `./client` wraps it
+- `src/generated/` — `operations.generated.ts`: 233 typed operations, `ScopeTree`, `PublicScopeTree` and `createScopeTree`, generated from the vendored spec. Imports only the ports. `ScopeTree` and `PublicScopeTree` are exported from `./client`
 - `src/auth/` — `EveSsoClient` (OAuth2 + PKCE), `EsiTokenManager` (multi-character tokens and refresh), `MemoryTokenStorage` / `FileTokenStorage`, auth errors
 - `src/errors.ts` — the `./errors` sub-path entry
 - `src/schemas/` — hand-written Zod v4 schemas: 36 domain modules plus `common.ts` and `esiEnum.ts`
