@@ -25,6 +25,11 @@ export interface ShardDefinition {
   name: string;
   include: string[];
   exclude?: string[];
+  /**
+   * Stryker test runners for this shard, when the default (6) runs the
+   * runner out of memory. Changes speed only, never which mutants run.
+   */
+  concurrency?: number;
 }
 
 export class MutationMergeError extends Error {}
@@ -55,7 +60,8 @@ export function parseShards(raw: string, file: string): ShardDefinition[] {
 
   const seen = new Set<string>();
   return shards.map((entry, index) => {
-    const { name, include, exclude } = entry as Partial<ShardDefinition>;
+    const { name, include, exclude, concurrency } =
+      entry as Partial<ShardDefinition>;
     if (typeof name !== 'string' || name.length === 0) {
       throw new MutationMergeError(`${file} shard ${index} has no name.`);
     }
@@ -73,10 +79,19 @@ export function parseShards(raw: string, file: string): ShardDefinition[] {
         `${file} shard ${name} has an 'exclude' that is not a list.`,
       );
     }
+    if (
+      concurrency !== undefined &&
+      (!Number.isInteger(concurrency) || concurrency < 1)
+    ) {
+      throw new MutationMergeError(
+        `${file} shard ${name} has a 'concurrency' that is not a positive integer.`,
+      );
+    }
     return {
       name,
       include: include.map(normalise),
       exclude: exclude?.map(normalise),
+      ...(concurrency === undefined ? {} : { concurrency }),
     };
   });
 }

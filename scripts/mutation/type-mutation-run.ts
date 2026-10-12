@@ -155,13 +155,25 @@ function createWorkspace(
     path.join(dir, ENTRY_POINTS_TEST),
     entryPointsTest(options, entryPoints),
   );
-  // The repository's own tsconfig is found by tsd walking up from the
-  // workspace; its relative typeRoots only resolve from the root, so it is
-  // never copied. A self-contained package (the unit-test fixture) opts in.
+  // tsd finds the repository's tsconfig by walking up from the workspace,
+  // but resolves its relative paths (typeRoots) against the workspace, so
+  // @types/node went missing once a declaration imported 'crypto' (#587).
+  // A workspace tsconfig that extends the root one resolves them from the
+  // root instead. A self-contained package (the unit-test fixture) copies
+  // its own.
   if (options.copyTsconfig) {
     cpSync(
       path.join(packageRoot, 'tsconfig.json'),
       path.join(dir, 'tsconfig.json'),
+    );
+  } else if (existsSync(path.join(packageRoot, 'tsconfig.json'))) {
+    const extendsPath = path
+      .relative(dir, path.join(packageRoot, 'tsconfig.json'))
+      .split(path.sep)
+      .join('/');
+    writeFileSync(
+      path.join(dir, 'tsconfig.json'),
+      `${JSON.stringify({ extends: extendsPath }, null, 2)}\n`,
     );
   }
 }

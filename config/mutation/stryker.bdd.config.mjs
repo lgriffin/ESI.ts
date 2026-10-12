@@ -118,7 +118,9 @@ export default {
   },
   // No global break: the gate is per directory, in config/mutation/bdd-thresholds.json.
   thresholds: { high: 80, low: 60, break: null },
-  concurrency: 6,
+  // A shard may lower this in bdd-shards.json: ApiRequestHandler's mutants
+  // ran the runner out of memory at 6 (#587).
+  concurrency: shard?.concurrency ?? 6,
   timeoutMS: 30000,
   tempDirName: shard ? `.stryker-tmp-bdd-${shard.name}` : '.stryker-tmp-bdd',
   cleanTempDir: true,
