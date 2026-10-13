@@ -183,6 +183,7 @@ describe('parseShards', () => {
     );
     expect(byName.get('core-root-1')?.concurrency).toBe(3);
     expect(byName.get('core-request-pipeline')?.concurrency).toBe(3);
+    expect(byName.get('core-rate-limiter')?.concurrency).toBe(3);
   });
 });
 
