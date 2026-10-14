@@ -134,11 +134,13 @@ Feature: SDE Ingestion
       Given the archive download serves 4096 bytes
       When I download the archive with a byte limit of "4095"
       Then the call shall fail with an SDE error naming "the export is 4096 bytes, over the 4095-byte limit"
+      And no file shall remain at the download path
 
     Scenario: A limit of zero bytes refuses any archive with content
       Given the archive download serves 4096 bytes
       When I download the archive with a byte limit of "0"
       Then the call shall fail with an SDE error naming "the export is 4096 bytes, over the 0-byte limit"
+      And no file shall remain at the download path
 
   @ARCH-13
   Rule: If an archive with no content length passes the byte limit while it streams, then the SdeDownloader shall throw an SdeError naming the limit.
@@ -149,6 +151,7 @@ Feature: SDE Ingestion
       Given the archive download serves 4096 bytes with no content length
       When I download the archive with a byte limit of "4095"
       Then the call shall fail with an SDE error naming "the download passed the 4095-byte limit before it ended"
+      And no file shall remain at the download path
 
   Rule: When the archive is no larger than the byte limit, the SdeDownloader shall write all of it.
     The limit is the largest archive allowed, not the first size refused.
@@ -268,6 +271,7 @@ Feature: SDE Ingestion
       And an empty extraction directory beside that archive
       When I try to extract the archive to that directory
       Then the extraction shall be refused with an SdeError saying "2 entries would land outside"
+      And the extraction shall be refused with an SdeError saying '(first: "../escaped.yaml")'
 
   # ── The database builder ─────────────────────────────────────────────
 

@@ -31,7 +31,7 @@ Reproduce with `npx jest --config config/jest/unit.config.cjs --coverage --colle
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Feature files                                                 | <!-- metric:featureFilesSde -->23<!-- /metric -->, all on the step library (`tests/bdd/specs/sde/`, `tests/bdd/steps/`); none on legacy `defineFeature` files              |
 | `Rule:` requirements                                          | <!-- metric:requirementsSde -->168<!-- /metric -->, one EARS `shall` each                                                                                                  |
-| Scenarios                                                     | <!-- metric:scenariosSde -->237<!-- /metric --> `Scenario`, no `Scenario Outline`                                                                                          |
+| Scenarios                                                     | <!-- metric:scenariosSde -->237<!-- /metric -->, a `Scenario Outline` counted once                                                                                         |
 | Audit result                                                  | 23 of 23 pass; `scripts/spec/spec-audit-exceptions.json` lists no SDE file                                                                                                 |
 | Method coverage (`npm run spec:coverage:sde:ci`)              | 96 of 96 `IStaticDataProvider` methods reached by a Rule or a bound step; `scripts/sde/sde-spec-coverage-baseline.json` is empty, so a method that loses its Rule fails CI |
 
