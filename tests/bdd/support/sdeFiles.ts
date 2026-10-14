@@ -248,6 +248,38 @@ export function zipSdeDirectoryInFolder(world: World, folder: string): string {
   return zipPath;
 }
 
+/** An archive of exactly these entries, each holding one line of YAML. */
+export function zipEntries(world: World, names: string[]): string {
+  const zip = new AdmZip();
+  for (const name of names) {
+    zip.addFile(name, Buffer.from(`name: ${JSON.stringify(name)}\n`));
+  }
+  const zipPath = tempPath(world, 'sde.zip');
+  zip.writeZip(zipPath);
+  world.values.sdeZip = zipPath;
+  return zipPath;
+}
+
+/** A fresh, empty directory, remembered as the extraction target. */
+export function emptyExtractionTarget(world: World): void {
+  world.values.extractDir = tempDir(world);
+}
+
+/** Every file under the extraction directory, relative and with forward slashes, sorted. */
+export function extractedFiles(world: World): string[] {
+  const root = world.values.extractDir as string;
+  const found: string[] = [];
+  const walk = (dir: string): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else found.push(path.relative(root, full).split(path.sep).join('/'));
+    }
+  };
+  walk(root);
+  return found.sort();
+}
+
 /** A fresh directory holding `name` with `content`, remembered as the extraction target. */
 export function extractionDirectoryHolding(
   world: World,
@@ -549,7 +581,11 @@ export async function fetchLatestBuild(world: World): Promise<void> {
  */
 export async function downloadArchive(
   world: World,
-  options: { outputPath?: string; abortAfterMs?: number } = {},
+  options: {
+    outputPath?: string;
+    abortAfterMs?: number;
+    maxBytes?: number;
+  } = {},
 ): Promise<void> {
   const outputPath = options.outputPath ?? tempPath(world, 'download.zip');
   world.values.downloadPath = outputPath;
@@ -565,6 +601,7 @@ export async function downloadArchive(
       outputPath,
       onProgress: (downloaded, total) => progress.push([downloaded, total]),
       signal: controller.signal,
+      ...(options.maxBytes === undefined ? {} : { maxBytes: options.maxBytes }),
     });
   } catch (err) {
     world.error = err;

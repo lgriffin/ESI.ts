@@ -104,29 +104,37 @@ function scenarioDir(world: World): string {
 }
 
 /**
- * A ZIP whose entries are named `hostile` and `benign`. adm-zip sanitises a
- * name it is asked to add, so the hostile name is written as a placeholder of
- * the same length and patched into the archive's bytes afterwards, as a
- * crafted archive from the network would carry it.
+ * A ZIP whose entries are named by `hostile` and `benign`. adm-zip sanitises
+ * a name it is asked to add, so each hostile name is written as a placeholder
+ * of the same length and patched into the archive's bytes afterwards, as a
+ * crafted archive from the network would carry it. Each placeholder uses its
+ * own letter, so two hostile names of one length stay apart.
  */
 export function writeHostileArchive(
   world: World,
-  hostile: string,
+  hostile: string | string[],
   benign: string,
 ): void {
   const root = scenarioDir(world);
-  const placeholder = 'x'.repeat(Buffer.byteLength(hostile));
+  const names = Array.isArray(hostile) ? hostile : [hostile];
+  const placeholders = names.map((name, i) =>
+    String.fromCharCode(0x71 + i).repeat(Buffer.byteLength(name)),
+  );
   const zip = new AdmZip();
-  zip.addFile(placeholder, Buffer.from('escaped: true\n'));
+  for (const placeholder of placeholders) {
+    zip.addFile(placeholder, Buffer.from('escaped: true\n'));
+  }
   zip.addFile(benign, Buffer.from('benign: true\n'));
   const bytes = zip.toBuffer();
-  const from = Buffer.from(placeholder);
-  const to = Buffer.from(hostile);
-  let at = bytes.indexOf(from);
-  while (at !== -1) {
-    to.copy(bytes, at);
-    at = bytes.indexOf(from, at + to.length);
-  }
+  names.forEach((name, i) => {
+    const from = Buffer.from(placeholders[i]!);
+    const to = Buffer.from(name);
+    let at = bytes.indexOf(from);
+    while (at !== -1) {
+      to.copy(bytes, at);
+      at = bytes.indexOf(from, at + to.length);
+    }
+  });
   const zipPath = path.join(root, 'hostile.zip');
   fs.writeFileSync(zipPath, bytes);
   world.values.securityRoot = root;
