@@ -108,6 +108,61 @@ Feature: SDE Ingestion
       When I download the archive into a directory that does not exist
       Then the call shall fail with an SDE error naming "Failed to write SDE file"
 
+  @ARCH-13
+  Rule: If the caller sets a byte limit that is not a finite, non-negative number, then the SdeDownloader shall throw an SdeError naming the limit and send no request.
+    The limit bounds how much of a remote archive is written to disk. A
+    limit of NaN or Infinity would bound nothing, so it is refused before
+    the download starts rather than read as no limit.
+
+    Scenario Outline: A byte limit of <limit> is refused before the download
+      When I download the archive with a byte limit of "<limit>"
+      Then the call shall fail with an SDE error naming "maxBytes must be a finite, non-negative number, not <limit>"
+      And no request shall have been sent
+
+      Examples:
+        | limit    |
+        | -1       |
+        | NaN      |
+        | Infinity |
+
+  @ARCH-13
+  Rule: If the archive's content length is over the byte limit, then the SdeDownloader shall throw an SdeError naming the size and the limit.
+    The default limit is 2 GiB. An export that declares itself larger is
+    refused before a byte is written.
+
+    Scenario: A 4096-byte archive is refused under a 4095-byte limit
+      Given the archive download serves 4096 bytes
+      When I download the archive with a byte limit of "4095"
+      Then the call shall fail with an SDE error naming "the export is 4096 bytes, over the 4095-byte limit"
+
+    Scenario: A limit of zero bytes refuses any archive with content
+      Given the archive download serves 4096 bytes
+      When I download the archive with a byte limit of "0"
+      Then the call shall fail with an SDE error naming "the export is 4096 bytes, over the 0-byte limit"
+
+  @ARCH-13
+  Rule: If an archive with no content length passes the byte limit while it streams, then the SdeDownloader shall throw an SdeError naming the limit.
+    A response can leave out its length, or state a false one. The bytes
+    are counted as they arrive, so the limit holds either way.
+
+    Scenario: An archive of unknown length is stopped at a 4095-byte limit
+      Given the archive download serves 4096 bytes with no content length
+      When I download the archive with a byte limit of "4095"
+      Then the call shall fail with an SDE error naming "the download passed the 4095-byte limit before it ended"
+
+  Rule: When the archive is no larger than the byte limit, the SdeDownloader shall write all of it.
+    The limit is the largest archive allowed, not the first size refused.
+
+    Scenario: A 4096-byte archive is written under a 4096-byte limit
+      Given the archive download serves 4096 bytes
+      When I download the archive with a byte limit of "4096"
+      Then the downloaded file shall hold 4096 bytes
+
+    Scenario: A 4096-byte archive of unknown length is written under a 4096-byte limit
+      Given the archive download serves 4096 bytes with no content length
+      When I download the archive with a byte limit of "4096"
+      Then the downloaded file shall hold 4096 bytes
+
   # ── The extractor ────────────────────────────────────────────────────
 
   Rule: When an archive's metadata is read, the SdeExtractor shall return the build number and release date from the _sde.yaml inside it.
@@ -177,6 +232,42 @@ Feature: SDE Ingestion
       When I extract the archive to that directory
       Then the extracted "types.yaml" shall hold the bytes of the SDE directory's copy
       And the extracted "groups.yaml" shall hold the bytes of the SDE directory's copy
+
+  Rule: When an archive whose every entry lands inside the directory is extracted, the SdeExtractor shall write each of its files there.
+    The check that refuses an escaping name must not refuse a safe one: a
+    folder entry ends in a slash, and a colon past the first character is
+    an ordinary character in a Linux or macOS file name, not a drive letter.
+
+    Scenario: An archive with its files in a folder is extracted with the folder
+      Given an SDE directory holding the raw export files
+      And a ZIP archive of that SDE directory inside a folder, with a text file beside it
+      And an empty extraction directory
+      When I extract the archive to that directory
+      Then the extraction directory shall hold "README.txt, sde/_sde.yaml, sde/groups.yaml, sde/types.yaml"
+
+    Scenario: A name with a colon after its first character is extracted
+      Given a ZIP archive holding only the entries "notes/C:types.yaml, types.yaml"
+      And an empty extraction directory
+      When I extract the archive to that directory
+      Then the extraction directory shall hold "notes/C:types.yaml, types.yaml"
+
+  @ARCH-13
+  Rule: If an archive is refused for entries that would land outside the directory, then the SdeExtractor shall name the count of those entries and the first of them.
+    One crafted name is enough to refuse the archive. The count tells an
+    operator whether it was a single bad entry or a pattern.
+
+    Scenario: One escaping entry is counted as one entry
+      Given a ZIP archive holding an entry named "../escaped.yaml" beside "types.yaml"
+      And an empty extraction directory beside that archive
+      When I try to extract the archive to that directory
+      Then the extraction shall be refused with an SdeError saying "1 entry would land outside"
+      And the extraction shall be refused with an SdeError saying "../escaped.yaml"
+
+    Scenario: Two escaping entries are counted as two entries
+      Given a ZIP archive holding entries named "../escaped.yaml" and "../climbed.yaml" beside "types.yaml"
+      And an empty extraction directory beside that archive
+      When I try to extract the archive to that directory
+      Then the extraction shall be refused with an SdeError saying "2 entries would land outside"
 
   # ── The database builder ─────────────────────────────────────────────
 

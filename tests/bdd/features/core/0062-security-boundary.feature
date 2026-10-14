@@ -46,9 +46,20 @@ Feature: Security boundary
     name against the directory the caller named before it writes anything,
     rather than relying on the installed adm-zip to sanitise them.
 
-    Scenario: An archive entry that climbs out of the output directory is refused
-      Given a ZIP archive holding an entry named "../escaped.yaml" beside "types.yaml"
+    A name can leave the directory three ways: by climbing out with "..",
+    by being absolute, or by starting with a Windows drive letter. A drive
+    letter resolves inside the directory on Linux and macOS, so only the
+    name check stops it there; the archive is refused on every platform.
+
+    Scenario Outline: An archive entry that <escapes> is refused
+      Given a ZIP archive holding an entry named "<entry>" beside "types.yaml"
       And an empty extraction directory beside that archive
       When I try to extract the archive to that directory
       Then the extraction shall be refused with an SdeError saying "would land outside"
       And no file shall have been written in or beside the extraction directory
+
+      Examples:
+        | escapes                              | entry             |
+        | climbs out of the output directory   | ../escaped.yaml   |
+        | is an absolute path                  | /tmp/escaped.yaml |
+        | starts with a Windows drive letter   | C:escaped.yaml    |
