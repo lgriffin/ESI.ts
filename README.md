@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/lgriffin/ESI.ts/master/assets/logo/esi-ts-logo-512.png" alt="ESI.ts logo" width="260">
+</p>
+
 # ESI.ts
 
 [![npm version](https://badge.fury.io/js/%40lgriffin%2Fesi.ts.svg)](https://badge.fury.io/js/%40lgriffin%2Fesi.ts)

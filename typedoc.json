@@ -65,6 +65,7 @@
     "ESI Documentation": "https://esi.evetech.net/ui/",
     "EVE Online": "https://www.eveonline.com/"
   },
+  "favicon": "docs-site/public/favicon.ico",
   "githubPages": true,
   "gitRevision": "master",
   "gitRemote": "origin",

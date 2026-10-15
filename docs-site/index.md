@@ -6,8 +6,8 @@ hero:
   text: The EVE Online ESI API, typed and validated
   tagline: A TypeScript client built as an engineered product rather than a generated wrapper. Caching, rate limiting, retry and pagination follow the rules ESI actually enforces.
   image:
-    src: /logo.svg
-    alt: ESI.ts
+    src: /logo-mark.png
+    alt: ESI.ts logo
   actions:
     - theme: brand
       text: Get started

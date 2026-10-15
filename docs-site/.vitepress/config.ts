@@ -40,7 +40,17 @@ export default defineConfig({
   // they are files to serve, not pages to build.
   srcExclude: ['public/**'],
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/ESI.ts/logo.svg' }],
+    ['link', { rel: 'icon', href: '/ESI.ts/favicon.ico', sizes: '48x48' }],
+    ['link', { rel: 'apple-touch-icon', href: '/ESI.ts/apple-touch-icon.png' }],
+    ['meta', { name: 'theme-color', content: '#03070e' }],
+    [
+      'meta',
+      {
+        property: 'og:image',
+        content:
+          'https://raw.githubusercontent.com/lgriffin/ESI.ts/master/assets/logo/esi-ts-social-preview.png',
+      },
+    ],
   ],
 
   // /api/ (TypeDoc) and /requirements/ (the EARS dashboard) are static
@@ -57,7 +67,7 @@ export default defineConfig({
   },
 
   themeConfig: {
-    logo: '/logo.svg',
+    logo: '/logo-mark.png',
 
     nav: [
       { text: 'Guide', link: '/guide/', activeMatch: '^/guide/' },
