@@ -4,6 +4,7 @@ name: EARS Requirements
 # BDD scenarios and reports one verdict per requirement (Rule). It repeats what
 # ci.yml's `bdd` and `spec-audit` jobs gate, so it is not part of ci-success;
 # it exists to give a per-requirement answer that runs and reads on its own.
+# The ears-report artifact also carries ears-dashboard.html, the browsable page.
 # See guides/TESTING.md, "The standalone EARS check".
 
 on:
@@ -14,6 +15,7 @@ on:
       - 'tests/bdd/**'
       - 'scripts/quality/ears.ts'
       - 'scripts/quality/ears-core.ts'
+      - 'scripts/quality/ears-dashboard*.ts'
       - 'scripts/quality/bdd-report-core.ts'
       - 'scripts/spec/spec-audit*.ts'
       - 'scripts/spec/spec-audit-exceptions.json'
@@ -62,6 +64,12 @@ jobs:
 
       - name: Verify every EARS requirement
         run: npm run ears
+
+      # The dashboard page reads the report just written, so it shows this
+      # run's verdicts; it is built even when a requirement failed.
+      - name: Build the EARS dashboard
+        if: ${{ !cancelled() }}
+        run: npm run ears:dashboard
 
       - name: Upload the EARS report
         if: ${{ !cancelled() }}

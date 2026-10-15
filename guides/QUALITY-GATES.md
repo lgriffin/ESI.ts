@@ -293,7 +293,7 @@ Gates changes to agent skills (`R14`). `deterministic` unit-tests the judges, fa
 
 ### `ears.yml` — EARS Requirements
 
-Runs `npm run ears` on its own: the spec audit, then every BDD scenario, rolled up to one verdict per `Rule:` (PASS, FAIL or NOT RUN). The job summary lists the requirements not verified and the advisory feedback on the specification; the `ears-report` artifact holds the full per-requirement report. It repeats what `bdd` and `spec-audit` in `ci.yml` already gate, so it is not part of `ci-success`; its purpose is a per-requirement answer that can be run and read independently. See [TESTING.md](TESTING.md#the-standalone-ears-check).
+Runs `npm run ears` on its own: the spec audit, then every BDD scenario, rolled up to one verdict per `Rule:` (PASS, FAIL or NOT RUN). The job summary lists the requirements not verified and the advisory feedback on the specification; the `ears-report` artifact holds the full per-requirement report and the browsable `ears-dashboard.html` (`npm run ears:dashboard`). It repeats what `bdd` and `spec-audit` in `ci.yml` already gate, so it is not part of `ci-success`; its purpose is a per-requirement answer that can be run and read independently. See [TESTING.md](TESTING.md#the-standalone-ears-check).
 
 ### `nightly-schemathesis.yml` — Nightly Schemathesis API Fuzz
 
@@ -393,7 +393,7 @@ Much of this overlaps the nightlies, which file issues rather than artifacts. It
 | `validate-release`        | both triggers     | Tag and version checks, lint, format, knip, `audit:check`, changelog entry, build, schema drift, generated freshness, the spec validators, `spec:audit`, the test tiers, `docs`; listed below |
 | `publish-npm`             | release published | `npm publish --provenance` to npmjs.org                                                                                                                                                       |
 | `publish-github`          | release published | `npm publish --provenance` to GitHub Packages                                                                                                                                                 |
-| `deploy-docs`             | both triggers     | Calls `docs-site.yml`: builds the documentation site with TypeDoc under `/api/` and publishes `docs-site/.vitepress/dist` to gh-pages                                                         |
+| `deploy-docs`             | both triggers     | Calls `docs-site.yml`: builds the documentation site with TypeDoc under `/api/` and the EARS dashboard under `/requirements/` and publishes `docs-site/.vitepress/dist` to gh-pages           |
 | `create-assets`           | both triggers     | `npm pack`, CycloneDX SBOM, docs archive, `checksums.txt`; no OIDC permission                                                                                                                 |
 | `consumer-contract`       | both triggers     | `npm run test:consumer -- --tarball` on the tarball `create-assets` packed, same four rows as `ci.yml`; `publish-npm`, `publish-github` and `sign-and-publish-assets` need it                 |
 | `sign-and-publish-assets` | release published | Keyless cosign signatures and SLSA build provenance (`.intoto.jsonl`), uploads assets to the release; the only job that can mint an OIDC token for signing                                    |
@@ -775,6 +775,7 @@ The same "explicit, reasoned exception" pattern appears in ten more places:
 | `bdd:report`                                                   | Joins a BDD run's Jest JSON to the feature files; fails on a scenario that did not execute; writes `reports/bdd/junit.xml` and `reports/bdd/scenarios.json`                                                                                  |
 | `spec:audit` / `spec:audit:verbose`                            | EARS and Gherkin structure audit over the feature files, charter tags included                                                                                                                                                               |
 | `ears`                                                         | Standalone EARS check: `spec:audit`, then the BDD scenarios, one PASS/FAIL/NOT RUN verdict per `Rule:`; writes `reports/ears/` ([TESTING.md](TESTING.md#the-standalone-ears-check))                                                          |
+| `ears:dashboard`                                               | One HTML page of every requirement: pattern, verdict, what runs it, a guide to writing one; reads the `ears` report; writes `reports/ears/ears-dashboard.html` (`--since=<ref>` marks changes)                                               |
 | `test:integration`                                             | Integration tests, mocked                                                                                                                                                                                                                    |
 | `test:integration:live`                                        | `tests/integration/live-esi.test.ts` against live ESI (`config/jest/integration.live.config.cjs`). Fails in global setup unless `ESI_LIVE_TESTS=true`                                                                                        |
 | `test:integration:gated`                                       | Authenticated integration tests (`ESI_GATED_TESTS`, reads `.env`)                                                                                                                                                                            |
@@ -843,20 +844,21 @@ The same "explicit, reasoned exception" pattern appears in ten more places:
 
 ### Documentation, tokens, SDE and examples
 
-| Script                           | Runs                                                                    |
-| -------------------------------- | ----------------------------------------------------------------------- |
-| `docs` / `docs:watch`            | TypeDoc into `docs-site/public/api`                                     |
-| `docs:serve`                     | Serve the TypeDoc output on port 8080                                   |
-| `docs:sync`                      | Generate the site's guide and example pages from `guides/`, `examples/` |
-| `docs:site`                      | `docs`, `docs:sync`, then the VitePress build (the published site)      |
-| `docs:site:dev` / `:preview`     | VitePress dev server after `docs:sync`; serve the built site            |
-| `token:create` / `token:refresh` | PKCE token into `.env`, and refresh it (see [SECURITY.md](SECURITY.md)) |
-| `sde:ingest`                     | Download and extract CCP's archive; `--from-zip` extracts one on disk   |
-| `sde:drift`                      | An extracted export against `SDE_FILE_REGISTRY` and the Zod schemas     |
-| `health-check`                   | `status.getStatus()` against live ESI                                   |
-| `start` / `example`              | `examples/character-profile.ts`                                         |
-| `example:<name>`                 | One runnable example from `examples/`; see `npm run help -- example`    |
-| `help`                           | Grouped script listing                                                  |
+| Script                           | Runs                                                                            |
+| -------------------------------- | ------------------------------------------------------------------------------- |
+| `docs` / `docs:watch`            | TypeDoc into `docs-site/public/api`                                             |
+| `docs:serve`                     | Serve the TypeDoc output on port 8080                                           |
+| `docs:sync`                      | Generate the site's guide and example pages from `guides/`, `examples/`         |
+| `docs:ears`                      | The EARS dashboard into `docs-site/public/requirements/`                        |
+| `docs:site`                      | `docs`, `docs:sync`, `docs:ears`, then the VitePress build (the published site) |
+| `docs:site:dev` / `:preview`     | VitePress dev server after `docs:sync`; serve the built site                    |
+| `token:create` / `token:refresh` | PKCE token into `.env`, and refresh it (see [SECURITY.md](SECURITY.md))         |
+| `sde:ingest`                     | Download and extract CCP's archive; `--from-zip` extracts one on disk           |
+| `sde:drift`                      | An extracted export against `SDE_FILE_REGISTRY` and the Zod schemas             |
+| `health-check`                   | `status.getStatus()` against live ESI                                           |
+| `start` / `example`              | `examples/character-profile.ts`                                                 |
+| `example:<name>`                 | One runnable example from `examples/`; see `npm run help -- example`            |
+| `help`                           | Grouped script listing                                                          |
 
 ---
 

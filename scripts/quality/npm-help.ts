@@ -39,6 +39,8 @@ const DESCS: Record<string, string> = {
   benchmark: 'Performance benchmark tests',
   mutation: 'Mutation testing (Stryker)',
   ears: 'Standalone EARS check: one pass/fail verdict per requirement',
+  'ears:dashboard':
+    'One HTML page of every EARS requirement and its verdict (run ears first)',
   'contract:live': 'Deep contract tests against the live ESI spec',
   knip: 'Detect dead code and unused exports',
   'validate:esi': 'Report hand-written vs generated type drift',

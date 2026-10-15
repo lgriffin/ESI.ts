@@ -2,8 +2,9 @@ name: Documentation Site
 
 # Builds https://lgriffin.github.io/ESI.ts/ and publishes it to the gh-pages
 # branch (CHARTER DOC-03): the VitePress site from docs-site/, its guide and
-# example pages generated from guides/, README.md and examples/, and the
-# TypeDoc API reference under /api/. `npm run docs:site` is the same build.
+# example pages generated from guides/, README.md and examples/, the
+# TypeDoc API reference under /api/, and the EARS requirements dashboard
+# under /requirements/. `npm run docs:site` is the same build.
 #
 # release.yml calls this after validate-release, so every release publishes
 # the site for its tag. It can also be dispatched by hand on master or a
@@ -55,6 +56,12 @@ jobs:
 
       - name: Install the site's dependencies
         run: npm ci --prefix docs-site
+
+      # The requirements page (/requirements/, `npm run docs:ears`) shows the
+      # verdicts from this run. A failing requirement still publishes: the
+      # page then says which one, which is what a reader should see.
+      - name: Verify every EARS requirement
+        run: npm run ears || echo "::warning::npm run ears reported requirements that are not verified; the requirements page shows which."
 
       - name: Build the site
         run: npm run docs:site

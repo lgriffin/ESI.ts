@@ -19,6 +19,10 @@ hero:
       text: API reference
       link: /api/
       target: _self
+    - theme: alt
+      text: Requirements
+      link: /requirements/
+      target: _self
 
 features:
   - title: Every ESI operation, typed
@@ -55,8 +59,8 @@ features:
     linkText: Static data (SDE)
   - title: Tested to the spec
     details: Behaviour is written as EARS requirements with Gherkin scenarios, backed by property tests, a transport fault catalogue, recorded ESI payloads and mutation testing with ratcheted floors.
-    link: /guide/testing
-    linkText: Testing
+    link: /requirements/
+    linkText: Browse the requirements
 ---
 
 ## Quick start
@@ -106,5 +110,9 @@ const wallet = await esi
   <div class="feature-card">
     <h3><a href="./api/" target="_self">API reference</a></h3>
     <p>The TypeDoc reference generated from the TSDoc in <code>src/</code>: every client, method, option, error and response type.</p>
+  </div>
+  <div class="feature-card">
+    <h3><a href="./requirements/" target="_self">Requirements</a></h3>
+    <p>Every EARS requirement the client is held to, with the scenarios that prove it and its verdict from the release's run: searchable by domain, pattern and charter id.</p>
   </div>
 </div>
