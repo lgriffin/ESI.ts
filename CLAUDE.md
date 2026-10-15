@@ -41,6 +41,7 @@ npm run spec:audit     # EARS/Gherkin specification audit (feature files)
 npm run charter:audit  # CHARTER.md requirement blocks: one shall, a named system, EARS form; Enforced rows name a mechanism (PROC-06)
 npm run security:model # guides/SECURITY-MODEL.md, its index, the @sec-<id> Rules and src/ network and header sites agree (SEC-09 to SEC-12)
 npm run ears           # Standalone EARS check: audit + scenarios, one verdict per requirement (reports/ears/; --only=<domain>)
+npm run ears:dashboard # One HTML page of every requirement: pattern, verdict, what runs it, how to write one (reports/ears/ears-dashboard.html; --since=<ref>)
 npm run test:integration  # Integration tests
 npm run contract       # Contract tests against live ESI spec
 npm run fuzz           # Property-based fuzz tests (fast-check)

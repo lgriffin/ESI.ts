@@ -27,7 +27,7 @@ export const REPO_ROOT = path.resolve(__dirname, '../..');
  * these cannot be verified, because two readers will disagree on whether the
  * system met it.
  */
-const VAGUE_TERMS: Record<string, string[]> = {
+export const VAGUE_TERMS: Readonly<Record<string, readonly string[]>> = {
   'vague adverb': [
     'quickly',
     'slowly',
@@ -91,10 +91,22 @@ const VAGUE_TERMS: Record<string, string[]> = {
 };
 
 /** EARS reserves "shall" for mandatory behaviour; these dilute it. */
-const WRONG_OBLIGATION_KEYWORDS = ['should', 'may', 'will', 'must'];
+export const WRONG_OBLIGATION_KEYWORDS: readonly string[] = [
+  'should',
+  'may',
+  'will',
+  'must',
+];
 
 /** A requirement must name the system it constrains, not point at it. */
-const PRONOUNS_BEFORE_SHALL = ['it', 'they', 'he', 'she', 'we', 'you'];
+export const PRONOUNS_BEFORE_SHALL: readonly string[] = [
+  'it',
+  'they',
+  'he',
+  'she',
+  'we',
+  'you',
+];
 
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

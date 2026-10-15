@@ -281,6 +281,7 @@
     "spec:audit:verbose": "ts-node scripts/spec/spec-audit.ts --verbose",
     "bdd:report": "ts-node scripts/quality/bdd-report.ts",
     "ears": "ts-node scripts/quality/ears.ts",
+    "ears:dashboard": "ts-node scripts/quality/ears-dashboard.ts",
     "validate:spec-consistency": "ts-node scripts/spec/rule-schema-check.ts",
     "check:local": "ts-node scripts/quality/verify-local.ts",
     "check:local:fast": "ts-node scripts/quality/verify-local.ts --fast",
