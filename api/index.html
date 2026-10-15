@@ -16,11 +16,11 @@
 <a href="guides/TESTING.md#where-the-suite-stands"><img src="https://img.shields.io/badge/coverage-97.8%25-brightgreen" alt="Coverage"></a>
 <a href="guides/TESTING.md#where-the-scores-stand"><img src="https://img.shields.io/badge/mutation%20score-84%25%20core-brightgreen" alt="Mutation score"></a>
 <a href="guides/TESTING.md#where-the-suite-stands"><img src="https://img.shields.io/badge/tests-10%2C045%20offline-brightgreen" alt="Tests"></a>
-<a href="tests/bdd/README.md"><img src="https://img.shields.io/badge/EARS%20requirements-566-blue" alt="EARS requirements"></a>
+<a href="https://lgriffin.github.io/ESI.ts/requirements/"><img src="https://img.shields.io/badge/EARS%20requirements-629-blue" alt="EARS requirements"></a>
 <a href="https://www.npmjs.com/package/@lgriffin/esi.ts"><img src="https://img.shields.io/npm/dm/%40lgriffin/esi.ts" alt="npm downloads"></a>
 <a href="https://scorecard.dev/viewer/?uri=github.com/lgriffin/ESI.ts"><img src="https://api.scorecard.dev/projects/github.com/lgriffin/ESI.ts/badge" alt="OpenSSF Scorecard"></a></p>
 <p>A TypeScript client for the <a href="https://esi.evetech.net/">EVE Online ESI API</a>, built as an engineered product rather than a generated wrapper. It covers every operation in the ESI OpenAPI specification. Every response is validated at runtime, and caching, rate limiting, retry and pagination follow the rules ESI actually enforces. The claims on this page are backed by a test suite that is itself tested.</p>
-<p><strong>Documentation site: <a href="https://lgriffin.github.io/ESI.ts/">lgriffin.github.io/ESI.ts</a></strong>, with these guides, a page for every runnable example, and the <a href="https://lgriffin.github.io/ESI.ts/api/">API reference</a> generated from the TSDoc.</p>
+<p><strong>Documentation site: <a href="https://lgriffin.github.io/ESI.ts/">lgriffin.github.io/ESI.ts</a></strong>, with these guides, a page for every runnable example, and the <a href="https://lgriffin.github.io/ESI.ts/api/">API reference</a> generated from the TSDoc. The <a href="https://lgriffin.github.io/ESI.ts/requirements/">requirements dashboard</a> lists every EARS requirement the client is held to, the scenarios that prove it and its verdict, and how to write a new one.</p>
 <blockquote>
 <p><strong>Release line.</strong> Version <!-- metric:version -->12.0.0<!-- /metric --> <!-- x-release-please-version -->
 is current on npm. 12.0 corrects five list methods and their detail schemas to the shapes ESI actually sends, which changes their return types; nothing else breaks. The 10.x line stays available for Node 18 and 20. <a href="media/USAGE.md#10-what-1200-changes">What 12.0 changes</a> · <a href="media/USAGE.md#9-what-1100-changes">What 11.0 changed</a> · <a href="media/CHANGELOG.md">Changelog</a></p>
@@ -138,7 +138,7 @@ is current on npm. 12.0 corrects five list methods and their detail schemas to t
 </tr>
 <tr>
 <td>Executable specification</td>
-<td><!-- metric:requirements -->623<!-- /metric --> EARS requirements, <!-- metric:scenarios -->805<!-- /metric --> scenarios, <!-- metric:featureFiles -->77<!-- /metric --> feature files</td>
+<td><!-- metric:requirements -->629<!-- /metric --> EARS requirements, <!-- metric:scenarios -->815<!-- /metric --> scenarios, <!-- metric:featureFiles -->77<!-- /metric --> feature files</td>
 <td><code>npm run ears</code></td>
 </tr>
 <tr>
@@ -163,7 +163,7 @@ is current on npm. 12.0 corrects five list methods and their detail schemas to t
 </tr>
 <tr>
 <td>Static data (SDE)</td>
-<td><!-- metric:requirementsSde -->162<!-- /metric --> EARS requirements and <!-- metric:scenariosSde -->227<!-- /metric --> scenarios in <!-- metric:featureFilesSde -->23<!-- /metric --> feature files; at least 90% of mutants killed in every SDE directory by the unit suite and by the BDD scenarios alone (2026-10-08, <a href="https://github.com/lgriffin/ESI.ts/issues/458">#458</a>); a real-data run against CCP's current export every night</td>
+<td><!-- metric:requirementsSde -->168<!-- /metric --> EARS requirements and <!-- metric:scenariosSde -->237<!-- /metric --> scenarios in <!-- metric:featureFilesSde -->23<!-- /metric --> feature files; at least 90% of mutants killed in every SDE directory by the unit suite and by the BDD scenarios alone (2026-10-08, <a href="https://github.com/lgriffin/ESI.ts/issues/458">#458</a>); a real-data run against CCP's current export every night</td>
 <td><a href="media/TESTING-1.md">sde/TESTING.md</a></td>
 </tr>
 <tr>
