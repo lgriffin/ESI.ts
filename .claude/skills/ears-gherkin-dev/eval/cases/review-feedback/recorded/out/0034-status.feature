@@ -1,3 +1,4 @@
+@TEST-10
 Feature: Server Status
   The Status client wraps the single unauthenticated status endpoint, which
   reports whether Tranquility is up and what it is doing. It is the endpoint
