@@ -43,7 +43,8 @@ a { color: var(--accent); }
 code, pre, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13px; }
 header, main { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 header { padding-top: 24px; }
-header h1 { margin: 0 0 4px; font-size: 24px; }
+header h1 { margin: 0 0 4px; font-size: 24px; display: flex; align-items: center; gap: 10px; }
+header h1 img.logo { border-radius: 6px; flex: none; }
 header p { margin: 0; color: var(--muted); }
 header p.home { font-size: 13px; margin-bottom: 4px; }
 nav { display: flex; gap: 4px; margin-top: 18px; border-bottom: 1px solid var(--line); overflow-x: auto; }
@@ -348,7 +349,7 @@ window.addEventListener("hashchange", () => { if (location.hash.startsWith("#req
 
 const BODY = String.raw`
 <header>
-  <h1>ESI.ts EARS requirements</h1>
+  <h1><img class="logo" src="https://lgriffin.github.io/ESI.ts/logo-mark.png" alt="" width="32" height="32">ESI.ts EARS requirements</h1>
   <p class="home"><a href="https://lgriffin.github.io/ESI.ts/">ESI.ts documentation</a> · <a href="https://github.com/lgriffin/ESI.ts">GitHub</a></p>
   <p id="sub"></p>
   <nav role="tablist">
@@ -385,6 +386,7 @@ export function renderPage(data: DashboardData): string {
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width,initial-scale=1">',
     '<title>ESI.ts EARS Dashboard</title>',
+    '<link rel="icon" href="https://lgriffin.github.io/ESI.ts/favicon.ico">',
     `<style>${STYLE}</style>`,
     '</head>',
     '<body>',
