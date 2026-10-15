@@ -121,7 +121,7 @@ jobs:
       # branch on every push to master, so this runs after each rewrite.
       - name: Setup Node.js
         if: steps.gate.outputs.skip-pr != 'true' && steps.release.outputs.release_created != 'true'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '22'
           # No npm cache: a cache restored into a release job could be poisoned.
