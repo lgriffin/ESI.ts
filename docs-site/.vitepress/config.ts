@@ -43,9 +43,14 @@ export default defineConfig({
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/ESI.ts/logo.svg' }],
   ],
 
-  // /api/ is TypeDoc's static output, not a VitePress page; localhost links
-  // are the SSO callback an example listens on.
-  ignoreDeadLinks: [/^\/api(\/|$)/, /^https?:\/\/localhost[:/]/],
+  // /api/ (TypeDoc) and /requirements/ (the EARS dashboard) are static
+  // output, not VitePress pages; localhost links are the SSO callback an
+  // example listens on.
+  ignoreDeadLinks: [
+    /^\/api(\/|$)/,
+    /^\/requirements(\/|$)/,
+    /^https?:\/\/localhost[:/]/,
+  ],
 
   markdown: {
     anchor: { slugify: githubSlug },
@@ -58,6 +63,8 @@ export default defineConfig({
       { text: 'Guide', link: '/guide/', activeMatch: '^/guide/' },
       { text: 'Examples', link: '/examples/', activeMatch: '^/examples/' },
       { text: 'API Reference', link: '/api/', target: '_self' },
+      // The EARS dashboard: static HTML from `npm run docs:ears`, like /api/.
+      { text: 'Requirements', link: '/requirements/', target: '_self' },
       {
         text: `v${pkg.version}`,
         items: [

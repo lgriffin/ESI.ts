@@ -45,6 +45,7 @@ header, main { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(sa
 header { padding-top: 24px; }
 header h1 { margin: 0 0 4px; font-size: 24px; }
 header p { margin: 0; color: var(--muted); }
+header p.home { font-size: 13px; margin-bottom: 4px; }
 nav { display: flex; gap: 4px; margin-top: 18px; border-bottom: 1px solid var(--line); overflow-x: auto; }
 nav button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font: inherit; color: var(--muted); cursor: pointer; white-space: nowrap; }
 nav button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
@@ -348,6 +349,7 @@ window.addEventListener("hashchange", () => { if (location.hash.startsWith("#req
 const BODY = String.raw`
 <header>
   <h1>ESI.ts EARS requirements</h1>
+  <p class="home"><a href="https://lgriffin.github.io/ESI.ts/">ESI.ts documentation</a> · <a href="https://github.com/lgriffin/ESI.ts">GitHub</a></p>
   <p id="sub"></p>
   <nav role="tablist">
     <button role="tab" data-tab="overview" aria-selected="true">Overview</button>

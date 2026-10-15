@@ -88,6 +88,7 @@ report/
 
 # Generated documentation (TypeDoc output; docs/*.md are hand-written and tracked)
 docs-site/public/api/
+docs-site/public/requirements/
 
 # Stryker mutation testing
 .stryker-tmp/

@@ -7,13 +7,13 @@
 [![Coverage](https://img.shields.io/badge/coverage-97.8%25-brightgreen)](guides/TESTING.md#where-the-suite-stands)
 [![Mutation score](https://img.shields.io/badge/mutation%20score-84%25%20core-brightgreen)](guides/TESTING.md#where-the-scores-stand)
 [![Tests](https://img.shields.io/badge/tests-10%2C045%20offline-brightgreen)](guides/TESTING.md#where-the-suite-stands)
-[![EARS requirements](https://img.shields.io/badge/EARS%20requirements-566-blue)](tests/bdd/README.md)
+[![EARS requirements](https://img.shields.io/badge/EARS%20requirements-629-blue)](https://lgriffin.github.io/ESI.ts/requirements/)
 [![npm downloads](https://img.shields.io/npm/dm/%40lgriffin/esi.ts)](https://www.npmjs.com/package/@lgriffin/esi.ts)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/lgriffin/ESI.ts/badge)](https://scorecard.dev/viewer/?uri=github.com/lgriffin/ESI.ts)
 
 A TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), built as an engineered product rather than a generated wrapper. It covers every operation in the ESI OpenAPI specification. Every response is validated at runtime, and caching, rate limiting, retry and pagination follow the rules ESI actually enforces. The claims on this page are backed by a test suite that is itself tested.
 
-**Documentation site: [lgriffin.github.io/ESI.ts](https://lgriffin.github.io/ESI.ts/)**, with these guides, a page for every runnable example, and the [API reference](https://lgriffin.github.io/ESI.ts/api/) generated from the TSDoc.
+**Documentation site: [lgriffin.github.io/ESI.ts](https://lgriffin.github.io/ESI.ts/)**, with these guides, a page for every runnable example, and the [API reference](https://lgriffin.github.io/ESI.ts/api/) generated from the TSDoc. The [requirements dashboard](https://lgriffin.github.io/ESI.ts/requirements/) lists every EARS requirement the client is held to, the scenarios that prove it and its verdict, and how to write a new one.
 
 > **Release line.** Version <!-- metric:version -->12.0.0<!-- /metric --> <!-- x-release-please-version -->
 > is current on npm. 12.0 corrects five list methods and their detail schemas to the shapes ESI actually sends, which changes their return types; nothing else breaks. The 10.x line stays available for Node 18 and 20. [What 12.0 changes](guides/USAGE.md#10-what-1200-changes) · [What 11.0 changed](guides/USAGE.md#9-what-1100-changes) · [Changelog](CHANGELOG.md)
