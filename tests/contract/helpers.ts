@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { COMPATIBILITY_DATE } from '../../src/core/constants';
 import { EndpointDefinition } from '../../src/core/endpoints/EndpointDefinition';
 
-const ESI_OPENAPI_URL =
-  'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
+const ESI_OPENAPI_URL = `https://esi.evetech.net/meta/openapi.json?compatibility_date=${COMPATIBILITY_DATE}`;
 
 const ENDPOINTS_DIR = path.resolve(__dirname, '../../src/core/endpoints');
 
