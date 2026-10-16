@@ -98,6 +98,7 @@ module.exports = [
   'tests/tdd/core/coverageBranches.test.ts',
   'tests/tdd/core/crossCutting.test.ts',
   'tests/tdd/core/customClientGetters.test.ts',
+  'tests/tdd/core/legacyRootAliases.test.ts',
   'tests/tdd/core/loggerThreading.test.ts',
   'tests/tdd/core/publicApiSurface.test.ts',
   'tests/tdd/core/resilience.test.ts',
