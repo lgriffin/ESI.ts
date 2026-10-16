@@ -28,7 +28,16 @@ cleanup() {
 trap cleanup EXIT
 
 # --- Download & preprocess the ESI OpenAPI spec ---
-SPEC_URL="https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16"
+# The date comes from COMPATIBILITY_DATE (src/core/constants.ts), the one the
+# client sends, so the fuzz run tests the contract the client asks for.
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+COMPAT_DATE="$(cd "$REPO_ROOT" && npx ts-node --transpile-only -e "console.log(require('./src/core/constants').COMPATIBILITY_DATE)")"
+if ! [[ "$COMPAT_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+  echo "Could not read COMPATIBILITY_DATE from src/core/constants.ts (got: '$COMPAT_DATE')" >&2
+  exit 1
+fi
+echo "Compatibility date: $COMPAT_DATE"
+SPEC_URL="https://esi.evetech.net/meta/openapi.json?compatibility_date=${COMPAT_DATE}"
 MODIFIED_SPEC="$(cd "$REPORT_DIR" && pwd)/esi-openapi-fuzz.json"
 export SPEC_URL MODIFIED_SPEC
 
@@ -144,7 +153,7 @@ docker run --rm --network "$FUZZ_NETWORK" \
   --workers 4 \
   --request-timeout 10000 \
   --request-retries 1 \
-  --header "X-Compatibility-Date: 2025-12-16" \
+  --header "X-Compatibility-Date: ${COMPAT_DATE}" \
   --report junit \
   --report-junit-path /reports/junit.xml \
   || SCHEMATHESIS_EXIT=$?

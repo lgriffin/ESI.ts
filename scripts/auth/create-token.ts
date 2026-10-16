@@ -20,6 +20,8 @@ import * as http from 'http';
 import * as path from 'path';
 import { exec } from 'child_process';
 
+import { COMPATIBILITY_DATE } from '../../src/core/constants';
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -28,8 +30,7 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-const ESI_OPENAPI_URL =
-  'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
+const ESI_OPENAPI_URL = `https://esi.evetech.net/meta/openapi.json?compatibility_date=${COMPATIBILITY_DATE}`;
 const EVE_SSO_AUTH_URL = 'https://login.eveonline.com/v2/oauth/authorize';
 const EVE_SSO_TOKEN_URL = 'https://login.eveonline.com/v2/oauth/token';
 const ENV_FILE = path.resolve(__dirname, '../..', '.env');
