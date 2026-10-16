@@ -136,7 +136,7 @@ A test hands the runtime a mock transport instead of the network: `createMockTra
 
 ## Moving from `EsiTokenManager.createClient`
 
-`tokens.createClient(id)` builds a complete `EsiClient` per character, each with its own rate limiter, error budget and cache. It still works and behaves as before, but 11.0.0 marks it `@deprecated`, as it does `EsiApiFactory`'s nine named `create*Client` methods; 12.0.0 keeps them, and removal is 13.0.0 at the earliest. To move an application to one runtime:
+`tokens.createClient(id)` builds a complete `EsiClient` per character, each with its own rate limiter, error budget and cache. It still works and behaves as before, but 11.0.0 marks it `@deprecated`, as it does `EsiApiFactory`'s nine named `create*Client` methods, and 12.1.0 deprecates the rest of the legacy tree. 13.0.0 removes all of it; [LEGACY-REMOVAL.md](LEGACY-REMOVAL.md) is the list, with the capabilities still to close first. To move an application to one runtime:
 
 | Before                                                        | After                                                             |
 | ------------------------------------------------------------- | ----------------------------------------------------------------- |
