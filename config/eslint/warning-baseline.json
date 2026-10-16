@@ -216,54 +216,12 @@
     "src/auth/EsiTokenManager.ts": {
       "security/detect-object-injection": 1
     },
-    "src/clients/AssetsClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 2
-    },
     "src/clients/BaseEsiClient.ts": {
       "@typescript-eslint/no-unused-vars": 1,
       "security/detect-object-injection": 2
     },
-    "src/clients/CharacterClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 2
-    },
     "src/clients/ClientRegistry.ts": {
       "@typescript-eslint/no-unused-vars": 1
-    },
-    "src/clients/ContactsClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/DogmaClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 5
-    },
-    "src/clients/FittingsClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/FleetClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 2
-    },
-    "src/clients/IncursionsClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/InsuranceClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/LocationClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 3
-    },
-    "src/clients/MailClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 2
-    },
-    "src/clients/SearchClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/SovereigntyClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 2
-    },
-    "src/clients/StatusClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/UniverseClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 31
     },
     "src/core/BatchRequestHandler.ts": {
       "security/detect-object-injection": 1
@@ -458,6 +416,9 @@
     },
     "tests/tdd/schemas/common-schemas.test.ts": {
       "sonarjs/parameterized-tests": 1
+    },
+    "tests/tdd/schemas/schemaRejection.test.ts": {
+      "sonarjs/deprecation": 2
     },
     "tests/tdd/schemas/specOptionalFields.test.ts": {
       "sonarjs/different-types-comparison": 1

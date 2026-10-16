@@ -14,68 +14,105 @@ This page is the manifest. It lists every surface 13.0.0 takes away, what replac
 
 Every row is exported from the root entry (`@lgriffin/esi.ts`). In the replacement column, `esi` is `createEsi({ userAgent })` and `tokens` is an `EsiTokenManager`.
 
-| Surface                                 | Kind      | Deprecated since | Replacement                                                                                 | Removed in |
-| --------------------------------------- | --------- | ---------------- | ------------------------------------------------------------------------------------------- | ---------- |
-| `EsiClient`                             | class     | 12.1.0           | `createEsi({ userAgent })`, then `esi.public` and `esi.as(identity)`                        | 13.0.0     |
-| `getDefaultClient`                      | function  | 12.1.0           | Build one runtime with `createEsi()` and share it                                           | 13.0.0     |
-| `EsiClientBuilder`                      | class     | 12.1.0           | `createEsi()`; every domain is on every view, so there is nothing to choose                 | 13.0.0     |
-| `CustomEsiClient`                       | class     | 12.1.0           | `createEsi()`                                                                               | 13.0.0     |
-| `EsiApiFactory`                         | class     | 12.1.0           | `createEsi()`                                                                               | 13.0.0     |
-| `EsiApiFactory.createClient`            | method    | 12.1.0           | `esi.public` or `esi.as(identity)`, then the domain                                         | 13.0.0     |
-| `EsiApiFactory.createAllianceClient`    | method    | 11.0.0           | `esi.public.alliance(allianceId)`                                                           | 13.0.0     |
-| `EsiApiFactory.createCharacterClient`   | method    | 11.0.0           | `esi.public.character(characterId)`, `esi.as(identity).character(characterId)`              | 13.0.0     |
-| `EsiApiFactory.createCorporationClient` | method    | 11.0.0           | `esi.public.corporation(corporationId)`, `esi.as(identity).corporation(corporationId)`      | 13.0.0     |
-| `EsiApiFactory.createMarketClient`      | method    | 11.0.0           | `esi.public.markets`, `esi.public.market(regionId)`                                         | 13.0.0     |
-| `EsiApiFactory.createUniverseClient`    | method    | 11.0.0           | `esi.public.universe`                                                                       | 13.0.0     |
-| `EsiApiFactory.createFleetClient`       | method    | 11.0.0           | `esi.as(identity).fleet(fleetId)`                                                           | 13.0.0     |
-| `EsiApiFactory.createAssetsClient`      | method    | 11.0.0           | `esi.as(identity).character(characterId).assets`                                            | 13.0.0     |
-| `EsiApiFactory.createWalletClient`      | method    | 11.0.0           | `esi.as(identity).character(characterId).wallet`                                            | 13.0.0     |
-| `EsiApiFactory.createMailClient`        | method    | 11.0.0           | `esi.as(identity).character(characterId).mail`                                              | 13.0.0     |
-| `ApiClientType`                         | type      | 12.1.0           | None needed: the scope tree has every domain                                                | 13.0.0     |
-| `ApiClientBuilder`                      | class     | 12.1.0           | `createEsi()`; `transport` replaces `setFetch` (custom cache, limiter and breaker: gap G11) | 13.0.0     |
-| `BaseEsiClient`                         | class     | 12.1.0           | The generated operations; no subclassing                                                    | 13.0.0     |
-| `RouteOptions`                          | interface | 12.1.0           | The spec's route request body: `esi.public.route(origin, destination).post(body)`           | 13.0.0     |
-| `EsiTokenManager.createClient`          | method    | 11.0.0           | `esi.as(tokens.identity(characterId))`                                                      | 13.0.0     |
-| `ManagedClientConfig`                   | type      | 12.1.0           | The same settings on `createEsi()`                                                          | 13.0.0     |
-| `AccessListsClient`                     | class     | 12.1.0           | `esi.as(identity).character(characterId).accessLists`                                       | 13.0.0     |
-| `AllianceClient`                        | class     | 12.1.0           | `esi.public.alliance(allianceId)`, `esi.public.alliances`                                   | 13.0.0     |
-| `AssetsClient`                          | class     | 12.1.0           | `esi.as(identity)`: `.character(id).assets`, `.corporation(id).assets`                      | 13.0.0     |
-| `CalendarClient`                        | class     | 12.1.0           | `esi.as(identity).character(characterId).calendar`                                          | 13.0.0     |
-| `CharacterClient`                       | class     | 12.1.0           | `esi.public.character(characterId)`, `esi.as(identity).character(characterId)`              | 13.0.0     |
-| `CharacterSkillsClient`                 | class     | 12.1.0           | `esi.as(identity).character(characterId).skills`                                            | 13.0.0     |
-| `ClonesClient`                          | class     | 12.1.0           | `esi.as(identity).character(characterId).clones`                                            | 13.0.0     |
-| `ContactsClient`                        | class     | 12.1.0           | `esi.as(identity)`: `.character(id).contacts`, `.corporation(id).contacts`, `.alliance(id)` | 13.0.0     |
-| `ContractsClient`                       | class     | 12.1.0           | `esi.public.contracts`, `esi.as(identity).character(characterId).contracts`                 | 13.0.0     |
-| `CorporationProjectsClient`             | class     | 12.1.0           | `esi.as(identity).corporation(corporationId).projects`                                      | 13.0.0     |
-| `CorporationsClient`                    | class     | 12.1.0           | `esi.public.corporation(corporationId)`, `esi.as(identity).corporation(corporationId)`      | 13.0.0     |
-| `CosmeticsClient`                       | class     | 12.1.0           | `esi.public` and `esi.as(identity)` cosmetics operations                                    | 13.0.0     |
-| `DogmaClient`                           | class     | 12.1.0           | `esi.public.dogma`                                                                          | 13.0.0     |
-| `FactionClient`                         | class     | 12.1.0           | `esi.public.fw`                                                                             | 13.0.0     |
-| `FittingsClient`                        | class     | 12.1.0           | `esi.as(identity).character(characterId).fittings`                                          | 13.0.0     |
-| `FleetClient`                           | class     | 12.1.0           | `esi.as(identity).fleet(fleetId)`                                                           | 13.0.0     |
-| `FreelanceJobsClient`                   | class     | 12.1.0           | `esi.public.freelanceJobs`, `esi.as(identity)` freelance-job operations                     | 13.0.0     |
-| `IncursionsClient`                      | class     | 12.1.0           | `esi.public.incursions`                                                                     | 13.0.0     |
-| `IndustryClient`                        | class     | 12.1.0           | `esi.public.industry`, `esi.as(identity)` industry and mining operations                    | 13.0.0     |
-| `InsuranceClient`                       | class     | 12.1.0           | `esi.public.insurance`                                                                      | 13.0.0     |
-| `KillmailsClient`                       | class     | 12.1.0           | `esi.public.killmail(killmailId, hash)`, `esi.as(identity)` recent-killmail operations      | 13.0.0     |
-| `LocationClient`                        | class     | 12.1.0           | `esi.as(identity).character(characterId)` location, online and ship                         | 13.0.0     |
-| `LoyaltyClient`                         | class     | 12.1.0           | `esi.public.loyalty`, `esi.as(identity).character(characterId).loyalty`                     | 13.0.0     |
-| `MailClient`                            | class     | 12.1.0           | `esi.as(identity).character(characterId).mail`                                              | 13.0.0     |
-| `MarketClient`                          | class     | 12.1.0           | `esi.public.markets`, `esi.public.market(regionId)`, `esi.as(identity)` order operations    | 13.0.0     |
-| `MercenaryClient`                       | class     | 12.1.0           | `esi.as(identity).character(characterId)` mercenary operations                              | 13.0.0     |
-| `MetaClient`                            | class     | 12.1.0           | `esi.public.meta`; the OpenAPI document routes have no replacement yet (gap G4)             | 13.0.0     |
-| `MilitaryCampaignsClient`               | class     | 12.1.0           | `esi.public.militaryCampaigns`, `esi.public.militaryCampaign(campaignId)`                   | 13.0.0     |
-| `ParagonHubClient`                      | class     | 12.1.0           | `esi.public.paragonHub`, `esi.as(identity)` Paragon Hub operations                          | 13.0.0     |
-| `PiClient`                              | class     | 12.1.0           | `esi.public.universe` schematics, `esi.as(identity).character(characterId).planets`         | 13.0.0     |
-| `RouteClient`                           | class     | 12.1.0           | `esi.public.route(origin, destination).post(body)`                                          | 13.0.0     |
-| `SearchClient`                          | class     | 12.1.0           | `esi.as(identity).character(characterId).search`                                            | 13.0.0     |
-| `SkyhooksClient`                        | class     | 12.1.0           | `esi.public.skyhooks`, `esi.as(identity)` skyhook operations                                | 13.0.0     |
-| `SovereigntyClient`                     | class     | 12.1.0           | `esi.public.sovereignty`                                                                    | 13.0.0     |
-| `StatusClient`                          | class     | 12.1.0           | `esi.public.status`                                                                         | 13.0.0     |
-| `UiClient`                              | class     | 12.1.0           | `esi.as(identity).ui`                                                                       | 13.0.0     |
-| `UniverseClient`                        | class     | 12.1.0           | `esi.public.universe`                                                                       | 13.0.0     |
-| `WalletClient`                          | class     | 12.1.0           | `esi.as(identity)`: `.character(id).wallet`, `.corporation(id).wallets`                     | 13.0.0     |
-| `WarsClient`                            | class     | 12.1.0           | `esi.public.wars`, `esi.public.war(warId)`                                                  | 13.0.0     |
+| Surface                                 | Kind      | Deprecated since | Replacement                                                                                          | Removed in |
+| --------------------------------------- | --------- | ---------------- | ---------------------------------------------------------------------------------------------------- | ---------- |
+| `EsiClient`                             | class     | 12.1.0           | `createEsi({ userAgent })`, then `esi.public` and `esi.as(identity)`                                 | 13.0.0     |
+| `getDefaultClient`                      | function  | 12.1.0           | Build one runtime with `createEsi()` and share it                                                    | 13.0.0     |
+| `EsiClientBuilder`                      | class     | 12.1.0           | `createEsi()`; every domain is on every view, so there is nothing to choose                          | 13.0.0     |
+| `CustomEsiClient`                       | class     | 12.1.0           | `createEsi()`                                                                                        | 13.0.0     |
+| `EsiApiFactory`                         | class     | 12.1.0           | `createEsi()`                                                                                        | 13.0.0     |
+| `EsiApiFactory.createClient`            | method    | 12.1.0           | `esi.public` or `esi.as(identity)`, then the domain                                                  | 13.0.0     |
+| `EsiApiFactory.createAllianceClient`    | method    | 11.0.0           | `esi.public.alliance(allianceId)`                                                                    | 13.0.0     |
+| `EsiApiFactory.createCharacterClient`   | method    | 11.0.0           | `esi.public.character(characterId)`, `esi.as(identity).character(characterId)`                       | 13.0.0     |
+| `EsiApiFactory.createCorporationClient` | method    | 11.0.0           | `esi.public.corporation(corporationId)`, `esi.as(identity).corporation(corporationId)`               | 13.0.0     |
+| `EsiApiFactory.createMarketClient`      | method    | 11.0.0           | `esi.public.markets`, `esi.public.market(regionId)`                                                  | 13.0.0     |
+| `EsiApiFactory.createUniverseClient`    | method    | 11.0.0           | `esi.public.universe`                                                                                | 13.0.0     |
+| `EsiApiFactory.createFleetClient`       | method    | 11.0.0           | `esi.as(identity).fleet(fleetId)`                                                                    | 13.0.0     |
+| `EsiApiFactory.createAssetsClient`      | method    | 11.0.0           | `esi.as(identity).character(characterId).assets`                                                     | 13.0.0     |
+| `EsiApiFactory.createWalletClient`      | method    | 11.0.0           | `esi.as(identity).character(characterId).wallet`                                                     | 13.0.0     |
+| `EsiApiFactory.createMailClient`        | method    | 11.0.0           | `esi.as(identity).character(characterId).mail`                                                       | 13.0.0     |
+| `ApiClientType`                         | type      | 12.1.0           | None needed: the scope tree has every domain                                                         | 13.0.0     |
+| `ApiClientBuilder`                      | class     | 12.1.0           | `createEsi()`; `transport` replaces `setFetch` (custom cache, limiter and breaker: gap G11)          | 13.0.0     |
+| `BaseEsiClient`                         | class     | 12.1.0           | The generated operations; no subclassing                                                             | 13.0.0     |
+| `RouteOptions`                          | interface | 12.1.0           | The spec's route request body: `esi.public.route(origin, destination).post(body)`                    | 13.0.0     |
+| `EsiTokenManager.createClient`          | method    | 11.0.0           | `esi.as(tokens.identity(characterId))`                                                               | 13.0.0     |
+| `ManagedClientConfig`                   | type      | 12.1.0           | The same settings on `createEsi()`                                                                   | 13.0.0     |
+| `ApiClient`                             | class     | 12.1.0           | `createEsi()` builds and configures its own pipeline (custom middleware: G11)                        | 13.0.0     |
+| `configureApiClient`                    | function  | 12.1.0           | `EsiOptions` on `createEsi()`                                                                        | 13.0.0     |
+| `ConfigureApiClientResult`              | type      | 12.1.0           | None needed, with `configureApiClient`                                                               | 13.0.0     |
+| `EsiClientConfig`                       | type      | 12.1.0           | `EsiOptions` (differences: G12)                                                                      | 13.0.0     |
+| `buildEndpointPath`                     | function  | 12.1.0           | None needed: generated operations build their own requests                                           | 13.0.0     |
+| `DeprecationInfo`                       | type      | 12.1.0           | Deprecation data on generated operations (G3)                                                        | 13.0.0     |
+| `CreateClientOptions`                   | type      | 12.1.0           | Metadata and safe-mode views (G8)                                                                    | 13.0.0     |
+| `WithMetadata`                          | type      | 12.1.0           | Metadata view (G8)                                                                                   | 13.0.0     |
+| `WithSafeMode`                          | type      | 12.1.0           | Safe-mode view (G8)                                                                                  | 13.0.0     |
+| `InferEndpointResult`                   | type      | 12.1.0           | `Awaited<ReturnType<…>>` on the scope-tree call (named types: G14)                                   | 13.0.0     |
+| `UnwrapArray`                           | type      | 12.1.0           | None needed, with the endpoint maps                                                                  | 13.0.0     |
+| `CursorOptions`                         | type      | 12.1.0           | `before` and `after` on the generated cursor operation (G7)                                          | 13.0.0     |
+| `CursorResult`                          | type      | 12.1.0           | The generated operation's body, cursor included (G7)                                                 | 13.0.0     |
+| `CursorTokens`                          | type      | 12.1.0           | The generated body's `cursor` (G7)                                                                   | 13.0.0     |
+| `fetchAllCursorPages`                   | function  | 12.1.0           | A follower for generated cursor operations (G7)                                                      | 13.0.0     |
+| `fetchAllPages`                         | function  | 12.1.0           | `for await` over a page-paginated operation; concurrency: G6                                         | 13.0.0     |
+| `fetchPages`                            | function  | 12.1.0           | `for await` over a page-paginated operation; page-level iteration: G6                                | 13.0.0     |
+| `PageResult`                            | type      | 12.1.0           | Page-level iteration (G6)                                                                            | 13.0.0     |
+| `batchFetch`                            | function  | 12.1.0           | Batch helper for generated operations (G13)                                                          | 13.0.0     |
+| `batchPost`                             | function  | 12.1.0           | Batch helper for generated operations (G13)                                                          | 13.0.0     |
+| `BatchOptions`                          | type      | 12.1.0           | With `batchFetch` (G13)                                                                              | 13.0.0     |
+| `BatchResult`                           | type      | 12.1.0           | With `batchFetch` (G13)                                                                              | 13.0.0     |
+| `EsiDiagnostics`                        | class     | 12.1.0           | Diagnostics on `createEsi()` (G9)                                                                    | 13.0.0     |
+| `CacheStats`                            | type      | 12.1.0           | Diagnostics on `createEsi()` (G9)                                                                    | 13.0.0     |
+| `CircuitBreakerStats`                   | type      | 12.1.0           | Diagnostics on `createEsi()` (G9)                                                                    | 13.0.0     |
+| `AccessListsClient`                     | class     | 12.1.0           | `esi.as(identity).character(characterId).accessLists`                                                | 13.0.0     |
+| `AllianceClient`                        | class     | 12.1.0           | `esi.public.alliance(allianceId)`, `esi.public.alliances`                                            | 13.0.0     |
+| `AssetsClient`                          | class     | 12.1.0           | `esi.as(identity)`: `.character(id).assets`, `.corporation(id).assets`                               | 13.0.0     |
+| `CalendarClient`                        | class     | 12.1.0           | `esi.as(identity).character(characterId).calendar`                                                   | 13.0.0     |
+| `CharacterClient`                       | class     | 12.1.0           | `esi.public.character(characterId)`, `esi.as(identity).character(characterId)`                       | 13.0.0     |
+| `CharacterSkillsClient`                 | class     | 12.1.0           | `esi.as(identity).character(characterId).skills`                                                     | 13.0.0     |
+| `ClonesClient`                          | class     | 12.1.0           | `esi.as(identity).character(characterId).clones`                                                     | 13.0.0     |
+| `ContactsClient`                        | class     | 12.1.0           | `esi.as(identity)`: `.character(id).contacts`, `.corporation(id).contacts`, `.alliance(id).contacts` | 13.0.0     |
+| `ContractsClient`                       | class     | 12.1.0           | `esi.public.contracts`, `esi.as(identity).character(characterId).contracts`                          | 13.0.0     |
+| `CorporationProjectsClient`             | class     | 12.1.0           | `esi.as(identity).corporation(corporationId).projects`                                               | 13.0.0     |
+| `CorporationsClient`                    | class     | 12.1.0           | `esi.public.corporation(corporationId)`, `esi.as(identity).corporation(corporationId)`               | 13.0.0     |
+| `CosmeticsClient`                       | class     | 12.1.0           | `esi.public` and `esi.as(identity)` cosmetics operations                                             | 13.0.0     |
+| `DogmaClient`                           | class     | 12.1.0           | `esi.public.dogma`                                                                                   | 13.0.0     |
+| `FactionClient`                         | class     | 12.1.0           | `esi.public.fw`                                                                                      | 13.0.0     |
+| `FittingsClient`                        | class     | 12.1.0           | `esi.as(identity).character(characterId).fittings`                                                   | 13.0.0     |
+| `FleetClient`                           | class     | 12.1.0           | `esi.as(identity).fleet(fleetId)`                                                                    | 13.0.0     |
+| `FreelanceJobsClient`                   | class     | 12.1.0           | `esi.public.freelanceJobs`, `esi.as(identity)` freelance-job operations                              | 13.0.0     |
+| `IncursionsClient`                      | class     | 12.1.0           | `esi.public.incursions`                                                                              | 13.0.0     |
+| `IndustryClient`                        | class     | 12.1.0           | `esi.public.industry`, `esi.as(identity)` industry and mining operations                             | 13.0.0     |
+| `InsuranceClient`                       | class     | 12.1.0           | `esi.public.insurance`                                                                               | 13.0.0     |
+| `KillmailsClient`                       | class     | 12.1.0           | `esi.public.killmail(killmailId, hash)`, `esi.as(identity)` recent-killmail operations               | 13.0.0     |
+| `LocationClient`                        | class     | 12.1.0           | `esi.as(identity).character(characterId)` location, online and ship                                  | 13.0.0     |
+| `LoyaltyClient`                         | class     | 12.1.0           | `esi.public.loyalty`, `esi.as(identity).character(characterId).loyalty`                              | 13.0.0     |
+| `MailClient`                            | class     | 12.1.0           | `esi.as(identity).character(characterId).mail`                                                       | 13.0.0     |
+| `MarketClient`                          | class     | 12.1.0           | `esi.public.markets`, `esi.public.market(regionId)`, `esi.as(identity)` order operations             | 13.0.0     |
+| `MercenaryClient`                       | class     | 12.1.0           | `esi.as(identity).character(characterId)` mercenary operations                                       | 13.0.0     |
+| `MetaClient`                            | class     | 12.1.0           | `esi.public.meta`; the OpenAPI document routes have no replacement yet (gap G4)                      | 13.0.0     |
+| `MilitaryCampaignsClient`               | class     | 12.1.0           | `esi.public.militaryCampaigns`, `esi.public.militaryCampaign(campaignId)`                            | 13.0.0     |
+| `ParagonHubClient`                      | class     | 12.1.0           | `esi.public.paragonHub`, `esi.as(identity)` Paragon Hub operations                                   | 13.0.0     |
+| `PiClient`                              | class     | 12.1.0           | `esi.public.universe` schematics, `esi.as(identity).character(characterId).planets`                  | 13.0.0     |
+| `RouteClient`                           | class     | 12.1.0           | `esi.public.route(origin, destination).post(body)`                                                   | 13.0.0     |
+| `SearchClient`                          | class     | 12.1.0           | `esi.as(identity).character(characterId).search`                                                     | 13.0.0     |
+| `SkyhooksClient`                        | class     | 12.1.0           | `esi.public.skyhooks`, `esi.as(identity)` skyhook operations                                         | 13.0.0     |
+| `SovereigntyClient`                     | class     | 12.1.0           | `esi.public.sovereignty`                                                                             | 13.0.0     |
+| `StatusClient`                          | class     | 12.1.0           | `esi.public.status`                                                                                  | 13.0.0     |
+| `UiClient`                              | class     | 12.1.0           | `esi.as(identity).ui`                                                                                | 13.0.0     |
+| `UniverseClient`                        | class     | 12.1.0           | `esi.public.universe`                                                                                | 13.0.0     |
+| `WalletClient`                          | class     | 12.1.0           | `esi.as(identity)`: `.character(id).wallet`, `.corporation(id).wallets`                              | 13.0.0     |
+| `WarsClient`                            | class     | 12.1.0           | `esi.public.wars`, `esi.public.war(warId)`                                                           | 13.0.0     |
+
+The pipeline rows from `ApiClient` to `CircuitBreakerStats` are root names only. `createEsi()` and the request pipeline still use the declarations behind them, so the root entry exports deprecated aliases (`src/legacyExports.ts`) instead of tagging the declarations, and the API report shows each as an alias of an unexported `…_2` symbol. 13.0.0 removes the names from the root entry; the internals stay.
+
+### Whole modules
+
+| Module                                                                     | Entry                                         | Deprecated since | How it is marked          | Replacement                                                                    | Removed in                   |
+| -------------------------------------------------------------------------- | --------------------------------------------- | ---------------- | ------------------------- | ------------------------------------------------------------------------------ | ---------------------------- |
+| Hand-written response types (`src/types`, 194 types such as `MarketOrder`) | root                                          | 12.1.0           | Each type tagged          | `Awaited<ReturnType<…>>` on the scope-tree call; nameable generated types: G14 | 13.0.0                       |
+| `TestDataFactory`                                                          | `./testing`                                   | 12.1.0           | Class tagged              | `createMockTransport()` answering with the spec's shapes; typed fixtures: G14  | 13.0.0                       |
+| Hand-written Zod schemas                                                   | `./schemas`, and the root `schemas` namespace | 12.1.0           | Module documentation only | Generated operations' runtime validation (G1)                                  | 13.0.0, unless G1 keeps them |
+
+The schemas carry no tag. A tag on each of the 225 would flag the endpoint maps, the response types and every schema test instead of consumers' uses, and aliasing the root `schemas` namespace to tag it would drop every schema from the API report, which is how a tightened schema is caught as a break ([SEMVER.md](SEMVER.md#runtime-behaviour)). The branded ID types and `brand` in `src/types/branded.ts` are not response types and are not deprecated; `src/auth` uses `CharacterId`.
 
 Internal modules go with them and need no deprecation, since no entry point exports them: `src/clients/ClientRegistry.ts` (`createClientInstance`, `ClientInstance`, marked `@deprecated` anyway), the 39 endpoint maps in `src/core/endpoints/*Endpoints.ts` and `createClient()`.
 
@@ -112,12 +149,10 @@ What a consumer can do through the legacy surfaces that `createEsi()`, `esi.publ
 
 ## Not decided yet
 
-These root exports exist for the legacy tree, or only make sense beside it, and are **not** deprecated in 12.1.0. If 13.0.0 is to remove any of them, a 12.x minor release has to deprecate it first, so decide before the last 12.x release:
+These root exports are **not** deprecated in 12.1.0. If 13.0.0 is to remove any of them, a 12.x minor release has to deprecate it first, so decide before the last 12.x release:
 
-- the bare pipeline: `ApiClient`, `configureApiClient`, `ConfigureApiClientResult`, `EsiClientConfig`, `buildEndpointPath`, `DeprecationInfo`;
-- the `createClient` types: `CreateClientOptions`, `InferEndpointResult`, `UnwrapArray`, `WithMetadata`, `WithSafeMode`, `CursorOptions`, `CursorResult`;
-- the helpers that take an `ApiClient` or a legacy method: `fetchAllPages`, `fetchPages`, `PageResult`, `fetchAllCursorPages`, `CursorTokens`, `batchFetch`, `batchPost`, `BatchOptions`, `BatchResult`, `EsiDiagnostics`, `CacheStats`, `CircuitBreakerStats`;
-- the hand-written response types (`src/types`), the `./schemas` entry and `./testing`'s `TestDataFactory`, which G1 and G14 decide: the validation pull request may reuse the schemas, and the types may give way to generated ones.
+- `TokenProvider` and `FetchLike` from `src/core/ApiClient.ts`: `EsiClientConfig.onTokenRefresh` and `ApiClientBuilder.setFetch` take them. `./client` has its own `TokenProvider` port and `HttpTransport`;
+- the branded ID types and `brand` (`src/types/branded.ts`) and the `EsiSpec` namespace of generated spec types.
 
 `EsiDatasource` stays: `EsiOptions` uses it.
 
@@ -125,7 +160,7 @@ These root exports exist for the legacy tree, or only make sense beside it, and 
 
 ## Lint while the tree is deprecated
 
-`sonarjs/deprecation` reports every use of a deprecated declaration. With the whole tree deprecated, `eslint.config.mjs` turns it off in three places, each with its reason in the config:
+`sonarjs/deprecation` reports every use of a deprecated declaration. `eslint.config.mjs` turns it off only where the deprecated surfaces refer to one another or are under test, each with its reason in the config:
 
-- inside the tree itself (`src/EsiClient.ts`, `src/EsiClientBuilder.ts`, `src/clients/`, `src/core/ApiClientBuilder.ts`), which wires its own deprecated classes together, and in `src/auth/EsiTokenManager.ts` and `scripts/quality/live-health.ts` (G17). A new use anywhere else in `src/` or `scripts/` is still an error;
-- in `tests/`, where it was a warning held by `npm run lint:ratchet`: it would report about 970 sites in 126 files, which are the tests 13.0.0 deletes. Restore `'warn'` there when the tree is gone.
+- in `src/` and `scripts/`: the construction tree (`src/EsiClient.ts`, `src/EsiClientBuilder.ts`, `src/clients/`, `src/core/ApiClientBuilder.ts`), the response types (`src/types/*.ts` and `src/types/generated/spec-alignment.check.ts`), `src/core/endpoints/createClient.ts`, `src/testing/TestDataFactory.ts`, `src/auth/EsiTokenManager.ts` and `scripts/quality/live-health.ts` (G17). A new use anywhere else is still an error;
+- in `tests/`: the 134 files in `config/eslint/legacy-tests.cjs`, which test the deprecated surfaces. Everywhere else in `tests/` it stays a warning held by `npm run lint:ratchet`, so a new use of a deprecated API is still caught. A file leaves the list when it moves to `createEsi()`, and 13.0.0 deletes the list with the files.
