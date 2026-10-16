@@ -4,6 +4,14 @@ import { fittingEndpoints } from '../core/endpoints/fittingEndpoints';
 import { Fitting } from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
+/**
+ * A legacy domain client over the hand-written endpoint map.
+ *
+ * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
+ * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
+ * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
+ * lists every legacy surface, its replacement and the open parity gaps.
+ */
 export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
   constructor(client: ApiClient) {
     super(client, fittingEndpoints);
@@ -32,9 +40,7 @@ export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
     characterId: number,
     fittingData: object,
   ): Promise<{ fitting_id: number }> {
-    return this.api.createFitting(characterId, fittingData) as Promise<{
-      fitting_id: number;
-    }>;
+    return this.api.createFitting(characterId, fittingData);
   }
 
   /**

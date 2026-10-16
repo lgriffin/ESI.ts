@@ -127,7 +127,14 @@ export interface CharacterSummary {
   revoked: boolean;
 }
 
-/** EsiClient options a manager-created client accepts; token fields are supplied by the manager. */
+/**
+ * EsiClient options a manager-created client accepts; token fields are supplied by the manager.
+ *
+ * @deprecated Since 12.1.0; removed in 13.0.0 with
+ * {@link EsiTokenManager.createClient}, the one method that takes it. Pass
+ * the same settings to `createEsi()` from `@lgriffin/esi.ts/client` and use
+ * `esi.as(tokens.identity(characterId))`. See guides/LEGACY-REMOVAL.md.
+ */
 export type ManagedClientConfig = Omit<
   EsiClientConfig,
   'accessToken' | 'onTokenRefresh'
@@ -421,7 +428,7 @@ export class EsiTokenManager {
    * An {@link EsiClient} whose access token and refresh provider are bound to
    * the character. The token is validated (and refreshed if stale) first.
    *
-   * @deprecated Since 11.0.0; removal is 13.0.0 at the earliest. Each client
+   * @deprecated Since 11.0.0; removed in 13.0.0 (guides/LEGACY-REMOVAL.md). Each client
    * this returns has its own rate limiter, error budget and cache. Build one
    * runtime with `createEsi({ userAgent })` from `@lgriffin/esi.ts/client` and
    * call `esi.as(this.identity(characterId))` for a per-character view over

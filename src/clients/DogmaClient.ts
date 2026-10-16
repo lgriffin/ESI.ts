@@ -7,6 +7,14 @@ import {
   DogmaDynamicItem,
 } from '../types/api-responses';
 
+/**
+ * A legacy domain client over the hand-written endpoint map.
+ *
+ * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
+ * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
+ * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
+ * lists every legacy surface, its replacement and the open parity gaps.
+ */
 export class DogmaClient extends BaseEsiClient<typeof dogmaEndpoints> {
   constructor(client: ApiClient) {
     super(client, dogmaEndpoints);
@@ -18,7 +26,7 @@ export class DogmaClient extends BaseEsiClient<typeof dogmaEndpoints> {
    * @returns An array of dogma attribute IDs
    */
   getAttributes(): Promise<number[]> {
-    return this.api.getAttributes() as Promise<number[]>;
+    return this.api.getAttributes();
   }
 
   /**
@@ -28,7 +36,7 @@ export class DogmaClient extends BaseEsiClient<typeof dogmaEndpoints> {
    * @returns Detailed information about the dogma attribute
    */
   getAttributeById(attributeId: number): Promise<DogmaAttribute> {
-    return this.api.getAttributeById(attributeId) as Promise<DogmaAttribute>;
+    return this.api.getAttributeById(attributeId);
   }
 
   /**
@@ -42,10 +50,7 @@ export class DogmaClient extends BaseEsiClient<typeof dogmaEndpoints> {
     typeId: number,
     itemId: number,
   ): Promise<DogmaDynamicItem> {
-    return this.api.getDynamicItemInfo(
-      typeId,
-      itemId,
-    ) as Promise<DogmaDynamicItem>;
+    return this.api.getDynamicItemInfo(typeId, itemId);
   }
 
   /**
@@ -54,7 +59,7 @@ export class DogmaClient extends BaseEsiClient<typeof dogmaEndpoints> {
    * @returns An array of dogma effect IDs
    */
   getEffects(): Promise<number[]> {
-    return this.api.getEffects() as Promise<number[]>;
+    return this.api.getEffects();
   }
 
   /**
@@ -64,6 +69,6 @@ export class DogmaClient extends BaseEsiClient<typeof dogmaEndpoints> {
    * @returns Detailed information about the dogma effect
    */
   getEffectById(effectId: number): Promise<DogmaEffect> {
-    return this.api.getEffectById(effectId) as Promise<DogmaEffect>;
+    return this.api.getEffectById(effectId);
   }
 }

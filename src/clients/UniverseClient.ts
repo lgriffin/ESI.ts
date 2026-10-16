@@ -27,6 +27,14 @@ import {
   TypeInfo,
 } from '../types/api-responses';
 
+/**
+ * A legacy domain client over the hand-written endpoint map.
+ *
+ * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
+ * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
+ * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
+ * lists every legacy surface, its replacement and the open parity gaps.
+ */
 export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
   constructor(client: ApiClient) {
     super(client, universeEndpoints);
@@ -38,7 +46,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of character ancestries
    */
   getAncestries(): Promise<Ancestry[]> {
-    return this.api.getAncestries() as Promise<Ancestry[]>;
+    return this.api.getAncestries();
   }
 
   /**
@@ -48,9 +56,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Details about the asteroid belt
    */
   getAsteroidBeltInfo(asteroidBeltId: number): Promise<AsteroidBeltInfo> {
-    return this.api.getAsteroidBeltInfo(
-      asteroidBeltId,
-    ) as Promise<AsteroidBeltInfo>;
+    return this.api.getAsteroidBeltInfo(asteroidBeltId);
   }
 
   /**
@@ -59,7 +65,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of character bloodlines
    */
   getBloodlines(): Promise<Bloodline[]> {
-    return this.api.getBloodlines() as Promise<Bloodline[]>;
+    return this.api.getBloodlines();
   }
 
   /**
@@ -69,9 +75,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed constellation information
    */
   getConstellationById(constellationId: number): Promise<ConstellationInfo> {
-    return this.api.getConstellationById(
-      constellationId,
-    ) as Promise<ConstellationInfo>;
+    return this.api.getConstellationById(constellationId);
   }
 
   /**
@@ -80,7 +84,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of constellation IDs
    */
   getConstellations(): Promise<number[]> {
-    return this.api.getConstellations() as Promise<number[]>;
+    return this.api.getConstellations();
   }
 
   /**
@@ -89,7 +93,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of NPC factions
    */
   getFactions(): Promise<Faction[]> {
-    return this.api.getFactions() as Promise<Faction[]>;
+    return this.api.getFactions();
   }
 
   /**
@@ -99,7 +103,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed graphic information
    */
   getGraphicById(graphicId: number): Promise<GraphicInfo> {
-    return this.api.getGraphicById(graphicId) as Promise<GraphicInfo>;
+    return this.api.getGraphicById(graphicId);
   }
 
   /**
@@ -108,7 +112,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of graphic IDs
    */
   getGraphics(): Promise<number[]> {
-    return this.api.getGraphics() as Promise<number[]>;
+    return this.api.getGraphics();
   }
 
   /**
@@ -117,7 +121,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of item category IDs
    */
   getItemCategories(): Promise<number[]> {
-    return this.api.getCategories() as Promise<number[]>;
+    return this.api.getCategories();
   }
 
   /**
@@ -127,7 +131,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed item category information
    */
   getItemCategoryById(categoryId: number): Promise<ItemCategory> {
-    return this.api.getCategoryById(categoryId) as Promise<ItemCategory>;
+    return this.api.getCategoryById(categoryId);
   }
 
   /**
@@ -137,7 +141,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed item group information
    */
   getItemGroupById(groupId: number): Promise<ItemGroup> {
-    return this.api.getItemGroupById(groupId) as Promise<ItemGroup>;
+    return this.api.getItemGroupById(groupId);
   }
 
   /**
@@ -146,7 +150,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of item group IDs
    */
   getItemGroups(): Promise<number[]> {
-    return this.api.getItemGroups() as Promise<number[]>;
+    return this.api.getItemGroups();
   }
 
   /**
@@ -156,7 +160,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed moon information
    */
   getMoonById(moonId: number): Promise<MoonInfo> {
-    return this.api.getMoonById(moonId) as Promise<MoonInfo>;
+    return this.api.getMoonById(moonId);
   }
 
   /**
@@ -166,7 +170,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed planet information
    */
   getPlanetById(planetId: number): Promise<PlanetInfo> {
-    return this.api.getPlanetById(planetId) as Promise<PlanetInfo>;
+    return this.api.getPlanetById(planetId);
   }
 
   /**
@@ -175,7 +179,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of playable races
    */
   getRaces(): Promise<Race[]> {
-    return this.api.getRaces() as Promise<Race[]>;
+    return this.api.getRaces();
   }
 
   /**
@@ -185,7 +189,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed region information
    */
   getRegionById(regionId: number): Promise<RegionInfo> {
-    return this.api.getRegionById(regionId) as Promise<RegionInfo>;
+    return this.api.getRegionById(regionId);
   }
 
   /**
@@ -195,7 +199,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed star information
    */
   getStarById(starId: number): Promise<StarInfo> {
-    return this.api.getStarById(starId) as Promise<StarInfo>;
+    return this.api.getStarById(starId);
   }
 
   /**
@@ -205,7 +209,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed stargate information
    */
   getStargateById(stargateId: number): Promise<StargateInfo> {
-    return this.api.getStargateById(stargateId) as Promise<StargateInfo>;
+    return this.api.getStargateById(stargateId);
   }
 
   /**
@@ -215,7 +219,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed station information
    */
   getStationById(stationId: number): Promise<StationInfo> {
-    return this.api.getStationById(stationId) as Promise<StationInfo>;
+    return this.api.getStationById(stationId);
   }
 
   /**
@@ -226,7 +230,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @requires Authentication
    */
   getStructureById(structureId: number): Promise<StructureInfo> {
-    return this.api.getStructureById(structureId) as Promise<StructureInfo>;
+    return this.api.getStructureById(structureId);
   }
 
   /**
@@ -235,7 +239,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of structure IDs
    */
   getStructures(): Promise<number[]> {
-    return this.api.getStructures() as Promise<number[]>;
+    return this.api.getStructures();
   }
 
   /**
@@ -245,7 +249,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed solar system information
    */
   getSystemById(systemId: number): Promise<SolarSystemInfo> {
-    return this.api.getSystemById(systemId) as Promise<SolarSystemInfo>;
+    return this.api.getSystemById(systemId);
   }
 
   /**
@@ -254,7 +258,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of solar systems with their jump counts
    */
   getSystemJumps(): Promise<SystemJump[]> {
-    return this.api.getSystemJumps() as Promise<SystemJump[]>;
+    return this.api.getSystemJumps();
   }
 
   /**
@@ -263,7 +267,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of solar systems with their kill counts
    */
   getSystemKills(): Promise<SystemKill[]> {
-    return this.api.getSystemKills() as Promise<SystemKill[]>;
+    return this.api.getSystemKills();
   }
 
   /**
@@ -272,7 +276,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of solar system IDs
    */
   getSystems(): Promise<number[]> {
-    return this.api.getSystems() as Promise<number[]>;
+    return this.api.getSystems();
   }
 
   /**
@@ -282,7 +286,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed item type information
    */
   getTypeById(typeId: number): Promise<TypeInfo> {
-    return this.api.getTypeById(typeId) as Promise<TypeInfo>;
+    return this.api.getTypeById(typeId);
   }
 
   /**
@@ -291,7 +295,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of item type IDs
    */
   getTypes(): Promise<number[]> {
-    return this.api.getTypes() as Promise<number[]>;
+    return this.api.getTypes();
   }
 
   /**
@@ -301,7 +305,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns The resolved IDs grouped by entity category
    */
   postBulkNamesToIds(names: string[]): Promise<BulkIdResult> {
-    return this.api.postBulkNamesToIds(names) as Promise<BulkIdResult>;
+    return this.api.postBulkNamesToIds(names);
   }
 
   /**
@@ -311,7 +315,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of names with their corresponding categories
    */
   postNamesAndCategories(ids: number[]): Promise<NameAndCategory[]> {
-    return this.api.postNamesAndCategories(ids) as Promise<NameAndCategory[]>;
+    return this.api.postNamesAndCategories(ids);
   }
 
   /**
@@ -321,7 +325,7 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns Detailed schematic information including inputs and outputs
    */
   getSchematicById(schematicId: number): Promise<SchematicInfo> {
-    return this.api.getSchematicById(schematicId) as Promise<SchematicInfo>;
+    return this.api.getSchematicById(schematicId);
   }
 
   /**
@@ -330,6 +334,6 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
    * @returns A list of region IDs
    */
   getRegions(): Promise<number[]> {
-    return this.api.getRegions() as Promise<number[]>;
+    return this.api.getRegions();
   }
 }
