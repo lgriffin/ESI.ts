@@ -11,14 +11,14 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { COMPATIBILITY_DATE } from '../../src/core/constants';
 import { esiCacheTtls } from '../../src/core/endpoints/esi-cache-ttls.generated';
 import { esiEndpointScopes } from '../../src/core/endpoints/esi-scopes.generated';
 
 const LIVE_TESTS_ENABLED = process.env.ESI_LIVE_TESTS === 'true';
 const describeIfLive = LIVE_TESTS_ENABLED ? describe : describe.skip;
 
-const ESI_OPENAPI_URL =
-  'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
+const ESI_OPENAPI_URL = `https://esi.evetech.net/meta/openapi.json?compatibility_date=${COMPATIBILITY_DATE}`;
 const ENDPOINTS_DIR = path.resolve(__dirname, '../../src/core/endpoints');
 const TYPES_DIR = path.resolve(__dirname, '../../src/types');
 const GENERATED_TYPES_FILE = path.resolve(
