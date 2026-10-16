@@ -144,7 +144,7 @@ jobs:
           fi
 
           date=$(node -p "require('./tests/contract/snapshots/esi-openapi.snapshot.json').info.version")
-          git add tests/contract/snapshots/esi-openapi.snapshot.json src/generated/operations.generated.ts \
+          git add tests/contract/snapshots/esi-openapi.snapshot.json src/generated/operations.generated.ts src/adapters/responseSchemas.generated.ts \
             src/types/generated/ src/core/endpoints/esi-*.generated.ts tests/contract/fixtures/
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit -q -m "chore(spec): vendor the ESI spec at ${date} and regenerate from it"

@@ -3,7 +3,9 @@
  * pipeline: rate limiter, circuit breaker, deduplication, retry, ETag cache,
  * and the tenant, user agent and compatibility date headers. It holds no
  * state of its own, so every operation shares the ApiClient's budgets and
- * cache with the hand-written clients.
+ * cache with the hand-written clients. When `validateResponse` is on (the
+ * default), a JSON body is checked against the operation's generated Zod
+ * schema, as the hand-written clients check theirs.
  */
 import type { ApiClient } from '../core/ApiClient';
 import { handleRequest } from '../core/ApiRequestHandler';
@@ -14,7 +16,10 @@ import type {
   OperationTransport,
   QueryValue,
 } from '../core/ports/OperationTransport';
+import { evictRejectedResponse, resolveCache } from '../core/requestPipeline';
+import { EsiValidationError } from '../core/util/error';
 import { validatePathParam, validateQueryParam } from '../core/util/validation';
+import { responseSchemas } from './responseSchemas.generated';
 
 interface BuiltRequest {
   /** Relative URL: the filled path plus its query string. */
@@ -81,7 +86,19 @@ export class PipelineTransport implements OperationTransport {
       true,
       template,
     );
-    return response.body as T;
+    const schema = responseSchemas[meta.operationId];
+    if (!schema || !this.client.getValidateResponse()) {
+      return response.body as T;
+    }
+    const result = schema.safeParse(response.body);
+    if (!result.success) {
+      evictRejectedResponse(this.client, url, requiresAuth, resolveCache);
+      throw new EsiValidationError(
+        `${this.client.getLink()}/${url}`,
+        result.error,
+      );
+    }
+    return result.data as T;
   }
 
   async *paginate<T>(
@@ -100,6 +117,7 @@ export class PipelineTransport implements OperationTransport {
       requiresAuth,
       req.body,
       template,
+      responseSchemas[meta.operationId],
     )) {
       yield* page.data;
     }

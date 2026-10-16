@@ -69,6 +69,11 @@ export interface EsiOptions {
   readonly enableRequestDeduplication?: boolean;
   readonly requestInterceptors?: readonly RequestInterceptor[];
   readonly responseInterceptors?: readonly ResponseInterceptor[];
+  /**
+   * Check each response against the operation's Zod schema, generated from
+   * the OpenAPI document, and throw `EsiValidationError` on a mismatch.
+   * Defaults to `true`; `false` returns bodies as ESI sent them.
+   */
   readonly validateResponse?: boolean;
   readonly validateRequest?: boolean;
   /** Where the pipeline logs. Defaults to the package's pino logger at `logLevel`. */

@@ -8,6 +8,7 @@ import {
   getMarketsRegionIdOrders,
   getStatus,
 } from '../../../src/generated/operations.generated';
+import { marketOrder, STATUS } from '../helpers/generatedBodies';
 
 fetchMock.enableMocks();
 
@@ -167,9 +168,7 @@ describe('PipelineTransport', () => {
     });
 
     it('backs a generated operation', async () => {
-      fetchMock.mockResponseOnce(
-        JSON.stringify({ players: 1, server_version: '1', start_time: 'x' }),
-      );
+      fetchMock.mockResponseOnce(JSON.stringify(STATUS));
 
       const status = await getStatus(new PipelineTransport(newClient()));
 
@@ -182,10 +181,10 @@ describe('PipelineTransport', () => {
     it('follows X-Pages and yields every item in order', async () => {
       fetchMock.mockResponses(
         [
-          JSON.stringify([{ order_id: 1 }, { order_id: 2 }]),
+          JSON.stringify([marketOrder(1), marketOrder(2)]),
           { headers: { 'x-pages': '2' } },
         ],
-        [JSON.stringify([{ order_id: 3 }]), { headers: { 'x-pages': '2' } }],
+        [JSON.stringify([marketOrder(3)]), { headers: { 'x-pages': '2' } }],
       );
       const transport = new PipelineTransport(newClient());
 

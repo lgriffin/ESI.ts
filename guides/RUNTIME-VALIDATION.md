@@ -128,7 +128,9 @@ export type CharacterInfo = z.infer<typeof CharacterInfoSchema>;
 
 ### Generated types are separate
 
-The auto-generated types in `src/types/generated/esi-spec.generated.ts` (161 interfaces from the ESI OpenAPI spec) are **not** converted to Zod schemas. They serve as a ground-truth reference for CI contract validation, not as consumer-facing types. The hand-written schemas in `src/schemas/` are what the library uses at runtime.
+The auto-generated types in `src/types/generated/esi-spec.generated.ts` (161 interfaces from the ESI OpenAPI spec) are **not** converted to Zod schemas. They serve as a ground-truth reference for CI contract validation, not as consumer-facing types. The hand-written schemas in `src/schemas/` are what the domain clients use at runtime.
+
+The generated operations behind `createEsi()` (`@lgriffin/esi.ts/client`) have their own schemas: `npm run spec:generate` writes `src/adapters/responseSchemas.generated.ts` beside `src/generated/operations.generated.ts`, one Zod schema per operation's success body. `validateResponse` (default `true`) applies to them exactly as it does to the domain clients: a body that does not match throws `EsiValidationError` with `direction: 'response'`, and `validateResponse: false` returns the body as ESI sent it. The schemas follow the same allowances as the hand-written ones: objects keep fields ESI adds (`z.looseObject`), and a string enum accepts a member the document does not list yet. Where ESI's wire responses break its own document, `scripts/spec/response-schema-overrides.json` records the deviation with its evidence and widens the generated type and schema together.
 
 ## Available Schemas
 

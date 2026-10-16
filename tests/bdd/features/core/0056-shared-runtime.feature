@@ -197,3 +197,34 @@ Feature: One runtime, many identities
       When the runtime is shut down twice
       And the character's view requests the wallet balance
       Then the call shall resolve with the wallet balance after one request
+
+  # ── Response validation
+
+  Rule: If ESI answers a generated operation with a JSON body that does not match the operation's generated response schema, then the runtime shall reject the call with an EsiValidationError naming the request URL.
+    The hand-written clients have always checked a body against its Zod schema
+    before handing it over; the generated operations now do the same, against
+    schemas generated from the OpenAPI document beside their types. A body that
+    breaks the type the caller compiled against fails at the call, not three
+    functions later. Fields ESI adds are kept, and so is a new enum member.
+
+    Scenario: A server status without its player count is rejected
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And ESI reports the server status without its player count
+      When the public view requests the server status
+      Then the call shall be rejected with an EsiValidationError naming "/status"
+
+    Scenario: A server status with a field the document does not name is accepted with that field
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And ESI reports the server status with an extra field "shard"
+      When the public view requests the server status
+      Then the call shall resolve with the server status as ESI sent it
+
+  Rule: Where response validation is turned off, the runtime shall return a generated operation's body as ESI sent it.
+    `validateResponse: false` is the escape hatch for an application that
+    prefers a malformed body to an error while ESI and its document disagree.
+
+    Scenario: A server status without its player count is returned when validation is off
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)" with response validation off
+      And ESI reports the server status without its player count
+      When the public view requests the server status
+      Then the call shall resolve with the server status as ESI sent it

@@ -10,6 +10,7 @@ import {
   identityFromToken,
   type Identity,
 } from '../../../src/client';
+import { asset, STATUS } from '../helpers/generatedBodies';
 
 fetchMock.enableMocks();
 
@@ -67,7 +68,7 @@ describe('createEsi', () => {
       language: 'de',
       datasource: 'singularity',
     });
-    fetchMock.mockResponses('{"players":1}', '12.5');
+    fetchMock.mockResponses(JSON.stringify(STATUS), '12.5');
 
     await esi.public.status.get();
     await esi.as(identityFromToken('t')).character(1).wallet.get();
@@ -82,7 +83,10 @@ describe('createEsi', () => {
 
   it('sends every request through the configured transport', async () => {
     const transport = jest.fn(
-      async () => new Response('{"players":3}', { status: 200 }),
+      async () =>
+        new Response(JSON.stringify({ ...STATUS, players: 3 }), {
+          status: 200,
+        }),
     );
     const esi = createEsi({ ...OPTIONS, transport });
 
@@ -123,7 +127,7 @@ describe('createEsi', () => {
   it('does not ask a public operation for a token', async () => {
     const accessToken = jest.fn(() => Promise.resolve('t'));
     const esi = createEsi(OPTIONS);
-    fetchMock.mockResponseOnce('{"players":1}');
+    fetchMock.mockResponseOnce(JSON.stringify(STATUS));
 
     await esi.as({ accessToken }).status.get();
 
@@ -134,8 +138,8 @@ describe('createEsi', () => {
   it('pages an authenticated collection under the identity token', async () => {
     const esi = createEsi(OPTIONS);
     fetchMock.mockResponses(
-      ['[{"item_id":1}]', { headers: { 'x-pages': '2' } }],
-      ['[{"item_id":2}]', { headers: { 'x-pages': '2' } }],
+      [JSON.stringify([asset(1)]), { headers: { 'x-pages': '2' } }],
+      [JSON.stringify([asset(2)]), { headers: { 'x-pages': '2' } }],
     );
 
     const ids: number[] = [];
@@ -158,8 +162,8 @@ describe('createEsi', () => {
       identityFromProvider(() => Promise.resolve(`t${++calls}`)),
     );
     fetchMock.mockResponses(
-      ['[{"item_id":1}]', { headers: { 'x-pages': '2' } }],
-      ['[{"item_id":2}]', { headers: { 'x-pages': '2' } }],
+      [JSON.stringify([asset(1)]), { headers: { 'x-pages': '2' } }],
+      [JSON.stringify([asset(2)]), { headers: { 'x-pages': '2' } }],
     );
 
     const ids: number[] = [];
@@ -239,8 +243,8 @@ describe('createEsi', () => {
       esi.shutdown();
       expect(jest.getTimerCount()).toBe(0);
 
-      fetchMock.mockResponseOnce('{"players":1}');
-      await expect(esi.public.status.get()).resolves.toEqual({ players: 1 });
+      fetchMock.mockResponseOnce(JSON.stringify(STATUS));
+      await expect(esi.public.status.get()).resolves.toEqual(STATUS);
     } finally {
       jest.useRealTimers();
     }

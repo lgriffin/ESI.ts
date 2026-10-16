@@ -70,6 +70,14 @@ export interface GenerateOptions {
   readonly specPath: string;
   /** Module specifier the generated file imports the transport port from. */
   readonly transportImport: string;
+  /**
+   * Wire deviations from the document, by component schema: properties ESI
+   * sends as null although the document does not allow it
+   * (scripts/spec/response-schema-overrides.json).
+   */
+  readonly overrides?: Readonly<
+    Record<string, { readonly nullable?: readonly string[] }>
+  >;
 }
 
 export class SpecGenerateError extends Error {
@@ -115,6 +123,11 @@ export function generateOperations(
   const schemas = doc.components?.schemas ?? {};
   const sharedParams = doc.components?.parameters ?? {};
   const declared = new Map<string, string>();
+  const overrides = options.overrides ?? {};
+  /** The component schemas being emitted, innermost last. */
+  const stack: string[] = [];
+  const nullableHere = (key: string): boolean =>
+    stack.some((name) => overrides[name]?.nullable?.includes(key) === true);
 
   function refTarget(ref: string, kind: 'schemas' | 'parameters'): string {
     const prefix = `#/components/${kind}/`;
@@ -138,10 +151,12 @@ export function generateOperations(
         throw new SpecGenerateError(`$ref to missing schema "${name}"`);
       }
       declared.set(name, ''); // reserve before recursing, for cycles
-      // eslint-disable-next-line sonarjs/no-element-overwrite -- replaces the reservation above once the recursion returns
+      stack.push(name);
+      const text = inlineType(schema);
+      stack.pop();
       declared.set(
         name,
-        `${jsdoc([schema.description])}export type ${name} = ${inlineType(schema)};\n`,
+        `${jsdoc([schema.description])}export type ${name} = ${text};\n`,
       );
     }
     return name;
@@ -160,7 +175,7 @@ export function generateOperations(
     const required = new Set<string>(s.required ?? []);
     const lines = props.map(
       ([key, value]) =>
-        `${jsdoc([value.description, value.deprecated ? '@deprecated' : undefined])}readonly ${quoteKey(key)}${required.has(key) ? '' : '?'}: ${inlineType(value)};`,
+        `${jsdoc([value.description, value.deprecated ? '@deprecated' : undefined])}readonly ${quoteKey(key)}${required.has(key) ? '' : '?'}: ${inlineType(value)}${nullableHere(key) ? ' | null' : ''};`,
     );
     return `{\n${lines.join('\n')}\n}`;
   }

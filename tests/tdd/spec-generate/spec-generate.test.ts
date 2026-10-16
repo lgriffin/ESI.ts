@@ -236,6 +236,16 @@ describe('generateOperations over the fixture', () => {
     expect(out).toMatchSnapshot();
   });
 
+  it('widens a property an override marks nullable, inside that component only', () => {
+    const plain = generateOperations(fixture, options).source;
+    const widened = generateOperations(fixture, {
+      ...options,
+      overrides: { Order: { nullable: ['order_id'] } },
+    }).source;
+    expect(plain).toContain('readonly order_id: number;');
+    expect(widened).toContain('readonly order_id: number | null;');
+  });
+
   it('emits one function and one Meta per operation, sorted by path, then method', () => {
     const result = generateOperations(fixture, options);
     expect(result.operations.map((o) => o.functionName)).toEqual([
