@@ -14,12 +14,15 @@ Feature: Security boundary
   Rule: If ESI reports more than 1000 pages, then the client shall request no more than 1000 pages.
     X-Pages is a number the remote chooses. Without a bound, a response
     reporting a hundred million pages would start that many requests, so
-    every pagination path reads it through the same bounded page count.
+    every pagination path checks it against the same page limit. A count
+    above the limit stops the walk after page 1 with an EsiPaginationError
+    (0051-resilience.feature), so no further page is requested at all.
 
     Scenario Outline: Every pagination entry point applies the same cap
       Given ESI reports an "X-Pages" value of 100000000 for a paged route
       When the consumer walks the route through <entry point>
       Then no more than 1000 page requests shall reach the transport
+      And the walk shall be refused as incomplete
 
       Examples:
         | entry point             |

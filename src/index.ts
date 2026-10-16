@@ -104,7 +104,12 @@ export {
   isTokenRefreshError,
   sanitizeUrl,
 } from './core/util/error';
-export type { ValidationDirection, EsiFaultCode } from './core/util/error';
+export type {
+  ValidationDirection,
+  EsiFaultCode,
+  PaginationStopReason,
+  EsiPaginationErrorDetails,
+} from './core/util/error';
 
 // Endpoint definition types
 export { DeprecationInfo } from './core/endpoints/EndpointDefinition';

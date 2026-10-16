@@ -68,6 +68,7 @@ inputs:
       - 'fault:x-pages-beyond-the-cap'
       - 'fault:x-pages-grows-between-pages'
       - 'fault:x-pages-shrinks-to-empty-page'
+      - 'fault:empty-page-mid-run'
       - tests/fuzz/pagination-fuzz.test.ts
   - id: cursor
     name: Cursor tokens

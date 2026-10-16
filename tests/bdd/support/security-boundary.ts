@@ -8,7 +8,7 @@ import AdmZip from 'adm-zip';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { EsiError } from '../../../src/core/util/error';
+import { EsiError, EsiPaginationError } from '../../../src/core/util/error';
 import type { PageResult } from '../../../src/core/pagination/AsyncPaginationIterator';
 import { SdeError } from '../../../src/sde/errors';
 import { SdeExtractor } from '../../../src/sde/ingestion/SdeExtractor';
@@ -16,18 +16,14 @@ import { queueResponse, sentRequests } from './transport';
 import { WALLET_CHARACTER_ID, balanceMatch } from './wallet';
 import type { World } from './world';
 
-/** The page cap every pagination entry point applies (security model P8). */
-export const PAGE_CAP = 1000;
-
 /** The paged route the P8 scenarios walk: the alliance ID list. */
 const PAGED_ROUTE_FIRST = /\/alliances\/?(\?(?!.*page=)|$)/;
-const PAGED_ROUTE_PAGE = /\/alliances\/?\?.*page=\d+/;
 
 /**
- * ESI reports `reported` pages for the alliance list. Exactly PAGE_CAP pages
- * are queued: a client that asks for one more finds no response and fails,
- * and one that asks for fewer leaves a queued page unrequested, which fails
- * the scenario too.
+ * ESI reports `reported` pages for the alliance list. Only page 1 is queued:
+ * a count above the 1000-page cap (security model P8) stops the walk after
+ * page 1, and a client that asks for any further page finds no response,
+ * which fails the scenario.
  */
 export function queueReportedPageCount(header: string, reported: number): void {
   queueResponse({
@@ -35,31 +31,42 @@ export function queueReportedPageCount(header: string, reported: number): void {
     headers: { [header.toLowerCase()]: String(reported) },
     body: [1],
   });
-  queueResponse({
-    match: PAGED_ROUTE_PAGE,
-    headers: { [header.toLowerCase()]: String(reported) },
-    body: [2],
-    times: PAGE_CAP - 1,
-  });
+}
+
+/** Run a walk, keeping what it resolved with or what it threw. */
+async function walk(world: World, run: () => Promise<unknown>): Promise<void> {
+  try {
+    world.result = await run();
+  } catch (error) {
+    world.error = error;
+  }
 }
 
 /** Every page of the alliance list, through the domain client's plain method. */
 export async function walkWithPagedMethod(world: World): Promise<void> {
-  world.result = await world.client.alliance.getAlliances();
+  await walk(world, () => world.client.alliance.getAlliances());
 }
 
 /** Every page of the alliance list, through the collecting iterator. */
 export async function walkWithCollectingIterator(world: World): Promise<void> {
-  world.result = await world.client.alliance.fetchAllAlliances();
+  await walk(world, () => world.client.alliance.fetchAllAlliances());
 }
 
 /** Every page of the alliance list, through the async page iterator. */
 export async function walkWithAsyncIterator(world: World): Promise<void> {
-  const pages: PageResult<number>[] = [];
-  for await (const page of world.client.alliance.streamAlliances()) {
-    pages.push(page);
-  }
-  world.result = pages;
+  await walk(world, async () => {
+    const pages: PageResult<number>[] = [];
+    for await (const page of world.client.alliance.streamAlliances()) {
+      pages.push(page);
+    }
+    return pages;
+  });
+}
+
+/** The walk was refused at the page cap (a reported count above 1000). */
+export function expectPageCapRefusal(world: World): void {
+  expect(world.error).toBeInstanceOf(EsiPaginationError);
+  expect((world.error as EsiPaginationError).reason).toBe('page-cap');
 }
 
 export function pageRequestsSent(): number {

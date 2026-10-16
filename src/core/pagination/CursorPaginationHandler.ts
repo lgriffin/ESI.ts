@@ -111,9 +111,11 @@ export class CursorPaginationHandler {
 
   /**
    * Auto-fetch all pages by following `after` tokens until an empty
-   * response is received.  Combines the caller-supplied first page
-   * data with all subsequent pages. After three consecutive failed
-   * pages it throws rather than return a partial dataset (DES-08).
+   * response, or a page without an `after` token, is received. Combines the
+   * caller-supplied first page data with all subsequent pages. It never
+   * returns a partial dataset (DES-08): after three consecutive failed pages
+   * it throws, and reaching `maxPages` with an `after` token still set
+   * throws an EsiPaginationError with reason `cursor-cap`.
    */
   static async fetchAll(
     client: ApiClient,
@@ -157,6 +159,7 @@ export class CursorPaginationHandler {
             'Cursor pagination: empty page received, dataset complete.',
             { pages: pageCount },
           );
+          afterToken = null;
           break;
         }
 
@@ -185,9 +188,23 @@ export class CursorPaginationHandler {
             `${consecutiveFailures} consecutive failures. Stopping cursor pagination.`,
             { consecutiveFailures },
           );
-          throw incomplete(endpoint, error);
+          throw incomplete(endpoint, error, pageCount, allData);
         }
       }
+    }
+
+    if (afterToken) {
+      logWarn(
+        client,
+        `Cursor pagination stopped at the ${opts.maxPages}-page limit with an after cursor still set.`,
+        { pages: pageCount, maxPages: opts.maxPages },
+      );
+      throw new EsiPaginationError(endpoint, undefined, {
+        reason: 'cursor-cap',
+        endpoint,
+        fetchedPages: pageCount,
+        partial: allData,
+      });
     }
 
     logInfo(
@@ -274,12 +291,22 @@ export class CursorPaginationHandler {
 /**
  * The error a cursor walk that stops part way rejects with: the last
  * page's own error when it is an ESI or circuit error, otherwise
- * PAGINATION_INCOMPLETE. Mirrors the offset path in
- * requestPipeline/paginationOrchestration.ts.
+ * PAGINATION_INCOMPLETE with reason `fetch-failed` and the items fetched so
+ * far. Mirrors the offset path in requestPipeline/paginationOrchestration.ts.
  */
-function incomplete(endpoint: string, error: unknown): unknown {
+function incomplete(
+  endpoint: string,
+  error: unknown,
+  fetchedPages: number,
+  partial: unknown[],
+): unknown {
   if (error instanceof EsiError) {
     return error;
   }
-  return new EsiPaginationError(endpoint, error);
+  return new EsiPaginationError(endpoint, error, {
+    reason: 'fetch-failed',
+    endpoint,
+    fetchedPages,
+    partial,
+  });
 }

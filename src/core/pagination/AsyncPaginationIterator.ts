@@ -1,8 +1,8 @@
 import { ApiClient } from '../ApiClient';
 import { handleSinglePageRequest } from '../ApiRequestHandler';
 import { logInfo } from '../logger/clientLog';
-import { EsiValidationError } from '../util/error';
-import { boundedPageCount } from './pageLimit';
+import { EsiPaginationError, EsiValidationError } from '../util/error';
+import { MAX_PAGES, boundedPageCount } from './pageLimit';
 import type { EndpointDefinition } from '../endpoints/EndpointDefinition';
 
 export interface PageResult<T = unknown> {
@@ -17,6 +17,49 @@ function extractArray<T>(body: unknown): T[] {
   if (Array.isArray(body)) return body as T[];
   if (body !== undefined && body !== null) return [body as T];
   return [];
+}
+
+/**
+ * The page count page 1 reported, from its X-Pages header. An unreadable or
+ * absent count is one page. A count above MAX_PAGES throws `page-cap` before
+ * any further page is requested (security model P8, DES-08).
+ */
+function reportedPageCount(
+  client: ApiClient,
+  endpoint: string,
+  header: string | undefined,
+  firstPage: unknown[],
+): number {
+  const reported = parseInt(header || '1', 10);
+  if (reported > MAX_PAGES) {
+    throw new EsiPaginationError(`${client.getLink()}/${endpoint}`, undefined, {
+      reason: 'page-cap',
+      endpoint,
+      reportedPages: reported,
+      fetchedPages: 1,
+      partial: firstPage,
+    });
+  }
+  return boundedPageCount(reported);
+}
+
+/** A page after the first came back empty: the collection shrank mid-walk. */
+function emptyPage(
+  client: ApiClient,
+  endpoint: string,
+  page: number,
+  totalPages: number,
+  partial: unknown[],
+  itemCount: number = partial.length,
+): EsiPaginationError {
+  return new EsiPaginationError(`${client.getLink()}/${endpoint}`, undefined, {
+    reason: 'empty-page',
+    endpoint,
+    reportedPages: totalPages,
+    fetchedPages: page,
+    partial,
+    itemCount,
+  });
 }
 
 function validatePageBody(
@@ -60,12 +103,15 @@ export async function fetchAllPages<T = unknown>(
     validate,
   );
 
-  const totalPages = boundedPageCount(
-    parseInt(firstResponse.headers['x-pages'] || '1', 10),
-  );
   const result: T[] = extractArray<T>(firstBody);
+  const totalPages = reportedPageCount(
+    client,
+    endpoint,
+    firstResponse.headers['x-pages'],
+    result,
+  );
 
-  // Empty for one page (or an unreadable X-Pages, which bounds to 1), so the
+  // Empty for one page (or an unreadable X-Pages, which counts as 1), so the
   // loop below does nothing and the first page is the whole result.
   const remaining = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
 
@@ -92,17 +138,23 @@ export async function fetchAllPages<T = unknown>(
           templatePath,
         );
 
-        return validatePageBody(
+        const pageBody = validatePageBody(
           response.body,
           responseSchema,
           `${client.getLink()}/${pagedEndpoint}`,
           validate,
         );
+        return { page, data: extractArray<T>(pageBody) };
       }),
     );
 
-    for (const pageBody of pages) {
-      result.push(...extractArray<T>(pageBody));
+    // Pages are checked in page order, so `partial` is the prefix before the
+    // first empty page even when later pages of the wave carried items.
+    for (const { page, data } of pages) {
+      if (data.length === 0) {
+        throw emptyPage(client, endpoint, page, totalPages, result);
+      }
+      result.push(...data);
     }
   }
 
@@ -135,11 +187,18 @@ export async function* fetchPages<T = unknown>(
     validate,
   );
 
-  const totalPages = boundedPageCount(
-    parseInt(firstResponse.headers['x-pages'] || '1', 10),
+  const firstData = extractArray<T>(firstBody);
+  const totalPages = reportedPageCount(
+    client,
+    endpoint,
+    firstResponse.headers['x-pages'],
+    firstData,
   );
 
-  yield { data: extractArray<T>(firstBody), page: 1, totalPages };
+  yield { data: firstData, page: 1, totalPages };
+  // Yielded pages are the consumer's already, so an error counts their items
+  // rather than holding them: a stream keeps one page in memory.
+  let yieldedItems = firstData.length;
 
   for (let page = 2; page <= totalPages; page++) {
     const sep = endpoint.includes('?') ? '&' : '?';
@@ -166,8 +225,11 @@ export async function* fetchPages<T = unknown>(
       validate,
     );
     const pageData = extractArray<T>(pageBody);
-    if (pageData.length === 0) break;
+    if (pageData.length === 0) {
+      throw emptyPage(client, endpoint, page, totalPages, [], yieldedItems);
+    }
 
     yield { data: pageData, page, totalPages };
+    yieldedItems += pageData.length;
   }
 }

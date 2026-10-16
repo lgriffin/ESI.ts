@@ -8,7 +8,6 @@ import {
 } from '../pagination/PaginationHandler';
 import { CursorTokens } from '../pagination/CursorPaginationHandler';
 import { ICache } from '../cache/ICache';
-import { boundedPageCount } from '../pagination/pageLimit';
 import { cacheResponse, EsiHandlerResponse } from './cachePolicy';
 
 /**
@@ -30,7 +29,11 @@ export function handleCursorPagination(
 }
 
 /**
- * Handle offset-based pagination. Fetches remaining pages if xPages > 1.
+ * Handle offset-based pagination. Fetches remaining pages if xPages > 1 and
+ * resolves only with every page: a count above the page limit, an empty page
+ * after the first, or a failed page rejects (DES-08). An `EsiError`,
+ * EsiPaginationError included, is rethrown as it is; anything else is
+ * wrapped in an EsiPaginationError with reason `fetch-failed`.
  */
 export async function handleOffsetPagination(
   client: ApiClient,
@@ -70,10 +73,7 @@ export async function handleOffsetPagination(
       firstPageData,
       totalPages,
       body,
-      {
-        maxPages: boundedPageCount(totalPages),
-        stopOnEmptyPage: true,
-      },
+      { where: url },
       pageFetch,
       templatePath,
     );
@@ -106,6 +106,9 @@ export async function handleOffsetPagination(
     if (paginationError instanceof EsiError) {
       throw paginationError;
     }
-    throw new EsiPaginationError(url, paginationError);
+    throw new EsiPaginationError(url, paginationError, {
+      endpoint,
+      reportedPages: totalPages,
+    });
   }
 }

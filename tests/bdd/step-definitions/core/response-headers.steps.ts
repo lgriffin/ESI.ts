@@ -1,7 +1,7 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { StatusClient } from '../../../../src/clients/StatusClient';
 import { ApiClient } from '../../../../src/core/ApiClient';
-import { EsiError } from '../../../../src/core/util/error';
+import { EsiError, EsiPaginationError } from '../../../../src/core/util/error';
 import { RateLimiter } from '../../../../src/core/rateLimiter/RateLimiter';
 import { EsiClient } from '../../../../src/EsiClient';
 import fetchMock from 'jest-fetch-mock';
@@ -293,13 +293,14 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('X-Pages of 1001 is walked as far as page 1000', ({
+  test('X-Pages of 1001 stops the walk after page 1', ({
     given,
     when,
     then,
     and,
   }) => {
     let client: EsiClient;
+    let error: unknown;
 
     given(
       'ESI answers the market types with page 1 announcing 1001 pages and a type on every page',
@@ -309,18 +310,25 @@ defineFeature(feature, (test) => {
       },
     );
 
-    when('the client requests the market types for The Forge', async () => {
-      result = await client.market.getMarketTypes(THE_FORGE);
+    when(
+      'the client tries to request the market types for The Forge',
+      async () => {
+        error = await client.market.getMarketTypes(THE_FORGE).then(
+          () => undefined,
+          (e: unknown) => e,
+        );
+      },
+    );
+
+    then('the client rejects the walk as incomplete', () => {
+      expect(error).toBeInstanceOf(EsiPaginationError);
+      expect((error as EsiPaginationError).reason).toBe('page-cap');
     });
 
-    then(/^the client resolves with (\d+) market types$/, (count: string) => {
-      expect(result).toHaveLength(Number(count));
-      expect(result[result.length - 1]).toBe(Number(count));
-    });
-
-    and(/^the client requested (\d+) pages$/, (count: string) => {
-      expect(requestedPages()).toHaveLength(Number(count));
-      expect(Math.max(...requestedPages())).toBe(Number(count));
+    and(/^the client requested (\d+) pages?$/, (count: string) => {
+      expect(requestedPages()).toEqual(
+        Array.from({ length: Number(count) }, (_, i) => i + 1),
+      );
       client.shutdown();
     });
   });

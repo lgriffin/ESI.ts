@@ -513,6 +513,117 @@ Feature: Resilience and Error Recovery
       Then the handler rejects with an EsiError carrying status 503
       And the handler sent 3 requests
 
+  # ── Incomplete pagination ───────────────────────────────────────────
+
+  @DES-08
+  Rule: When page 1 reports N pages and pages 2 to N each carry items, the EsiClient shall resolve with the items of pages 1 to N in page order.
+    Reaching the page count page 1 reported is the only evidence a walk has
+    that it holds the whole collection. A count of exactly 1000, the most any
+    path requests, is still a complete walk, and a single page with no items
+    is an empty collection rather than a short one.
+
+    Scenario: Market orders reported as exactly 1000 pages resolve with every page
+      Given a client with retries enabled
+      And ESI answers the market orders request with 1000 pages of one order each
+      When the client requests the market orders
+      Then the client resolves with 1000 orders in page order
+      And the client sent 1000 requests
+
+    Scenario: A single empty page of market orders resolves with no orders
+      Given a client with retries enabled
+      And ESI answers the market orders request with one empty page
+      When the client requests the market orders
+      Then the client resolves with no orders
+      And the client sent 1 request
+
+  @DES-08
+  Rule: If page 1 reports more than 1000 pages, then the EsiClient shall reject the walk with an EsiPaginationError whose reason is page-cap.
+    The client never requests past page 1000 (security model P8), so a count
+    above it can only end in a short list. The walk stops after page 1:
+    fetching 999 more pages only to reject would spend the error budget for
+    nothing. Page 1's items travel on the error as its partial result.
+
+    Scenario Outline: Market orders reported as 1001 pages are refused after page 1 through <entry point>
+      Given a client with retries enabled
+      And ESI answers the market orders request with page 1 reporting 1001 pages
+      When the client collects the market orders through <entry point>
+      Then the walk rejects with an EsiPaginationError whose reason is "page-cap"
+      And the error reports 1 fetched page of 1001 with the orders of page 1 as its partial result
+      And the client sent 1 request
+
+      Examples:
+        | entry point          |
+        | the eager method     |
+        | the fetch-all helper |
+        | the stream helper    |
+
+  @DES-08
+  Rule: If a page after the first that page 1 reported comes back empty, then the EsiClient shall reject the walk with an EsiPaginationError whose reason is empty-page.
+    ESI derives X-Pages from the item count, so in one snapshot every
+    reported page holds at least one item. An empty page means the
+    collection shrank while it was walked: later items moved onto pages
+    already read and were skipped. The last page is no exception, because a
+    page that no longer exists is answered with 404, which already rejects.
+    A stream has handed its pages over already, so its error counts them
+    rather than carrying them.
+
+    Scenario Outline: Market orders whose page <empty page> of 3 is empty are refused through <entry point>
+      Given a client with retries enabled
+      And ESI answers the market orders request with 3 pages, page <empty page> empty
+      When the client collects the market orders through <entry point>
+      Then the walk rejects with an EsiPaginationError whose reason is "empty-page"
+      And the error reports <empty page> fetched pages of 3 with the orders before page <empty page> as its partial result
+      And the client sent <requests> requests
+
+      Examples:
+        | entry point          | empty page | requests |
+        | the eager method     | 2          | 2        |
+        | the eager method     | 3          | 3        |
+        | the fetch-all helper | 3          | 3        |
+
+    Scenario: A stream of market orders whose page 2 of 3 is empty is refused after yielding page 1
+      Given a client with retries enabled
+      And ESI answers the market orders request with 3 pages, page 2 empty
+      When the client streams the market orders
+      Then the walk rejects with an EsiPaginationError whose reason is "empty-page"
+      And the stream yielded the orders of page 1 before the error
+      And the error counts the orders of page 1 without carrying them
+      And the client sent 2 requests
+
+  @DES-08
+  Rule: If the cursor pagination handler reaches its page limit while the last page still carries an after cursor, then the cursor pagination handler shall reject with an EsiPaginationError whose reason is cursor-cap.
+    A cursor route reports no page count, so the after cursor is the only
+    sign that more data exists. Stopping at the limit with one in hand is a
+    short list, and the items fetched so far travel on the error.
+
+    Scenario: Corporation projects that still have a next page at the limit are not returned in part
+      Given a cursor pagination client without retries
+      And ESI answers every corporation projects page with 1 project and an after cursor
+      When the handler fetches every corporation project after a first page of 1 project, at most 3 pages
+      Then the handler rejects with an EsiPaginationError whose reason is "cursor-cap"
+      And the error reports 3 fetched pages with 3 projects as its partial result
+      And the handler sent 2 requests
+
+  @DES-08
+  Rule: When a cursor page comes back empty or without an after cursor, the cursor pagination handler shall resolve with the items of every page fetched.
+    ESI marks the end of a cursor dataset with an empty page, and a page with
+    no after cursor has nothing after it. Either one proves the walk
+    complete, also on the last page the limit allows.
+
+    Scenario: Corporation projects ending in an empty page resolve in full
+      Given a cursor pagination client without retries
+      And ESI answers the next corporation projects page with 1 project and then an empty page with an after cursor
+      When the handler fetches every corporation project after a first page of 1 project, at most 3 pages
+      Then the handler resolves with 2 projects
+      And the handler sent 2 requests
+
+    Scenario: Corporation projects whose page at the limit has no after cursor resolve in full
+      Given a cursor pagination client without retries
+      And ESI answers the next corporation projects page with 1 project and an after cursor, then 1 project without one
+      When the handler fetches every corporation project after a first page of 1 project, at most 3 pages
+      Then the handler resolves with 3 projects
+      And the handler sent 2 requests
+
   # ── Deduplication of in-flight requests ─────────────────────────────
 
   Rule: When identical GET requests are issued while the first is still in flight, the EsiClient shall issue one HTTP request and resolve every caller with its response.

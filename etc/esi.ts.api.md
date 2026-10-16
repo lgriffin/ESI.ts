@@ -5300,7 +5300,23 @@ interface EsiOperationTypes {
 
 // @public
 export class EsiPaginationError extends EsiFaultError {
-    constructor(where: string, cause: unknown);
+    constructor(where: string, cause: unknown, details?: EsiPaginationErrorDetails);
+    readonly endpoint: string;
+    readonly fetchedPages: number;
+    readonly itemCount: number;
+    readonly partial: readonly unknown[];
+    readonly reason: PaginationStopReason;
+    readonly reportedPages: number | undefined;
+}
+
+// @public
+export interface EsiPaginationErrorDetails {
+    readonly endpoint?: string;
+    readonly fetchedPages?: number;
+    readonly itemCount?: number;
+    readonly partial?: readonly unknown[];
+    readonly reason?: PaginationStopReason;
+    readonly reportedPages?: number;
 }
 
 // @public
@@ -8160,6 +8176,9 @@ export interface PageResult<T = unknown> {
     // (undocumented)
     totalPages: number;
 }
+
+// @public
+export type PaginationStopReason = 'page-cap' | 'empty-page' | 'cursor-cap' | 'fetch-failed';
 
 // @public (undocumented)
 export type ParagonHubCharacterListing = z.infer<typeof ParagonHubCharacterListingSchema>;
