@@ -4,8 +4,8 @@
  * Provenance says who built the package; the SBOM says what is inside it. For
  * this package "inside" means the runtime dependency tree a consumer's
  * `npm install @lgriffin/esi.ts` resolves: `dependencies` and their
- * transitive closure. The optional peers (`better-sqlite3`, `js-yaml`,
- * `adm-zip`) are left out; see productionManifest. The build bundles no
+ * transitive closure. The optional peers (`js-yaml`, `adm-zip`) are left
+ * out; see productionManifest. The build bundles no
  * third-party package — tsup marks every dependency and peer `external`, and
  * the only node_modules code in dist/ is tsup's own few-line ESM shim for
  * `__filename` — so the tree is the whole story.

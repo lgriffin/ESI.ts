@@ -18,12 +18,10 @@ import * as memoryEntry from '../../src/sde/memory';
 import * as sdeEntry from '../../src/sde';
 import {
   MemorySdeProvider,
-  SdeDatabaseError,
   SdeError,
   SdeTestDataFactory,
   SdeValidationError,
   SdeVersionMismatchError,
-  isSdeDatabaseError,
   isSdeError,
   isSdeValidationError,
   isSdeVersionMismatch,
@@ -143,10 +141,11 @@ import {
 
 // --- SdeDataProvider is absent; everything else of ./sde is present ---
 
-type MemoryHasSqliteProvider =
-  'SdeDataProvider' extends keyof typeof memoryEntry ? true : false;
-declare const hasSqliteProvider: MemoryHasSqliteProvider;
-expectType<false>(hasSqliteProvider);
+type MemoryHasFileProvider = 'SdeDataProvider' extends keyof typeof memoryEntry
+  ? true
+  : false;
+declare const hasFileProvider: MemoryHasFileProvider;
+expectType<false>(hasFileProvider);
 expectError(memoryEntry.SdeDataProvider);
 expectAssignable<Omit<typeof sdeEntry, 'SdeDataProvider'>>(memoryEntry);
 expectAssignable<typeof memoryEntry>(sdeEntry);
@@ -684,10 +683,6 @@ if (isSdeError(caught)) {
   expectType<string>(caught.message);
   expectType<string>(caught.name);
 }
-if (isSdeDatabaseError(caught)) {
-  expectType<SdeDatabaseError>(caught);
-  expectType<unknown>(caught.cause);
-}
 if (isSdeValidationError(caught)) {
   expectType<SdeValidationError>(caught);
   expectType<string>(caught.entityType);
@@ -699,7 +694,6 @@ if (isSdeVersionMismatch(caught)) {
   expectType<string>(caught.expected);
   expectType<string>(caught.actual);
 }
-expectAssignable<SdeError>(new SdeDatabaseError('db', new Error('cause')));
 expectAssignable<SdeError>(new SdeValidationError('eve_types', {}, 34));
 expectAssignable<SdeError>(new SdeVersionMismatchError('1', '2'));
 expectAssignable<Error>(new SdeError('x'));

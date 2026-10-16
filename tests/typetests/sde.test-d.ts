@@ -19,12 +19,10 @@ import type { Clock } from '../../src/core/ports/Clock';
 import {
   MemorySdeProvider,
   SdeDataProvider,
-  SdeDatabaseError,
   SdeError,
   SdeTestDataFactory,
   SdeValidationError,
   SdeVersionMismatchError,
-  isSdeDatabaseError,
   isSdeError,
   isSdeValidationError,
   isSdeVersionMismatch,
@@ -162,7 +160,7 @@ expectAssignable<IStaticDataProvider>(new MemorySdeProvider({ types: [] }));
 expectError(new MemorySdeProvider({ types: [{}] }));
 expectError(new MemorySdeProvider('./sde-data'));
 
-// --- Every provider method, on the port, the SQLite provider and the memory provider ---
+// --- Every provider method, on the port, the file provider (`sqlite` below, a name kept from the original design) and the memory provider ---
 
 declare const provider: IStaticDataProvider;
 expectType<EveType | null>(provider.getType(1));
@@ -885,10 +883,6 @@ if (isSdeError(caught)) {
   expectType<string>(caught.message);
   expectType<string>(caught.name);
 }
-if (isSdeDatabaseError(caught)) {
-  expectType<SdeDatabaseError>(caught);
-  expectType<unknown>(caught.cause);
-}
 if (isSdeValidationError(caught)) {
   expectType<SdeValidationError>(caught);
   expectType<string>(caught.entityType);
@@ -900,7 +894,6 @@ if (isSdeVersionMismatch(caught)) {
   expectType<string>(caught.expected);
   expectType<string>(caught.actual);
 }
-expectAssignable<SdeError>(new SdeDatabaseError('db', new Error('cause')));
 expectAssignable<SdeError>(new SdeValidationError('eve_types', {}, 34));
 expectAssignable<SdeError>(new SdeVersionMismatchError('1', '2'));
 expectAssignable<Error>(new SdeError('x'));

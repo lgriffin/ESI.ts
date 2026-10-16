@@ -227,7 +227,7 @@ describe('ARCH-12: SdeExtractor', () => {
     });
   });
 
-  describe('extractAll with entry names from a hostile archive', () => {
+  describe('ARCH-13: extractAll with entry names from a hostile archive', () => {
     /**
      * adm-zip sanitises a name it is asked to add, so each hostile name is
      * added as a same-length placeholder and patched into the bytes.

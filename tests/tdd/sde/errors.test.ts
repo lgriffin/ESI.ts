@@ -1,10 +1,8 @@
 import {
   SdeError,
-  SdeDatabaseError,
   SdeValidationError,
   SdeVersionMismatchError,
   isSdeError,
-  isSdeDatabaseError,
   isSdeValidationError,
   isSdeVersionMismatch,
 } from '../../../src/sde/errors';
@@ -16,22 +14,6 @@ describe('ARCH-11: SDE error classes', () => {
       expect(err.name).toBe('SdeError');
       expect(err.message).toBe('test error');
       expect(err).toBeInstanceOf(Error);
-    });
-  });
-
-  describe('SdeDatabaseError', () => {
-    it('should create with message and cause', () => {
-      const cause = new Error('SQLITE_CANTOPEN');
-      const err = new SdeDatabaseError('Failed to open database', cause);
-      expect(err.name).toBe('SdeDatabaseError');
-      expect(err.message).toBe('Failed to open database');
-      expect(err.cause).toBe(cause);
-      expect(err).toBeInstanceOf(SdeError);
-    });
-
-    it('should allow undefined cause', () => {
-      const err = new SdeDatabaseError('Database error');
-      expect(err.cause).toBeUndefined();
     });
   });
 
@@ -68,7 +50,6 @@ describe('ARCH-11: SDE error classes', () => {
 
 describe('ARCH-11: SDE type guards', () => {
   const sdeError = new SdeError('base');
-  const dbError = new SdeDatabaseError('db');
   const valError = new SdeValidationError('Type', 'err');
   const verError = new SdeVersionMismatchError('2', '1');
   const plainError = new Error('plain');
@@ -79,7 +60,6 @@ describe('ARCH-11: SDE type guards', () => {
     });
 
     it('should return true for SdeError subclasses', () => {
-      expect(isSdeError(dbError)).toBe(true);
       expect(isSdeError(valError)).toBe(true);
       expect(isSdeError(verError)).toBe(true);
     });
@@ -91,21 +71,6 @@ describe('ARCH-11: SDE type guards', () => {
     });
   });
 
-  describe('isSdeDatabaseError', () => {
-    it('should return true for SdeDatabaseError', () => {
-      expect(isSdeDatabaseError(dbError)).toBe(true);
-    });
-
-    it('should return false for other SdeErrors', () => {
-      expect(isSdeDatabaseError(sdeError)).toBe(false);
-      expect(isSdeDatabaseError(valError)).toBe(false);
-    });
-
-    it('should return false for non-errors', () => {
-      expect(isSdeDatabaseError(plainError)).toBe(false);
-    });
-  });
-
   describe('isSdeValidationError', () => {
     it('should return true for SdeValidationError', () => {
       expect(isSdeValidationError(valError)).toBe(true);
@@ -113,7 +78,7 @@ describe('ARCH-11: SDE type guards', () => {
 
     it('should return false for other errors', () => {
       expect(isSdeValidationError(sdeError)).toBe(false);
-      expect(isSdeValidationError(dbError)).toBe(false);
+      expect(isSdeValidationError(verError)).toBe(false);
     });
   });
 

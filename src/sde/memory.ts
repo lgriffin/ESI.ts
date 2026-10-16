@@ -119,11 +119,9 @@ export type { SdeVersionInfo } from './version';
 
 export {
   SdeError,
-  SdeDatabaseError,
   SdeValidationError,
   SdeVersionMismatchError,
   isSdeError,
-  isSdeDatabaseError,
   isSdeValidationError,
   isSdeVersionMismatch,
 } from './errors';

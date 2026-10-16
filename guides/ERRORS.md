@@ -26,7 +26,6 @@ Error
 │   ├── TokenDecodeError
 │   └── CharacterNotFoundError    characterId
 ├── SdeError                                                                (offline SDE module)
-│   ├── SdeDatabaseError          cause
 │   ├── SdeValidationError        validationError · entityType · entityId?
 │   └── SdeVersionMismatchError   expected · actual
 ```
@@ -115,7 +114,6 @@ Raised by the offline Static Data Export module, which shares no code with the H
 | Class                     | Fields                                       | Raised when                                               |
 | ------------------------- | -------------------------------------------- | --------------------------------------------------------- |
 | `SdeError`                | —                                            | Base class.                                               |
-| `SdeDatabaseError`        | `cause`                                      | The underlying database call failed.                      |
 | `SdeValidationError`      | `validationError`, `entityType`, `entityId?` | A stored row failed its schema.                           |
 | `SdeVersionMismatchError` | `expected`, `actual`                         | The loaded SDE build is not the one the caller asked for. |
 
@@ -150,7 +148,6 @@ Every guard takes `unknown` and narrows. They are `instanceof` checks, so a guar
 | `isTokenRevoked`       | `TokenRevokedError`       | `instanceof TokenRevokedError`       |     ●      |     ●      |    ·    |
 | `isCharacterNotFound`  | `CharacterNotFoundError`  | `instanceof CharacterNotFoundError`  |     ●      |     ●      |    ·    |
 | `isSdeError`           | `SdeError`                | any SDE-family error                 |     ·      |     ·      |    ●    |
-| `isSdeDatabaseError`   | `SdeDatabaseError`        | `instanceof SdeDatabaseError`        |     ·      |     ·      |    ●    |
 | `isSdeValidationError` | `SdeValidationError`      | `instanceof SdeValidationError`      |     ·      |     ·      |    ●    |
 | `isSdeVersionMismatch` | `SdeVersionMismatchError` | `instanceof SdeVersionMismatchError` |     ·      |     ·      |    ●    |
 

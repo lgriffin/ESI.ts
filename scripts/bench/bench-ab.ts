@@ -47,7 +47,7 @@ const BUNDLE = path.join('.bench-out', 'harness.cjs');
 /** Packages the harness bundle loads at run time rather than inlining. */
 // bun:jsc is mitata's Bun-only heap probe, imported lazily and never reached
 // on Node.
-const EXTERNAL = ['pino', 'better-sqlite3', 'adm-zip', 'js-yaml', 'bun:jsc'];
+const EXTERNAL = ['pino', 'adm-zip', 'js-yaml', 'bun:jsc'];
 
 function arg(name: string): string | undefined {
   const index = process.argv.indexOf(`--${name}`);

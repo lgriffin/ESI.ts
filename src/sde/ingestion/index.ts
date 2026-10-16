@@ -13,12 +13,4 @@ export type { SdeBuildInfo, SdeDownloadOptions } from './SdeDownloader';
 export { SdeExtractor } from './SdeExtractor';
 export type { SdeMetadata, ParsedSdeFile } from './SdeExtractor';
 
-export { SdeDatabaseBuilder } from './SdeDatabaseBuilder';
-export type { SdeBuildOptions } from './SdeDatabaseBuilder';
-
-export {
-  extractLocale,
-  normalizeSdeFieldName,
-  toSqliteValue,
-  transformRecord,
-} from './transforms';
+export { extractLocale, normalizeSdeFieldName } from './transforms';

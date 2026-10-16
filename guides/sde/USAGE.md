@@ -152,11 +152,10 @@ try {
 Error types:
 
 - `SdeError` — base class for all SDE errors; also thrown when `js-yaml` or `adm-zip`, the optional peer dependencies, is needed but not installed (the message names the package and its `npm install` command)
-- `SdeDatabaseError` — data loading or parsing failure
 - `SdeValidationError` — Zod schema validation failure
 - `SdeVersionMismatchError` — version compatibility issue
 
-Type guards: `isSdeError()`, `isSdeDatabaseError()`, `isSdeValidationError()`, `isSdeVersionMismatch()`
+Type guards: `isSdeError()`, `isSdeValidationError()`, `isSdeVersionMismatch()`
 
 ## Closing the Provider
 

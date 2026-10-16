@@ -24,5 +24,5 @@ export default defineConfig({
   sourcemap: true,
   // Defines __filename in the ESM bundles; src/sde/optionalPeers.ts needs it.
   shims: true,
-  external: ['pino', 'zod', 'better-sqlite3', 'adm-zip', 'js-yaml'],
+  external: ['pino', 'zod', 'adm-zip', 'js-yaml'],
 });

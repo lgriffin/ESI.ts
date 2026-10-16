@@ -5,16 +5,6 @@ export class SdeError extends Error {
   }
 }
 
-export class SdeDatabaseError extends SdeError {
-  public override readonly cause: unknown;
-
-  constructor(message: string, cause?: unknown) {
-    super(message);
-    this.name = 'SdeDatabaseError';
-    this.cause = cause;
-  }
-}
-
 export class SdeValidationError extends SdeError {
   public readonly validationError: unknown;
   public readonly entityType: string;
@@ -44,10 +34,6 @@ export class SdeVersionMismatchError extends SdeError {
 
 export function isSdeError(error: unknown): error is SdeError {
   return error instanceof SdeError;
-}
-
-export function isSdeDatabaseError(error: unknown): error is SdeDatabaseError {
-  return error instanceof SdeDatabaseError;
 }
 
 export function isSdeValidationError(

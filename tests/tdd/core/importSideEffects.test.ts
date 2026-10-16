@@ -144,7 +144,7 @@ describe('import-time side effects (ARCH-06)', () => {
         platform: 'node',
         target: 'es2022',
         format,
-        external: ['pino', 'zod', 'better-sqlite3', 'adm-zip', 'js-yaml'],
+        external: ['pino', 'zod', 'adm-zip', 'js-yaml'],
         logLevel: 'silent',
       });
       const text = result.outputFiles.map((f) => f.text).join('\n');

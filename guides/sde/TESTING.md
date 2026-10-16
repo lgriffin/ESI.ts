@@ -16,7 +16,7 @@ The first three suite rows, the coverage and the specification counts were re-me
 | `npm run test:types`                                          | tsd                                  |      2 |     — | `sde.test-d.ts` and `sde-memory.test-d.ts`, 801 and 603 lines of `expectType` / `expectError` assertions over the two entry points                      |
 | `npm run test:consumer`                                       | `tests/consumer/`                    |      2 |     — | Steps 7 and 8: `./sde` loads without `js-yaml` and `adm-zip` and names the missing one; with them installed it reads real YAML and ZIP, CJS and ESM     |
 
-The unit suites are one per module: the `IStaticDataProvider` contract (94 tests over the 96 methods, null and empty returns and the typing of each), `MemorySdeProvider`, `SdeDataProvider`, `SdeTestDataFactory`, `schemas`, `errors`, `clock`, `optionalPeers`, `order`, `index`, the `./sde/memory` bundle test, and six under `ingestion/` (`SdeDownloader`, `SdeExtractor`, `SdeDatabaseBuilder`, `transforms`, `registry`, `index`).
+The unit suites are one per module: the `IStaticDataProvider` contract (94 tests over the 96 methods, null and empty returns and the typing of each), `MemorySdeProvider`, `SdeDataProvider`, `SdeTestDataFactory`, `schemas`, `errors`, `clock`, `optionalPeers`, `order`, `index`, the `./sde/memory` bundle test, and five under `ingestion/` (`SdeDownloader`, `SdeExtractor`, `transforms`, `registry`, `index`).
 
 | Coverage over `src/sde/**` (excluding `src/sde/testing/`) | Unit suites alone | Unit and BDD together | Floor (`config/jest/unit.config.cjs`) |
 | --------------------------------------------------------- | ----------------: | --------------------: | ------------------------------------: |
@@ -30,8 +30,8 @@ Reproduce with `npx jest --config config/jest/unit.config.cjs --coverage --colle
 | Specification (`npm run spec:audit:verbose`, `features/sde/`) | Count                                                                                                                                                                      |
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Feature files                                                 | <!-- metric:featureFilesSde -->23<!-- /metric -->, all on the step library (`tests/bdd/specs/sde/`, `tests/bdd/steps/`); none on legacy `defineFeature` files              |
-| `Rule:` requirements                                          | <!-- metric:requirementsSde -->168<!-- /metric -->, one EARS `shall` each                                                                                                  |
-| Scenarios                                                     | <!-- metric:scenariosSde -->237<!-- /metric -->, a `Scenario Outline` counted once                                                                                         |
+| `Rule:` requirements                                          | <!-- metric:requirementsSde -->156<!-- /metric -->, one EARS `shall` each                                                                                                  |
+| Scenarios                                                     | <!-- metric:scenariosSde -->223<!-- /metric -->, a `Scenario Outline` counted once                                                                                         |
 | Audit result                                                  | 23 of 23 pass; `scripts/spec/spec-audit-exceptions.json` lists no SDE file                                                                                                 |
 | Method coverage (`npm run spec:coverage:sde:ci`)              | 96 of 96 `IStaticDataProvider` methods reached by a Rule or a bound step; `scripts/sde/sde-spec-coverage-baseline.json` is empty, so a method that loses its Rule fails CI |
 
@@ -49,20 +49,21 @@ Track S Run M ([#458](https://github.com/lgriffin/ESI.ts/issues/458), 2026-10-07
 | `src/sde/ingestion` |     100.0% |        184/184 |         98 | #608         |          97.6% |        162/166 |        97 | #612         |
 | `src/sde/providers` |     100.0% |          92/92 |         98 | #607         |          90.5% |          86/95 |        90 | #610         |
 
+The `src/sde/ingestion` figures include `SdeDatabaseBuilder.ts` and the SQLite transforms, removed in 13.0.0; the next nightly scores the directory without them.
+
 Before Run M the same directories scored 93.8 / 73.9 / 89.6 on the unit run and 50.0 / 59.0 / 58.6 BDD-only. The unit `src/sde` floor still holds its provisional seed, under its score, until a complete nightly raises it.
 
 `src/sde` is the root files: `clock.ts`, `errors.ts` and `optionalPeers.ts`. `src/sde/domain` holds only type declarations and Zod schemas and yields no valid mutants; `src/sde/testing` is excluded from both runs like `src/testing`. A mutant that crashes the runner (a missing-file check removed, a transform recursing on itself) counts as a runtime error and in no score. A unit run takes 10 to 15 minutes a directory on four cores; a BDD-only run over all of `src/sde` takes about 50, because the BDD dry run cannot narrow to related tests and runs every spec (`guides/TESTING.md`, "How it works" under Mutation testing).
 
-Run M changed one behaviour on the way: the database builder took its columns from the first 50 records of a file, so a field that first appeared later was dropped from the table. It now scans every record (#609, with a Rule in `0023-sde-ingestion`). Nothing else in the source changed except equivalent-mutant annotations; the scores rose because the tests and scenarios grew.
+Run M changed one behaviour on the way: the database builder took its columns from the first 50 records of a file, so a field that first appeared later was dropped from the table. It then scanned every record (#609); the builder and that Rule were removed with the SQLite path in 13.0.0. Nothing else in the source changed except equivalent-mutant annotations; the scores rose because the tests and scenarios grew.
 
 The BDD-only survivors, each left on purpose because unit tests pin it and no scenario has a reason to name it:
 
-| File                                | Survivors | Why no scenario kills it                                                                                                                                                                        |
-| ----------------------------------- | --------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `providers/order.ts`                |         8 | `compareIds` on mixed number and string IDs (no SDE table mixes them), and the `<=` / `>=` / `0` forms that only differ for equal IDs, which keys never are                                     |
-| `providers/yaml/SdeDataProvider.ts` |         1 | The null skip when indexing a foreign key: no lookup asks for null                                                                                                                              |
-| `ingestion/SdeDatabaseBuilder.ts`   |         2 | The prepare-failure `catch`: it fires only when the output file already holds the table with other columns; a unit test rebuilds over such a file, and no scenario builds into a stale database |
-| `ingestion/transforms.ts`           |         2 | The array guard in `extractLocale` (an array has no `en` key) and the object test in `toSqliteValue` (only a function or symbol differs; YAML yields neither)                                   |
+| File                                | Survivors | Why no scenario kills it                                                                                                                                    |
+| ----------------------------------- | --------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `providers/order.ts`                |         8 | `compareIds` on mixed number and string IDs (no SDE table mixes them), and the `<=` / `>=` / `0` forms that only differ for equal IDs, which keys never are |
+| `providers/yaml/SdeDataProvider.ts` |         1 | The null skip when indexing a foreign key: no lookup asks for null                                                                                          |
+| `ingestion/transforms.ts`           |         1 | The array guard in `extractLocale` (an array has no `en` key); Run M's second survivor, in `toSqliteValue`, went with the SQLite path                       |
 
 The unit runs have no survivors in `providers` or `ingestion`; `src/sde`'s one is in `optionalPeers.ts`.
 
