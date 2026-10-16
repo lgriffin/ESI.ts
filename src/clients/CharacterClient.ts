@@ -17,6 +17,14 @@ import {
 } from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
+/**
+ * A legacy domain client over the hand-written endpoint map.
+ *
+ * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
+ * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
+ * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
+ * lists every legacy surface, its replacement and the open parity gaps.
+ */
 export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
   constructor(client: ApiClient) {
     super(client, characterEndpoints);
@@ -78,10 +86,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
     characterId: number,
     characters: number[],
   ): Promise<number> {
-    return this.api.calculateCspaChargeCost(
-      characterId,
-      characters,
-    ) as Promise<number>;
+    return this.api.calculateCspaChargeCost(characterId, characters);
   }
 
   /**
@@ -186,9 +191,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
   postCharacterAffiliation(
     characters: number[],
   ): Promise<CharacterAffiliation[]> {
-    return this.api.postCharacterAffiliation(characters) as Promise<
-      CharacterAffiliation[]
-    >;
+    return this.api.postCharacterAffiliation(characters);
   }
 
   fetchAllCharacterAgentsResearch(

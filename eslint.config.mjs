@@ -198,9 +198,12 @@ export default tseslint.config(
       'sonarjs/void-use': 'off',
       // Tests pass undefined explicitly to pin the optional-argument path.
       'sonarjs/no-undefined-argument': 'off',
-      // Tests keep deprecated APIs covered until they are removed; a warning
-      // keeps new uses visible.
-      'sonarjs/deprecation': 'warn',
+      // Tests keep deprecated APIs covered until they are removed. 12.1.0
+      // deprecates the whole legacy construction tree (guides/LEGACY-REMOVAL.md),
+      // so the rule would report every legacy test (about 970 sites in 126
+      // files) rather than new uses. 13.0.0 deletes the tree and those tests;
+      // restore 'warn' then.
+      'sonarjs/deprecation': 'off',
       // A style preference for test layout: a warning, fixed as files change.
       'sonarjs/parameterized-tests': 'warn',
       // Default sorts in tests order strings (keys, paths, names) for an
@@ -208,6 +211,25 @@ export default tseslint.config(
       // wanted; numeric sorts pass a comparator.
       'sonarjs/no-alphabetical-sort': 'off',
     },
+  },
+
+  // The legacy construction tree, deprecated since 12.1.0 and removed in
+  // 13.0.0 (guides/LEGACY-REMOVAL.md), wires its own deprecated classes
+  // together, so sonarjs/deprecation would report the tree against itself.
+  // EsiTokenManager.createClient (deprecated) builds an EsiClient, and the
+  // live-health smoke stays on EsiClient until the generated operations
+  // validate responses (gap G1 in the manifest). Everywhere else in src/ and
+  // scripts/ a new use of a legacy surface is still an error.
+  {
+    files: [
+      'src/EsiClient.ts',
+      'src/EsiClientBuilder.ts',
+      'src/clients/**/*.ts',
+      'src/core/ApiClientBuilder.ts',
+      'src/auth/EsiTokenManager.ts',
+      'scripts/quality/live-health.ts',
+    ],
+    rules: { 'sonarjs/deprecation': 'off' },
   },
 
   // Live advisory reports: they print drift between the SDK and the live

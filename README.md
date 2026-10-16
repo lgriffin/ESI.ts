@@ -209,6 +209,7 @@ The README orients and the guides are canonical. Each guide opens with the chart
 | [Quality gates](guides/QUALITY-GATES.md)               | What runs at commit, push, PR, nightly and release; every workflow              |
 | [Security](guides/SECURITY.md)                         | Runtime defences and supply-chain controls ([policy](SECURITY.md))              |
 | [Semantic versioning](guides/SEMVER.md)                | What is public; major, minor or patch; breaking-change commits                  |
+| [Legacy removal](guides/LEGACY-REMOVAL.md)             | What 13.0.0 removes, each replacement, and the gaps to close first              |
 | [Release](guides/RELEASE.md)                           | Cutting a release, changelog, provenance, signatures, support window            |
 | [Audit](guides/AUDIT.md)                               | The Phase 0 measured baseline for 11.0                                          |
 | [OKF bundle](guides/OKF.md)                            | The generated Open Knowledge Format catalogue of ESI                            |

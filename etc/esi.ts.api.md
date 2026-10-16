@@ -92,7 +92,7 @@ const AccessListSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "accessListEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class AccessListsClient extends BaseEsiClient<typeof accessListEndpoints> {
     constructor(client: ApiClient);
     getAccessList(characterId: number, accessListId: number): Promise<AccessList>;
@@ -129,7 +129,7 @@ const AgentResearchSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "allianceEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -351,7 +351,7 @@ export class ApiClient {
     toJSON(): Record<string, unknown>;
 }
 
-// @public (undocumented)
+// @public @deprecated
 export class ApiClientBuilder {
     // (undocumented)
     build(): ApiClient;
@@ -373,7 +373,7 @@ export class ApiClientBuilder {
     setTimeout(timeout: number): ApiClientBuilder;
 }
 
-// @public (undocumented)
+// @public @deprecated
 export type ApiClientType = 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones' | 'contacts' | 'contracts' | 'corporations' | 'corporationProjects' | 'dogma' | 'factions' | 'fittings' | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location' | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills' | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta' | 'freelanceJobs' | 'skyhooks' | 'cosmetics' | 'paragonHub' | 'mercenary' | 'militaryCampaigns' | 'accessLists';
 
 // @public (undocumented)
@@ -400,7 +400,7 @@ const AssetNameSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "assetEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -448,7 +448,7 @@ export interface AuthorizationUrlOptions {
 
 // Warning: (ae-forgotten-export) The symbol "EndpointMap" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export abstract class BaseEsiClient<T extends EndpointMap> {
     constructor(client: ApiClient, endpoints: T);
     // Warning: (ae-forgotten-export) The symbol "ClientMethods" needs to be exported by the entry point index.d.ts
@@ -600,7 +600,7 @@ export interface CacheStats {
 
 // Warning: (ae-forgotten-export) The symbol "calendarEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class CalendarClient extends BaseEsiClient<typeof calendarEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -708,7 +708,7 @@ const CharacterAttributesSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "characterEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -1884,7 +1884,7 @@ const CharacterSkillSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "skillEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class CharacterSkillsClient extends BaseEsiClient<typeof skillEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -2250,7 +2250,7 @@ const CloneInfoSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "cloneEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class ClonesClient extends BaseEsiClient<typeof cloneEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -2370,7 +2370,7 @@ const ContactSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "contactEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
     constructor(client: ApiClient);
     deleteCharacterContacts(characterId: number, contactIds: number[]): Promise<void>;
@@ -2485,7 +2485,7 @@ const ContractSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "contractEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -2959,7 +2959,7 @@ const CorporationProjectSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "corporationProjectEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class CorporationProjectsClient extends BaseEsiClient<typeof corporationProjectEndpoints> {
     constructor(client: ApiClient);
     getCorporationProject(corporationId: number, projectId: string): Promise<CorporationProject>;
@@ -3027,7 +3027,7 @@ const CorporationRoleHistorySchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "corporationEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class CorporationsClient extends BaseEsiClient<typeof corporationEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -4216,7 +4216,7 @@ const CorporationWalletTransactionSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "cosmeticsEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class CosmeticsClient extends BaseEsiClient<typeof cosmeticsEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -4297,7 +4297,7 @@ export interface CursorTokens {
     before: string | null;
 }
 
-// @public (undocumented)
+// @public @deprecated
 export class CustomEsiClient {
     constructor(config: EsiClientConfig & {
         clients: ApiClientType[];
@@ -4494,7 +4494,7 @@ const DogmaAttributeSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "dogmaEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class DogmaClient extends BaseEsiClient<typeof dogmaEndpoints> {
     constructor(client: ApiClient);
     getAttributeById(attributeId: number): Promise<DogmaAttribute>;
@@ -4630,7 +4630,7 @@ interface DogmaEffectsEffectIdGet {
     tracking_speed_attribute_id?: number;
 }
 
-// @public
+// @public @deprecated
 export class EsiApiFactory {
     // @deprecated
     static createAllianceClient(config?: EsiClientConfig): AllianceClient;
@@ -4638,6 +4638,7 @@ export class EsiApiFactory {
     static createAssetsClient(config?: EsiClientConfig): AssetsClient;
     // @deprecated
     static createCharacterClient(config?: EsiClientConfig): CharacterClient;
+    // @deprecated
     static createClient(clientType: ApiClientType, config?: EsiClientConfig): ClientInstance;
     // @deprecated
     static createCorporationClient(config?: EsiClientConfig): CorporationsClient;
@@ -4653,7 +4654,7 @@ export class EsiApiFactory {
     static createWalletClient(config?: EsiClientConfig): WalletClient;
 }
 
-// @public (undocumented)
+// @public @deprecated
 export class EsiClient {
     constructor(config?: EsiClientConfig);
     // (undocumented)
@@ -4762,7 +4763,7 @@ export class EsiClient {
     get wars(): WarsClient;
 }
 
-// @public (undocumented)
+// @public @deprecated
 export class EsiClientBuilder {
     // (undocumented)
     addClient(clientType: ApiClientType): this;
@@ -5744,7 +5745,7 @@ export type Faction = z.infer<typeof FactionSchema>;
 
 // Warning: (ae-forgotten-export) The symbol "factionEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
     constructor(client: ApiClient);
     getCharacterStats(characterId: number): Promise<FactionWarfareCharacterStats>;
@@ -6079,7 +6080,7 @@ const FittingSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "fittingEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
     constructor(client: ApiClient);
     createFitting(characterId: number, fittingData: object): Promise<{
@@ -6095,7 +6096,7 @@ export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
 
 // Warning: (ae-forgotten-export) The symbol "fleetEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
     constructor(client: ApiClient);
     createFleetInvitation(fleetId: number, body: object): Promise<void>;
@@ -6330,7 +6331,7 @@ const FreelanceJobParticipationSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "freelanceJobsEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class FreelanceJobsClient extends BaseEsiClient<typeof freelanceJobsEndpoints> {
     constructor(client: ApiClient);
     getCharacterFreelanceJobParticipation(characterId: number, jobId: string): Promise<FreelanceJobParticipation>;
@@ -6632,7 +6633,7 @@ export function generatePkcePair(): PkcePair;
 // @public
 export function generateState(): string;
 
-// @public (undocumented)
+// @public @deprecated
 export function getDefaultClient(): EsiClient;
 
 // @public (undocumented)
@@ -6757,7 +6758,7 @@ const IncursionSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "incursionEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class IncursionsClient extends BaseEsiClient<typeof incursionEndpoints> {
     constructor(client: ApiClient);
     getIncursions(): Promise<Incursion[]>;
@@ -6785,7 +6786,7 @@ interface IncursionsGet {
 
 // Warning: (ae-forgotten-export) The symbol "industryEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -6922,7 +6923,7 @@ export type InferEndpointResult<D> = D extends {
 
 // Warning: (ae-forgotten-export) The symbol "insuranceEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class InsuranceClient extends BaseEsiClient<typeof insuranceEndpoints> {
     constructor(client: ApiClient);
     getInsurancePrices(): Promise<InsurancePrice[]>;
@@ -7137,7 +7138,7 @@ const KillmailSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "killmailEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class KillmailsClient extends BaseEsiClient<typeof killmailEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -7218,7 +7219,7 @@ const KillmailSummarySchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "locationEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class LocationClient extends BaseEsiClient<typeof locationEndpoints> {
     constructor(client: ApiClient);
     getCharacterLocation(characterId: number): Promise<CharacterLocation>;
@@ -7258,7 +7259,7 @@ export const logWarn: (message: string, context?: LogContext) => void;
 
 // Warning: (ae-forgotten-export) The symbol "loyaltyEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class LoyaltyClient extends BaseEsiClient<typeof loyaltyEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -7322,7 +7323,7 @@ interface LoyaltyStoresCorporationIdOffersGet {
 
 // Warning: (ae-forgotten-export) The symbol "mailEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
     constructor(client: ApiClient);
     createMailLabel(characterId: number, body: object): Promise<number>;
@@ -7424,12 +7425,12 @@ const MailMessageSchema: z.ZodObject<{
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
-// @public
+// @public @deprecated
 export type ManagedClientConfig = Omit<EsiClientConfig, 'accessToken' | 'onTokenRefresh'>;
 
 // Warning: (ae-forgotten-export) The symbol "marketEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -7656,7 +7657,7 @@ export class MemoryTokenStorage implements ITokenStorage {
 
 // Warning: (ae-forgotten-export) The symbol "mercenaryEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class MercenaryClient extends BaseEsiClient<typeof mercenaryEndpoints> {
     constructor(client: ApiClient);
     getMercenaryDenDetail(characterId: number, mercenaryDenId: number): Promise<MercenaryDenDetail>;
@@ -7811,7 +7812,7 @@ const MetaChangelogSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "metaEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
     constructor(client: ApiClient);
     getChangelog(): Promise<MetaChangelog>;
@@ -7947,7 +7948,7 @@ const MilitaryCampaignSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "militaryCampaignEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class MilitaryCampaignsClient extends BaseEsiClient<typeof militaryCampaignEndpoints> {
     constructor(client: ApiClient);
     getCharacterMilitaryCampaignObjective(characterId: number, objectiveId: string): Promise<CharacterMilitaryCampaignObjective>;
@@ -8219,7 +8220,7 @@ const ParagonHubCharacterSkinrResponseSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "paragonHubEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class ParagonHubClient extends BaseEsiClient<typeof paragonHubEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -8393,7 +8394,7 @@ export function parseScopes(scp: unknown): string[];
 
 // Warning: (ae-forgotten-export) The symbol "piEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class PiClient extends BaseEsiClient<typeof piEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -8784,13 +8785,13 @@ interface Route {
 
 // Warning: (ae-forgotten-export) The symbol "routeEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class RouteClient extends BaseEsiClient<typeof routeEndpoints> {
     constructor(client: ApiClient);
     getRoute(origin: number, destination: number, options?: RouteOptions): Promise<number[]>;
 }
 
-// @public (undocumented)
+// @public @deprecated
 export interface RouteOptions {
     // (undocumented)
     avoid_systems?: number[] | undefined;
@@ -9052,7 +9053,7 @@ const SchematicInfoSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "searchEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class SearchClient extends BaseEsiClient<typeof searchEndpoints> {
     constructor(client: ApiClient);
     characterSearch(characterId: number, searchString: string, categories: string[]): Promise<SearchResult>;
@@ -9222,7 +9223,7 @@ const SkyhookDetailTheftVulnerabilitySchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "skyhookEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
     constructor(client: ApiClient);
     getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhooksResponse>;
@@ -9319,7 +9320,7 @@ interface SovereigntyCampaignsGet {
 
 // Warning: (ae-forgotten-export) The symbol "sovereigntyEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class SovereigntyClient extends BaseEsiClient<typeof sovereigntyEndpoints> {
     constructor(client: ApiClient);
     getSovereigntyCampaigns(): Promise<SovereigntyCampaign[]>;
@@ -9621,7 +9622,7 @@ interface Status {
 
 // Warning: (ae-forgotten-export) The symbol "statusEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class StatusClient extends BaseEsiClient<typeof statusEndpoints> {
     constructor(client: ApiClient);
     getStatus(): Promise<ServerStatus>;
@@ -9798,7 +9799,7 @@ const TypeInfoSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "uiEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class UiClient extends BaseEsiClient<typeof uiEndpoints> {
     constructor(client: ApiClient);
     openContractWindow(contractId: number): Promise<void>;
@@ -9878,7 +9879,7 @@ interface UniverseCategoriesCategoryIdGet {
 
 // Warning: (ae-forgotten-export) The symbol "universeEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
     constructor(client: ApiClient);
     getAncestries(): Promise<Ancestry[]>;
@@ -10327,7 +10328,7 @@ export interface VerifyAccessTokenOptions {
 
 // Warning: (ae-forgotten-export) The symbol "walletEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)
@@ -10429,7 +10430,7 @@ const WarSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "warEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public @deprecated
 export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
     constructor(client: ApiClient);
     // (undocumented)

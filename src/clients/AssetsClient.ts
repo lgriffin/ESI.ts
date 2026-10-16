@@ -8,6 +8,14 @@ import {
 } from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
+/**
+ * A legacy domain client over the hand-written endpoint map.
+ *
+ * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
+ * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
+ * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
+ * lists every legacy surface, its replacement and the open parity gaps.
+ */
 export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
   constructor(client: ApiClient) {
     super(client, assetEndpoints);
@@ -77,10 +85,7 @@ export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
     corporationId: number,
     itemIds: number[],
   ): Promise<AssetLocation[]> {
-    return this.api.postCorporationAssetLocations(
-      corporationId,
-      itemIds,
-    ) as Promise<AssetLocation[]>;
+    return this.api.postCorporationAssetLocations(corporationId, itemIds);
   }
 
   /**
@@ -95,10 +100,7 @@ export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
     corporationId: number,
     itemIds: number[],
   ): Promise<AssetName[]> {
-    return this.api.postCorporationAssetNames(
-      corporationId,
-      itemIds,
-    ) as Promise<AssetName[]>;
+    return this.api.postCorporationAssetNames(corporationId, itemIds);
   }
 
   fetchAllCharacterAssets(

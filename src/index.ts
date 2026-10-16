@@ -1,3 +1,11 @@
+// Legacy construction tree, deprecated since 12.1.0 and removed in 13.0.0:
+// EsiClient, getDefaultClient, CustomEsiClient, EsiClientBuilder,
+// EsiApiFactory, ApiClientType, ApiClientBuilder, BaseEsiClient, the domain
+// clients below and RouteOptions. Each declaration carries the @deprecated
+// tag, so editors and TypeDoc flag these names through this file too. The
+// replacement is createEsi() from '@lgriffin/esi.ts/client'; the manifest,
+// with the parity gaps still open, is guides/LEGACY-REMOVAL.md.
+
 // Main client
 export { EsiClient, EsiClientConfig, EsiDatasource } from './EsiClient';
 export { getDefaultClient } from './EsiClient';
@@ -21,7 +29,7 @@ export {
 // Base client (for custom domain client implementations)
 export { BaseEsiClient } from './clients/BaseEsiClient';
 
-// Domain clients
+// Domain clients (deprecated since 12.1.0; see the note at the top)
 export { AllianceClient } from './clients/AllianceClient';
 export { AssetsClient } from './clients/AssetsClient';
 export { CalendarClient } from './clients/CalendarClient';
