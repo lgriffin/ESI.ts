@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.1.0](https://github.com/lgriffin/ESI.ts/compare/v12.0.0...v12.1.0) (2026-10-16)
+
+
+### Added
+
+* **deprecation:** deprecate the legacy construction tree for removal in 13.0.0 ([4c4b7b0](https://github.com/lgriffin/ESI.ts/commit/4c4b7b0333ba839493d9a0964236f2a1f8537897))
+* **deprecation:** deprecate the legacy construction tree for removal in 13.0.0 ([0f02a90](https://github.com/lgriffin/ESI.ts/commit/0f02a909a3ae84a38e77f45077e0207f384a0eac))
+* **deprecation:** deprecate the root exports only the legacy tree needs ([ccc6fd9](https://github.com/lgriffin/ESI.ts/commit/ccc6fd9315b8b10071c609097c287b2b002293fa))
+* **docs:** EARS requirements dashboard, published on the docs site ([c94bb30](https://github.com/lgriffin/ESI.ts/commit/c94bb307c6698196a05645f124ca72864150d059))
+* **docs:** publish the EARS requirements dashboard on the docs site ([ea1bc2b](https://github.com/lgriffin/ESI.ts/commit/ea1bc2bdf6045689c92798558f9c06ec5c39ccea))
+
+
+### Changed
+
+* **ci:** bump actions/setup-node ([b093bb7](https://github.com/lgriffin/ESI.ts/commit/b093bb79c3793af65688fdd6c4fb27a4059dcfb1))
+* **ci:** bump actions/setup-node from 7.0.0 to 7.1.0 in the github-actions group across 1 directory ([67471eb](https://github.com/lgriffin/ESI.ts/commit/67471eb0f021c8922c7cc48ad89f55c6ef8a91e4))
+* **ears:** add the EARS dashboard page (npm run ears:dashboard) ([f491e0e](https://github.com/lgriffin/ESI.ts/commit/f491e0edf85360153542d538b0fbbbaea33d6ce9))
+* **spec:** read COMPATIBILITY_DATE everywhere the OpenAPI document is fetched ([9bf7b87](https://github.com/lgriffin/ESI.ts/commit/9bf7b8725cd945a4bd198992b6ca4e28fb38bf31))
+* **spec:** read COMPATIBILITY_DATE everywhere the OpenAPI document is fetched ([d6ce6d8](https://github.com/lgriffin/ESI.ts/commit/d6ce6d873f73c443e30a20602a06fac9dd7c0b4e))
+
+
+### Documentation
+
+* add the ESI.ts logo to the README and documentation site ([611df31](https://github.com/lgriffin/ESI.ts/commit/611df319d8ccd4f7d39a4ab8dccc0c8333ce9da2))
+* add the ESI.ts logo to the README and documentation site ([d24f6fa](https://github.com/lgriffin/ESI.ts/commit/d24f6fa6def9d8a3a632cbb0ef3413546d375b11))
+
+
+### Testing
+
+* **bdd:** check a refused download leaves no file and the first entry named ([8077134](https://github.com/lgriffin/ESI.ts/commit/8077134e123d62f946cddce7f5d6ea985eb05bd9))
+* **bdd:** specify the SDE download limit and archive name checks ([c07ad1b](https://github.com/lgriffin/ESI.ts/commit/c07ad1bdc9944942e3cab1aef266543cf3318a4d))
+* **bdd:** specify the SDE download limit and archive name checks ([3a9aab9](https://github.com/lgriffin/ESI.ts/commit/3a9aab9e743c7c1e629136390f740ef751c93a3c)), closes [#652](https://github.com/lgriffin/ESI.ts/issues/652)
+* **deprecation:** reference the deprecated root aliases from a test ([044a5c0](https://github.com/lgriffin/ESI.ts/commit/044a5c0c05ca501c596b0d10e0c814ece70e1259))
+* **mutation:** run the rate limiter BDD shard with 3 test runners ([e1285a8](https://github.com/lgriffin/ESI.ts/commit/e1285a83dafeb8aab24ede9ac2d51589a423d98f))
+* **mutation:** run the rate limiter BDD shard with 3 test runners ([bac8440](https://github.com/lgriffin/ESI.ts/commit/bac84405cc27727b781921ccfbc5a6b7d0494073)), closes [#650](https://github.com/lgriffin/ESI.ts/issues/650)
+* **skill-eval:** tag recorded eval outputs with their charter requirement ([d44e0ae](https://github.com/lgriffin/ESI.ts/commit/d44e0aedc85c723205f2747d4393c3b66b4866ab))
+
 ## [12.0.0](https://github.com/lgriffin/ESI.ts/compare/v11.3.0...v12.0.0) (2026-10-12)
 
 
