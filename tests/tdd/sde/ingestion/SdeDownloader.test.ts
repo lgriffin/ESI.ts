@@ -210,6 +210,25 @@ describe('ARCH-13: SdeDownloader', () => {
       },
     );
 
+    it('accepts a maxBytes of zero and refuses the export on its size', async () => {
+      const outputPath = path.join(
+        fs.mkdtempSync(path.join(os.tmpdir(), 'sde-dl-')),
+        'sde.zip',
+      );
+      mockFetch(
+        async () =>
+          new Response('0123456789', {
+            status: 200,
+            headers: { 'content-length': '10' },
+          }),
+      );
+
+      await expect(
+        downloader.download({ outputPath, maxBytes: 0 }),
+      ).rejects.toThrow('the export is 10 bytes, over the 0-byte limit');
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
     it('writes an export exactly at the limit', async () => {
       const outputPath = path.join(
         fs.mkdtempSync(path.join(os.tmpdir(), 'sde-dl-')),

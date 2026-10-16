@@ -291,6 +291,23 @@ describe('ARCH-12: SdeExtractor', () => {
       }
     });
 
+    it.each([
+      ['a folder entry', 'sde/', 'sde'],
+      ['a colon after the first character', 'notes/C:types.yaml', 'notes'],
+      ['a name that resolves to the directory itself', './', null],
+    ])('extracts an archive holding %s', (_label, name, expected) => {
+      const zipPath = hostileZip(name);
+      const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sde-out-'));
+      try {
+        extractor.extractAll(zipPath, outputDir);
+        expect(fs.readdirSync(outputDir).sort()).toEqual(
+          expected === null ? ['types.yaml'] : [expected, 'types.yaml'].sort(),
+        );
+      } finally {
+        fs.rmSync(outputDir, { recursive: true, force: true });
+      }
+    });
+
     it('counts every escaping entry in the refusal', () => {
       const zip = new AdmZip();
       zip.addFile('qqqqqqq.yaml', Buffer.from('a: 1\n'));

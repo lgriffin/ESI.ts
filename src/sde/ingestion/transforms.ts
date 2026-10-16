@@ -17,18 +17,12 @@ export function normalizeSdeFieldName(name: string): string {
   return name.replace(/ID(?=[A-Z]|$)/g, 'Id');
 }
 
-function isLocaleMap(value: unknown): value is Record<string, string> {
-  if (value == null || typeof value !== 'object' || Array.isArray(value)) {
-    return false;
-  }
-  return 'en' in (value as Record<string, unknown>);
-}
-
 function normalizeNested(value: unknown): unknown {
   if (value == null || typeof value !== 'object') return value;
   if (Array.isArray(value)) return value.map(normalizeNested);
   const obj = value as Record<string, unknown>;
-  if (isLocaleMap(obj)) return extractLocale(obj);
+  // A non-array object with an `en` key is a locale map.
+  if ('en' in obj) return extractLocale(obj);
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(obj)) {
     out[normalizeSdeFieldName(k)] = normalizeNested(v);
