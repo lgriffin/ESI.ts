@@ -251,8 +251,8 @@ Feature: One runtime, many identities
     A public contract can expire or be accepted between the region listing
     and the detail read. The spec documents a 204 beside the 200 on both
     routes, and ESI in practice sends a 200 with Content-Length 0. The
-    generator marks every operation whose spec pairs a JSON 200 with a 204,
-    and the runtime reads either answer as an empty list, as the custom
+    generator marks every GET whose spec pairs a JSON 200 holding an array
+    with a 204, and the runtime reads either answer as an empty list, as the custom
     Contracts client does. Every other operation keeps rejecting an empty
     200 body.
 

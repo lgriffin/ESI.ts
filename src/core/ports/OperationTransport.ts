@@ -50,8 +50,9 @@ export interface OperationMeta {
    */
   readonly textResponse?: { readonly accept: string };
   /**
-   * The spec pairs the JSON 200 with a 204: ESI answers with no content (a
-   * 204, or a 200 with `Content-Length: 0`) when there is nothing to return,
+   * The spec pairs a JSON 200 holding an array with a 204: ESI answers with
+   * no content (a 204, or a 200 with `Content-Length: 0`) when there is
+   * nothing to return,
    * as for a public contract that expired or was accepted. The transport then
    * resolves with `[]` (or yields nothing) instead of failing to parse.
    */

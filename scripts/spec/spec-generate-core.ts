@@ -70,7 +70,7 @@ export interface GeneratedOperation {
   readonly deprecation?: Deprecation;
   /** Accept header for an operation whose success body is not JSON. */
   readonly textResponse?: { readonly accept: string };
-  /** The spec pairs the JSON 200 with a 204: no content reads as `[]`. */
+  /** The spec pairs a JSON 200 holding an array with a 204: no content reads as `[]`. */
   readonly emptyWhenNoContent?: boolean;
   readonly headers: readonly string[];
   /** The spec summary, for the scope tree's JSDoc. */

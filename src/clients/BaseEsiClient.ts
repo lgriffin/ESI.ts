@@ -7,6 +7,7 @@ import {
 } from '../core/endpoints/createClient';
 import { EndpointMap } from '../core/endpoints/EndpointDefinition';
 import { buildEndpointPath } from '../core/endpoints/buildEndpointPath';
+import { warnIfDeprecated } from '../core/endpoints/deprecationWarning';
 import {
   fetchAllPages,
   fetchPages,
@@ -47,6 +48,9 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
   ): AsyncGenerator<PageResult<R>, void, undefined> {
     const def = this._endpoints[endpointName]!;
     if (def.textResponse) throw notPageable(endpointName);
+    warnIfDeprecated(this._client, 'Endpoint', endpointName, def.deprecated, {
+      endpoint: endpointName,
+    });
     const { path, body } = buildEndpointPath(
       def,
       args,
@@ -71,6 +75,9 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
   ): Promise<R[]> {
     const def = this._endpoints[endpointName]!;
     if (def.textResponse) return Promise.reject(notPageable(endpointName));
+    warnIfDeprecated(this._client, 'Endpoint', endpointName, def.deprecated, {
+      endpoint: endpointName,
+    });
     const { path, body } = buildEndpointPath(
       def,
       args,

@@ -48,7 +48,8 @@ Feature: Custom client built from chosen API clients
   Rule: When a custom client calls an endpoint whose definition is marked deprecated, the CustomEsiClient shall log one warning through the client's logger naming the endpoint, its replacement and its sunset date.
     The first step of the deprecation process in guides/SEMVER.md is a
     warning on every call. An endpoint definition carries it as
-    DeprecationInfo, and createEsi's generated operations word theirs with
+    DeprecationInfo, and the stream and fetchAll page helpers warn the same
+    way. createEsi's generated operations word theirs with
     the same helper, from the same guidance in
     scripts/spec/operation-overlay.json; a unit test fails when the two
     disagree about which routes are deprecated. No endpoint is deprecated

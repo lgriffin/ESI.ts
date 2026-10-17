@@ -6,7 +6,8 @@
  * same way for it:
  *
  * - deprecation: a custom definition carries DeprecationInfo exactly when the
- *   spec deprecates the operation, with the same message and sunset date as
+ *   spec deprecates the operation, with the same message, replacement (its
+ *   method resolved to an operationId) and sunset date as
  *   scripts/spec/operation-overlay.json gives it;
  * - a text response, and the Accept header that asks for it;
  * - no content read as an empty list (emptyWhenNoContent).
@@ -69,17 +70,60 @@ function customDefinitions(): Array<[string, EndpointDefinition]> {
   return defs;
 }
 
+/**
+ * The custom side names a replacement by method (`getNew`), the generated
+ * side by operationId (`GetNew`). This resolves a method name to the
+ * operationId of its route, looking in the endpoint map the deprecated
+ * definition comes from.
+ */
+function operationIdOf(
+  name: string,
+  metas: Map<string, OperationMeta>,
+): (method: string) => string | undefined {
+  const file = name.slice(0, name.indexOf('.'));
+  return (method) => {
+    const found = customDefinitions().find(([n]) => n === `${file}.${method}`);
+    if (!found) return undefined;
+    return metas.get(routeKey(found[1].method, found[1].path))?.operationId;
+  };
+}
+
+/**
+ * Whether a custom definition and its operation disagree about deprecation:
+ * one deprecated and not the other, or a different message, sunset date or
+ * replacement (the custom method resolved to its operationId).
+ */
+function deprecationsDisagree(
+  def: EndpointDefinition,
+  meta: OperationMeta,
+  resolveMethod: (method: string) => string | undefined,
+): boolean {
+  if (Boolean(def.deprecated) !== meta.deprecated) return true;
+  if (!def.deprecated) return false;
+  const generated = meta.deprecation ?? {};
+  if (def.deprecated.message !== generated.message) return true;
+  if (def.deprecated.sunsetDate !== generated.sunsetDate) return true;
+  const replacement = def.deprecated.replacedBy
+    ? resolveMethod(def.deprecated.replacedBy)
+    : undefined;
+  return replacement !== generated.replacedBy;
+}
+
 describe('custom endpoint definitions agree with the generated operations (ARCH-08)', () => {
   const metas = generatedMetas();
-  const paired = customDefinitions().flatMap(([name, def]) => {
+  const definitions = customDefinitions();
+  const paired = definitions.flatMap(([name, def]) => {
     const meta = metas.get(routeKey(def.method, def.path));
     return meta ? [{ name, def, meta }] : [];
   });
 
-  it('pairs the custom definitions with their operations', () => {
-    // Every custom route ESI documents has an operation; a handful of custom
-    // definitions share one route, so this is a floor, not an exact count.
-    expect(paired.length).toBeGreaterThanOrEqual(230);
+  it('pairs every custom definition with an operation', () => {
+    // An unpaired definition would escape every check below, so a route the
+    // generator does not know (a typo, or one ESI dropped) fails here.
+    const unpaired = definitions
+      .filter(([, def]) => !metas.has(routeKey(def.method, def.path)))
+      .map(([name, def]) => `${name} (${def.method} ${def.path})`);
+    expect(unpaired).toEqual([]);
     const names = paired.map((p) => p.name);
     expect(names).toEqual(
       expect.arrayContaining([
@@ -121,17 +165,95 @@ describe('custom endpoint definitions agree with the generated operations (ARCH-
     ).toEqual(['metaEndpoints.getOpenApiYaml']);
   });
 
-  it('deprecate the same routes, with the same message and sunset date', () => {
+  it('deprecate the same routes, with the same message, replacement and sunset date', () => {
     const disagree = paired
-      .filter(({ def, meta }) => {
-        if (Boolean(def.deprecated) !== meta.deprecated) return true;
-        if (!def.deprecated) return false;
-        return (
-          def.deprecated.message !== meta.deprecation?.message ||
-          def.deprecated.sunsetDate !== meta.deprecation?.sunsetDate
-        );
-      })
+      .filter(({ name, def, meta }) =>
+        deprecationsDisagree(def, meta, operationIdOf(name, metas)),
+      )
       .map(({ name, meta }) => `${name} / ${meta.operationId}`);
     expect(disagree).toEqual([]);
+  });
+});
+
+describe('deprecationsDisagree (ARCH-08)', () => {
+  const meta = (deprecation?: OperationMeta['deprecation']): OperationMeta => ({
+    operationId: 'GetOld',
+    method: 'GET',
+    path: '/old',
+    scopes: [],
+    pagination: 'none',
+    deprecated: deprecation !== undefined,
+    ...(deprecation ? { deprecation } : {}),
+    headers: [],
+  });
+  const def = (deprecated?: EndpointDefinition['deprecated']) =>
+    ({
+      path: 'old',
+      method: 'GET',
+      requiresAuth: false,
+      ...(deprecated ? { deprecated } : {}),
+    }) as EndpointDefinition;
+  const guidance = { message: 'Gone.', sunsetDate: '2027-01-01' };
+  const toNew = (method: string) =>
+    method === 'getNew' ? 'GetNew' : undefined;
+
+  it('agrees when neither is deprecated', () => {
+    expect(deprecationsDisagree(def(), meta(), toNew)).toBe(false);
+  });
+
+  it('agrees when both name the same replacement', () => {
+    expect(
+      deprecationsDisagree(
+        def({ ...guidance, replacedBy: 'getNew' }),
+        meta({ ...guidance, replacedBy: 'GetNew' }),
+        toNew,
+      ),
+    ).toBe(false);
+  });
+
+  it('disagrees when only one side is deprecated', () => {
+    expect(deprecationsDisagree(def(guidance), meta(), toNew)).toBe(true);
+    expect(deprecationsDisagree(def(), meta(guidance), toNew)).toBe(true);
+  });
+
+  it('disagrees on a different message or sunset date', () => {
+    expect(
+      deprecationsDisagree(
+        def({ ...guidance, message: 'Other.' }),
+        meta(guidance),
+        toNew,
+      ),
+    ).toBe(true);
+    expect(
+      deprecationsDisagree(
+        def({ ...guidance, sunsetDate: '2028-01-01' }),
+        meta(guidance),
+        toNew,
+      ),
+    ).toBe(true);
+  });
+
+  it('disagrees when the replacements name different operations, or one names none', () => {
+    expect(
+      deprecationsDisagree(
+        def({ ...guidance, replacedBy: 'getNew' }),
+        meta({ ...guidance, replacedBy: 'GetOther' }),
+        toNew,
+      ),
+    ).toBe(true);
+    expect(
+      deprecationsDisagree(
+        def(guidance),
+        meta({ ...guidance, replacedBy: 'GetNew' }),
+        toNew,
+      ),
+    ).toBe(true);
+    expect(
+      deprecationsDisagree(
+        def({ ...guidance, replacedBy: 'getMissing' }),
+        meta({ ...guidance, replacedBy: 'GetNew' }),
+        toNew,
+      ),
+    ).toBe(true);
   });
 });
