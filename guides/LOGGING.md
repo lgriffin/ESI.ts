@@ -217,26 +217,26 @@ Messages are for people; context keys are for queries. Filter on the context, no
 
 ### Visible at the default level
 
-| Component       | Level | Event                                                                                 | Context                                |
-| --------------- | ----- | ------------------------------------------------------------------------------------- | -------------------------------------- |
-| Endpoint call   | warn  | Deprecated endpoint called, on every call (message names replacement and sunset date) | `endpoint` (method name)               |
-| Domain clients  | warn  | Deprecated client method called (`AllianceClient` contacts)                           | `allianceId`                           |
-| Fetch           | warn  | ESI `warning` response header received                                                | `url`, `warningCode`                   |
-| Retry           | warn  | Retrying after a retryable status                                                     | `method`, `statusCode`                 |
-| Status handling | warn  | 5xx served from stale cache                                                           | `status`                               |
-| Status handling | warn  | Rate limited (420 or 429)                                                             | `status`                               |
-| Pagination      | warn  | Offset pagination failed on a later page                                              | `url`, `endpoint`, `error`             |
-| Pagination      | warn  | Empty page, pagination stopped early                                                  | `page`                                 |
-| Pagination      | warn  | Cursor pagination stopped after consecutive failures                                  | `consecutiveFailures`                  |
-| Circuit breaker | warn  | Circuit opened, or re-opened after a failed probe                                     | `key`, `failures`                      |
-| Rate limiter    | warn  | Group blocked after 420/429; still blocked, request aborted                           | `group`, `waitMs` (blocked only)       |
-| Rate limiter    | warn  | Token bucket empty, waiting                                                           | `group`                                |
-| Rate limiter    | warn  | Legacy error limit low or exhausted, waiting                                          | `errorLimitRemain` / `errorLimitReset` |
-| Fetch           | error | Response body is not valid JSON                                                       | `url`                                  |
-| Retry           | error | Token refresh failed                                                                  | `endpoint`                             |
-| Pagination      | error | Offset or cursor page fetch failed                                                    | `page`                                 |
-| Status handling | error | Unexpected non-HTTP error                                                             | none                                   |
-| `MetaClient`    | error | Fetching the OpenAPI YAML failed                                                      | `url`                                  |
+| Component       | Level | Event                                                                                                                                             | Context                                                                    |
+| --------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Endpoint call   | warn  | Deprecated endpoint called, on every call (message names replacement and sunset date)                                                             | `endpoint` (method name)                                                   |
+| Domain clients  | warn  | Deprecated client method called (`AllianceClient` contacts)                                                                                       | `allianceId`                                                               |
+| Fetch           | warn  | ESI `warning` response header received                                                                                                            | `url`, `warningCode`                                                       |
+| Retry           | warn  | Retrying after a retryable status                                                                                                                 | `method`, `statusCode`                                                     |
+| Status handling | warn  | 5xx served from stale cache                                                                                                                       | `status`                                                                   |
+| Status handling | warn  | Rate limited (420 or 429)                                                                                                                         | `status`                                                                   |
+| Pagination      | warn  | Offset pagination failed on a later page                                                                                                          | `url`, `endpoint`, `error`                                                 |
+| Pagination      | warn  | Incomplete walk truncated under the default `incompletePages` (empty page, more than 1000 pages, cursor page limit); the message names the option | `page`, `reason`, `endpoint`, `reportedPages`, `fetchedPages`, `itemCount` |
+| Pagination      | warn  | Cursor pagination stopped after consecutive failures                                                                                              | `consecutiveFailures`                                                      |
+| Circuit breaker | warn  | Circuit opened, or re-opened after a failed probe                                                                                                 | `key`, `failures`                                                          |
+| Rate limiter    | warn  | Group blocked after 420/429; still blocked, request aborted                                                                                       | `group`, `waitMs` (blocked only)                                           |
+| Rate limiter    | warn  | Token bucket empty, waiting                                                                                                                       | `group`                                                                    |
+| Rate limiter    | warn  | Legacy error limit low or exhausted, waiting                                                                                                      | `errorLimitRemain` / `errorLimitReset`                                     |
+| Fetch           | error | Response body is not valid JSON                                                                                                                   | `url`                                                                      |
+| Retry           | error | Token refresh failed                                                                                                                              | `endpoint`                                                                 |
+| Pagination      | error | Offset or cursor page fetch failed                                                                                                                | `page`                                                                     |
+| Status handling | error | Unexpected non-HTTP error                                                                                                                         | none                                                                       |
+| `MetaClient`    | error | Fetching the OpenAPI YAML failed                                                                                                                  | `url`                                                                      |
 
 ### `info`
 

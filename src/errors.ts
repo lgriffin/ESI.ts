@@ -27,7 +27,12 @@ export {
   sanitizeUrl,
   CircuitOpenError,
 } from './core/util/error';
-export type { ValidationDirection, EsiFaultCode } from './core/util/error';
+export type {
+  ValidationDirection,
+  EsiFaultCode,
+  PaginationStopReason,
+  EsiPaginationErrorDetails,
+} from './core/util/error';
 
 export {
   AuthError,

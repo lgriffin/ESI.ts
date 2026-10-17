@@ -13,6 +13,7 @@ import {
   type OperationPagination,
   type ProviderIdentityOptions,
   type QueryValue,
+  type IncompletePagesMode,
 } from '../../src/client';
 
 declare const esi: Esi;
@@ -44,6 +45,22 @@ expectError(createEsi({}));
 expectError(createEsi({ baseUrl: 'https://esi.evetech.net' }));
 expectType<Esi>(createEsi({ userAgent: 'app/1.0 (dev@example.com)' }));
 
+// incompletePages takes the two modes and nothing else (DES-08).
+expectType<Esi>(
+  createEsi({
+    userAgent: 'app/1.0 (dev@example.com)',
+    incompletePages: 'throw',
+  }),
+);
+expectAssignable<IncompletePagesMode>('truncate');
+expectError<IncompletePagesMode>('fail');
+expectError(
+  createEsi({
+    userAgent: 'app/1.0 (dev@example.com)',
+    incompletePages: 'fail',
+  }),
+);
+
 // Identities: from a token, from a provider, or anything with the members.
 expectType<Identity>(identityFromToken('token'));
 declare const provider: TokenProvider;
@@ -68,3 +85,11 @@ expectAssignable<OperationPagination>('page');
 expectError<OperationPagination>('offset');
 expectAssignable<QueryValue>(['a', 1, true]);
 expectAssignable<ProviderIdentityOptions>({ characterId: 1 });
+
+// A response-schema override (scripts/spec/response-schema-overrides.json)
+// widens only the generated Zod schema in 12.x: the operation's TypeScript
+// type keeps the document's shape, and widens in the next major (#659).
+declare const bloodlines: Awaited<
+  ReturnType<PublicScopeTree['universe']['bloodlines']['get']>
+>;
+expectType<number>(bloodlines[0]!.ship_type_id);

@@ -1,4 +1,4 @@
-import { expectType } from 'tsd';
+import { expectError, expectType } from 'tsd';
 import {
   EsiClient,
   EsiError,
@@ -12,10 +12,17 @@ import {
   RateLimiter,
   ETagCacheManager,
   buildEndpointPath,
+  type IncompletePagesMode,
 } from '../../src';
 
 // EsiClient construction
 expectType<EsiClient>(new EsiClient({}));
+
+// The legacy config takes the same incompletePages modes as createEsi (DES-08).
+expectType<EsiClient>(new EsiClient({ incompletePages: 'throw' }));
+expectType<EsiClient>(new EsiClient({ incompletePages: 'truncate' }));
+expectError(new EsiClient({ incompletePages: 'fail' }));
+expectError<IncompletePagesMode>('fail');
 
 // Error type guards return boolean
 expectType<boolean>(isEsiError(new Error()));

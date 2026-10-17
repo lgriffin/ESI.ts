@@ -5,6 +5,7 @@ import {
   TimeoutError,
   isTimeout,
   EsiError,
+  EsiPaginationError,
 } from '../../../src/core/util/error';
 import fetchMock from 'jest-fetch-mock';
 import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
@@ -420,7 +421,30 @@ describe('CursorPaginationHandler', () => {
       );
     });
 
-    it('should respect maxPages option', async () => {
+    it('DES-08: by default resolves with the pages fetched when maxPages is reached with an after cursor still set', async () => {
+      const resp2 = cursorResponse([{ id: 2 }], null, 'c2');
+      fetchMock.mockResponseOnce(resp2.body, {
+        status: resp2.status,
+        headers: resp2.headers,
+      });
+
+      const result = await CursorPaginationHandler.fetchAll(
+        client,
+        'corporations/123/projects',
+        'GET',
+        false,
+        [{ id: 1 }],
+        { before: null, after: 'c1' },
+        undefined,
+        { maxPages: 2 },
+      );
+
+      expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('DES-08: with incompletePages throw, rejects with cursor-cap when maxPages is reached with an after cursor still set', async () => {
+      client.setIncompletePages('throw');
       const firstPageData = [{ id: 1 }];
       const firstCursors = { before: null, after: 'c1' };
 
@@ -438,13 +462,48 @@ describe('CursorPaginationHandler', () => {
         headers: resp3.headers,
       });
 
-      const result = await CursorPaginationHandler.fetchAll(
+      const error = await CursorPaginationHandler.fetchAll(
         client,
         'corporations/123/projects',
         'GET',
         false,
         firstPageData,
         firstCursors,
+        undefined,
+        { maxPages: 2 },
+      ).then(
+        () => undefined,
+        (e: unknown) => e,
+      );
+
+      expect(error).toBeInstanceOf(EsiPaginationError);
+      const incomplete = error as EsiPaginationError;
+      expect(incomplete.reason).toBe('cursor-cap');
+      expect(incomplete.endpoint).toBe('corporations/123/projects');
+      expect(incomplete.reportedPages).toBeUndefined();
+      expect(incomplete.fetchedPages).toBe(2);
+      expect(incomplete.partial).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(incomplete.itemCount).toBe(2);
+      expect(incomplete.message).toBe(
+        '[PAGINATION_INCOMPLETE] Pagination incomplete for corporations/123/projects: stopped at the 2-page limit with an after cursor still set',
+      );
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('DES-08: resolves when the page at maxPages carries no after cursor', async () => {
+      const resp2 = cursorResponse([{ id: 2 }], null, null);
+      fetchMock.mockResponseOnce(resp2.body, {
+        status: resp2.status,
+        headers: resp2.headers,
+      });
+
+      const result = await CursorPaginationHandler.fetchAll(
+        client,
+        'corporations/123/projects',
+        'GET',
+        false,
+        [{ id: 1 }],
+        { before: null, after: 'c1' },
         undefined,
         { maxPages: 2 },
       );
@@ -799,6 +858,32 @@ describe('CursorPaginationHandler', () => {
           { consecutiveFailures: 3 },
         ],
       ]);
+    });
+
+    it('DES-08: a non-ESI failure carries reason fetch-failed and the items fetched so far', async () => {
+      client.setRetryConfig({ maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1 });
+      const boom = new Error('boom');
+      const pageFetch = jest
+        .fn()
+        .mockResolvedValueOnce({
+          data: [{ id: 2 }],
+          cursors: { before: null, after: 'c2' },
+        })
+        .mockRejectedValue(boom);
+
+      const error = await run(pageFetch).then(
+        () => undefined,
+        (e: unknown) => e,
+      );
+
+      expect(error).toBeInstanceOf(EsiPaginationError);
+      const incomplete = error as EsiPaginationError;
+      expect(incomplete.reason).toBe('fetch-failed');
+      expect(incomplete.cause).toBe(boom);
+      expect(incomplete.fetchedPages).toBe(2);
+      expect(incomplete.partial).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(incomplete.itemCount).toBe(2);
+      expect(Object.isFrozen(incomplete.partial)).toBe(true);
     });
   });
 });

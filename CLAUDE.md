@@ -85,7 +85,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `src/core/endpoints/` — 39 endpoint maps (`*Endpoints.ts`), `createClient()`, and the generated TTL, rate-limit-group and scope tables
 - `src/core/circuitBreaker/` — Circuit breaker implementation + `ICircuitBreaker` interface
 - `src/core/ports/` — seven type-only ports (`CacheStore`, `Clock`, `HttpTransport`, `Identity`, `Logger`, `OperationTransport`, `TokenProvider`). They import nothing; exported from `./client`
-- `src/adapters/` — `PipelineTransport`, which implements `OperationTransport` over the existing pipeline. Internal; `./client` wraps it
+- `src/adapters/` — `PipelineTransport`, which implements `OperationTransport` over the existing pipeline and, when `createEsi` is given `validateResponse: true`, validates responses against `responseSchemas.generated.ts` (one Zod schema per operation, generated with the operations). Internal; `./client` wraps it
 - `src/generated/` — `operations.generated.ts`: 233 typed operations, `ScopeTree`, `PublicScopeTree` and `createScopeTree`, generated from the vendored spec. Imports only the ports. `ScopeTree` and `PublicScopeTree` are exported from `./client`
 - `src/auth/` — `EveSsoClient` (OAuth2 + PKCE), `EsiTokenManager` (multi-character tokens and refresh), `MemoryTokenStorage` / `FileTokenStorage`, auth errors
 - `src/errors.ts` — the `./errors` sub-path entry
@@ -113,7 +113,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - **Dual CJS/ESM build** via tsup (esbuild) for JS bundles + tsc for declaration files.
 - **Logging** via pino behind the `ILogger` interface. Level controlled by `ESI_LOG_LEVEL` env var (default: `warn`).
 - **Conventional commits** enforced by commitlint + husky. Types: feat, fix, chore, docs, test, refactor, perf. The type and `!` decide the released version; see Semantic Versioning below.
-- **Generated files** (`*.generated.ts`) are auto-generated from the ESI OpenAPI spec. Re-generate with `npm run generate:types` (types, TTLs, rate-limit groups, scopes) or `npm run spec:generate` (`src/generated/operations.generated.ts`, from the vendored snapshot); do not edit manually.
+- **Generated files** (`*.generated.ts`) are auto-generated from the ESI OpenAPI spec. Re-generate with `npm run generate:types` (types, TTLs, rate-limit groups, scopes) or `npm run spec:generate` (`src/generated/operations.generated.ts` and `src/adapters/responseSchemas.generated.ts`, from the vendored snapshot); do not edit manually.
 - **Layers** point inward: `npm run lint:layers` (`config/eslint/layers.rules.cjs`) forbids core importing the layers above it, ports importing anything, and generated code importing anything but the ports. Its `BASELINE` only shrinks. See `guides/DESIGN-RULES.md` §7.
 
 ## Architecture
@@ -150,6 +150,7 @@ Every change is classified by [`guides/SEMVER.md`](guides/SEMVER.md) before it i
 - **Classify before committing.** A change that touches the public contract (any `package.json` `exports` entry, types they export, documented runtime behaviour, error classes, Zod response schemas, defaults, `engines`, public or peer dependencies) is major, minor or patch per the tables in SEMVER.md. When the classification is unclear, ask the user rather than guessing.
 - **Never introduce a breaking change without the user's explicit approval.** Propose a compatible alternative first: an optional parameter, a new method next to the old one, or a deprecation.
 - **Mark breaking changes on the commit that introduces them:** `type!:` in the subject **and** a `BREAKING CHANGE:` footer that tells a consumer how to migrate. Never hide a break in `chore:`, `refactor:` or `test:`, and never add `!` "to be safe".
+- **Never deprecate or remove a custom client.** `EsiClient`, `EsiClientBuilder` → `CustomEsiClient`, `EsiApiFactory.createClient(type)`, `BaseEsiClient` and the domain clients are the product (CHARTER.md posture 1 and ARCH-14, `guides/CLIENT-ARCHITECTURE.md`); generation serves them and never replaces them. `tests/tdd/scripts/custom-client-identity.test.ts` fails a change that tags one `@deprecated`. Changing that is a charter amendment the maintainer decides, not a pull request.
 - **Deprecate before removing.** Removals ship in a major release only, after `@deprecated` JSDoc (and `DeprecationInfo` for endpoints) in an earlier minor release, unless ESI has already removed the endpoint.
 - **Keep the API report honest.** When an exported shape changes, run `npm run api-report` and commit `etc/esi.ts.api.md`. If the report loses a line but the change is compatible, add an `API-Compatible: <why>` trailer.
 - **Pull request titles are conventional commits.** A squash merge of several commits uses the title as the commit release-please reads, so it carries `!` whenever any commit in the pull request is breaking. Prefer a merge commit when a pull request mixes `fix:`/`feat:` with other types.
@@ -180,6 +181,7 @@ Review against the checklist and severities in `AGENTS.md` (Reviewer Checklist).
 - `src/types/generated/` — auto-generated from OpenAPI spec
 - `src/core/endpoints/esi-*.generated.ts` — auto-generated cache TTLs, rate limits, scopes
 - `src/generated/operations.generated.ts` — generated operations and scope tree (`npm run spec:generate`)
+- `src/adapters/responseSchemas.generated.ts` — generated response schemas (`npm run spec:generate`)
 - `dist/` — build output
 - `etc/esi.ts.api.md` — auto-generated API surface report
 - `okf/` — auto-generated OKF knowledge bundle from OpenAPI spec

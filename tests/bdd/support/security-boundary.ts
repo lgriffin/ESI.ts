@@ -8,11 +8,12 @@ import AdmZip from 'adm-zip';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { EsiError } from '../../../src/core/util/error';
+import { EsiError, EsiPaginationError } from '../../../src/core/util/error';
 import type { PageResult } from '../../../src/core/pagination/AsyncPaginationIterator';
 import { SdeError } from '../../../src/sde/errors';
 import { SdeExtractor } from '../../../src/sde/ingestion/SdeExtractor';
-import { queueResponse, sentRequests } from './transport';
+import type { IncompletePagesMode } from '../../../src/core/pagination/pageLimit';
+import { createSeamClient, queueResponse, sentRequests } from './transport';
 import { WALLET_CHARACTER_ID, balanceMatch } from './wallet';
 import type { World } from './world';
 
@@ -23,18 +24,34 @@ export const PAGE_CAP = 1000;
 const PAGED_ROUTE_FIRST = /\/alliances\/?(\?(?!.*page=)|$)/;
 const PAGED_ROUTE_PAGE = /\/alliances\/?\?.*page=\d+/;
 
+/** The P8 scenarios' client, with the given `incompletePages` mode. */
+export function useIncompletePagesMode(
+  world: World,
+  mode: IncompletePagesMode,
+): void {
+  world.client = createSeamClient({ incompletePages: mode });
+  world.values['incompletePages'] = mode;
+}
+
 /**
- * ESI reports `reported` pages for the alliance list. Exactly PAGE_CAP pages
- * are queued: a client that asks for one more finds no response and fails,
- * and one that asks for fewer leaves a queued page unrequested, which fails
- * the scenario too.
+ * ESI reports `reported` pages for the alliance list. Under the default
+ * `incompletePages` mode exactly PAGE_CAP pages are queued: a client that
+ * asks for one more finds no response and fails, and one that asks for fewer
+ * leaves a queued page unrequested, which fails the scenario too. With
+ * `throw`, a count above the cap stops the walk after page 1, so only page 1
+ * is queued.
  */
-export function queueReportedPageCount(header: string, reported: number): void {
+export function queueReportedPageCount(
+  world: World,
+  header: string,
+  reported: number,
+): void {
   queueResponse({
     match: PAGED_ROUTE_FIRST,
     headers: { [header.toLowerCase()]: String(reported) },
     body: [1],
   });
+  if (world.values['incompletePages'] === 'throw') return;
   queueResponse({
     match: PAGED_ROUTE_PAGE,
     headers: { [header.toLowerCase()]: String(reported) },
@@ -43,23 +60,47 @@ export function queueReportedPageCount(header: string, reported: number): void {
   });
 }
 
+/** Run a walk, keeping what it resolved with or what it threw. */
+async function walk(world: World, run: () => Promise<unknown>): Promise<void> {
+  try {
+    world.result = await run();
+  } catch (error) {
+    world.error = error;
+  }
+}
+
 /** Every page of the alliance list, through the domain client's plain method. */
 export async function walkWithPagedMethod(world: World): Promise<void> {
-  world.result = await world.client.alliance.getAlliances();
+  await walk(world, () => world.client.alliance.getAlliances());
 }
 
 /** Every page of the alliance list, through the collecting iterator. */
 export async function walkWithCollectingIterator(world: World): Promise<void> {
-  world.result = await world.client.alliance.fetchAllAlliances();
+  await walk(world, () => world.client.alliance.fetchAllAlliances());
 }
 
 /** Every page of the alliance list, through the async page iterator. */
 export async function walkWithAsyncIterator(world: World): Promise<void> {
-  const pages: PageResult<number>[] = [];
-  for await (const page of world.client.alliance.streamAlliances()) {
-    pages.push(page);
-  }
-  world.result = pages;
+  await walk(world, async () => {
+    const pages: PageResult<number>[] = [];
+    for await (const page of world.client.alliance.streamAlliances()) {
+      pages.push(page);
+    }
+    return pages;
+  });
+}
+
+/** The walk resolved with the first `pages` pages and requested exactly those. */
+export function expectCutOffAt(world: World, pages: number): void {
+  expect(world.error).toBeUndefined();
+  expect(world.result).toHaveLength(pages);
+  expect(pageRequestsSent()).toBe(pages);
+}
+
+/** The walk was refused at the page cap (a reported count above 1000). */
+export function expectPageCapRefusal(world: World): void {
+  expect(world.error).toBeInstanceOf(EsiPaginationError);
+  expect((world.error as EsiPaginationError).reason).toBe('page-cap');
 }
 
 export function pageRequestsSent(): number {

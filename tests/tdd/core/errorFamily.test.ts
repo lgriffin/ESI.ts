@@ -111,6 +111,88 @@ describe('error family (ARCH-07)', () => {
       '[PAGINATION_INCOMPLETE] Pagination incomplete for https://esi.evetech.net/x/?token=%5BREDACTED%5D&page=2: boom',
     );
     expect(err.cause).toBe(cause);
+    // DES-08 defaults for a constructor call without details.
+    expect(err.reason).toBe('fetch-failed');
+    expect(err.endpoint).toBe(err.url);
+    expect(err.reportedPages).toBeUndefined();
+    expect(err.fetchedPages).toBe(0);
+    expect(err.partial).toEqual([]);
+    expect(err.itemCount).toBe(0);
+  });
+
+  it('DES-08: EsiPaginationError carries the stop reason, progress and a frozen copy of the partial result', () => {
+    const partial = [{ id: 1 }, { id: 2 }];
+    const err = new EsiPaginationError(
+      'https://esi.evetech.net/latest/markets/1/orders/',
+      undefined,
+      {
+        reason: 'empty-page',
+        endpoint: 'markets/1/orders/?order_type=all&token=secret',
+        reportedPages: 4,
+        fetchedPages: 3,
+        partial,
+      },
+    );
+    expect(err.reason).toBe('empty-page');
+    expect(err.endpoint).toBe(
+      'markets/1/orders/?order_type=all&token=[REDACTED]',
+    );
+    expect(err.reportedPages).toBe(4);
+    expect(err.fetchedPages).toBe(3);
+    expect(err.itemCount).toBe(2);
+    expect(err.partial).toEqual(partial);
+    expect(err.partial).not.toBe(partial);
+    expect(Object.isFrozen(err.partial)).toBe(true);
+    expect(err.cause).toBeUndefined();
+    expect(err.retryable).toBe(false);
+    expect(err.message).toBe(
+      '[PAGINATION_INCOMPLETE] Pagination incomplete for https://esi.evetech.net/latest/markets/1/orders/: page 3 of 4 was empty, so the collection changed during the walk',
+    );
+  });
+
+  it.each([
+    [
+      'page-cap',
+      { reportedPages: 1001, fetchedPages: 1 },
+      'ESI reported 1001 pages, more than the client requests for one call',
+    ],
+    [
+      'cursor-cap',
+      { fetchedPages: 1000 },
+      'stopped at the 1000-page limit with an after cursor still set',
+    ],
+    ['fetch-failed', { fetchedPages: 2 }, 'stopped after 2 pages'],
+    ['fetch-failed', {}, 'stopped after 0 pages'],
+  ] as const)(
+    'DES-08: EsiPaginationError describes a %s stop without a cause',
+    (reason, details, text) => {
+      const err = new EsiPaginationError('corps/1/projects', undefined, {
+        reason,
+        ...details,
+      });
+      expect(err.message).toBe(
+        `[PAGINATION_INCOMPLETE] Pagination incomplete for corps/1/projects: ${text}`,
+      );
+      expect(err.endpoint).toBe('corps/1/projects');
+    },
+  );
+
+  it('DES-08: itemCount can count items a stream yielded without carrying them', () => {
+    const err = new EsiPaginationError('alliances', undefined, {
+      reason: 'empty-page',
+      reportedPages: 3,
+      fetchedPages: 2,
+      itemCount: 5,
+    });
+    expect(err.partial).toEqual([]);
+    expect(err.itemCount).toBe(5);
+  });
+
+  it('DES-08: a non-Error cause is stringified into the message', () => {
+    const err = new EsiPaginationError('alliances', 'string error');
+    expect(err.message).toBe(
+      '[PAGINATION_INCOMPLETE] Pagination incomplete for alliances: string error',
+    );
   });
 
   it('EsiTokenRefreshError keeps what the provider threw on cause', () => {

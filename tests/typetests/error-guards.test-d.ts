@@ -90,6 +90,8 @@ import {
   EsiParseError,
   EsiPaginationError,
   EsiTokenRefreshError,
+  PaginationStopReason,
+  EsiPaginationErrorDetails,
 } from '../../src/errors';
 
 expectAssignable<Pick<typeof rootEntry, keyof typeof errorsEntry>>(errorsEntry);
@@ -111,7 +113,22 @@ if (isParseError(err)) {
 }
 if (isPaginationError(err)) {
   expectType<EsiPaginationError>(err);
+  expectType<PaginationStopReason>(err.reason);
+  expectType<string>(err.endpoint);
+  expectType<number | undefined>(err.reportedPages);
+  expectType<number>(err.fetchedPages);
+  expectType<number>(err.itemCount);
+  expectType<readonly unknown[]>(err.partial);
 }
+expectType<'page-cap' | 'empty-page' | 'cursor-cap' | 'fetch-failed'>(
+  {} as PaginationStopReason,
+);
+expectAssignable<EsiPaginationErrorDetails>({
+  reason: 'cursor-cap',
+  fetchedPages: 3,
+  partial: [],
+});
+expectAssignable<EsiPaginationError>(new EsiPaginationError('/x', undefined));
 if (isTokenRefreshError(err)) {
   expectType<EsiTokenRefreshError>(err);
   expectType<unknown>(err.cause);

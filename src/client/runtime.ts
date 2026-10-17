@@ -29,6 +29,7 @@ import type {
   OperationRequest,
   OperationTransport,
 } from '../core/ports/OperationTransport';
+import type { IncompletePagesMode } from '../core/pagination/pageLimit';
 import type { RateLimiterConfig } from '../core/rateLimiter/RateLimiter';
 import { EsiConfigurationError } from '../core/util/error';
 import { RetryConfig } from '../core/util/retry';
@@ -69,8 +70,24 @@ export interface EsiOptions {
   readonly enableRequestDeduplication?: boolean;
   readonly requestInterceptors?: readonly RequestInterceptor[];
   readonly responseInterceptors?: readonly ResponseInterceptor[];
+  /**
+   * Set `true` to check each response against the operation's Zod schema,
+   * generated from the OpenAPI document, and throw `EsiValidationError` on a
+   * mismatch. Unset or `false`, the generated operations return bodies as ESI
+   * sent them, as they always have. A future major release will make
+   * validation the default for `createEsi`; set `false` to keep bodies
+   * unvalidated then.
+   */
   readonly validateResponse?: boolean;
   readonly validateRequest?: boolean;
+  /**
+   * What pagination does when it cannot prove a walk complete (a page count
+   * above 1000, an empty page after the first). `'truncate'`, the default,
+   * yields the pages fetched so far and logs a warning; `'throw'` rejects with
+   * an `EsiPaginationError` carrying the reason. The default becomes
+   * `'throw'` in a future major. See guides/PAGINATION.md.
+   */
+  readonly incompletePages?: IncompletePagesMode;
   /** Where the pipeline logs. Defaults to the package's pino logger at `logLevel`. */
   readonly logger?: Logger;
   readonly logLevel?: LogLevel;
@@ -183,6 +200,7 @@ function viewClient(
   client.setRetryStrategy(runtime.getRetryStrategy());
   client.setValidateResponse(runtime.getValidateResponse());
   client.setValidateRequest(runtime.getValidateRequest());
+  client.setIncompletePages(runtime.getIncompletePages());
   client.setTimeout(runtime.getTimeout());
   client.setLogger(runtime.getLogger());
   client.setTenant(runtime.getTenant());
@@ -229,17 +247,28 @@ export function createEsi(options: EsiOptions): Esi {
     responseInterceptors: options.responseInterceptors?.slice(),
   });
 
+  // Only an explicit `true` validates the generated operations: the
+  // ApiClient's validateResponse defaults to true for the hand-written
+  // clients, and the generated operations have returned bodies unchecked
+  // since the runtime shipped.
+  const transportOptions = {
+    validateResponse: options.validateResponse === true,
+  };
   const views = new WeakMap<Identity, ScopeTree>();
   return Object.freeze({
     public: createScopeTree(
-      new PublicTransport(new PipelineTransport(runtime)),
+      new PublicTransport(new PipelineTransport(runtime, transportOptions)),
     ),
     as(identity: Identity): ScopeTree {
       const known = views.get(identity);
       if (known) return known;
       const client = viewClient(runtime, options, identity);
       const view = createScopeTree(
-        new IdentityTransport(client, identity, new PipelineTransport(client)),
+        new IdentityTransport(
+          client,
+          identity,
+          new PipelineTransport(client, transportOptions),
+        ),
       );
       views.set(identity, view);
       return view;

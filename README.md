@@ -19,7 +19,7 @@ A TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), buil
 
 **Documentation site: [lgriffin.github.io/ESI.ts](https://lgriffin.github.io/ESI.ts/)**, with these guides, a page for every runnable example, and the [API reference](https://lgriffin.github.io/ESI.ts/api/) generated from the TSDoc. The [requirements dashboard](https://lgriffin.github.io/ESI.ts/requirements/) lists every EARS requirement the client is held to, the scenarios that prove it and its verdict, and how to write a new one.
 
-> **Release line.** Version <!-- metric:version -->12.1.0<!-- /metric --> <!-- x-release-please-version -->
+> **Release line.** Version <!-- metric:version -->12.2.0<!-- /metric --> <!-- x-release-please-version -->
 > is current on npm. 12.0 corrects five list methods and their detail schemas to the shapes ESI actually sends, which changes their return types; nothing else breaks. The 10.x line stays available for Node 18 and 20. [What 12.0 changes](guides/USAGE.md#10-what-1200-changes) · [What 11.0 changed](guides/USAGE.md#9-what-1100-changes) · [Changelog](CHANGELOG.md)
 
 ## Install
@@ -127,10 +127,10 @@ A request no route answers is rejected with an `EsiConfigurationError` naming th
 
 ## The engineering stance
 
-The project is run to a written [engineering charter](guides/CHARTER.md). It has <!-- metric:charterRequirements -->69<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->53<!-- /metric --> are **Enforced**, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->9<!-- /metric --> Partial and <!-- metric:charterGap -->1<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
+The project is run to a written [engineering charter](guides/CHARTER.md). It has <!-- metric:charterRequirements -->70<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->55<!-- /metric --> are **Enforced**, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->8<!-- /metric --> Partial and <!-- metric:charterGap -->1<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
 
-1. **The OpenAPI spec is upstream.** Types, cache TTLs, rate-limit groups, scopes and <!-- metric:operations -->233<!-- /metric --> typed operations are generated from it, and CI fails when they go stale.
-2. **Hand-write where judgement matters.** Method names, argument shapes and validation strictness are product decisions. Drift reports keep them honest against the spec.
+1. **The custom clients are the product.** ESI.ts is a library of hand-written, curated domain clients. Method names, argument shapes, wire fixes and validation strictness are product decisions. Generation serves the clients and never replaces them, and a gate fails any change that deprecates one ([Client architecture](guides/CLIENT-ARCHITECTURE.md)).
+2. **The OpenAPI spec is upstream.** Types, cache TTLs, rate-limit groups, scopes and <!-- metric:operations -->233<!-- /metric --> typed operations are generated from it, and CI fails when they go stale. Drift reports keep the hand-written code honest against it.
 3. **Tolerate additive change.** New fields and enum members from CCP never break a consumer. A removal is a breaking change.
 4. **Resilience is pluggable.** Retry, rate limiting, circuit breaking, deduplication, caching and transport are interfaces, not imports.
 5. **Secure by construction.** HTTPS and a host allowlist are checked at construction, tokens are attached only where a scope is declared, URLs are redacted in every error, and cache keys are hashed per token. Each control is a test.
@@ -146,7 +146,7 @@ Measured on `master` at `9486fe2c` on 2026-09-28 with the commands shown; the mu
 | Tests run offline         | 10,045 tests in 319 suites; 9,837 run, 0 failing (208 live tests skip without credentials or an SDE export)                                                                                                                                                                                                                                                                                                                                 | `npm test`, `fuzz`, `faults`, `contract:replay`, `test:integration`         |
 | Unit, BDD and composition | 291 suites, 8,308 tests in about two and a half minutes                                                                                                                                                                                                                                                                                                                                                                                     | `npm test`                                                                  |
 | Coverage                  | 97.8% statements, 95.9% branches, 93.6% functions, 97.9% lines                                                                                                                                                                                                                                                                                                                                                                              | `npm run coverage` (floors 90 / 80 / 75 / 90)                               |
-| Executable specification  | <!-- metric:requirements -->617<!-- /metric --> EARS requirements, <!-- metric:scenarios -->801<!-- /metric --> scenarios, <!-- metric:featureFiles -->77<!-- /metric --> feature files                                                                                                                                                                                                                                                     | `npm run ears`                                                              |
+| Executable specification  | <!-- metric:requirements -->629<!-- /metric --> EARS requirements, <!-- metric:scenarios -->819<!-- /metric --> scenarios, <!-- metric:featureFiles -->77<!-- /metric --> feature files                                                                                                                                                                                                                                                     | `npm run ears`                                                              |
 | Property and fuzz tests   | 1,240 tests; 10,000 runs a property nightly                                                                                                                                                                                                                                                                                                                                                                                                 | `npm run fuzz`                                                              |
 | Transport fault catalogue | 148 faults through the real pipeline                                                                                                                                                                                                                                                                                                                                                                                                        | `npm run faults`                                                            |
 | Recorded ESI payloads     | 121 replay tests, re-recorded nightly with a drift PR                                                                                                                                                                                                                                                                                                                                                                                       | `npm run contract:replay`                                                   |
@@ -159,15 +159,15 @@ Every tier has to prove it can fail: a negative fixture, a killed mutant or a ca
 
 ## Packages in the box
 
-| Import                        | What it holds                                                                                                |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `@lgriffin/esi.ts`            | `EsiClient`, `EsiClientBuilder`, `EsiApiFactory`, domain clients, auth, errors, generated types and scopes   |
-| `@lgriffin/esi.ts/schemas`    | The Zod response schemas                                                                                     |
-| `@lgriffin/esi.ts/errors`     | Error classes and type guards, including the auth errors                                                     |
-| `@lgriffin/esi.ts/testing`    | `createMockTransport` and `TestDataFactory` for your own tests                                               |
-| `@lgriffin/esi.ts/client`     | `createEsi`: one shared runtime, `esi.public` (authenticated calls do not compile) and `esi.as(identity)`    |
-| `@lgriffin/esi.ts/sde`        | `SdeDataProvider` (YAML and ZIP, through the optional peers `js-yaml` and `adm-zip`) and `MemorySdeProvider` |
-| `@lgriffin/esi.ts/sde/memory` | `MemorySdeProvider` alone, with no file-system or parser code, for browsers and bundles                      |
+| Import                        | What it holds                                                                                                         |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `@lgriffin/esi.ts`            | `EsiClient`, `EsiClientBuilder`, `EsiApiFactory`, domain clients, auth, errors, generated types and scopes            |
+| `@lgriffin/esi.ts/schemas`    | The Zod response schemas                                                                                              |
+| `@lgriffin/esi.ts/errors`     | Error classes and type guards, including the auth errors                                                              |
+| `@lgriffin/esi.ts/testing`    | `createMockTransport` and `TestDataFactory` for your own tests                                                        |
+| `@lgriffin/esi.ts/client`     | `createEsi`, the spec-shaped low-level surface: `esi.public` (authenticated calls do not compile), `esi.as(identity)` |
+| `@lgriffin/esi.ts/sde`        | `SdeDataProvider` (YAML and ZIP, through the optional peers `js-yaml` and `adm-zip`) and `MemorySdeProvider`          |
+| `@lgriffin/esi.ts/sde/memory` | `MemorySdeProvider` alone, with no file-system or parser code, for browsers and bundles                               |
 
 ```typescript
 import { MarketOrderSchema } from '@lgriffin/esi.ts/schemas';
@@ -203,13 +203,13 @@ The README orients and the guides are canonical. Each guide opens with the chart
 | [Roadmap](guides/ROADMAP.md)                           | Phases, definitions of done, the SDE programme, the release gate                |
 | [Lean decisions](guides/LEAN-DECISIONS.md)             | Why it is run this way: every decision since v7, with value stream maps         |
 | [Architecture](guides/ARCHITECTURE.md)                 | Layers, ports, the request path, caching, retry, rate limiting, circuit breaker |
+| [Client architecture](guides/CLIENT-ARCHITECTURE.md)   | Custom clients are the product; the generated layer underneath; the plan        |
 | [Design rules](guides/DESIGN-RULES.md)                 | Naming, schemas, adding an endpoint or a client, generated files                |
 | [Testing](guides/TESTING.md)                           | Every test tier, what it proves, how to run it                                  |
 | [Mutation testing](guides/TESTING.md#mutation-testing) | Stryker shards, floors and the ratchet                                          |
 | [Quality gates](guides/QUALITY-GATES.md)               | What runs at commit, push, PR, nightly and release; every workflow              |
 | [Security](guides/SECURITY.md)                         | Runtime defences and supply-chain controls ([policy](SECURITY.md))              |
 | [Semantic versioning](guides/SEMVER.md)                | What is public; major, minor or patch; breaking-change commits                  |
-| [Legacy removal](guides/LEGACY-REMOVAL.md)             | What 13.0.0 removes, each replacement, and the gaps to close first              |
 | [Release](guides/RELEASE.md)                           | Cutting a release, changelog, provenance, signatures, support window            |
 | [Audit](guides/AUDIT.md)                               | The Phase 0 measured baseline for 11.0                                          |
 | [OKF bundle](guides/OKF.md)                            | The generated Open Knowledge Format catalogue of ESI                            |

@@ -7,6 +7,7 @@
 import { createEsi, identityFromToken } from '../../../src/client';
 import { EsiConfigurationError } from '../../../src/errors';
 import { createMockTransport, type MockRoute } from '../../../src/testing';
+import { STATUS } from '../helpers/generatedBodies';
 
 const WALLET = '/characters/{character_id}/wallet';
 
@@ -404,7 +405,7 @@ describe('createMockTransport', () => {
         });
       const answered = {
         path: '/status',
-        body: { players: 1 },
+        body: STATUS,
         headers: { etag: '"one"' },
         times: 1,
       };
@@ -437,7 +438,7 @@ describe('createMockTransport', () => {
     it('keeps answering from the runtime cache after reset, unless the cache is off', async () => {
       const cached = createMockTransport().respond({
         path: '/status',
-        body: { players: 1 },
+        body: STATUS,
         headers: { etag: '"one"' },
       });
       const withCache = createEsi({
@@ -447,7 +448,7 @@ describe('createMockTransport', () => {
       });
       const uncached = createMockTransport().respond({
         path: '/status',
-        body: { players: 1 },
+        body: STATUS,
         headers: { etag: '"one"' },
       });
       const withoutCache = createEsi({

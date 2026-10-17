@@ -284,21 +284,128 @@ export function isParseError(error: unknown): error is EsiParseError {
 }
 
 /**
- * A page walk that stopped part way on a failure that is not itself an
- * `EsiError` (`PAGINATION_INCOMPLETE`). The page's error is on `cause`.
+ * Why a page walk stopped before it held the whole collection:
+ *
+ * - `page-cap`: page 1 reported more pages than the client requests for one
+ *   call (1000, security model P8). The walk stops after page 1.
+ * - `empty-page`: a page after the first that page 1 reported came back with
+ *   no items, so the collection shrank while it was walked.
+ * - `cursor-cap`: a cursor walk reached its page limit while the last page
+ *   still carried an `after` cursor.
+ * - `fetch-failed`: a page failed with an error that is not itself an
+ *   `EsiError`, which is on `cause`.
+ */
+export type PaginationStopReason =
+  'page-cap' | 'empty-page' | 'cursor-cap' | 'fetch-failed';
+
+/** What a pagination path knows when it stops part way. Every field is optional. */
+export interface EsiPaginationErrorDetails {
+  /** Default `fetch-failed`. */
+  readonly reason?: PaginationStopReason;
+  /** The endpoint path the walk started from. Default: `where`. */
+  readonly endpoint?: string;
+  /** The page count page 1 reported; omitted on a cursor walk. */
+  readonly reportedPages?: number;
+  /** Pages the walk read in order, the page it stopped at included. Default 0. */
+  readonly fetchedPages?: number;
+  /** Items collected before the stop, in page order. Default none. */
+  readonly partial?: readonly unknown[];
+  /** Items the walk delivered before the stop. Default: `partial.length`. */
+  readonly itemCount?: number;
+}
+
+/** The message text for a stop that has no underlying error. */
+function describePaginationStop(
+  reason: PaginationStopReason,
+  d: EsiPaginationErrorDetails,
+): string {
+  switch (reason) {
+    case 'page-cap':
+      return `ESI reported ${d.reportedPages} pages, more than the client requests for one call`;
+    case 'empty-page':
+      return `page ${d.fetchedPages} of ${d.reportedPages} was empty, so the collection changed during the walk`;
+    case 'cursor-cap':
+      return `stopped at the ${d.fetchedPages}-page limit with an after cursor still set`;
+    case 'fetch-failed':
+      return `stopped after ${d.fetchedPages ?? 0} pages`;
+  }
+}
+
+/**
+ * A page walk that stopped before it held the whole collection
+ * (`PAGINATION_INCOMPLETE`). `reason` says why; `partial` holds the items
+ * collected before the stop, so a caller can use or discard them knowingly.
+ * When a page failed with an error that is not itself an `EsiError`, that
+ * error is on `cause`.
  */
 export class EsiPaginationError extends EsiFaultError {
-  constructor(where: string, cause: unknown) {
+  /** Why the walk stopped. */
+  readonly reason: PaginationStopReason;
+  /** The endpoint path the walk started from. */
+  readonly endpoint: string;
+  /** The page count page 1 reported; `undefined` on a cursor walk. */
+  readonly reportedPages: number | undefined;
+  /** Pages read in order before the stop, the page it stopped at included. */
+  readonly fetchedPages: number;
+  /**
+   * Items delivered before the stop: `partial.length`, except on a stream,
+   * whose pages were already yielded and are counted but not carried.
+   */
+  readonly itemCount: number;
+  /** Items collected before the stop, in page order. Frozen. */
+  readonly partial: readonly unknown[];
+
+  // The two-argument signature is kept as its own overload so the published
+  // declaration still carries it unchanged (guides/SEMVER.md).
+  constructor(where: string, cause: unknown);
+  constructor(
+    where: string,
+    cause: unknown,
+    details: EsiPaginationErrorDetails,
+  );
+  constructor(
+    where: string,
+    cause: unknown,
+    details: EsiPaginationErrorDetails = {},
+  ) {
     const safeWhere = sanitizeUrl(where) ?? where;
-    const reason = cause instanceof Error ? cause.message : String(cause);
+    const reason = details.reason ?? 'fetch-failed';
+    const causeText = cause instanceof Error ? cause.message : String(cause);
+    const text =
+      cause === undefined ? describePaginationStop(reason, details) : causeText;
     super(
       'PAGINATION_INCOMPLETE',
-      `Pagination incomplete for ${safeWhere}: ${reason}`,
+      `Pagination incomplete for ${safeWhere}: ${text}`,
       where,
       cause,
     );
     this.name = 'EsiPaginationError';
+    this.reason = reason;
+    this.endpoint = sanitizeEndpoint(details.endpoint ?? where);
+    this.reportedPages = details.reportedPages;
+    this.fetchedPages = details.fetchedPages ?? 0;
+    this.partial = Object.freeze([...(details.partial ?? [])]);
+    this.itemCount = details.itemCount ?? this.partial.length;
   }
+}
+
+/**
+ * An endpoint path with its sensitive query parameters redacted. A relative
+ * path cannot go through `sanitizeUrl`, which would redact every parameter.
+ */
+function sanitizeEndpoint(endpoint: string): string {
+  const q = endpoint.indexOf('?');
+  if (/^https?:\/\//i.test(endpoint) || q < 0) {
+    return sanitizeUrl(endpoint) ?? endpoint;
+  }
+  const params = endpoint
+    .slice(q + 1)
+    .split('&')
+    .map((pair) => {
+      const name = pair.split('=', 1)[0] ?? '';
+      return isSensitiveQueryParam(name) ? `${name}=[REDACTED]` : pair;
+    });
+  return `${endpoint.slice(0, q)}?${params.join('&')}`;
 }
 
 export function isPaginationError(error: unknown): error is EsiPaginationError {

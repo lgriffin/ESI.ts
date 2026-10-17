@@ -11,6 +11,7 @@ import { IRetryStrategy } from './IRetryStrategy';
 import { RetryConfig } from './util/retry';
 import type { ILogger } from './logger/ILogger';
 import { validateHeaderOption } from './util/validation';
+import type { IncompletePagesMode } from './pagination/pageLimit';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
 
@@ -35,6 +36,7 @@ export class ApiClient {
   private retryStrategy: IRetryStrategy | null = null;
   private validateResponse: boolean = true;
   private validateRequest: boolean = false;
+  private incompletePages: IncompletePagesMode = 'truncate';
   private language?: string | undefined;
   private tenant?: string | undefined;
   private userAgent?: string | undefined;
@@ -120,6 +122,15 @@ export class ApiClient {
 
   setValidateRequest(validate: boolean): void {
     this.validateRequest = validate;
+  }
+
+  /** What a pagination path does with a walk it cannot prove complete. */
+  getIncompletePages(): IncompletePagesMode {
+    return this.incompletePages;
+  }
+
+  setIncompletePages(mode: IncompletePagesMode): void {
+    this.incompletePages = mode;
   }
 
   getFetch(): FetchLike {

@@ -236,6 +236,36 @@ describe('generateOperations over the fixture', () => {
     expect(out).toMatchSnapshot();
   });
 
+  it('widens a property an override marks nullable, inside that component only', () => {
+    const plain = generateOperations(fixture, options).source;
+    const widened = generateOperations(fixture, {
+      ...options,
+      overrides: { Order: { nullable: ['order_id'] } },
+    }).source;
+    expect(plain).toContain('readonly order_id: number;');
+    expect(widened).toContain('readonly order_id: number | null;');
+  });
+
+  it('does not widen a component an overridden component references', () => {
+    // Orders is emitted first and reaches Order through its items: the
+    // override on Orders must not leak into Order, which other operations share.
+    const out = generateOperations(fixture, {
+      ...options,
+      overrides: { Orders: { nullable: ['order_id'] } },
+    }).source;
+    expect(out).toContain('readonly order_id: number;');
+    expect(out).not.toContain('readonly order_id: number | null;');
+  });
+
+  it('fails when an override names a component the document lacks', () => {
+    expect(() =>
+      generateOperations(fixture, {
+        ...options,
+        overrides: { Missing: { nullable: ['order_id'] } },
+      }),
+    ).toThrow(/override names missing schema "Missing"/);
+  });
+
   it('emits one function and one Meta per operation, sorted by path, then method', () => {
     const result = generateOperations(fixture, options);
     expect(result.operations.map((o) => o.functionName)).toEqual([
