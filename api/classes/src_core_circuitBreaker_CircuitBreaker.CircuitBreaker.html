@@ -1,5 +1,5 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>CircuitBreaker | @lgriffin/esi.ts - EVE Online ESI API Client - v12.2.0</title><link rel="icon" href="../assets/favicon.ico"/><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
-<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v12.2.0</a>
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>CircuitBreaker | @lgriffin/esi.ts - EVE Online ESI API Client - v12.3.0</title><link rel="icon" href="../assets/favicon.ico"/><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v12.3.0</a>
 <div id="tsd-toolbar-links"><a href="https://github.com/lgriffin/ESI.ts">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts">NPM</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
 <div id="tsd-search-status" aria-live="polite" aria-atomic="true">
@@ -16,7 +16,7 @@
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html" class="tsd-signature-type tsd-kind-interface">ICircuitBreaker</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L29">src/core/circuitBreaker/CircuitBreaker.ts:29</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L31">src/core/circuitBreaker/CircuitBreaker.ts:31</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -47,15 +47,19 @@
 <h3 class="tsd-anchor-link" id="constructor"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="constructorcircuitbreaker"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">CircuitBreaker</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">config</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/src_core_circuitBreaker_CircuitBreaker.CircuitBreakerConfig.html" class="tsd-signature-type tsd-kind-interface">CircuitBreakerConfig</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">CircuitBreaker</a><a href="#constructorcircuitbreaker" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="constructorcircuitbreaker"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">CircuitBreaker</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">config</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/src_core_circuitBreaker_CircuitBreaker.CircuitBreakerConfig.html" class="tsd-signature-type tsd-kind-interface">CircuitBreakerConfig</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">clock</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/src_core_ports_Clock.Clock.html" class="tsd-signature-type tsd-kind-interface">Clock</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">CircuitBreaker</a><a href="#constructorcircuitbreaker" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">config</span>: <a href="../interfaces/src_core_circuitBreaker_CircuitBreaker.CircuitBreakerConfig.html" class="tsd-signature-type tsd-kind-interface">CircuitBreakerConfig</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
+<li><span><span class="tsd-kind-parameter">config</span>: <a href="../interfaces/src_core_circuitBreaker_CircuitBreaker.CircuitBreakerConfig.html" class="tsd-signature-type tsd-kind-interface">CircuitBreakerConfig</a><span class="tsd-signature-symbol"> = {}</span></span></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">clock</span>: <a href="../interfaces/src_core_ports_Clock.Clock.html" class="tsd-signature-type tsd-kind-interface">Clock</a></span>
+<div class="tsd-comment tsd-typography"><p>where the breaker reads time for its reset timeout and
+stale-circuit checks. Defaults to the wall clock.</p>
+</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">CircuitBreaker</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L43">src/core/circuitBreaker/CircuitBreaker.ts:43</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L49">src/core/circuitBreaker/CircuitBreaker.ts:49</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -71,7 +75,7 @@
 <li><span><span class="tsd-kind-parameter">client</span>: <a href="src_core_ApiClient.ApiClient.html" class="tsd-signature-type tsd-kind-class">ApiClient</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L39">src/core/circuitBreaker/CircuitBreaker.ts:39</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L41">src/core/circuitBreaker/CircuitBreaker.ts:41</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="checkcircuit"><span>check<wbr/>Circuit</span><a href="#checkcircuit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -85,7 +89,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html">ICircuitBreaker</a>.<a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html#checkcircuit">checkCircuit</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L74">src/core/circuitBreaker/CircuitBreaker.ts:74</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L83">src/core/circuitBreaker/CircuitBreaker.ts:83</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="recordsuccess"><span>record<wbr/>Success</span><a href="#recordsuccess" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -99,7 +103,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html">ICircuitBreaker</a>.<a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html#recordsuccess">recordSuccess</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L105">src/core/circuitBreaker/CircuitBreaker.ts:105</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L114">src/core/circuitBreaker/CircuitBreaker.ts:114</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="recordfailure"><span>record<wbr/>Failure</span><a href="#recordfailure" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -114,7 +118,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html">ICircuitBreaker</a>.<a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html#recordfailure">recordFailure</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L125">src/core/circuitBreaker/CircuitBreaker.ts:125</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L134">src/core/circuitBreaker/CircuitBreaker.ts:134</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstate"><span>get<wbr/>State</span><a href="#getstate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -128,7 +132,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../types/src_core_circuitBreaker_ICircuitBreaker.CircuitState.html" class="tsd-signature-type tsd-kind-type-alias">CircuitState</a></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html">ICircuitBreaker</a>.<a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html#getstate">getState</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L162">src/core/circuitBreaker/CircuitBreaker.ts:162</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L171">src/core/circuitBreaker/CircuitBreaker.ts:171</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstats"><span>get<wbr/>Stats</span><a href="#getstats" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -138,7 +142,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-property">totalCircuits</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">openCircuits</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">circuits</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">state</span><span class="tsd-signature-symbol">:</span> <a href="../types/src_core_circuitBreaker_ICircuitBreaker.CircuitState.html" class="tsd-signature-type tsd-kind-type-alias">CircuitState</a><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">failures</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html">ICircuitBreaker</a>.<a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html#getstats">getStats</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L177">src/core/circuitBreaker/CircuitBreaker.ts:177</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L186">src/core/circuitBreaker/CircuitBreaker.ts:186</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="reset"><span>reset</span><a href="#reset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -152,7 +156,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html">ICircuitBreaker</a>.<a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html#reset">reset</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L200">src/core/circuitBreaker/CircuitBreaker.ts:200</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L209">src/core/circuitBreaker/CircuitBreaker.ts:209</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="cleanup"><span>cleanup</span><a href="#cleanup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -162,7 +166,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html">ICircuitBreaker</a>.<a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html#cleanup">cleanup</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L208">src/core/circuitBreaker/CircuitBreaker.ts:208</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L217">src/core/circuitBreaker/CircuitBreaker.ts:217</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getkeystrategy"><span>get<wbr/>Key<wbr/>Strategy</span><a href="#getkeystrategy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -174,7 +178,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">&quot;resolved&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;template&quot;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html">ICircuitBreaker</a>.<a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html#getkeystrategy">getKeyStrategy</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L234">src/core/circuitBreaker/CircuitBreaker.ts:234</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L243">src/core/circuitBreaker/CircuitBreaker.ts:243</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="destroy"><span>destroy</span><a href="#destroy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -186,7 +190,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html">ICircuitBreaker</a>.<a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html#destroy">destroy</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L238">src/core/circuitBreaker/CircuitBreaker.ts:238</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L247">src/core/circuitBreaker/CircuitBreaker.ts:247</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="shutdown"><span>shutdown</span><a href="#shutdown" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -196,7 +200,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html">ICircuitBreaker</a>.<a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html#shutdown">shutdown</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L246">src/core/circuitBreaker/CircuitBreaker.ts:246</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/master/src/core/circuitBreaker/CircuitBreaker.ts#L255">src/core/circuitBreaker/CircuitBreaker.ts:255</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -217,7 +221,7 @@
 <div><a href="#setclient"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Client</span></a><a href="#checkcircuit"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>check<wbr/>Circuit</span></a><a href="#recordsuccess"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>record<wbr/>Success</span></a><a href="#recordfailure"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>record<wbr/>Failure</span></a><a href="#getstate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>State</span></a><a href="#getstats"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Stats</span></a><a href="#reset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a><a href="#cleanup"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>cleanup</span></a><a href="#getkeystrategy"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Key<wbr/>Strategy</span></a><a href="#destroy"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>destroy</span></a><a href="#shutdown"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>shutdown</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://esi.evetech.net/ui/">ESI Documentation</a><a href="https://www.eveonline.com/">EVE Online</a><a href="https://github.com/lgriffin/ESI.ts" class="tsd-nav-link">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts" class="tsd-nav-link">NPM</a></nav>
-<nav class="tsd-navigation"><a href="../modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v12.2.0</a>
+<nav class="tsd-navigation"><a href="../modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v12.3.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
 <li>Loading...</li></ul></nav></div></div></div><footer>
 <p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>

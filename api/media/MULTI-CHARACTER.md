@@ -64,6 +64,10 @@ That is the answer to [#183](https://github.com/lgriffin/ESI.ts/issues/183): the
 
 The public view sends no `Authorization` header, whatever tokens the runtime's other views hold. A public request is never attributed to a character.
 
+Two operations are not in ESI's specification and come from `scripts/spec/operation-overlay.json` instead: `esi.public.meta.openapiJson.get()` resolves with the parsed specification document and `esi.public.meta.openapiYaml.get()` with the YAML text, unparsed, asked for with `Accept: application/yaml, text/yaml, text/plain`, as `MetaClient.getOpenApiJson()` and `getOpenApiYaml()` on the custom clients do.
+
+When an operation the spec marks deprecated is called, through any view, the runtime logs one warning through its logger per call (per iteration for a paginated one): `Operation '<operationId>' is deprecated.`, followed by the message, replacement and sunset date when `scripts/spec/operation-overlay.json` records them. The same guidance is on `OperationMeta.deprecation` and in the operation's `@deprecated` JSDoc. The custom clients log the same warning, worded by the same helper, as `Endpoint '<method>' is deprecated.` from the endpoint definition's `DeprecationInfo`. No operation is deprecated in the current specification.
+
 ## Identities and `as()`
 
 `esi.as(identity)` returns a view over the same runtime that sends as one identity. Its type is `ScopeTree`, the full tree, so every operation is there. The view is immutable: it holds the identity it was built with, and the same `Identity` object gets the same view back, so `esi.as(identity)` in a request handler costs nothing after the first call.
@@ -121,6 +125,12 @@ The ETag cache is shared too, in two ways:
 The in-flight deduplicator draws the same line: identical public GETs from two views share one request; identical authenticated GETs share one only when they are for the same character.
 
 When an application is done with a runtime, `esi.shutdown()` stops the cache's and circuit breaker's cleanup timers and drops the in-flight table, once for the runtime rather than once per view. The timers never keep a process alive on their own, so a script that forgets it still exits; the call is for an application that replaces a runtime and wants nothing of the old one left running. Calling it twice is harmless, and a view still answers afterwards.
+
+### Metadata, safe mode, diagnostics and your own middleware
+
+`esi.withMetadata()` and `esi.withSafeMode()` return the same `public` and `as(identity)` views over the same clients, resolving `{ data, meta }` or `{ ok, data | error }` instead of the bare body (paginated operations still yield items). `esi.diagnostics`, and the shortcuts `getCacheStats()`, `clearCache()`, `updateCacheConfig()`, `getCircuitBreakerStats()` and `resetCircuitBreaker()`, answer for the whole runtime.
+
+`EsiOptions` takes instances as well as configuration: `cache` (a `CacheStore`, such as a Redis-backed store, or an `ICache`), `rateLimiter`, `circuitBreaker` (which turns the breaker on), `deduplicator` (which turns deduplication on) and `clock` (the `Clock` port: cache age, retry back-off, rate-limit waits and the circuit reset timeout read it; the cleanup timers and request timeout stay on real time). `shutdown()` leaves a supplied cache, circuit breaker or deduplicator to its owner. A plain `CacheStore` cannot list its keys, so after a write the runtime invalidates only the entries written in this process. The custom clients take the same five options in `EsiClientConfig` and have the same diagnostics and views ([USAGE.md](USAGE.md#supplying-your-own-middleware)), so an `EsiClient` and a runtime given one `cache`, `rateLimiter` and `circuitBreaker` share them.
 
 ## Revoked tokens, scheduled refresh and concurrency
 

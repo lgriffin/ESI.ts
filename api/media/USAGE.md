@@ -109,6 +109,38 @@ const configured = new EsiClient({
 
 `rateLimiterConfig`, `requestInterceptors`, `responseInterceptors`, `logger` and `unsafeAllowCustomHost` are covered in [ARCHITECTURE.md](ARCHITECTURE.md) and [LOGGING.md](LOGGING.md). After construction, `setAccessToken`, `setTokenProvider`, `updateCacheConfig`, `resetCircuitBreaker` and the interceptor methods change a live client.
 
+### Supplying your own middleware
+
+The config also takes middleware instances, in place of the ones the client would build. `EsiClient`, `EsiClientBuilder.withConfig()` and `EsiApiFactory.createClient(type, config)` all accept them, and `createEsi()` takes the same five options, because every surface hands its config to `configureApiClient`.
+
+| Option           | Type                           | Effect                                                                                                                                                                                   |
+| ---------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cache`          | `CacheStore` (or an `ICache`)  | Bodies and ETags live in your store (Redis, a file) instead of memory. Ignored when `enableETagCache` is `false`. A plain `CacheStore` invalidates only the keys written in this process |
+| `rateLimiter`    | `IRateLimiter`                 | Every request draws on it, so two clients can share one budget                                                                                                                           |
+| `circuitBreaker` | `ICircuitBreaker`              | Supplying one turns the breaker on                                                                                                                                                       |
+| `deduplicator`   | `IDeduplicator`                | Supplying one turns deduplication on                                                                                                                                                     |
+| `clock`          | `Clock` (`now()`, `sleep(ms)`) | Cache age, retry back-off, rate-limit waits and the circuit reset timeout read it. The cleanup timers and the request timeout stay on real time                                          |
+
+`shutdown()` leaves a supplied cache, circuit breaker or deduplicator to its owner. Clients that share a cache or deduplicator but differ in host, tenant, language or compatibility date keep their entries and in-flight requests apart: the keys carry every setting that is not the default.
+
+```typescript
+import {
+  CircuitBreaker,
+  EsiClient,
+  EsiClientBuilder,
+  type CacheStore,
+} from '@lgriffin/esi.ts';
+
+declare const sharedStore: CacheStore; // your adapter over Redis or a file
+
+const breaker = new CircuitBreaker({ failureThreshold: 5 });
+const main = new EsiClient({ cache: sharedStore, circuitBreaker: breaker });
+const market = new EsiClientBuilder()
+  .addClient('market')
+  .withConfig({ cache: sharedStore, circuitBreaker: breaker })
+  .build();
+```
+
 ### Environment variables
 
 | Variable           | Read by                    | Default                   |
@@ -171,7 +203,7 @@ The typed reference for every method is the TypeDoc site (`npm run docs`). The g
 
 ### Coverage of the ESI specification
 
-The client wires <!-- metric:routes -->235<!-- /metric --> routes. That covers every one of the <!-- metric:operations -->233<!-- /metric --> operations in the vendored OpenAPI document (compatibility date <!-- metric:compatibilityDate -->2026-08-18<!-- /metric -->, `tests/contract/snapshots/esi-openapi.snapshot.json`). The two extra routes are `meta/openapi.json` and `meta/openapi.yaml`, which are the specification itself. `npm run spec:coverage` fails a pull request that leaves a spec operation unwired, and the nightly spec-drift workflow opens an issue when CCP adds one.
+The client wires <!-- metric:routes -->235<!-- /metric --> routes. That covers every one of the <!-- metric:specOperations -->233<!-- /metric --> operations in the vendored OpenAPI document (compatibility date <!-- metric:compatibilityDate -->2026-08-18<!-- /metric -->, `tests/contract/snapshots/esi-openapi.snapshot.json`). The two extra routes are `meta/openapi.json` and `meta/openapi.yaml`, which are the specification itself. `npm run spec:coverage` fails a pull request that leaves a spec operation unwired, and the nightly spec-drift workflow opens an issue when CCP adds one.
 
 The ESI specification is upstream, not infallible. Live validation found places where the documented wire format is wrong, and the endpoint definitions follow what ESI actually accepts:
 
@@ -215,10 +247,10 @@ See [RUNTIME-VALIDATION.md](RUNTIME-VALIDATION.md).
 
 ### Response metadata
 
-`withMetadata()` returns a view of a domain client whose methods resolve `{ data, meta }`:
+`withMetadata()` returns a view of a domain client whose methods resolve `{ data, meta }`. On `EsiClient` and `CustomEsiClient` it returns every domain at once, so `client.withMetadata().alliance` is `client.alliance.withMetadata()`; a `CustomEsiClient` built without a domain has `undefined` there. The plain methods keep their return types.
 
 ```typescript
-const withMeta = client.alliance.withMetadata();
+const withMeta = client.withMetadata().alliance;
 const { data, meta } = await withMeta.getAllianceById(99000001);
 
 log.info(data.name, {
@@ -242,18 +274,21 @@ log.info(data.name, {
 | `contentLanguage` | string, optional         | The `Content-Language` header                   |
 | `warning`         | object, optional         | ESI's deprecation `warning` header, parsed      |
 
-`withSafeMode()` is the same idea for errors: methods resolve a result envelope instead of throwing. See [ERRORS.md](ERRORS.md).
+`withSafeMode()` is the same idea for errors: methods resolve a result envelope instead of throwing, per domain client or from `client.withSafeMode()` for every domain. See [ERRORS.md](ERRORS.md).
+
+The spec-shaped `createEsi()` surface has the same pair: `esi.withMetadata().public.status.get()` and `esi.withMetadata().as(identity).character(id).wallet.get()` resolve `{ data, meta }`, with `meta` typed `ResponseMeta` (the fields above) from `@lgriffin/esi.ts/client`, built by the same code. A paginated operation still yields its items. See [MULTI-CHARACTER.md](MULTI-CHARACTER.md).
 
 ### Text and empty responses
 
 - `meta.getOpenApiYaml()` goes through the full pipeline (cache, rate limiter, retry) and resolves the YAML document as a string.
-- ESI answers some calls with a 200 and no body. `getPublicContractItems` and `getPublicContractBids` resolve `[]` in that case, because an expired public contract has no items. Every other endpoint rejects an empty body with `JSON_PARSE_ERROR`, so a fault is never silently turned into "no data".
+- ESI answers some calls with a 200 and no body. `getPublicContractItems` and `getPublicContractBids` resolve `[]` in that case, because an expired public contract has no items, and so do `fetchAllPublicContractItems` and `fetchAllPublicContractBids`; `streamPublicContractItems` and `streamPublicContractBids` yield one empty page. Every other endpoint rejects an empty body with `JSON_PARSE_ERROR`, so a fault is never silently turned into "no data".
+- An endpoint whose definition carries `deprecated` (`DeprecationInfo`) logs one warning per call through the client's logger, from the named method and from the `stream*`/`fetchAll*` page helpers alike: `Endpoint '<method>' is deprecated.`, then the message, replacement and sunset date. `createEsi()` words its operation warnings with the same helper, and a unit test fails if the endpoint definitions and the spec disagree about which routes are deprecated. No endpoint is deprecated today.
 
 ## 5. Caching, rate limiting and resilience
 
 These are on by default and need no configuration. [ARCHITECTURE.md](ARCHITECTURE.md) is the canonical description, and this is the summary a consumer needs:
 
-- **Cache.** A GET inside the TTL generated from the spec is answered with no HTTP call. An older entry is revalidated with `If-None-Match`. A 5xx with a cached copy serves the stale body and marks `meta.stale`. A successful write invalidates the cached reads under the same path. Cache keys hash the `Authorization` header, so two tokens never share an entry. `client.getCacheStats()` and `client.clearCache()` inspect and reset it.
+- **Cache.** A GET inside the TTL generated from the spec is answered with no HTTP call. An older entry is revalidated with `If-None-Match`. A 5xx with a cached copy serves the stale body and marks `meta.stale`. A successful write invalidates the cached reads under the same path. Cache keys hash the `Authorization` header, so two tokens never share an entry. `client.getCacheStats()` and `client.clearCache()` inspect and reset it, on `EsiClient` and `CustomEsiClient` alike (both also have `diagnostics`, `updateCacheConfig()`, `getCircuitBreakerStats()` and `resetCircuitBreaker()`).
 - **Rate limiting.** There is one token bucket per ESI rate-limit group: 46 groups, generated from the spec. The limiter adopts the `x-ratelimit-*` headers, honours `Retry-After`, and blocks only the affected group on a 420 or 429. Multi-character applications can bucket per token with `rateLimiterConfig.userKeyExtractor`. Its return value is held in memory as a bucket key, so derive it from a digest or a character id, never the raw `Authorization` header.
 - **Retry.** Exponential backoff with jitter on 0, 420, 429, 502, 503 and 504, up to three retries. A 401 triggers one token refresh when a provider exists. Mutations are not retried unless `retryMutations` is set.
 - **Deduplication.** Identical in-flight GETs from the same identity share one request.
@@ -300,7 +335,7 @@ const names = await client.batchPost(
 A paginated method comes in three forms:
 
 - The plain method fetches every page and returns one array.
-- The `stream*` form yields one validated page at a time, and stops fetching when you `break`. There are <!-- metric:streamMethods -->73<!-- /metric --> of these across <!-- metric:streamClients -->19<!-- /metric --> clients.
+- The `stream*` form yields one validated page at a time, and stops fetching when you `break`. There are <!-- metric:streamMethods -->75<!-- /metric --> of these across <!-- metric:streamClients -->19<!-- /metric --> clients.
 - The `fetchAll*` form fetches the remaining pages concurrently, eight at a time.
 
 Cursor routes, such as Freelance Jobs, page with opaque `before` and `after` tokens through `fetchAllCursorPages`.

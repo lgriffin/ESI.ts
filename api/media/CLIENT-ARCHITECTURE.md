@@ -43,6 +43,21 @@ Each step is additive or internal, so each can ship in a 12.x minor release. A f
 3. **Generate the baseline schemas, hand-write the overrides.** The generated response schemas become the baseline, and a hand-written schema stays only where ESI's wire differs from the spec. Schema drift becomes a generator diff instead of an audit.
 4. **Identity views for the custom clients.** A shared runtime with per-identity views, along the lines of `client.as(identity)` returning the same custom clients bound to one character over one cache, rate-limit budget and breaker, and a public-only builder whose types omit authenticated methods. Custom-client users get the multi-character model without learning a new call style.
 5. **Close runtime gaps once, in the shared runtime.** Parallel page collection, response metadata and safe mode, diagnostics, swappable middleware and nameable response types are built where both surfaces see them, not twice.
+   - **Response metadata and safe mode** (12.x): one reader, `buildResponseMeta` in `src/core/responseMeta.ts`, serves each domain client's `withMetadata()`, the new `EsiClient.withMetadata()` / `withSafeMode()` and `CustomEsiClient.withMetadata()` / `withSafeMode()` (every domain from one call), and `esi.withMetadata()` / `esi.withSafeMode()`.
+   - **Diagnostics** (12.x): `EsiDiagnostics` backs `EsiClient.diagnostics`, the new `CustomEsiClient.diagnostics` and its shortcuts, and `esi.diagnostics`.
+   - **Swappable middleware** (12.x): `cache`, `rateLimiter`, `circuitBreaker`, `deduplicator` and `clock` are `EsiClientConfig` fields that `configureApiClient` installs, so `EsiClient`, the builder, `EsiApiFactory.createClient` and `createEsi` (whose `EsiOptions` carry the same five) take them the same way.
+
+### Shared already
+
+A feature the generated layer gains reaches the custom clients through the same pipeline code, not a copy of it:
+
+| Feature                                | Custom clients                                                                                                                                       | `createEsi()`                                                             | One implementation                                                                                   |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Deprecation warnings                   | `DeprecationInfo` on the endpoint definition: `Endpoint '<method>' is deprecated. …`                                                                 | `OperationMeta.deprecation`: `Operation '<operationId>' is deprecated. …` | `src/core/endpoints/deprecationWarning.ts`                                                           |
+| The OpenAPI document, as JSON and YAML | `meta.getOpenApiJson()`, `meta.getOpenApiYaml()`                                                                                                     | `meta.openapiJson.get()`, `meta.openapiYaml.get()`                        | `textResponse` through `handleRequest`; the same Accept header and the same JSON schema              |
+| An empty answer on a public contract   | `getPublicContractBids/Items`, `fetchAllPublicContractBids/Items`, `streamPublicContractBids/Items`, and `streamEndpoint`/`fetchAllEndpoint` by name | `contracts.public.bids(id).get()`, `contracts.public.items(id).get()`     | `answeredWithNoContent` and `emptyListWhenNoContent` in `src/core/requestPipeline/statusHandling.ts` |
+
+The endpoint maps stay hand-written and `src/core` may not import the generated layer, so `tests/tdd/core/endpointOperationParity.test.ts` holds the two in step: it fails when an endpoint definition and its generated operation disagree about deprecation (with the message and sunset date from `scripts/spec/operation-overlay.json`), a text response and its Accept header, or reading no content as an empty list. Step 2 of the plan derives these facts instead of checking them.
 
 ---
 

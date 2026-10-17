@@ -1,5 +1,5 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@lgriffin/esi.ts - EVE Online ESI API Client - v12.2.0</title><link rel="icon" href="assets/favicon.ico"/><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
-<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v12.2.0</a>
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@lgriffin/esi.ts - EVE Online ESI API Client - v12.3.0</title><link rel="icon" href="assets/favicon.ico"/><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v12.3.0</a>
 <div id="tsd-toolbar-links"><a href="https://github.com/lgriffin/ESI.ts">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts">NPM</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
 <div id="tsd-search-status" aria-live="polite" aria-atomic="true">
@@ -7,7 +7,7 @@
 <div class="container container-main">
 <div class="col-content">
 <div class="tsd-page-title">
-<h1>@lgriffin/esi.ts - EVE Online ESI API Client - v12.2.0</h1></div>
+<h1>@lgriffin/esi.ts - EVE Online ESI API Client - v12.3.0</h1></div>
 <div class="tsd-panel tsd-typography"><p align="center">
   <img src="https://raw.githubusercontent.com/lgriffin/ESI.ts/master/assets/logo/esi-ts-logo-512.png" alt="ESI.ts logo" width="260">
 </p>
@@ -25,7 +25,7 @@
 <p>A TypeScript client for the <a href="https://esi.evetech.net/">EVE Online ESI API</a>, built as an engineered product rather than a generated wrapper. It covers every operation in the ESI OpenAPI specification. Every response is validated at runtime, and caching, rate limiting, retry and pagination follow the rules ESI actually enforces. The claims on this page are backed by a test suite that is itself tested.</p>
 <p><strong>Documentation site: <a href="https://lgriffin.github.io/ESI.ts/">lgriffin.github.io/ESI.ts</a></strong>, with these guides, a page for every runnable example, and the <a href="https://lgriffin.github.io/ESI.ts/api/">API reference</a> generated from the TSDoc. The <a href="https://lgriffin.github.io/ESI.ts/requirements/">requirements dashboard</a> lists every EARS requirement the client is held to, the scenarios that prove it and its verdict, and how to write a new one.</p>
 <blockquote>
-<p><strong>Release line.</strong> Version <!-- metric:version -->12.2.0<!-- /metric --> <!-- x-release-please-version -->
+<p><strong>Release line.</strong> Version <!-- metric:version -->12.3.0<!-- /metric --> <!-- x-release-please-version -->
 is current on npm. 12.0 corrects five list methods and their detail schemas to the shapes ESI actually sends, which changes their return types; nothing else breaks. The 10.x line stays available for Node 18 and 20. <a href="media/USAGE.md#10-what-1200-changes">What 12.0 changes</a> · <a href="media/USAGE.md#9-what-1100-changes">What 11.0 changed</a> · <a href="media/CHANGELOG.md">Changelog</a></p>
 </blockquote>
 <h2 id="install" class="tsd-anchor-link">Install<a href="#install" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
@@ -66,7 +66,7 @@ is current on npm. 12.0 corrects five list methods and their detail schemas to t
 <tbody>
 <tr>
 <td><strong>Full coverage</strong></td>
-<td><!-- metric:clients -->39<!-- /metric --> domain clients and <!-- metric:routes -->235<!-- /metric --> routes. They cover all <!-- metric:operations -->233<!-- /metric --> operations in the ESI specification at compatibility date <!-- metric:compatibilityDate -->2026-08-18<!-- /metric -->, plus the specification documents themselves. <code>spec:coverage</code> fails the build if one is missing.</td>
+<td><!-- metric:clients -->39<!-- /metric --> domain clients and <!-- metric:routes -->235<!-- /metric --> routes. They cover all <!-- metric:operations -->235<!-- /metric --> operations in the ESI specification at compatibility date <!-- metric:compatibilityDate -->2026-08-18<!-- /metric -->, plus the specification documents themselves. <code>spec:coverage</code> fails the build if one is missing.</td>
 </tr>
 <tr>
 <td><strong>Runtime validation</strong></td>
@@ -106,7 +106,7 @@ is current on npm. 12.0 corrects five list methods and their detail schemas to t
 <p>The project is run to a written <a href="media/CHARTER.md">engineering charter</a>. It has <!-- metric:charterRequirements -->70<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->55<!-- /metric --> are <strong>Enforced</strong>, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->8<!-- /metric --> Partial and <!-- metric:charterGap -->1<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:</p>
 <ol>
 <li><strong>The custom clients are the product.</strong> ESI.ts is a library of hand-written, curated domain clients. Method names, argument shapes, wire fixes and validation strictness are product decisions. Generation serves the clients and never replaces them, and a gate fails any change that deprecates one (<a href="media/CLIENT-ARCHITECTURE.md">Client architecture</a>).</li>
-<li><strong>The OpenAPI spec is upstream.</strong> Types, cache TTLs, rate-limit groups, scopes and <!-- metric:operations -->233<!-- /metric --> typed operations are generated from it, and CI fails when they go stale. Drift reports keep the hand-written code honest against it.</li>
+<li><strong>The OpenAPI spec is upstream.</strong> Types, cache TTLs, rate-limit groups, scopes and <!-- metric:operations -->235<!-- /metric --> typed operations are generated from it, and CI fails when they go stale. Drift reports keep the hand-written code honest against it.</li>
 <li><strong>Tolerate additive change.</strong> New fields and enum members from CCP never break a consumer. A removal is a breaking change.</li>
 <li><strong>Resilience is pluggable.</strong> Retry, rate limiting, circuit breaking, deduplication, caching and transport are interfaces, not imports.</li>
 <li><strong>Secure by construction.</strong> HTTPS and a host allowlist are checked at construction, tokens are attached only where a scope is declared, URLs are redacted in every error, and cache keys are hashed per token. Each control is a test.</li>
@@ -141,7 +141,7 @@ is current on npm. 12.0 corrects five list methods and their detail schemas to t
 </tr>
 <tr>
 <td>Executable specification</td>
-<td><!-- metric:requirements -->641<!-- /metric --> EARS requirements, <!-- metric:scenarios -->833<!-- /metric --> scenarios, <!-- metric:featureFiles -->77<!-- /metric --> feature files</td>
+<td><!-- metric:requirements -->664<!-- /metric --> EARS requirements, <!-- metric:scenarios -->863<!-- /metric --> scenarios, <!-- metric:featureFiles -->77<!-- /metric --> feature files</td>
 <td><code>npm run ears</code></td>
 </tr>
 <tr>
@@ -166,7 +166,7 @@ is current on npm. 12.0 corrects five list methods and their detail schemas to t
 </tr>
 <tr>
 <td>Static data (SDE)</td>
-<td><!-- metric:requirementsSde -->168<!-- /metric --> EARS requirements and <!-- metric:scenariosSde -->237<!-- /metric --> scenarios in <!-- metric:featureFilesSde -->23<!-- /metric --> feature files; at least 90% of mutants killed in every SDE directory by the unit suite and by the BDD scenarios alone (2026-10-08, <a href="https://github.com/lgriffin/ESI.ts/issues/458">#458</a>); a real-data run against CCP's current export every night</td>
+<td><!-- metric:requirementsSde -->156<!-- /metric --> EARS requirements and <!-- metric:scenariosSde -->223<!-- /metric --> scenarios in <!-- metric:featureFilesSde -->23<!-- /metric --> feature files; at least 90% of mutants killed in every SDE directory by the unit suite and by the BDD scenarios alone (2026-10-08, <a href="https://github.com/lgriffin/ESI.ts/issues/458">#458</a>); a real-data run against CCP's current export every night</td>
 <td><a href="media/TESTING-1.md">sde/TESTING.md</a></td>
 </tr>
 <tr>
@@ -391,7 +391,7 @@ is current on npm. 12.0 corrects five list methods and their detail schemas to t
 <li><a href="#license"><span>License</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://esi.evetech.net/ui/">ESI Documentation</a><a href="https://www.eveonline.com/">EVE Online</a><a href="https://github.com/lgriffin/ESI.ts" class="tsd-nav-link">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts" class="tsd-nav-link">NPM</a></nav>
-<nav class="tsd-navigation"><a href="modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v12.2.0</a>
+<nav class="tsd-navigation"><a href="modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v12.3.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
 <li>Loading...</li></ul></nav></div></div></div><footer>
 <p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
