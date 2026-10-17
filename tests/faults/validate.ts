@@ -187,7 +187,7 @@ export function catalogueProblems(
       if (!Array.isArray(exchange) || exchange.length === 0) {
         problems.push(`${where}: serves no responses`);
       } else {
-        const key = `${target.name} ${fault.prime ? 'primed' : 'cold'} ${exchangeKey(exchange)}`;
+        const key = `${target.name} ${fault.prime ? 'primed' : 'cold'} ${fault.incompletePages ?? 'truncate'} ${exchangeKey(exchange)}`;
         const twin = exchanges.get(key);
         if (twin)
           problems.push(

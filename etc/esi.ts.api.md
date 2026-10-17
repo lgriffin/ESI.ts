@@ -283,6 +283,7 @@ export class ApiClient {
     getDeduplicator(): IDeduplicator | null;
     // (undocumented)
     getFetch(): FetchLike;
+    getIncompletePages(): IncompletePagesMode;
     // (undocumented)
     getLanguage(): string | undefined;
     // (undocumented)
@@ -325,6 +326,8 @@ export class ApiClient {
     setDeduplicator(dedup: IDeduplicator | null): void;
     // (undocumented)
     setFetch(fn: FetchLike): void;
+    // (undocumented)
+    setIncompletePages(mode: IncompletePagesMode): void;
     // (undocumented)
     setLanguage(language: string | undefined): void;
     // (undocumented)
@@ -4800,6 +4803,7 @@ export interface EsiClientConfig {
     enableRequestDeduplication?: boolean | undefined;
     // (undocumented)
     etagCacheConfig?: ETagCacheConfig | undefined;
+    incompletePages?: IncompletePagesMode | undefined;
     // (undocumented)
     language?: string | undefined;
     logger?: ILogger | undefined;
@@ -5301,6 +5305,23 @@ interface EsiOperationTypes {
 // @public
 export class EsiPaginationError extends EsiFaultError {
     constructor(where: string, cause: unknown);
+    constructor(where: string, cause: unknown, details: EsiPaginationErrorDetails);
+    readonly endpoint: string;
+    readonly fetchedPages: number;
+    readonly itemCount: number;
+    readonly partial: readonly unknown[];
+    readonly reason: PaginationStopReason;
+    readonly reportedPages: number | undefined;
+}
+
+// @public
+export interface EsiPaginationErrorDetails {
+    readonly endpoint?: string;
+    readonly fetchedPages?: number;
+    readonly itemCount?: number;
+    readonly partial?: readonly unknown[];
+    readonly reason?: PaginationStopReason;
+    readonly reportedPages?: number;
 }
 
 // @public
@@ -6740,6 +6761,9 @@ export interface ILogger {
     warn(message: string, context?: LogContext): void;
 }
 
+// @public
+export type IncompletePagesMode = 'truncate' | 'throw';
+
 // @public (undocumented)
 export type Incursion = z.infer<typeof IncursionSchema>;
 
@@ -8160,6 +8184,9 @@ export interface PageResult<T = unknown> {
     // (undocumented)
     totalPages: number;
 }
+
+// @public
+export type PaginationStopReason = 'page-cap' | 'empty-page' | 'cursor-cap' | 'fetch-failed';
 
 // @public (undocumented)
 export type ParagonHubCharacterListing = z.infer<typeof ParagonHubCharacterListingSchema>;

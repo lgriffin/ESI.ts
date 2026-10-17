@@ -29,6 +29,7 @@ import type {
   OperationRequest,
   OperationTransport,
 } from '../core/ports/OperationTransport';
+import type { IncompletePagesMode } from '../core/pagination/pageLimit';
 import type { RateLimiterConfig } from '../core/rateLimiter/RateLimiter';
 import { EsiConfigurationError } from '../core/util/error';
 import { RetryConfig } from '../core/util/retry';
@@ -79,6 +80,14 @@ export interface EsiOptions {
    */
   readonly validateResponse?: boolean;
   readonly validateRequest?: boolean;
+  /**
+   * What pagination does when it cannot prove a walk complete (a page count
+   * above 1000, an empty page after the first). `'truncate'`, the default,
+   * yields the pages fetched so far and logs a warning; `'throw'` rejects with
+   * an `EsiPaginationError` carrying the reason. The default becomes
+   * `'throw'` in a future major. See guides/PAGINATION.md.
+   */
+  readonly incompletePages?: IncompletePagesMode;
   /** Where the pipeline logs. Defaults to the package's pino logger at `logLevel`. */
   readonly logger?: Logger;
   readonly logLevel?: LogLevel;
@@ -191,6 +200,7 @@ function viewClient(
   client.setRetryStrategy(runtime.getRetryStrategy());
   client.setValidateResponse(runtime.getValidateResponse());
   client.setValidateRequest(runtime.getValidateRequest());
+  client.setIncompletePages(runtime.getIncompletePages());
   client.setTimeout(runtime.getTimeout());
   client.setLogger(runtime.getLogger());
   client.setTenant(runtime.getTenant());

@@ -153,6 +153,50 @@ const SECURITY_BOUNDARY_P8 = {
   rule: 'If ESI reports more than 1000 pages, then the client shall request no more than 1000 pages.',
 } as const;
 
+const EMPTY_PAGE_TRUNCATED = {
+  feature: 'core/0051-resilience.feature',
+  rule: 'Where incompletePages is left at its default, if a page after the first comes back empty, then the EsiClient shall stop the eager method and the stream helper at that page with the items of the pages before it.',
+} as const;
+
+const EMPTY_PAGE_REFUSED = {
+  feature: 'core/0051-resilience.feature',
+  rule: 'Where incompletePages is set to throw, if a page after the first that page 1 reported comes back empty, then the EsiClient shall reject the walk with an EsiPaginationError whose reason is empty-page.',
+} as const;
+
+const PAGE_CAP_REFUSED = {
+  feature: 'core/0051-resilience.feature',
+  rule: 'Where incompletePages is set to throw, if page 1 reports more than 1000 pages, then the EsiClient shall reject the walk with an EsiPaginationError whose reason is page-cap.',
+} as const;
+
+/** The one warning a truncated walk logs under the default `incompletePages`. */
+const truncatedWarning = (detail: RegExp): ExpectedLog => ({
+  level: 'warn',
+  message: new RegExp(
+    `^\\[PAGINATION_INCOMPLETE\\] Pagination incomplete for \\S+${detail.source}; the result may be incomplete\\. Set incompletePages: 'throw' to reject such a walk with an EsiPaginationError instead \\(the default in a future major\\)\\.$`,
+  ),
+  count: 1,
+});
+
+/**
+ * An eager walk refused as incomplete (DES-08) after `requests` requests:
+ * an EsiPaginationError, nothing cached, and the pipeline's one warning.
+ */
+const paginationIncomplete = (requests: number, detail: RegExp): Outcome => ({
+  settlement: {
+    rejects: {
+      class: 'EsiFaultError',
+      code: 'PAGINATION_INCOMPLETE',
+      message: new RegExp(
+        `^\\[PAGINATION_INCOMPLETE\\] Pagination incomplete for \\S+${detail.source}`,
+      ),
+    },
+  },
+  requests,
+  cache: 'empty',
+  elapsedMs: INSTANT,
+  logs: [{ level: 'warn', message: /^Pagination failed for /, count: 1 }],
+});
+
 const SECURITY_BOUNDARY_P6 = {
   feature: 'core/0062-security-boundary.feature',
   rule: 'If ESI answers with a redirect to another host, then the client shall not send the request or the token to that host.',
@@ -765,7 +809,8 @@ export const FAULTS: readonly Fault[] = [
     appliesTo: (t) => t.paginated,
     rule: SECURITY_BOUNDARY_P8,
     // Pages 2 to 1000 each answer with page 2's body; a page 1001 would
-    // find no response and fail the fault.
+    // find no response and fail the fault. The default `incompletePages`
+    // truncates at the cap and warns once (DES-08).
     exchange: (ctx) => [
       withHeaders(first(ctx), { 'x-pages': '100000000' }),
       {
@@ -785,8 +830,29 @@ export const FAULTS: readonly Fault[] = [
           stale: false,
         },
         requests: MAX_PAGES,
+        logs: [
+          truncatedWarning(
+            /: ESI reported 100000000 pages, more than the client requests for one call/,
+          ),
+        ],
       });
     },
+  },
+  {
+    id: 'x-pages-beyond-the-cap-refused',
+    title: 'Page 1 says X-Pages 100000000, incompletePages throw',
+    appliesTo: (t) => t.paginated,
+    rule: PAGE_CAP_REFUSED,
+    incompletePages: 'throw',
+    // A count above the cap cannot be walked in full, so the opted-in walk is
+    // refused after page 1 (DES-08). Only page 1 is served: any further
+    // request finds no response and fails the fault.
+    exchange: (ctx) => [withHeaders(first(ctx), { 'x-pages': '100000000' })],
+    expected: () =>
+      paginationIncomplete(
+        1,
+        /: ESI reported 100000000 pages, more than the client requests for one call$/,
+      ),
   },
   {
     id: 'redirect-to-another-host',
@@ -830,7 +896,7 @@ export const FAULTS: readonly Fault[] = [
     id: 'x-pages-shrinks-to-empty-page',
     title: 'Page 1 says X-Pages 3; page 3 comes back empty',
     appliesTo: (t) => t.paginated,
-    rule: PAGINATION,
+    rule: EMPTY_PAGE_TRUNCATED,
     exchange: (ctx) => [
       withHeaders(first(ctx), { 'x-pages': '3' }),
       withHeaders(ctx.good.responses[1]!, { 'x-pages': '2' }),
@@ -841,17 +907,63 @@ export const FAULTS: readonly Fault[] = [
         match: 'page=3',
       },
     ],
+    // The default `incompletePages` stops at the empty page with pages 1 and
+    // 2, as before the option existed, and warns once naming it.
     expected: (ctx) =>
       resolvesGood(ctx, {
         requests: 3,
         logs: [
-          {
-            level: 'warn',
-            message: /^Page 3 is empty\. Stopping pagination\.$/,
-            count: 1,
-          },
+          truncatedWarning(
+            /: page 3 of 3 was empty, so the collection changed during the walk/,
+          ),
         ],
       }),
+  },
+  {
+    id: 'x-pages-shrinks-to-empty-page-refused',
+    title:
+      'Page 1 says X-Pages 3; page 3 comes back empty, incompletePages throw',
+    appliesTo: (t) => t.paginated,
+    rule: EMPTY_PAGE_REFUSED,
+    incompletePages: 'throw',
+    exchange: (ctx) => [
+      withHeaders(first(ctx), { 'x-pages': '3' }),
+      withHeaders(ctx.good.responses[1]!, { 'x-pages': '2' }),
+      {
+        status: 200,
+        headers: { 'content-type': 'application/json', 'x-pages': '2' },
+        body: [],
+        match: 'page=3',
+      },
+    ],
+    // The collection shrank mid-walk, as a 404 for page 3 would say; the
+    // opted-in walk rejects rather than resolve with pages 1 and 2.
+    expected: () =>
+      paginationIncomplete(
+        3,
+        /: page 3 of 3 was empty, so the collection changed during the walk$/,
+      ),
+  },
+  {
+    id: 'empty-page-mid-run',
+    title:
+      'Page 1 says X-Pages 3; page 2 comes back empty, page 3 has items, incompletePages throw',
+    appliesTo: (t) => t.paginated,
+    rule: EMPTY_PAGE_REFUSED,
+    incompletePages: 'throw',
+    // Page 3 is never requested: the walk stops at the empty page 2.
+    exchange: (ctx) => [
+      withHeaders(first(ctx), { 'x-pages': '3' }),
+      {
+        ...withHeaders(ctx.good.responses[1]!, { 'x-pages': '3' }),
+        body: [],
+      },
+    ],
+    expected: () =>
+      paginationIncomplete(
+        2,
+        /: page 2 of 3 was empty, so the collection changed during the walk$/,
+      ),
   },
   {
     id: 'x-pages-shrinks-to-missing-page',

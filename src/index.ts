@@ -104,7 +104,15 @@ export {
   isTokenRefreshError,
   sanitizeUrl,
 } from './core/util/error';
-export type { ValidationDirection, EsiFaultCode } from './core/util/error';
+export type {
+  ValidationDirection,
+  EsiFaultCode,
+  PaginationStopReason,
+  EsiPaginationErrorDetails,
+} from './core/util/error';
+// What pagination does with a walk it cannot prove complete
+// (`incompletePages` on EsiClientConfig and on createEsi's options).
+export type { IncompletePagesMode } from './core/pagination/pageLimit';
 
 // Endpoint definition types
 export { DeprecationInfo } from './core/endpoints/EndpointDefinition';
