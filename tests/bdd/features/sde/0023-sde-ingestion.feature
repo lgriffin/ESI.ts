@@ -2,10 +2,9 @@
 Feature: SDE Ingestion
   The ingestion pipeline turns CCP's published export into what the provider
   loads: the downloader finds the latest build and fetches the archive, the
-  extractor reads the archive's metadata and files, the database builder
-  writes a SQLite file for tools that want one, and the transforms reshape
-  each record on the way — English text out of a locale map, Id in place of
-  CCP's ID suffix, the build out of a nested metadata block.
+  extractor reads the archive's metadata and files, and the transforms
+  reshape each record on the way — English text out of a locale map, Id in
+  place of CCP's ID suffix, the build out of a nested metadata block.
 
   Nothing here reaches the network: the downloader's fetch is answered at
   the transport seam, and the files live in a temporary directory.
@@ -273,148 +272,11 @@ Feature: SDE Ingestion
       Then the extraction shall be refused with an SdeError saying "2 entries would land outside"
       And the extraction shall be refused with an SdeError saying '(first: "../escaped.yaml")'
 
-  # ── The database builder ─────────────────────────────────────────────
-
-  Rule: When a database is built from parsed files, the SdeDatabaseBuilder shall write one table per parsed registry file holding every record, and the version, build date and import date to the sde_metadata table.
-    The SQLite file is for tools outside this package; it carries the same
-    provenance as the provider's version record.
-
-    Scenario: The build writes the tables and the metadata
-      Given an SDE directory holding the raw export files
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive
-      Then the database metadata shall record version "2026-09-15.1" built on "2026-09-15" and imported at "2026-09-28T12:00:00.000Z"
-      And the database table "eve_types" shall hold 2 rows
-      And the database table "eve_groups" shall hold 1 row
-
-  Rule: When a record is written to the database, the SdeDatabaseBuilder shall store the English text of a localised field, the renamed ID-suffixed fields, and booleans as integers.
-    SQLite has no boolean and no map type, so the build flattens each
-    record the way the provider does, plus 1 and 0 for true and false.
-
-    Scenario: Type 34 is stored flat
-      Given an SDE directory holding the raw export files
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive
-      Then the database table "eve_types" row 34 shall have name "Tritanium"
-      And the database table "eve_types" row 34 shall have groupId 18
-      And the database table "eve_types" row 34 shall have published 1
-
-  Rule: When a database is built, the SdeDatabaseBuilder shall give a table a column for every field any of its records carries.
-    CCP leaves optional fields out of a record rather than writing null, so
-    a field can first appear deep into a file. Taking the columns from a
-    sample of leading records dropped such a field from every row.
-
-    Scenario: A field only the 60th type carries is stored
-      Given an SDE directory whose types file holds 60 types, only the last with a basePrice of 5
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive
-      Then the database table "eve_types" row 60 shall have basePrice 5
-
-  Rule: When a database is built, the SdeDatabaseBuilder shall type each column after the first value any record holds for it, as INTEGER, REAL or TEXT, and make the ID attribute the primary key.
-    SQLite only advises a column type, so the declared one is what a tool
-    reading the file goes by. A whole number first makes the column INTEGER
-    even when a later record holds a fraction; a column first seen as null
-    or as text is TEXT.
-
-    Scenario: The types table is typed from type 34's values
-      Given an SDE directory holding the schema export files
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive
-      Then the database table "eve_types" shall have columns "typeId INTEGER PRIMARY KEY, name TEXT, groupId INTEGER, volume INTEGER, basePrice TEXT, traits TEXT"
-      And the database table "eve_types" row 35 shall have volume 0.01
-
-  Rule: When a table whose IDs are strings is built, the SdeDatabaseBuilder shall store its IDs in a TEXT primary key.
-    Translation languages, character titles and military campaigns are keyed
-    by codes. An INTEGER key would refuse every one of them.
-
-    Scenario: Translation languages are keyed by their codes
-      Given an SDE directory holding the schema export files
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive
-      Then the database table "eve_translation_languages" shall have columns "translationLanguageId TEXT PRIMARY KEY, name TEXT"
-      And the database table "eve_translation_languages" shall hold 2 rows
-
-  Rule: When a file whose records keep their own IDs is built, the SdeDatabaseBuilder shall add no column for the record's key.
-    The registry marks a few files as not injecting the key: their records
-    are stored with the fields CCP wrote and nothing more.
-
-    Scenario: Character titles are stored without their key
-      Given an SDE directory holding the schema export files
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive
-      Then the database table "eve_character_titles" shall have columns "name TEXT"
-
-  Rule: When a record is written to the database, the SdeDatabaseBuilder shall store a null field as NULL and a nested field as its JSON text.
-    SQLite has no map or list type. A nested value is kept whole as JSON a
-    reader can parse, with CCP's own keys; a null stays a null, not the
-    text "null".
-
-    Scenario: Type 34's null base price and nested traits are stored
-      Given an SDE directory holding the schema export files
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive
-      Then the database table "eve_types" row 34 shall have a null basePrice
-      And the database table "eve_types" row 34 shall hold traits as the JSON '{"iconID":7,"roleBonuses":[{"bonus":5}]}'
-
-  Rule: If a parsed file holds no records, then the SdeDatabaseBuilder shall create no table for it.
-    An empty file says nothing about the columns a table would need, and a
-    table with none is not valid SQL.
-
-    Scenario: An empty market groups file leaves no market groups table
-      Given an SDE directory holding the schema export files
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive
-      Then the database shall have no table "eve_market_groups"
-
-  Rule: When a database is built, the SdeDatabaseBuilder shall leave the file in WAL journal mode with no write-ahead file beside it.
-    WAL lets tools read the file while another process holds it open.
-    Closing the database at the end folds the write-ahead file back in, so
-    the one file holds every row and can be copied on its own.
-
-    Scenario: The built file is in WAL mode and stands alone
-      Given an SDE directory holding the raw export files
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive
-      Then the database shall be in WAL journal mode with no write-ahead file beside it
-
-  Rule: While a table is being written, the SdeDatabaseBuilder shall report progress after every 1000 records and once more when the table is done.
-    A full export writes hundreds of thousands of rows. The reports give the
-    rows written so far and the table's total.
-
-    Scenario: 1001 types are reported at 1000 and at 1001
-      Given an SDE directory whose types file holds 1001 types
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive
-      Then the progress reports for "eve_types" shall be "1000 of 1001, 1001 of 1001"
-
-  @ARCH-13
-  Rule: If a record cannot be stored, then the SdeDatabaseBuilder shall throw an SdeDatabaseError naming the table and the record's ID.
-    A record that breaks its table's types fails the whole build. The error
-    names where the bad record is, so it can be found in a file of
-    thousands.
-
-    Scenario: A type whose typeID is not a number fails the build
-      Given an SDE directory whose type 34 carries a typeID that is not a number
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive
-      Then the call shall fail with an SDE database error naming "Failed to insert into eve_types (id=34)"
-
-  @ARCH-13
-  Rule: If the database file cannot be created, then the SdeDatabaseBuilder shall throw an SdeDatabaseError saying the build failed.
-    SQLite's own error is kept as the cause. The message says it was the
-    database build, not the download or the parse, that failed.
-
-    Scenario: A build into a missing directory fails
-      Given an SDE directory holding the raw export files
-      And a ZIP archive of that SDE directory
-      When I build a SQLite database from the archive into a directory that does not exist
-      Then the call shall fail with an SDE database error naming "Failed to build SDE database"
-
   # ── The transforms ───────────────────────────────────────────────────
 
   Rule: When a field name is normalised, the SDE field-name transform shall replace an ID that ends the name or precedes a capital letter with Id, and leave every other name unchanged.
-    CCP's YAML writes groupID and blueprintTypeID; the typed records and
-    the SQLite columns use the Id suffix throughout.
+    CCP's YAML writes groupID and blueprintTypeID; the typed records use
+    the Id suffix throughout.
 
     Scenario: A trailing ID is renamed
       When the field name "groupID" is normalised
@@ -467,20 +329,13 @@ Feature: SDE Ingestion
       And the release date shall be ""
 
   Rule: When a raw record is transformed for a registry file that injects its ID, the SDE record transform shall set the ID attribute from the record's key, rename ID-suffixed fields, and extract English text.
-    Both the provider and the SQLite build reshape records through this
-    transform; the SQLite one additionally flattens booleans to integers.
+    The provider reshapes every record it loads through this transform.
 
     Scenario: Type 34 is reshaped for the provider
       When record 34 of the types file is transformed for the provider
       Then the returned record shall carry type 34
       And the returned record shall be named "Tritanium"
       And the returned record shall carry group 18
-
-    Scenario: Type 34 is reshaped for the SQLite build
-      When record 34 of the types file is transformed for the SQLite build
-      Then the returned record shall carry type 34
-      And the returned record shall be named "Tritanium"
-      And the returned record shall carry published 1
 
   Rule: When a raw record is transformed for the provider, the SDE record transform shall reshape a nested field at every depth and keep a null field as null.
     The provider serves nested values as objects, not JSON text, so the
@@ -498,10 +353,5 @@ Feature: SDE Ingestion
 
     Scenario: A character title is reshaped for the provider without its key
       When record captain of the schema export's characterTitles.yaml file is transformed for the provider
-      Then the returned record shall be named "Captain"
-      And the returned record shall have no field "characterTitleId"
-
-    Scenario: A character title is reshaped for the SQLite build without its key
-      When record captain of the schema export's characterTitles.yaml file is transformed for the SQLite build
       Then the returned record shall be named "Captain"
       And the returned record shall have no field "characterTitleId"

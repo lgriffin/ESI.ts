@@ -58,6 +58,7 @@ describe('layer lint rule', () => {
     ['src/sde/ingestion/SdeDownloader.ts', '../../clients/MarketClient', 'sde'],
     ['src/sde/providers/yaml/SdeDataProvider.ts', 'pino', 'sde'],
     ['src/sde/providers/yaml/SdeDataProvider.ts', 'fs', 'sde'],
+    ['src/sde/ingestion/SdeExtractor.ts', 'better-sqlite3', 'sde'],
     // ...and nothing in src/ outside it reaches the SDE.
     ['src/index.ts', './sde', 'sideModule'],
     ['src/index.ts', './sde/index', 'sideModule'],
@@ -211,7 +212,6 @@ describe('layer lint rule', () => {
     ['src/sde/providers/yaml/SdeDataProvider.ts', 'zod'],
     ['src/sde/providers/yaml/SdeDataProvider.ts', 'js-yaml'],
     ['src/sde/providers/yaml/SdeDataProvider.ts', 'adm-zip'],
-    ['src/sde/ingestion/SdeDatabaseBuilder.ts', 'better-sqlite3'],
     ['src/sde/providers/yaml/SdeDataProvider.ts', 'node:fs'],
     ['src/sde/optionalPeers.ts', 'node:module'],
     ['src/sde/optionalPeers.ts', './errors'],

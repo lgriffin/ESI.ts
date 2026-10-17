@@ -26,7 +26,7 @@ Error
 │   ├── TokenDecodeError
 │   └── CharacterNotFoundError    characterId
 ├── SdeError                                                                (offline SDE module)
-│   ├── SdeDatabaseError          cause
+│   ├── SdeDatabaseError          cause   (deprecated)
 │   ├── SdeValidationError        validationError · entityType · entityId?
 │   └── SdeVersionMismatchError   expected · actual
 ```
@@ -165,11 +165,13 @@ Raised by the offline Static Data Export module, which shares no code with the H
 | Class                     | Fields                                       | Raised when                                               |
 | ------------------------- | -------------------------------------------- | --------------------------------------------------------- |
 | `SdeError`                | —                                            | Base class.                                               |
-| `SdeDatabaseError`        | `cause`                                      | The underlying database call failed.                      |
+| `SdeDatabaseError`        | `cause`                                      | Never: deprecated, removed in the next major (see below). |
 | `SdeValidationError`      | `validationError`, `entityType`, `entityId?` | A stored row failed its schema.                           |
 | `SdeVersionMismatchError` | `expected`, `actual`                         | The loaded SDE build is not the one the caller asked for. |
 
 `SdeDataProvider.fromDirectory` and `fromZip` also throw a plain `SdeError` when the call needs `js-yaml` or `adm-zip`, the optional peer dependencies of `./sde`, and it is not installed. The message names the package and its `npm install` command.
+
+`SdeDatabaseError` and `isSdeDatabaseError` are deprecated. The SQLite database builder was the only code that threw the class, and it was removed with the optional `better-sqlite3` peer after 12.2.0, so nothing in the package raises it any more. Both stay exported from `./sde` and `./sde/memory` with the same shape, so an existing `instanceof` check or guard call still compiles, and both are removed in the next major release.
 
 ---
 
@@ -177,32 +179,32 @@ Raised by the offline Static Data Export module, which shares no code with the H
 
 Every guard takes `unknown` and narrows. They are `instanceof` checks, so a guard only matches errors created by the same copy of the package; a duplicated dependency in `node_modules` breaks them. The root entry and `./errors` export the same classes and guards, so an error thrown by the client matches a guard or class imported from either. The CommonJS and ES module builds are separate copies, though: a guard loaded with `require` does not match an error thrown by a client loaded with `import`, or the other way round.
 
-| Guard                  | Narrows to                | True when                            | `.` (root) | `./errors` | `./sde` |
-| ---------------------- | ------------------------- | ------------------------------------ | :--------: | :--------: | :-----: |
-| `isEsiError`           | `EsiError`                | any `EsiError` or subclass           |     ●      |     ●      |    ·    |
-| `isNotFound`           | `EsiError`                | status `404`                         |     ●      |     ●      |    ·    |
-| `isUnauthorized`       | `EsiError`                | status `401`                         |     ●      |     ●      |    ·    |
-| `isForbidden`          | `EsiError`                | status `403`                         |     ●      |     ●      |    ·    |
-| `isRateLimited`        | `EsiError`                | status `420` or `429`                |     ●      |     ●      |    ·    |
-| `isServerError`        | `EsiError`                | status `>= 500`                      |     ●      |     ●      |    ·    |
-| `isTimeout`            | `TimeoutError`            | `instanceof TimeoutError`            |     ●      |     ●      |    ·    |
-| `isRetryable`          | `EsiError`                | `.retryable` is `true`               |     ●      |     ●      |    ·    |
-| `isValidationError`    | `EsiValidationError`      | `instanceof EsiValidationError`      |     ●      |     ●      |    ·    |
-| `isCircuitOpen`        | `CircuitOpenError`        | `instanceof CircuitOpenError`        |     ●      |     ●      |    ·    |
-| `isNetworkError`       | `EsiNetworkError`         | `instanceof EsiNetworkError`         |     ●      |     ●      |    ·    |
-| `isFaultError`         | `EsiFaultError`           | any library fault                    |     ●      |     ●      |    ·    |
-| `isConfigurationError` | `EsiConfigurationError`   | `instanceof EsiConfigurationError`   |     ●      |     ●      |    ·    |
-| `isParseError`         | `EsiParseError`           | `instanceof EsiParseError`           |     ●      |     ●      |    ·    |
-| `isPaginationError`    | `EsiPaginationError`      | `instanceof EsiPaginationError`      |     ●      |     ●      |    ·    |
-| `isTokenRefreshError`  | `EsiTokenRefreshError`    | `instanceof EsiTokenRefreshError`    |     ●      |     ●      |    ·    |
-| `isAuthError`          | `AuthError`               | any auth-family error                |     ●      |     ●      |    ·    |
-| `isSsoError`           | `SsoError`                | `instanceof SsoError`                |     ●      |     ●      |    ·    |
-| `isTokenRevoked`       | `TokenRevokedError`       | `instanceof TokenRevokedError`       |     ●      |     ●      |    ·    |
-| `isCharacterNotFound`  | `CharacterNotFoundError`  | `instanceof CharacterNotFoundError`  |     ●      |     ●      |    ·    |
-| `isSdeError`           | `SdeError`                | any SDE-family error                 |     ·      |     ·      |    ●    |
-| `isSdeDatabaseError`   | `SdeDatabaseError`        | `instanceof SdeDatabaseError`        |     ·      |     ·      |    ●    |
-| `isSdeValidationError` | `SdeValidationError`      | `instanceof SdeValidationError`      |     ·      |     ·      |    ●    |
-| `isSdeVersionMismatch` | `SdeVersionMismatchError` | `instanceof SdeVersionMismatchError` |     ·      |     ·      |    ●    |
+| Guard                  | Narrows to                | True when                                  | `.` (root) | `./errors` | `./sde` |
+| ---------------------- | ------------------------- | ------------------------------------------ | :--------: | :--------: | :-----: |
+| `isEsiError`           | `EsiError`                | any `EsiError` or subclass                 |     ●      |     ●      |    ·    |
+| `isNotFound`           | `EsiError`                | status `404`                               |     ●      |     ●      |    ·    |
+| `isUnauthorized`       | `EsiError`                | status `401`                               |     ●      |     ●      |    ·    |
+| `isForbidden`          | `EsiError`                | status `403`                               |     ●      |     ●      |    ·    |
+| `isRateLimited`        | `EsiError`                | status `420` or `429`                      |     ●      |     ●      |    ·    |
+| `isServerError`        | `EsiError`                | status `>= 500`                            |     ●      |     ●      |    ·    |
+| `isTimeout`            | `TimeoutError`            | `instanceof TimeoutError`                  |     ●      |     ●      |    ·    |
+| `isRetryable`          | `EsiError`                | `.retryable` is `true`                     |     ●      |     ●      |    ·    |
+| `isValidationError`    | `EsiValidationError`      | `instanceof EsiValidationError`            |     ●      |     ●      |    ·    |
+| `isCircuitOpen`        | `CircuitOpenError`        | `instanceof CircuitOpenError`              |     ●      |     ●      |    ·    |
+| `isNetworkError`       | `EsiNetworkError`         | `instanceof EsiNetworkError`               |     ●      |     ●      |    ·    |
+| `isFaultError`         | `EsiFaultError`           | any library fault                          |     ●      |     ●      |    ·    |
+| `isConfigurationError` | `EsiConfigurationError`   | `instanceof EsiConfigurationError`         |     ●      |     ●      |    ·    |
+| `isParseError`         | `EsiParseError`           | `instanceof EsiParseError`                 |     ●      |     ●      |    ·    |
+| `isPaginationError`    | `EsiPaginationError`      | `instanceof EsiPaginationError`            |     ●      |     ●      |    ·    |
+| `isTokenRefreshError`  | `EsiTokenRefreshError`    | `instanceof EsiTokenRefreshError`          |     ●      |     ●      |    ·    |
+| `isAuthError`          | `AuthError`               | any auth-family error                      |     ●      |     ●      |    ·    |
+| `isSsoError`           | `SsoError`                | `instanceof SsoError`                      |     ●      |     ●      |    ·    |
+| `isTokenRevoked`       | `TokenRevokedError`       | `instanceof TokenRevokedError`             |     ●      |     ●      |    ·    |
+| `isCharacterNotFound`  | `CharacterNotFoundError`  | `instanceof CharacterNotFoundError`        |     ●      |     ●      |    ·    |
+| `isSdeError`           | `SdeError`                | any SDE-family error                       |     ·      |     ·      |    ●    |
+| `isSdeDatabaseError`   | `SdeDatabaseError`        | `instanceof SdeDatabaseError` (deprecated) |     ·      |     ·      |    ●    |
+| `isSdeValidationError` | `SdeValidationError`      | `instanceof SdeValidationError`            |     ·      |     ·      |    ●    |
+| `isSdeVersionMismatch` | `SdeVersionMismatchError` | `instanceof SdeVersionMismatchError`       |     ·      |     ·      |    ●    |
 
 All the classes follow the same pattern as their guards. `sanitizeUrl` and the `ValidationDirection` and `EsiFaultCode` types are exported from both `.` and `./errors`. A test (`tests/tdd/core/errorsEntryParity.test.ts`) fails if the root exports an error class or guard that `./errors` does not.
 

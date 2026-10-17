@@ -96,7 +96,7 @@ describe('the shards partition src/', () => {
       expect(sdeShards.has(shardsClaiming(file, shards)[0]!)).toBe(false);
     }
     expect(
-      shardsClaiming('src/sde/ingestion/SdeDatabaseBuilder.ts', shards),
+      shardsClaiming('src/sde/ingestion/SdeDownloader.ts', shards),
     ).toEqual(['sde']);
     expect(shardsClaiming('src/auth/jwt.ts', shards)).toEqual(['rest-2']);
     expect(shardsClaiming('src/auth/types.ts', shards)).toEqual(['rest']);

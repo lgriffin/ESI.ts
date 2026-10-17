@@ -212,13 +212,15 @@ export default tseslint.config(
 
   // Tests that exist to cover APIs that are still deprecated: EsiApiFactory's
   // nine named factories and EsiTokenManager.createClient (since 11.0.0),
-  // AllianceClient.getContacts (a deprecated ESI route) and
-  // FactionWarfareLeaderboard. The custom clients themselves are never
-  // deprecated (CHARTER.md ARCH-14), so this list only shrinks: a file leaves
-  // it when the API it covers is removed in a future major release.
+  // AllianceClient.getContacts (a deprecated ESI route),
+  // FactionWarfareLeaderboard, and SdeDatabaseError with its guard (deprecated
+  // when the SQLite builder was removed). The custom clients themselves are
+  // never deprecated (CHARTER.md ARCH-14): a file leaves this list when the
+  // API it covers is removed in a future major release.
   {
     files: [
       'tests/bdd/step-definitions/core/token-management.steps.ts',
+      'tests/bdd/support/sde.ts',
       'tests/bdd/steps/when/the-client-gathers-complete-alliance-information.ts',
       'tests/bdd/steps/when/the-client-requests-contact-list-for-the-alliance.ts',
       'tests/bdd/steps/when/the-client-requests-contact-list.ts',
@@ -228,7 +230,11 @@ export default tseslint.config(
       'tests/tdd/core/configValidation.test.ts',
       'tests/tdd/core/coverageBranches.test.ts',
       'tests/tdd/core/EsiClientBuilder.test.ts',
+      'tests/tdd/sde/errors.test.ts',
+      'tests/tdd/sde/index.test.ts',
       'tests/typetests/domain-responses.test-d.ts',
+      'tests/typetests/sde-memory.test-d.ts',
+      'tests/typetests/sde.test-d.ts',
     ],
     rules: { 'sonarjs/deprecation': 'off' },
   },

@@ -32,7 +32,6 @@ src/sde/
 │   ├── SdeDownloader.ts       # HTTP download from CCP
 │   ├── SdeExtractor.ts        # ZIP parsing + YAML extraction
 │   ├── metadata.ts            # _sde.yaml parsing
-│   ├── SdeDatabaseBuilder.ts  # (legacy, unused)
 │   └── transforms.ts          # Field normalization + locale extraction
 └── testing/
     └── SdeTestDataFactory.ts  # Test data factories
