@@ -24,13 +24,9 @@ function notPageable(endpointName: string): TypeError {
 type ClientMethods<T extends EndpointMap> = ReturnType<typeof createClient<T>>;
 
 /**
- * The base of the legacy domain clients: an endpoint map turned into methods,
+ * The base of the custom domain clients: an endpoint map turned into methods,
  * plus the `stream*`/`fetchAll*` page helpers and `withMetadata`/`withSafeMode`.
- *
- * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
- * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
- * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
- * lists every legacy surface, its replacement and the open parity gaps.
+ * Extend it for a custom domain client of your own.
  */
 export abstract class BaseEsiClient<T extends EndpointMap> {
   protected api: ClientMethods<T>;
