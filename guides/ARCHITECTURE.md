@@ -408,6 +408,7 @@ graph TB
 - **One wiring function.** `configureApiClient()` (`src/core/configureApiClient.ts`) is the single place configuration becomes middleware, for all three construction surfaces. The identity settings that vary by surface (base URL, client id, access token, datasource, language, compatibility date, token provider) are set by each surface before it calls `configureApiClient()`, and that is where the surfaces can drift (§9).
 - **Typed returns from schemas.** `InferEndpointResult<D>` applies `z.infer<>` to the endpoint's `responseSchema`. An endpoint without a schema returns `unknown` (`DES-02`).
 - **Strategies, not imports.** Cache, rate limiter, circuit breaker, deduplicator, retry strategy, transport and logger are all interfaces with a setter on `ApiClient` (`ARCH-04`).
+- **Custom clients are the product.** The hand-written domain clients and their construction surfaces are what ESI.ts is; the generated operations are the foundation underneath them, never their replacement (charter posture 1, `ARCH-14`, [CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)).
 - **Generated metadata, hand-written judgement.** Cache TTLs, rate-limit groups and scopes are generated; clients, endpoint maps and schemas are written by hand and diffed against the spec (`ARCH-01`).
 - **Measured today** (`npm run docs:metrics`). <!-- metric:clients -->39<!-- /metric --> domain clients plus `BaseEsiClient` in `src/clients/`; <!-- metric:endpointMaps -->39<!-- /metric --> `*Endpoints.ts` maps wiring <!-- metric:routes -->235<!-- /metric --> endpoints; <!-- metric:schemaModules -->36<!-- /metric --> domain schema modules plus `common.ts` and `esiEnum.ts` in `src/schemas/`; <!-- metric:operations -->233<!-- /metric --> generated operations. The endpoint and operation counts differ because the hand-written maps and the generated file are separate trees, reconciled by `schema:drift` and `spec:coverage`.
 
@@ -415,7 +416,7 @@ graph TB
 
 ## 1a. Ports, adapters and the layer rule
 
-Phase 2 of the 11.0 plan put seams under the pipeline so a new client can be built on it without touching the legacy surfaces. They are in the code today, covered by unit tests (`tests/tdd/adapters/`, `tests/tdd/spec-generate/`, `tests/tdd/layers/`), and reach consumers through `src/client/`, the `./client` entry (PR 11, [MULTI-CHARACTER.md](MULTI-CHARACTER.md)): `createEsi(options)` builds one `ApiClient` through `configureApiClient` and hands out `esi.public`, a `PublicScopeTree` whose transport refuses a scoped operation with `NO_AUTH_TOKEN`, and `esi.as(identity)`, a `ScopeTree` over a second `ApiClient` that holds the identity's token and shares the runtime's cache, rate limiter, circuit breaker, deduplicator, retry settings and transport. The specification is `tests/bdd/features/core/0056-shared-runtime.feature`. `EsiClient`, `CustomEsiClient` and `EsiApiFactory` do not use the seams.
+Phase 2 of the 11.0 plan put seams under the pipeline so a spec-shaped client can be built on it without touching the custom-client surfaces. They are in the code today, covered by unit tests (`tests/tdd/adapters/`, `tests/tdd/spec-generate/`, `tests/tdd/layers/`), and reach consumers through `src/client/`, the `./client` entry (PR 11, [MULTI-CHARACTER.md](MULTI-CHARACTER.md)): `createEsi(options)` builds one `ApiClient` through `configureApiClient` and hands out `esi.public`, a `PublicScopeTree` whose transport refuses a scoped operation with `NO_AUTH_TOKEN`, and `esi.as(identity)`, a `ScopeTree` over a second `ApiClient` that holds the identity's token and shares the runtime's cache, rate limiter, circuit breaker, deduplicator, retry settings and transport. The specification is `tests/bdd/features/core/0056-shared-runtime.feature`. `EsiClient`, `CustomEsiClient` and `EsiApiFactory` do not use the seams.
 
 ### The ports
 
@@ -468,11 +469,11 @@ const status = await esi.public.status.get(); // typed from the spec, unvalidate
 | `src/core/ports/`              | Anything outside `src/core/ports/`, packages included                                                                           |
 | `src/generated/`               | Anything except `src/core/ports/`                                                                                               |
 | `src/core/`                    | `clients/`, `EsiClient`, `EsiClientBuilder`, `index`, `generated/`, `auth/`, `sde/`, `testing/`, `client/`, `adapters/`         |
-| `src/client/`, `src/adapters/` | The legacy trees: `clients/`, `EsiClient`, `EsiClientBuilder`, `index`                                                          |
+| `src/client/`, `src/adapters/` | The custom-client trees: `clients/`, `EsiClient`, `EsiClientBuilder`, `index`                                                   |
 | `src/sde/`                     | Anything in `src/` outside `src/sde/` except the ports; any package but `node:*`, `zod`, `js-yaml`, `adm-zip`, `better-sqlite3` |
 | Anything else in `src/`        | `src/sde/`, or the package's own `./sde` sub-paths (`ARCH-10`, [#462](https://github.com/lgriffin/ESI.ts/issues/462))           |
 
-`src/client/` is the `./client` entry (`runtime.ts`, `identity.ts`); it imports `src/core`, `src/adapters` and `src/generated` and nothing legacy. No file breaks the core rule: `BASELINE` in `config/eslint/layers.rules.cjs` is empty since Phase 3 moved `ClientRegistry` to `src/clients/` and `EsiClientConfig` to `src/core/`, and `tests/tdd/layers/layers-lint.test.ts` fails if an entry is added. The authoring view of the same rule is [DESIGN-RULES.md §7](DESIGN-RULES.md#7--layers).
+`src/client/` is the `./client` entry (`runtime.ts`, `identity.ts`); it imports `src/core`, `src/adapters` and `src/generated` and none of the custom clients. No file breaks the core rule: `BASELINE` in `config/eslint/layers.rules.cjs` is empty since Phase 3 moved `ClientRegistry` to `src/clients/` and `EsiClientConfig` to `src/core/`, and `tests/tdd/layers/layers-lint.test.ts` fails if an entry is added. The authoring view of the same rule is [DESIGN-RULES.md §7](DESIGN-RULES.md#7--layers).
 
 ```mermaid
 flowchart BT
@@ -481,7 +482,7 @@ flowchart BT
     core["src/core (pipeline)"]
     adapters["src/adapters"]
     client["src/client (./client entry)"]
-    legacy["clients/, EsiClient, EsiClientBuilder, index"]
+    legacy["custom clients: clients/, EsiClient, EsiClientBuilder, index"]
     auth["src/auth"]
     sde["src/sde (side module)"]
 
@@ -503,11 +504,11 @@ flowchart BT
     style sde fill:#eceff1,stroke:#37474f
 ```
 
-Solid arrows are the directions the rule permits for the ruled trees (ports, generated, core, adapters, SDE). Auth and the legacy tree have no rule between them: `index.ts` re-exports `src/auth`, and `EsiTokenManager.createClient` constructs an `EsiClient` (the dashed arrow), so the two import each other at the directory level. Phase 7 deprecates `EsiTokenManager.createClient` in favour of `as()`, and 12.1.0 deprecates the legacy tree it builds; 13.0.0 removes both ([LEGACY-REMOVAL.md](LEGACY-REMOVAL.md)), and the dashed arrow with them.
+Solid arrows are the directions the rule permits for the ruled trees (ports, generated, core, adapters, SDE). Auth and the custom clients have no rule between them: `index.ts` re-exports `src/auth`, and `EsiTokenManager.createClient` constructs an `EsiClient` (the dashed arrow), so the two import each other at the directory level. Phase 7 deprecates `EsiTokenManager.createClient` in favour of `as()`; removing it, and the dashed arrow with it, needs a future major release that is not scheduled. The custom clients it builds stay ([CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)).
 
 ### What 11.0.0 still changes
 
-Each item is one pull request in [ROADMAP.md](ROADMAP.md). None removes a legacy surface.
+Each item is one pull request in [ROADMAP.md](ROADMAP.md). None removes a custom-client surface.
 
 | Work                                        | What changes in this architecture                                                                                                                                                                                                     |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1022,13 +1023,13 @@ Three construction surfaces, all wired by `configureApiClient()`, so middleware 
 | **EsiClientBuilder** | Selective             | A `CustomEsiClient` with only the clients you add, and fluent configuration  |
 | **EsiApiFactory**    | Single-domain scripts | One domain client on its own `ApiClient`; the named methods are deprecated   |
 
-`ClientRegistry` maps each of the <!-- metric:clients -->39<!-- /metric --> `ApiClientType` names to its class. `ARCH-08` requires every surface to expose the same set. `CustomEsiClient` has a getter for every registered client, checked at compile time by `tests/tdd/core/customClientGetters.test.ts`. `EsiApiFactory` reaches all <!-- metric:clients -->39<!-- /metric --> through `createClient(type)` and has named methods for 9 (`createAllianceClient`, `createCharacterClient`, `createCorporationClient`, `createMarketClient`, `createUniverseClient`, `createFleetClient`, `createAssetsClient`, `createWalletClient`, `createMailClient`), deprecated since 11.0.0 in favour of `createEsi` and `esi.as(identity)`; nothing checks its client set.
+`ClientRegistry` maps each of the <!-- metric:clients -->39<!-- /metric --> `ApiClientType` names to its class. `ARCH-08` requires every surface to expose the same set. `CustomEsiClient` has a getter for every registered client, checked at compile time by `tests/tdd/core/customClientGetters.test.ts`. `EsiApiFactory` reaches all <!-- metric:clients -->39<!-- /metric --> through `createClient(type)` and has named methods for 9 (`createAllianceClient`, `createCharacterClient`, `createCorporationClient`, `createMarketClient`, `createUniverseClient`, `createFleetClient`, `createAssetsClient`, `createWalletClient`, `createMailClient`), deprecated since 11.0.0 in favour of `createClient(type)` and the builder; nothing checks its client set. `ARCH-14` keeps all three surfaces and every domain client undeprecated.
 
 All three surfaces call `setCompatibilityDate()` from the config before `configureApiClient()`. `constructionParity.test.ts` checks that a `compatibilityDate` reaches the `ApiClient` from each of them.
 
 **`ApiClientBuilder`** (`src/core/ApiClientBuilder.ts`, exported from the root) is a fourth, lower-level way in. It builds a bare `ApiClient` with a rate limiter (the default `RateLimiter` unless one is given) and whatever cache, circuit breaker, timeout and fetch it is handed. It does not call `configureApiClient()`, so there is no deduplicator, no default cache, and no retry configuration: `resolveRetryStrategy` then builds a `RetryStrategy` with its own defaults, which retry nothing. Use it to hand-assemble a client for a test or an unusual host, not as a construction surface.
 
-**`EsiTokenManager.createClient(characterId)`** returns an `EsiClient` bound to one character's token and refresh provider. 11.0.0 deprecates it and `EsiApiFactory`'s named methods (JSDoc `@deprecated`, no runtime warning) in favour of `createEsi` and `esi.as(tokens.identity(characterId))` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)). 12.1.0 deprecates the rest of the legacy construction tree the same way, and 13.0.0 removes it all ([LEGACY-REMOVAL.md](LEGACY-REMOVAL.md)).
+**`EsiTokenManager.createClient(characterId)`** returns an `EsiClient` bound to one character's token and refresh provider. 11.0.0 deprecates it and `EsiApiFactory`'s named methods (JSDoc `@deprecated`, no runtime warning) in favour of `createClient(type)`, the builder and, for many characters, `esi.as(tokens.identity(characterId))` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)). Removing them needs a future major release; none is scheduled. 12.1.0 also deprecated the rest of the construction tree, and 12.2.0 lifted that ([CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)).
 
 Timers are owned by the client: call `shutdown()` to stop the cache sweep and circuit-breaker cleanup and clear the deduplicator.
 

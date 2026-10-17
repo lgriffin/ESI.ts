@@ -127,10 +127,10 @@ A request no route answers is rejected with an `EsiConfigurationError` naming th
 
 ## The engineering stance
 
-The project is run to a written [engineering charter](guides/CHARTER.md). It has <!-- metric:charterRequirements -->69<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->53<!-- /metric --> are **Enforced**, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->9<!-- /metric --> Partial and <!-- metric:charterGap -->1<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
+The project is run to a written [engineering charter](guides/CHARTER.md). It has <!-- metric:charterRequirements -->70<!-- /metric --> numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: <!-- metric:charterEnforced -->54<!-- /metric --> are **Enforced**, <!-- metric:charterPractised -->6<!-- /metric --> Practised, <!-- metric:charterPartial -->9<!-- /metric --> Partial and <!-- metric:charterGap -->1<!-- /metric --> Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
 
-1. **The OpenAPI spec is upstream.** Types, cache TTLs, rate-limit groups, scopes and <!-- metric:operations -->233<!-- /metric --> typed operations are generated from it, and CI fails when they go stale.
-2. **Hand-write where judgement matters.** Method names, argument shapes and validation strictness are product decisions. Drift reports keep them honest against the spec.
+1. **The custom clients are the product.** ESI.ts is a library of hand-written, curated domain clients. Method names, argument shapes, wire fixes and validation strictness are product decisions. Generation serves the clients and never replaces them, and a gate fails any change that deprecates one ([Client architecture](guides/CLIENT-ARCHITECTURE.md)).
+2. **The OpenAPI spec is upstream.** Types, cache TTLs, rate-limit groups, scopes and <!-- metric:operations -->233<!-- /metric --> typed operations are generated from it, and CI fails when they go stale. Drift reports keep the hand-written code honest against it.
 3. **Tolerate additive change.** New fields and enum members from CCP never break a consumer. A removal is a breaking change.
 4. **Resilience is pluggable.** Retry, rate limiting, circuit breaking, deduplication, caching and transport are interfaces, not imports.
 5. **Secure by construction.** HTTPS and a host allowlist are checked at construction, tokens are attached only where a scope is declared, URLs are redacted in every error, and cache keys are hashed per token. Each control is a test.
@@ -159,15 +159,15 @@ Every tier has to prove it can fail: a negative fixture, a killed mutant or a ca
 
 ## Packages in the box
 
-| Import                        | What it holds                                                                                                |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `@lgriffin/esi.ts`            | `EsiClient`, `EsiClientBuilder`, `EsiApiFactory`, domain clients, auth, errors, generated types and scopes   |
-| `@lgriffin/esi.ts/schemas`    | The Zod response schemas                                                                                     |
-| `@lgriffin/esi.ts/errors`     | Error classes and type guards, including the auth errors                                                     |
-| `@lgriffin/esi.ts/testing`    | `createMockTransport` and `TestDataFactory` for your own tests                                               |
-| `@lgriffin/esi.ts/client`     | `createEsi`: one shared runtime, `esi.public` (authenticated calls do not compile) and `esi.as(identity)`    |
-| `@lgriffin/esi.ts/sde`        | `SdeDataProvider` (YAML and ZIP, through the optional peers `js-yaml` and `adm-zip`) and `MemorySdeProvider` |
-| `@lgriffin/esi.ts/sde/memory` | `MemorySdeProvider` alone, with no file-system or parser code, for browsers and bundles                      |
+| Import                        | What it holds                                                                                                         |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `@lgriffin/esi.ts`            | `EsiClient`, `EsiClientBuilder`, `EsiApiFactory`, domain clients, auth, errors, generated types and scopes            |
+| `@lgriffin/esi.ts/schemas`    | The Zod response schemas                                                                                              |
+| `@lgriffin/esi.ts/errors`     | Error classes and type guards, including the auth errors                                                              |
+| `@lgriffin/esi.ts/testing`    | `createMockTransport` and `TestDataFactory` for your own tests                                                        |
+| `@lgriffin/esi.ts/client`     | `createEsi`, the spec-shaped low-level surface: `esi.public` (authenticated calls do not compile), `esi.as(identity)` |
+| `@lgriffin/esi.ts/sde`        | `SdeDataProvider` (YAML and ZIP, through the optional peers `js-yaml` and `adm-zip`) and `MemorySdeProvider`          |
+| `@lgriffin/esi.ts/sde/memory` | `MemorySdeProvider` alone, with no file-system or parser code, for browsers and bundles                               |
 
 ```typescript
 import { MarketOrderSchema } from '@lgriffin/esi.ts/schemas';
@@ -203,13 +203,13 @@ The README orients and the guides are canonical. Each guide opens with the chart
 | [Roadmap](guides/ROADMAP.md)                           | Phases, definitions of done, the SDE programme, the release gate                |
 | [Lean decisions](guides/LEAN-DECISIONS.md)             | Why it is run this way: every decision since v7, with value stream maps         |
 | [Architecture](guides/ARCHITECTURE.md)                 | Layers, ports, the request path, caching, retry, rate limiting, circuit breaker |
+| [Client architecture](guides/CLIENT-ARCHITECTURE.md)   | Custom clients are the product; the generated layer underneath; the plan        |
 | [Design rules](guides/DESIGN-RULES.md)                 | Naming, schemas, adding an endpoint or a client, generated files                |
 | [Testing](guides/TESTING.md)                           | Every test tier, what it proves, how to run it                                  |
 | [Mutation testing](guides/TESTING.md#mutation-testing) | Stryker shards, floors and the ratchet                                          |
 | [Quality gates](guides/QUALITY-GATES.md)               | What runs at commit, push, PR, nightly and release; every workflow              |
 | [Security](guides/SECURITY.md)                         | Runtime defences and supply-chain controls ([policy](SECURITY.md))              |
 | [Semantic versioning](guides/SEMVER.md)                | What is public; major, minor or patch; breaking-change commits                  |
-| [Legacy removal](guides/LEGACY-REMOVAL.md)             | What 13.0.0 removes, each replacement, and the gaps to close first              |
 | [Release](guides/RELEASE.md)                           | Cutting a release, changelog, provenance, signatures, support window            |
 | [Audit](guides/AUDIT.md)                               | The Phase 0 measured baseline for 11.0                                          |
 | [OKF bundle](guides/OKF.md)                            | The generated Open Knowledge Format catalogue of ESI                            |
