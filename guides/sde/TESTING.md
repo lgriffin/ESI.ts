@@ -49,13 +49,13 @@ Track S Run M ([#458](https://github.com/lgriffin/ESI.ts/issues/458), 2026-10-07
 | `src/sde/ingestion` |     100.0% |        184/184 |         98 | #608         |          97.6% |        162/166 |        97 | #612         |
 | `src/sde/providers` |     100.0% |          92/92 |         98 | #607         |          90.5% |          86/95 |        90 | #610         |
 
-The `src/sde/ingestion` figures include `SdeDatabaseBuilder.ts` and the SQLite transforms, removed in 13.0.0; the next nightly scores the directory without them.
+The `src/sde/ingestion` figures include `SdeDatabaseBuilder.ts` and the SQLite transforms, removed after 12.2.0; the next nightly scores the directory without them.
 
 Before Run M the same directories scored 93.8 / 73.9 / 89.6 on the unit run and 50.0 / 59.0 / 58.6 BDD-only. The unit `src/sde` floor still holds its provisional seed, under its score, until a complete nightly raises it.
 
 `src/sde` is the root files: `clock.ts`, `errors.ts` and `optionalPeers.ts`. `src/sde/domain` holds only type declarations and Zod schemas and yields no valid mutants; `src/sde/testing` is excluded from both runs like `src/testing`. A mutant that crashes the runner (a missing-file check removed, a transform recursing on itself) counts as a runtime error and in no score. A unit run takes 10 to 15 minutes a directory on four cores; a BDD-only run over all of `src/sde` takes about 50, because the BDD dry run cannot narrow to related tests and runs every spec (`guides/TESTING.md`, "How it works" under Mutation testing).
 
-Run M changed one behaviour on the way: the database builder took its columns from the first 50 records of a file, so a field that first appeared later was dropped from the table. It then scanned every record (#609); the builder and that Rule were removed with the SQLite path in 13.0.0. Nothing else in the source changed except equivalent-mutant annotations; the scores rose because the tests and scenarios grew.
+Run M changed one behaviour on the way: the database builder took its columns from the first 50 records of a file, so a field that first appeared later was dropped from the table. It then scanned every record (#609); the builder and that Rule were removed with the SQLite path after 12.2.0. Nothing else in the source changed except equivalent-mutant annotations; the scores rose because the tests and scenarios grew.
 
 The BDD-only survivors, each left on purpose because unit tests pin it and no scenario has a reason to name it:
 

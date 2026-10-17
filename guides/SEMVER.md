@@ -71,14 +71,15 @@ Ask: **could code that works against the last release stop compiling, throw, or 
 
 ### Environment and dependencies
 
-| Change                                                             | Bump  | Why                                          |
-| ------------------------------------------------------------------ | ----- | -------------------------------------------- |
-| Drop a Node line (raise `engines.node`)                            | major | REL-05; installs on that line stop working   |
-| Raise the oldest supported TypeScript (`OLDEST_TYPESCRIPT`)        | major | Consumers on that version stop compiling     |
-| Major version of a dependency whose types are public (`zod` 4 → 5) | major | Consumers' schemas and inferred types change |
-| Raise the minimum of a peer dependency (`js-yaml`)                 | major | Existing installs no longer satisfy it       |
-| Add a new required runtime dependency or peer dependency           | major | Existing installs may break or warn          |
-| Patch or minor dependency update with no public type change        | patch | `chore(deps):`                               |
+| Change                                                             | Bump  | Why                                                     |
+| ------------------------------------------------------------------ | ----- | ------------------------------------------------------- |
+| Drop a Node line (raise `engines.node`)                            | major | REL-05; installs on that line stop working              |
+| Raise the oldest supported TypeScript (`OLDEST_TYPESCRIPT`)        | major | Consumers on that version stop compiling                |
+| Major version of a dependency whose types are public (`zod` 4 → 5) | major | Consumers' schemas and inferred types change            |
+| Raise the minimum of a peer dependency (`js-yaml`)                 | major | Existing installs no longer satisfy it                  |
+| Add a new required runtime dependency or peer dependency           | major | Existing installs may break or warn                     |
+| Remove an optional peer dependency that no public export needs     | minor | Existing installs keep working; nothing public loads it |
+| Patch or minor dependency update with no public type change        | patch | `chore(deps):`                                          |
 
 ### Changes that come from ESI itself
 

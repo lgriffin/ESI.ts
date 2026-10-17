@@ -204,7 +204,7 @@ erDiagram
 
 ### YAML-Native, No SQLite
 
-The original design used better-sqlite3 to import SDE YAML into an SQLite database. This was replaced with direct YAML-to-Map loading, and the SQLite builder, its transforms, `SdeDatabaseError` and the `better-sqlite3` optional peer were removed in 13.0.0, because:
+The original design used better-sqlite3 to import SDE YAML into an SQLite database. This was replaced with direct YAML-to-Map loading, and the SQLite builder, its transforms and the `better-sqlite3` optional peer were removed after 12.2.0 (`SdeDatabaseError` stays exported, deprecated, until the next major), because:
 
 - **Simpler dependency tree**: No native binary dependency (better-sqlite3 requires node-gyp)
 - **No build/import step**: No separate database build required before querying

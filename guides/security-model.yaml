@@ -205,7 +205,7 @@ properties:
     rule: none
     rule_reason: A property of the release workflow, not of library behaviour; the workflow test reads release.yml.
   # P12 (SDE content never alters the SQL SdeDatabaseBuilder builds) is
-  # retired: the builder was removed in 13.0.0, and the id is not reused.
+  # retired: the builder was removed after 12.2.0, and the id is not reused.
 
 disclaimed:
   - id: D1

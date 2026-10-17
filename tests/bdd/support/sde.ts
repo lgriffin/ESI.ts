@@ -12,9 +12,11 @@ import { MemorySdeProvider } from '../../../src/sde/providers/memory/MemorySdePr
 import type { MemorySdeData } from '../../../src/sde/providers/memory/MemorySdeProvider';
 import { SdeTestDataFactory } from '../../../src/sde/testing/SdeTestDataFactory';
 import {
+  SdeDatabaseError,
   SdeError,
   SdeValidationError,
   SdeVersionMismatchError,
+  isSdeDatabaseError,
   isSdeError,
   isSdeValidationError,
   isSdeVersionMismatch,
@@ -270,6 +272,7 @@ export function validateEveType(
 export function sdeErrorInstances() {
   return {
     base: new SdeError('base'),
+    database: new SdeDatabaseError('db fail'),
     validation: new SdeValidationError('Type', 'bad'),
     mismatch: new SdeVersionMismatchError('2', '1'),
     plain: new Error('plain'),
@@ -284,6 +287,7 @@ export function applySdeGuards(
 ): Record<string, Record<keyof SdeErrorInstances, boolean>> {
   const guards = {
     isSdeError,
+    isSdeDatabaseError,
     isSdeValidationError,
     isSdeVersionMismatch,
   };
@@ -291,6 +295,7 @@ export function applySdeGuards(
   for (const [name, guard] of Object.entries(guards)) {
     verdicts[name] = {
       base: guard(instances.base),
+      database: guard(instances.database),
       validation: guard(instances.validation),
       mismatch: guard(instances.mismatch),
       plain: guard(instances.plain),
@@ -303,18 +308,28 @@ export function applySdeGuards(
 export const EXPECTED_GUARD_VERDICTS = {
   isSdeError: {
     base: true,
+    database: true,
     validation: true,
     mismatch: true,
     plain: false,
   },
+  isSdeDatabaseError: {
+    base: false,
+    database: true,
+    validation: false,
+    mismatch: false,
+    plain: false,
+  },
   isSdeValidationError: {
     base: false,
+    database: false,
     validation: true,
     mismatch: false,
     plain: false,
   },
   isSdeVersionMismatch: {
     base: false,
+    database: false,
     validation: false,
     mismatch: true,
     plain: false,

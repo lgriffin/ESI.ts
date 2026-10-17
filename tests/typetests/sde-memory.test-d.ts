@@ -10,6 +10,7 @@
  */
 import {
   expectAssignable,
+  expectDeprecated,
   expectError,
   expectNotAssignable,
   expectType,
@@ -18,10 +19,12 @@ import * as memoryEntry from '../../src/sde/memory';
 import * as sdeEntry from '../../src/sde';
 import {
   MemorySdeProvider,
+  SdeDatabaseError,
   SdeError,
   SdeTestDataFactory,
   SdeValidationError,
   SdeVersionMismatchError,
+  isSdeDatabaseError,
   isSdeError,
   isSdeValidationError,
   isSdeVersionMismatch,
@@ -683,6 +686,10 @@ if (isSdeError(caught)) {
   expectType<string>(caught.message);
   expectType<string>(caught.name);
 }
+if (isSdeDatabaseError(caught)) {
+  expectType<SdeDatabaseError>(caught);
+  expectType<unknown>(caught.cause);
+}
 if (isSdeValidationError(caught)) {
   expectType<SdeValidationError>(caught);
   expectType<string>(caught.entityType);
@@ -694,6 +701,10 @@ if (isSdeVersionMismatch(caught)) {
   expectType<string>(caught.expected);
   expectType<string>(caught.actual);
 }
+expectAssignable<SdeError>(new SdeDatabaseError('db', new Error('cause')));
+// Deprecated since the SQLite builder was removed; kept until the next major.
+expectDeprecated(new SdeDatabaseError('db'));
+expectDeprecated(isSdeDatabaseError(caught));
 expectAssignable<SdeError>(new SdeValidationError('eve_types', {}, 34));
 expectAssignable<SdeError>(new SdeVersionMismatchError('1', '2'));
 expectAssignable<Error>(new SdeError('x'));

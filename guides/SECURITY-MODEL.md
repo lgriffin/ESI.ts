@@ -66,7 +66,7 @@ Eleven properties are claimed for the default configuration. A property the inde
 
 All eleven are claimed with zero security configuration. A violation reachable only after the consumer sets an unsafe option is out of model. P6, P8 and P9 had gaps when this document was first read against the code; they were closed by [#629](https://github.com/lgriffin/ESI.ts/pull/629), and the index holds no gap today.
 
-P12 is retired, not renumbered: it claimed that SDE content never altered the structure of the SQL `SdeDatabaseBuilder` built. The builder, the only code in the library that built SQL, was removed in 13.0.0 with the `better-sqlite3` optional peer, so there is nothing left for the property to hold. The id is not reused. A report against a release that still ships the builder (12.x and earlier) is triaged against P12 as it stood there.
+P12 is retired, not renumbered: it claimed that SDE content never altered the structure of the SQL `SdeDatabaseBuilder` built. The builder, the only code in the library that built SQL, was removed after 12.2.0 with the `better-sqlite3` optional peer, so there is nothing left for the property to hold. The id is not reused. A report against a release that still ships the builder (12.2.0 and earlier) is triaged against P12 as it stood there.
 
 ## Properties not provided
 
@@ -115,7 +115,7 @@ A guard that exists in the source but is not on the live path counts as absent. 
 - Denial of service by volume or response size, beyond the page cap in P8.
 - Vulnerabilities in ESI or EVE SSO; report those to CCP Games.
 - Cross-site scripting in a consumer application that renders ESI strings unescaped.
-- Query injection. The library builds no SQL since 13.0.0 (P12, retired); SQL a consumer builds from ESI or SDE strings is the consumer's to escape (D4).
+- Query injection. The library builds no SQL since the release after 12.2.0 (P12, retired); SQL a consumer builds from ESI or SDE strings is the consumer's to escape (D4).
 - An advisory in a development dependency, `docs-site/` or `examples/` that never ships in the tarball.
 - The local scripts under `scripts/auth/`, which use a loopback callback by design.
 - Versions 7.x and 8.x, which are unsupported.
@@ -187,7 +187,7 @@ Reading master `f527e88` (v11.2.0) against the model found three gaps. Each got 
 | 2   | No fetch in `src/` sets a redirect option, so redirects are followed; the allowlist is checked on the base URL only | `src/core/requestPipeline/fetchExecution.ts`            | P6       | Refuse redirects. Node's fetch drops `Authorization` on a cross-origin redirect, so this is hardening: the request, not the token, would have left |
 | 3   | The SDE download has no size bound, and `extractAll` hands entry names to adm-zip with a peer floor of 0.4.11       | `src/sde/ingestion/SdeDownloader.ts`, `SdeExtractor.ts` | P9       | Check every entry name against the output directory before extracting, with a hostile-archive fixture; bound the download size                     |
 
-`SdeDatabaseBuilder` read clean against the query-injection class (P12): values were bound through prepared statements and column names quoted with doubled quotes. The builder was removed in 13.0.0 and P12 retired with it.
+`SdeDatabaseBuilder` read clean against the query-injection class (P12): values were bound through prepared statements and column names quoted with doubled quotes. The builder was removed after 12.2.0 and P12 retired with it.
 
 Rollout, tracked by [#627](https://github.com/lgriffin/ESI.ts/issues/627):
 

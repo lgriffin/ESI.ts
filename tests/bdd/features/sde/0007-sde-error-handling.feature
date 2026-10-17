@@ -1,9 +1,9 @@
 @ARCH-11
 Feature: SDE Error Handling
   The SDE layer raises a small family of errors that all descend from
-  SdeError: SdeValidationError for records that fail their Zod schema, and
-  SdeVersionMismatchError for a data set that does not match the version a
-  caller expected.
+  SdeError: SdeDatabaseError for storage faults, SdeValidationError for
+  records that fail their Zod schema, and SdeVersionMismatchError for a data
+  set that does not match the version a caller expected.
 
   Each class carries the context of the failure as structured fields as well
   as in its message, and each has a type guard so a caller can branch on the
@@ -50,7 +50,7 @@ Feature: SDE Error Handling
     accept only their own branch, and a plain Error is rejected by all of
     them.
 
-    Scenario: Guards separate base, validation, and mismatch errors
+    Scenario: Guards separate base, database, validation, and mismatch errors
       Given various SDE error instances
       When the type guards are applied
       Then each guard shall correctly identify its matching error type
