@@ -75,7 +75,10 @@ export function trySpecAwareCacheHit(
   const entry = cache.get(key);
   if (!entry) return null;
   const age = nowOn(client.getClock()) - entry.timestamp;
-  if (age < specTtlMs) {
+  // A negative age means the entry was stamped by another clock (a shared
+  // store on wall time, a supplied clock behind it): its freshness is
+  // unknown, so it is revalidated rather than served.
+  if (age >= 0 && age < specTtlMs) {
     logDebug(
       client,
       `Spec-aware cache hit for ${url} (age=${Math.round(age / 1000)}s, ttl=${Math.round(specTtlMs / 1000)}s)`,

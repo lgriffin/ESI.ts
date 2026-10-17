@@ -1,5 +1,6 @@
 import { ApiClient } from '../ApiClient';
 import { callerIdentity, hashedIdentity } from '../util/callerIdentity';
+import { COMPATIBILITY_DATE } from '../constants';
 
 /**
  * Scope a key to the identity whose token the request carries.
@@ -85,8 +86,36 @@ function isAccepted(client: ApiClient, identity: Identity): boolean {
   return accepted.get(client)?.has(identity.hashed) ?? false;
 }
 
-function scope(key: string, identity: string | null): string {
-  return identity === null ? key : `${identity}:${key}`;
+const DEFAULT_LINK = 'https://esi.evetech.net';
+
+/**
+ * The client settings that change ESI's answer to one URL: the host, the
+ * tenant, the language and the compatibility date. A cache or deduplicator
+ * supplied in the config can be shared by clients that differ in them, so a
+ * key carries every one that is not the default; a client on the defaults
+ * keeps the bare key. Header values are validated at construction, and none
+ * is a secret.
+ */
+function variantOf(client: ApiClient): string {
+  const parts: string[] = [];
+  const link = client.getLink();
+  if (link !== DEFAULT_LINK) parts.push(`host=${link}`);
+  const tenant = client.getTenant();
+  if (tenant) parts.push(`tenant=${tenant}`);
+  const language = client.getLanguage();
+  if (language) parts.push(`lang=${language}`);
+  const date = client.getCompatibilityDate();
+  if (date && date !== COMPATIBILITY_DATE) parts.push(`compat=${date}`);
+  return parts.length === 0 ? '' : `[${parts.join(';')}]`;
+}
+
+function scope(
+  client: ApiClient,
+  key: string,
+  identity: string | null,
+): string {
+  const scoped = identity === null ? key : `${identity}:${key}`;
+  return `${variantOf(client)}${scoped}`;
 }
 
 /**
@@ -118,7 +147,7 @@ function claimedIdentity(
 
 /**
  * The ETag cache key for a request: its URL, scoped to the identity ESI has
- * accepted. Reads that serve an entry without a request, and writes of what
+ * accepted and to the client settings that vary ESI's answer. Reads that serve an entry without a request, and writes of what
  * ESI answered, use this key.
  *
  * Once a request has been sent, `authorizationHeader` is the header it
@@ -132,7 +161,11 @@ export function buildCacheKey(
   requiresAuth: boolean = false,
   authorizationHeader?: string,
 ): string {
-  return scope(url, trustedIdentity(client, requiresAuth, authorizationHeader));
+  return scope(
+    client,
+    url,
+    trustedIdentity(client, requiresAuth, authorizationHeader),
+  );
 }
 
 /**
@@ -146,12 +179,12 @@ export function buildConditionalCacheKey(
   client: ApiClient,
   requiresAuth: boolean = false,
 ): string {
-  return scope(url, claimedIdentity(client, requiresAuth));
+  return scope(client, url, claimedIdentity(client, requiresAuth));
 }
 
 /**
  * The deduplication key for an in-flight request: its endpoint, scoped to the
- * accepted identity.
+ * accepted identity and to the client settings that vary ESI's answer.
  *
  * Coalescing has to draw the same line the cache does. Two concurrent GETs to
  * one authenticated endpoint under tokens for different characters are two
@@ -165,5 +198,5 @@ export function buildDedupeKey(
   client: ApiClient,
   requiresAuth: boolean = false,
 ): string {
-  return scope(endpoint, trustedIdentity(client, requiresAuth));
+  return scope(client, endpoint, trustedIdentity(client, requiresAuth));
 }

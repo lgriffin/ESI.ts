@@ -113,15 +113,15 @@ const configured = new EsiClient({
 
 The config also takes middleware instances, in place of the ones the client would build. `EsiClient`, `EsiClientBuilder.withConfig()` and `EsiApiFactory.createClient(type, config)` all accept them, and `createEsi()` takes the same five options, because every surface hands its config to `configureApiClient`.
 
-| Option           | Type                           | Effect                                                                                                                                                                    |
-| ---------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cache`          | `CacheStore` (or an `ICache`)  | Bodies and ETags live in your store (Redis, a file) instead of memory. Ignored when `enableETagCache` is `false`. A plain `CacheStore` invalidates only the keys it wrote |
-| `rateLimiter`    | `IRateLimiter`                 | Every request draws on it, so two clients can share one budget                                                                                                            |
-| `circuitBreaker` | `ICircuitBreaker`              | Supplying one turns the breaker on                                                                                                                                        |
-| `deduplicator`   | `IDeduplicator`                | Supplying one turns deduplication on                                                                                                                                      |
-| `clock`          | `Clock` (`now()`, `sleep(ms)`) | Cache age, retry back-off, rate-limit waits and the circuit reset timeout read it. The cleanup timers and the request timeout stay on real time                           |
+| Option           | Type                           | Effect                                                                                                                                                                                   |
+| ---------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cache`          | `CacheStore` (or an `ICache`)  | Bodies and ETags live in your store (Redis, a file) instead of memory. Ignored when `enableETagCache` is `false`. A plain `CacheStore` invalidates only the keys written in this process |
+| `rateLimiter`    | `IRateLimiter`                 | Every request draws on it, so two clients can share one budget                                                                                                                           |
+| `circuitBreaker` | `ICircuitBreaker`              | Supplying one turns the breaker on                                                                                                                                                       |
+| `deduplicator`   | `IDeduplicator`                | Supplying one turns deduplication on                                                                                                                                                     |
+| `clock`          | `Clock` (`now()`, `sleep(ms)`) | Cache age, retry back-off, rate-limit waits and the circuit reset timeout read it. The cleanup timers and the request timeout stay on real time                                          |
 
-`shutdown()` leaves a supplied cache, circuit breaker or deduplicator to its owner.
+`shutdown()` leaves a supplied cache, circuit breaker or deduplicator to its owner. Clients that share a cache or deduplicator but differ in host, tenant, language or compatibility date keep their entries and in-flight requests apart: the keys carry every setting that is not the default.
 
 ```typescript
 import {

@@ -151,7 +151,7 @@ function installMiddleware(
   // ETag cache (on by default)
   if (config?.enableETagCache !== false) {
     const cache = config?.cache
-      ? cacheFromStore(config.cache)
+      ? cacheFromStore(config.cache, clock)
       : new ETagCacheManager(config?.etagCacheConfig, client, clock);
     client.setCache(cache);
   }

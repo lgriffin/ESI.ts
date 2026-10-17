@@ -10,6 +10,7 @@ import type {
 import {
   CacheStoreCache,
   cacheFromStore,
+  MAX_TRACKED_KEYS,
 } from '../../../src/core/cache/CacheStoreCache';
 import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
 import { CircuitBreaker } from '../../../src/core/circuitBreaker/CircuitBreaker';
@@ -61,14 +62,14 @@ function fixedClock(start = 1_000): Clock & { advance(ms: number): void } {
 describe('CacheStoreCache', () => {
   it('reads and writes through the store, counting hits and misses', () => {
     const store = new MapStore();
-    const cache = new CacheStoreCache(store);
+    const cache = new CacheStoreCache(store, fixedClock(42));
     expect(cache.get('a')).toBeNull();
     cache.set('a', '"1"', { x: 1 }, { etag: '"1"' }, 500);
     expect(cache.get('a')).toEqual({
       etag: '"1"',
       data: { x: 1 },
       headers: { etag: '"1"' },
-      timestamp: 7,
+      timestamp: 42,
       ttl: 500,
     });
     expect(cache.getETag('a')).toBe('"1"');
@@ -138,6 +139,41 @@ describe('cacheFromStore', () => {
 
   it('adapts a plain store', () => {
     expect(cacheFromStore(new MapStore())).toBeInstanceOf(CacheStoreCache);
+  });
+
+  it('hands every client given one store the same adapter, so one write invalidates what the others cached', () => {
+    const store = new MapStore();
+    const first = cacheFromStore(store);
+    const second = cacheFromStore(store);
+    expect(second).toBe(first);
+    first.set('characters/1/contacts/', '"1"', [], {});
+    expect(second.deleteByPath('characters/1/contacts')).toBe(1);
+    expect(store.map.size).toBe(0);
+  });
+});
+
+describe('CacheStoreCache timestamps and bounds', () => {
+  it('stamps an entry it wrote with its own clock, not the store time base', () => {
+    const cache = new CacheStoreCache(new MapStore(), fixedClock(5_000));
+    cache.set('a', '"1"', 1, {});
+    expect(cache.get('a')?.timestamp).toBe(5_000);
+  });
+
+  it('falls back to the store timestamp for an entry another process wrote', () => {
+    const store = new MapStore();
+    store.set('a', '"1"', 1, {});
+    expect(
+      new CacheStoreCache(store, fixedClock(5_000)).get('a')?.timestamp,
+    ).toBe(7);
+  });
+
+  it('remembers at most MAX_TRACKED_KEYS written keys, forgetting the oldest first', () => {
+    const cache = new CacheStoreCache(new MapStore(), fixedClock());
+    for (let i = 0; i <= MAX_TRACKED_KEYS; i += 1) {
+      cache.set(`k${i}`, '"1"', i, {});
+    }
+    expect(cache.getStats().totalEntries).toBe(MAX_TRACKED_KEYS);
+    expect(cache.deleteByPath('k0')).toBe(0);
   });
 });
 

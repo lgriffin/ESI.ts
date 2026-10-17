@@ -308,6 +308,112 @@ describe('ARCH-08: supplied middleware through EsiClientConfig', () => {
   });
 });
 
+describe('ARCH-08: middleware shared between differently configured clients', () => {
+  beforeEach(() => fetchMock.resetMocks());
+
+  it('a shared cache store does not serve one language to a client asking in another', async () => {
+    const store = new MapStore();
+    const english = new EsiClient({ ...SEAM, cache: store, language: 'en' });
+    const german = new EsiClient({ ...SEAM, cache: store, language: 'de' });
+    statusAnswer({ etag: '"en"' });
+    statusAnswer({ etag: '"de"' });
+
+    await english.status.getStatus();
+    await german.status.getStatus();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(store.entries.size).toBe(2);
+    english.shutdown();
+    german.shutdown();
+  });
+
+  it('a shared cache store keeps tenants and compatibility dates apart', async () => {
+    const store = new MapStore();
+    const tq = new EsiClient({ ...SEAM, cache: store });
+    const sisi = new EsiClient({
+      ...SEAM,
+      cache: store,
+      tenant: 'singularity',
+    });
+    const dated = new EsiClient({
+      ...SEAM,
+      cache: store,
+      compatibilityDate: '2020-01-01',
+    });
+    statusAnswer({ etag: '"a"' });
+    statusAnswer({ etag: '"b"' });
+    statusAnswer({ etag: '"c"' });
+
+    await tq.status.getStatus();
+    await sisi.status.getStatus();
+    await dated.status.getStatus();
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    tq.shutdown();
+    sisi.shutdown();
+    dated.shutdown();
+  });
+
+  it('a shared deduplicator does not join concurrent requests to different hosts', async () => {
+    const deduplicator = new RequestDeduplicator();
+    const config = {
+      ...SEAM,
+      enableETagCache: false,
+      unsafeAllowCustomHost: true,
+      deduplicator,
+    };
+    const tranquility = new EsiClient(config);
+    const mirror = new EsiClient({
+      ...config,
+      baseUrl: 'https://esi.mirror.example',
+    });
+    fetchMock.mockResponse(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                body: JSON.stringify(STATUS),
+                headers: { 'content-type': 'application/json' },
+              }),
+            10,
+          ),
+        ),
+    );
+
+    await Promise.all([
+      tranquility.status.getStatus(),
+      mirror.status.getStatus(),
+    ]);
+
+    const hosts = fetchMock.mock.calls.map(
+      ([input]) => new URL(String(input)).host,
+    );
+    expect([...hosts].sort()).toEqual([
+      'esi.evetech.net',
+      'esi.mirror.example',
+    ]);
+    tranquility.shutdown();
+    mirror.shutdown();
+  });
+
+  it('a store entry stamped ahead of the supplied clock is revalidated, not served', async () => {
+    const store = new MapStore();
+    const wall = new EsiClient({ ...SEAM, cache: store });
+    const clock: Clock = { now: () => 0, sleep: () => Promise.resolve() };
+    const behind = new EsiClient({ ...SEAM, cache: store, clock });
+    statusAnswer({ etag: '"s1"' });
+    statusAnswer({ etag: '"s2"' });
+
+    await wall.status.getStatus();
+    await behind.status.getStatus();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    wall.shutdown();
+    behind.shutdown();
+  });
+});
+
 describe('ARCH-08: CustomEsiClient diagnostics', () => {
   beforeEach(() => fetchMock.resetMocks());
 

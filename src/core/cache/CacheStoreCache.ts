@@ -5,20 +5,32 @@
  * after a write) and statistics; this adapter answers those from the store's
  * own calls and from what it has seen.
  *
- * It can invalidate by path only the keys it wrote itself: a store shared
- * between processes holds keys another process wrote, and those expire by
- * their retention instead. Its statistics count this runtime's reads and
- * writes, not the store's contents.
+ * It can invalidate by path only the keys written in this process (every
+ * client given one store shares one adapter, see `cacheFromStore`), and it
+ * remembers at most `MAX_TRACKED_KEYS` of them: a store shared between
+ * processes holds keys another process wrote, and those expire by their
+ * retention instead. The `CacheStore` port has no way to list keys, so
+ * cross-process invalidation is the store's job. Its statistics count this
+ * process's reads and writes, not the store's contents.
  */
 import type { CacheStore } from '../ports/CacheStore';
+import type { Clock } from '../ports/Clock';
+import { nowOn } from '../clock';
 import type { CacheEntry, ICache } from './ICache';
 
+/** How many written keys the adapter remembers; the oldest is forgotten first. */
+export const MAX_TRACKED_KEYS = 10_000;
+
 export class CacheStoreCache implements ICache {
-  private readonly keys = new Set<string>();
+  /** The keys this adapter wrote, each with when it wrote it on its clock. */
+  private readonly keys = new Map<string, number>();
   private hits = 0;
   private misses = 0;
 
-  constructor(private readonly store: CacheStore) {}
+  constructor(
+    private readonly store: CacheStore,
+    private readonly clock?: Clock | null,
+  ) {}
 
   get(url: string): CacheEntry | null {
     const entry = this.store.get(url);
@@ -32,7 +44,10 @@ export class CacheStoreCache implements ICache {
       etag: entry.etag,
       data: entry.data,
       headers: { ...entry.headers },
-      timestamp: entry.timestamp,
+      // Ages are measured on the client's clock, so an entry this adapter
+      // wrote carries the time it wrote it on that clock, whatever time base
+      // the store stamps with.
+      timestamp: this.keys.get(url) ?? entry.timestamp,
       ...(entry.ttl === undefined ? {} : { ttl: entry.ttl }),
     };
   }
@@ -49,7 +64,13 @@ export class CacheStoreCache implements ICache {
     customTtl?: number,
   ): void {
     this.store.set(url, etag, data, headers, customTtl);
-    this.keys.add(url);
+    this.keys.delete(url);
+    this.keys.set(url, nowOn(this.clock ?? null));
+    // A store expires entries on its own, unseen by the adapter; the bound
+    // keeps the keys it remembers from growing with every URL ever written.
+    while (this.keys.size > MAX_TRACKED_KEYS) {
+      this.keys.delete(this.keys.keys().next().value as string);
+    }
   }
 
   has(url: string): boolean {
@@ -63,7 +84,7 @@ export class CacheStoreCache implements ICache {
 
   deleteByPath(pathSegment: string): number {
     let count = 0;
-    for (const key of [...this.keys]) {
+    for (const key of [...this.keys.keys()]) {
       if (!key.includes(pathSegment)) continue;
       this.keys.delete(key);
       if (this.store.delete(key)) count += 1;
@@ -101,12 +122,21 @@ export class CacheStoreCache implements ICache {
   }
 }
 
+const adapters = new WeakMap<CacheStore, CacheStoreCache>();
+
 /**
  * The cache the pipeline uses for a supplied store: the store itself when it
  * already implements the pipeline's wider `ICache` (an `ETagCacheManager`, or
  * any `ICache` written for `ApiClient.setCache`), otherwise the adapter.
+ * Every client given one store in this process shares one adapter, so a write
+ * through one client invalidates the entries the others cached, and an
+ * in-flight read in one does not re-cache what another's write invalidated.
+ * The first client's clock stamps its writes.
  */
-export function cacheFromStore(store: CacheStore): ICache {
+export function cacheFromStore(
+  store: CacheStore,
+  clock?: Clock | null,
+): ICache {
   const wide = store as Partial<ICache>;
   if (
     typeof wide.getETag === 'function' &&
@@ -116,5 +146,10 @@ export function cacheFromStore(store: CacheStore): ICache {
   ) {
     return store as ICache;
   }
-  return new CacheStoreCache(store);
+  let adapter = adapters.get(store);
+  if (!adapter) {
+    adapter = new CacheStoreCache(store, clock);
+    adapters.set(store, adapter);
+  }
+  return adapter;
 }
