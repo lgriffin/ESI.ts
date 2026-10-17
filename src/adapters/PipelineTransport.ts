@@ -8,6 +8,7 @@
 import type { ApiClient } from '../core/ApiClient';
 import { handleRequest } from '../core/ApiRequestHandler';
 import { fetchPages } from '../core/pagination/AsyncPaginationIterator';
+import type { EsiHandlerResponse } from '../core/requestPipeline/cachePolicy';
 import type {
   OperationMeta,
   OperationRequest,
@@ -64,7 +65,15 @@ function build(
 }
 
 export class PipelineTransport implements OperationTransport {
-  constructor(private readonly client: ApiClient) {}
+  /**
+   * @param observe - called with the pipeline's response to each `request`,
+   *   headers included, before the body is returned. The runtime's metadata
+   *   views read the response metadata through it.
+   */
+  constructor(
+    private readonly client: ApiClient,
+    private readonly observe?: (response: EsiHandlerResponse) => void,
+  ) {}
 
   async request<T>(meta: OperationMeta, req: OperationRequest): Promise<T> {
     const { url, template, requiresAuth } = build(
@@ -81,6 +90,7 @@ export class PipelineTransport implements OperationTransport {
       true,
       template,
     );
+    this.observe?.(response);
     return response.body as T;
   }
 

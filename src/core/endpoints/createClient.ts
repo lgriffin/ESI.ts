@@ -8,7 +8,7 @@ import {
   EsiResponseMeta,
 } from '../../types/api-responses';
 import { buildEndpointPath } from './buildEndpointPath';
-import { parseWarning } from '../util/headersUtil';
+import { buildResponseMeta } from '../responseMeta';
 import { logWarn } from '../logger/clientLog';
 import { EsiValidationError, toEsiError } from '../util/error';
 import { evictRejectedResponse, resolveCache } from '../requestPipeline';
@@ -65,45 +65,9 @@ export type WithSafeMode<T> = {
     : T[K];
 };
 
+/** The legacy name for the shared reader; the runtime's metadata views use it too. */
 function buildMeta(response: EsiHandlerResponse): EsiResponseMeta {
-  const meta: EsiResponseMeta = {
-    headers: response.headers,
-    fromCache: response.fromCache ?? false,
-    stale: response.stale ?? false,
-  };
-  if (response.cacheHitType) meta.cacheHitType = response.cacheHitType;
-  if (response.responseTimeMs !== undefined)
-    meta.responseTimeMs = response.responseTimeMs;
-  const w = parseWarning(response.headers['warning']);
-  if (w) meta.warning = w;
-  if (response.headers['x-esi-request-id'])
-    meta.requestId = response.headers['x-esi-request-id'];
-  if (response.headers['date']) meta.date = response.headers['date'];
-  if (response.headers['content-language'])
-    meta.contentLanguage = response.headers['content-language'];
-  if (response.headers['x-ratelimit-remaining']) {
-    meta.rateLimit = {
-      remaining: parseInt(response.headers['x-ratelimit-remaining'], 10),
-      limit: parseInt(response.headers['x-ratelimit-limit'] ?? '0', 10),
-      used: parseInt(response.headers['x-ratelimit-used'] ?? '0', 10),
-      group: response.headers['x-ratelimit-group'] ?? null,
-    };
-  }
-  if (response.headers['etag']) meta.etag = response.headers['etag'];
-  if (response.headers['x-pages'])
-    meta.pages = parseInt(response.headers['x-pages'], 10);
-  if (response.headers['expires']) meta.expires = response.headers['expires'];
-  if (response.headers['x-esi-error-limit-remain'])
-    meta.errorLimitRemain = parseInt(
-      response.headers['x-esi-error-limit-remain'],
-      10,
-    );
-  if (response.headers['x-esi-error-limit-reset'])
-    meta.errorLimitReset = parseInt(
-      response.headers['x-esi-error-limit-reset'],
-      10,
-    );
-  return meta;
+  return buildResponseMeta(response);
 }
 
 /* eslint-disable sonarjs/cognitive-complexity */

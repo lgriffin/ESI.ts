@@ -9,3 +9,8 @@ export const systemClock: Clock = {
   now: () => Date.now(),
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 };
+
+/** The time on `clock`, or on the wall clock when none was supplied. */
+export function nowOn(clock: Clock | null | undefined): number {
+  return (clock ?? systemClock).now();
+}

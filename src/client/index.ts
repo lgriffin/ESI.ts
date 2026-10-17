@@ -3,7 +3,26 @@
  * generated operations. See guides/MULTI-CHARACTER.md.
  */
 export { createEsi } from './runtime';
-export type { Esi, EsiOptions } from './runtime';
+export type { Esi, EsiOptions, RuntimeDiagnostics } from './runtime';
+export type {
+  EsiViews,
+  MetadataView,
+  OperationResponse,
+  OperationResult,
+  SafeView,
+} from './modes';
+export type { ResponseMeta, ResponseRateLimit } from '../core/responseMeta';
+export type { CacheStats, CircuitBreakerStats } from '../core/EsiDiagnostics';
+export type { ETagCacheConfig } from '../core/cache/ETagCacheManager';
+export type {
+  ICircuitBreaker,
+  CircuitState,
+} from '../core/circuitBreaker/ICircuitBreaker';
+export type { IDeduplicator } from '../core/IDeduplicator';
+export type {
+  IRateLimiter,
+  RateLimitGroupStatus,
+} from '../core/rateLimiter/IRateLimiter';
 export { identityFromProvider, identityFromToken } from './identity';
 export type { ProviderIdentityOptions } from './identity';
 export type {

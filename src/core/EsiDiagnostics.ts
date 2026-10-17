@@ -1,6 +1,9 @@
 import { ApiClient } from './ApiClient';
-import { ETagCacheManager, ETagCacheConfig } from './cache/ETagCacheManager';
-import { RequestDeduplicator } from './RequestDeduplicator';
+import type {
+  ETagCacheManager,
+  ETagCacheConfig,
+} from './cache/ETagCacheManager';
+import type { IDeduplicator } from './IDeduplicator';
 
 export interface CacheStats {
   totalEntries: number;
@@ -25,27 +28,23 @@ export class EsiDiagnostics {
   constructor(
     private apiClient: ApiClient,
     private etagCacheEnabled: boolean,
-    private deduplicator: RequestDeduplicator | null,
+    private deduplicator: IDeduplicator | null,
   ) {}
 
   getCacheStats(): CacheStats | null {
     if (!this.etagCacheEnabled) return null;
     const cache = this.apiClient.getCache();
-    return cache ? (cache as ETagCacheManager).getStats() : null;
+    return cache ? cache.getStats() : null;
   }
 
   clearCache(): void {
-    const cache = this.apiClient.getCache();
-    if (cache) {
-      (cache as ETagCacheManager).clear();
-    }
+    this.apiClient.getCache()?.clear();
   }
 
   updateCacheConfig(newConfig: Partial<ETagCacheConfig>): void {
-    const cache = this.apiClient.getCache();
-    if (cache) {
-      (cache as ETagCacheManager).updateConfig(newConfig);
-    }
+    // Only the built-in cache has a configuration; a supplied cache keeps its own.
+    const cache = this.apiClient.getCache() as Partial<ETagCacheManager> | null;
+    cache?.updateConfig?.(newConfig);
   }
 
   getCircuitBreakerStats(): CircuitBreakerStats | null {

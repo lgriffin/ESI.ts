@@ -1,4 +1,5 @@
 import { ApiClient } from '../ApiClient';
+import { nowOn } from '../clock';
 import { RequestContext, ResponseContext } from '../middleware/Middleware';
 import { EsiHandlerResponse } from './cachePolicy';
 
@@ -53,7 +54,7 @@ export async function applyResponseInterceptors(
     status: result.status ?? 200,
     headers: result.headers,
     body: result.body,
-    durationMs: Date.now() - startTime,
+    durationMs: nowOn(client.getClock()) - startTime,
     fromCache: result.fromCache ?? false,
   };
 

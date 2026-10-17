@@ -6,7 +6,7 @@ import {
 import { When } from '../../support/steps';
 
 When(
-  "the character's view in safe mode follows every page of the character's assets",
+  "the character's safe-mode view follows every page of its assets",
   async function () {
     const view = runtimeOf(this).withSafeMode().as(identityOf(this));
     const assets: unknown[] = [];

@@ -314,7 +314,7 @@ header_read_sites:
     headers: [cache-control]
   - file: src/core/requestPipeline/fetchExecution.ts
     headers: [location]
-  - file: src/core/endpoints/createClient.ts
+  - file: src/core/responseMeta.ts
     headers:
       [
         content-language,

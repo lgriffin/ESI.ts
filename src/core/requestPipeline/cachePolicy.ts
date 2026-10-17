@@ -1,4 +1,5 @@
 import { ApiClient } from '../ApiClient';
+import { nowOn } from '../clock';
 import { logDebug } from '../logger/clientLog';
 import { ICache } from '../cache/ICache';
 import { buildCacheKey } from '../cache/cacheKey';
@@ -73,7 +74,7 @@ export function trySpecAwareCacheHit(
   const key = buildCacheKey(url, client, requiresAuth);
   const entry = cache.get(key);
   if (!entry) return null;
-  const age = Date.now() - entry.timestamp;
+  const age = nowOn(client.getClock()) - entry.timestamp;
   if (age < specTtlMs) {
     logDebug(
       client,

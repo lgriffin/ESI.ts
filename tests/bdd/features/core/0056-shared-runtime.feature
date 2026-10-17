@@ -271,7 +271,7 @@ Feature: One runtime, many identities
       Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
       And a view for a character holding an access token
       And ESI reports the character's assets on two pages
-      When the character's view in safe mode follows every page of the character's assets
+      When the character's safe-mode view follows every page of its assets
       Then the items shall be the character's two assets as ESI sent them
 
   # ── Diagnostics
@@ -308,7 +308,7 @@ Feature: One runtime, many identities
       And the public view requests the server status
       Then the runtime shall have sent 2 requests
 
-  Rule: When the runtime's cache configuration is updated, the runtime shall keep at most the new maximum number of entries.
+  Rule: When the runtime's cache configuration is updated, the runtime shall limit its entries to the updated maxEntries.
     The configuration changes in place, so the views keep the cache they share.
 
     Scenario: A cache limited to one entry keeps only the newest response

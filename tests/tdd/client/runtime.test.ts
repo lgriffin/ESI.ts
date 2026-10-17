@@ -8,8 +8,13 @@ import {
   createEsi,
   identityFromProvider,
   identityFromToken,
+  type CachedResponse,
+  type CacheStore,
   type Identity,
 } from '../../../src/client';
+import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
+import { CircuitBreaker } from '../../../src/core/circuitBreaker/CircuitBreaker';
+import { RequestDeduplicator } from '../../../src/core/RequestDeduplicator';
 
 fetchMock.enableMocks();
 
@@ -299,3 +304,152 @@ describe('createEsi', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe('createEsi metadata and safe-mode views', () => {
+  beforeEach(() => fetchMock.resetMocks());
+
+  it('hands out the same views object, and the same view per identity, on every call', () => {
+    const esi = createEsi(OPTIONS);
+    const identity = identityFromToken('t');
+    expect(esi.withMetadata()).toBe(esi.withMetadata());
+    expect(esi.withSafeMode()).toBe(esi.withSafeMode());
+    expect(esi.withMetadata().as(identity)).toBe(
+      esi.withMetadata().as(identity),
+    );
+    expect(Object.isFrozen(esi.withSafeMode())).toBe(true);
+  });
+
+  it('wraps a thrown value that is not an EsiError in a fault result', async () => {
+    const esi = createEsi(OPTIONS);
+    const broken: Identity = {
+      accessToken: () => Promise.reject(new Error('vault sealed')),
+    };
+    const result = await esi
+      .withSafeMode()
+      .as(broken)
+      .character(1)
+      .wallet.get();
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect((result.error as { code?: string }).code).toBe('ESIJS_ERROR');
+    expect(result.error.message).toBe('[ESIJS_ERROR] vault sealed');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('reads the rate-limit and request headers into the metadata', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify(1.5), {
+      headers: {
+        'content-type': 'application/json',
+        'x-ratelimit-remaining': '149',
+        'x-ratelimit-limit': '150',
+        'x-ratelimit-used': '1',
+        'x-ratelimit-group': 'char-wallet',
+        'x-esi-request-id': 'req-1',
+      },
+    });
+    const esi = createEsi(OPTIONS);
+    const answer = await esi
+      .withMetadata()
+      .as(identityFromToken('t'))
+      .character(1)
+      .wallet.get();
+    expect(answer.data).toBe(1.5);
+    expect(answer.meta.rateLimit).toEqual({
+      remaining: 149,
+      limit: 150,
+      used: 1,
+      group: 'char-wallet',
+    });
+    expect(answer.meta.requestId).toBe('req-1');
+  });
+});
+
+describe('createEsi diagnostics and supplied middleware', () => {
+  beforeEach(() => fetchMock.resetMocks());
+
+  it('reports no circuit breaker statistics while the breaker is off', () => {
+    const esi = createEsi(OPTIONS);
+    expect(esi.getCircuitBreakerStats()).toBeNull();
+    expect(esi.diagnostics.getDeduplicatorStats()).toEqual({
+      pendingRequests: 0,
+    });
+  });
+
+  it('reports no deduplicator statistics while deduplication is off', () => {
+    const esi = createEsi({ ...OPTIONS, enableRequestDeduplication: false });
+    expect(esi.diagnostics.getDeduplicatorStats()).toBeNull();
+  });
+
+  it('installs a supplied ICache as it is', async () => {
+    const cache = new ETagCacheManager({ maxEntries: 5 });
+    try {
+      const esi = createEsi({ ...OPTIONS, cache });
+      esi.updateCacheConfig({ maxEntries: 1 });
+      expect(esi.getCacheStats()?.maxEntries).toBe(1);
+      fetchMock.mockResponseOnce(JSON.stringify([1]), {
+        headers: { 'content-type': 'application/json', etag: '"a"' },
+      });
+      await esi.public.alliances.get();
+      expect(cache.getStats().totalEntries).toBe(1);
+    } finally {
+      cache.shutdown();
+    }
+  });
+
+  it('does not change the limits of a supplied cache store', () => {
+    const esi = createEsi({ ...OPTIONS, cache: new MemoryStore() });
+    esi.updateCacheConfig({ maxEntries: 1 });
+    expect(esi.getCacheStats()?.maxEntries).toBe(0);
+  });
+
+  it('ignores a supplied cache when the ETag cache is off', () => {
+    const esi = createEsi({
+      ...OPTIONS,
+      cache: new MemoryStore(),
+      enableETagCache: false,
+    });
+    expect(esi.getCacheStats()).toBeNull();
+  });
+
+  it('leaves a supplied circuit breaker and deduplicator to their owner on shutdown', () => {
+    const circuitBreaker = new CircuitBreaker();
+    const deduplicator = new RequestDeduplicator();
+    const stop = jest.spyOn(circuitBreaker, 'shutdown');
+    const clear = jest.spyOn(deduplicator, 'clear');
+    const esi = createEsi({ ...OPTIONS, circuitBreaker, deduplicator });
+    esi.shutdown();
+    expect(stop).not.toHaveBeenCalled();
+    expect(clear).not.toHaveBeenCalled();
+  });
+
+  it('resets one endpoint circuit by name', () => {
+    const circuitBreaker = new CircuitBreaker({ failureThreshold: 1 });
+    circuitBreaker.recordFailure('status', 500);
+    circuitBreaker.recordFailure('alliances', 500);
+    const esi = createEsi({ ...OPTIONS, circuitBreaker });
+    esi.resetCircuitBreaker('status');
+    expect(esi.getCircuitBreakerStats()?.openCircuits).toBe(1);
+  });
+});
+
+class MemoryStore implements CacheStore {
+  private readonly map = new Map<string, CachedResponse>();
+  get(key: string): CachedResponse | null {
+    return this.map.get(key) ?? null;
+  }
+  set(
+    key: string,
+    etag: string,
+    data: unknown,
+    headers: Record<string, string>,
+  ): void {
+    this.map.set(key, { etag, data, headers, timestamp: 0 });
+  }
+  delete(key: string): boolean {
+    return this.map.delete(key);
+  }
+  clear(): void {
+    this.map.clear();
+  }
+  shutdown(): void {}
+}

@@ -214,7 +214,7 @@ See [RUNTIME-VALIDATION.md](RUNTIME-VALIDATION.md).
 
 ### Response metadata
 
-`withMetadata()` returns a view of a domain client whose methods resolve `{ data, meta }`:
+`withMetadata()` returns a view of a domain client whose methods resolve `{ data, meta }` (deprecated with the domain clients):
 
 ```typescript
 const withMeta = client.alliance.withMetadata();
@@ -242,6 +242,8 @@ log.info(data.name, {
 | `warning`         | object, optional         | ESI's deprecation `warning` header, parsed      |
 
 `withSafeMode()` is the same idea for errors: methods resolve a result envelope instead of throwing. See [ERRORS.md](ERRORS.md).
+
+On the shared runtime, `esi.withMetadata()` hands out the same two views over the same clients: `esi.withMetadata().public.status.get()` and `esi.withMetadata().as(identity).character(id).wallet.get()` resolve `{ data, meta }`, with `meta` typed `ResponseMeta` (the fields above) from `@lgriffin/esi.ts/client`. A paginated operation still yields its items. `esi.getCacheStats()`, `clearCache()`, `updateCacheConfig()`, `getCircuitBreakerStats()` and `resetCircuitBreaker()` (or `esi.diagnostics`) read and reset the middleware every view shares, and `EsiOptions` takes a `cache` (any `CacheStore`), `rateLimiter`, `circuitBreaker`, `deduplicator` and `clock` in place of the ones the runtime would build; see [MULTI-CHARACTER.md](MULTI-CHARACTER.md).
 
 ### Text and empty responses
 

@@ -13,7 +13,24 @@ import {
   type OperationPagination,
   type ProviderIdentityOptions,
   type QueryValue,
+  type CacheStats,
+  type CacheStore,
+  type CircuitBreakerStats,
+  type Clock,
+  type EsiViews,
+  type ICircuitBreaker,
+  type IDeduplicator,
+  type IRateLimiter,
+  type MetadataView,
+  type OperationResponse,
+  type OperationResult,
+  type RateLimitGroupStatus,
+  type ResponseMeta,
+  type ResponseRateLimit,
+  type RuntimeDiagnostics,
+  type SafeView,
 } from '../../src/client';
+import type { EsiError } from '../../src/errors';
 
 declare const esi: Esi;
 
@@ -68,3 +85,64 @@ expectAssignable<OperationPagination>('page');
 expectError<OperationPagination>('offset');
 expectAssignable<QueryValue>(['a', 1, true]);
 expectAssignable<ProviderIdentityOptions>({ characterId: 1 });
+
+// Metadata views (G8): single-answer operations resolve { data, meta };
+// paginated ones still yield items; the public view still leaves the
+// authenticated operations out.
+const withMeta = esi.withMetadata();
+expectType<EsiViews<MetadataView<PublicScopeTree>, MetadataView<ScopeTree>>>(
+  withMeta,
+);
+expectType<Promise<OperationResponse<number>>>(
+  withMeta.as(identity).character(1).wallet.get(),
+);
+declare const meta: ResponseMeta;
+expectType<boolean>(meta.fromCache);
+expectType<string | undefined>(meta.etag);
+expectType<number | undefined>(meta.pages);
+expectType<ResponseRateLimit | undefined>(meta.rateLimit);
+expectError(withMeta.public.character(1).wallet);
+void withMeta.as(identity).character(1).assets.get()[Symbol.asyncIterator];
+
+// Safe mode (G8): a result to narrow on ok, never a rejection.
+const safe = esi.withSafeMode();
+expectType<EsiViews<SafeView<PublicScopeTree>, SafeView<ScopeTree>>>(safe);
+const result = await safe.as(identity).character(1).wallet.get();
+expectType<OperationResult<number>>(result);
+if (result.ok) {
+  expectType<number>(result.data);
+  expectType<ResponseMeta>(result.meta);
+} else {
+  expectType<EsiError>(result.error);
+}
+
+// Diagnostics (G9): on the runtime and as one object.
+expectType<RuntimeDiagnostics>(esi.diagnostics);
+expectType<CacheStats | null>(esi.getCacheStats());
+expectType<CircuitBreakerStats | null>(esi.getCircuitBreakerStats());
+expectType<void>(esi.clearCache());
+expectType<void>(esi.updateCacheConfig({ maxEntries: 10 }));
+expectType<void>(esi.resetCircuitBreaker('status'));
+expectType<{ pendingRequests: number } | null>(
+  esi.diagnostics.getDeduplicatorStats(),
+);
+
+// Supplied middleware (G11): instances go in the options next to the config.
+declare const store: CacheStore;
+declare const clock: Clock;
+declare const rateLimiter: IRateLimiter;
+declare const circuitBreaker: ICircuitBreaker;
+declare const deduplicator: IDeduplicator;
+expectType<Esi>(
+  createEsi({
+    userAgent: 'app/1.0 (dev@example.com)',
+    cache: store,
+    clock,
+    rateLimiter,
+    circuitBreaker,
+    deduplicator,
+  }),
+);
+expectError(createEsi({ userAgent: 'app/1.0', clock: { now: () => 0 } }));
+declare const group: RateLimitGroupStatus;
+expectType<number>(group.remaining);

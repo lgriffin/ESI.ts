@@ -2,6 +2,8 @@ import { ApiClient } from '../ApiClient';
 import { logInfo, logDebug } from '../logger/clientLog';
 import { resolveLogger } from '../logger/resolveLogger';
 import { ICache, CacheEntry } from './ICache';
+import { nowOn } from '../clock';
+import type { Clock } from '../ports/Clock';
 
 export type { CacheEntry } from './ICache';
 
@@ -46,8 +48,14 @@ export class ETagCacheManager implements ICache {
    * @param client - the client whose logger this cache logs to, from the
    *   first line (the startup log) on. `setClient` can attach or change it
    *   later; without one the cache logs to the global logger.
+   * @param clock - where entry timestamps and expiry are read. Defaults to the
+   *   wall clock; the cleanup timer always runs on real time.
    */
-  constructor(config: ETagCacheConfig = {}, client?: ApiClient | null) {
+  constructor(
+    config: ETagCacheConfig = {},
+    client?: ApiClient | null,
+    private readonly clock?: Clock | undefined,
+  ) {
     this.client = client ?? null;
     this.config = {
       maxEntries: config.maxEntries ?? 1000,
@@ -118,7 +126,7 @@ export class ETagCacheManager implements ICache {
       etag,
       data,
       headers,
-      timestamp: Date.now(),
+      timestamp: nowOn(this.clock),
       ttl: customTtl ?? this.config.defaultTtl,
     };
 
@@ -257,7 +265,7 @@ export class ETagCacheManager implements ICache {
 
   private isExpired(entry: CacheEntry): boolean {
     if (!entry.ttl) return false;
-    return Date.now() - entry.timestamp > entry.ttl;
+    return nowOn(this.clock) - entry.timestamp > entry.ttl;
   }
 
   private evictOldest(): void {

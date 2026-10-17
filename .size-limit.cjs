@@ -47,8 +47,10 @@ const budgets = {
     require: '26.5 kB', // measured 25150 B
   },
   './client': {
-    import: '166.4 kB', // measured 158410 B
-    require: '175.1 kB', // measured 166730 B
+    // Raised for the runtime's metadata and safe-mode views, diagnostics and
+    // supplied middleware (LEGACY-REMOVAL G8, G9, G11): measurement + 5%.
+    import: '174.8 kB', // measured 166470 B
+    require: '184.3 kB', // measured 175480 B
   },
   './sde': {
     import: '45.4 kB', // measured 43203 B

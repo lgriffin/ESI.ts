@@ -2055,7 +2055,8 @@ const CharacterTitleSchema: z.ZodObject<{
 
 // @public (undocumented)
 export class CircuitBreaker implements ICircuitBreaker {
-    constructor(config?: CircuitBreakerConfig);
+    // Warning: (ae-forgotten-export) The symbol "Clock" needs to be exported by the entry point index.d.ts
+    constructor(config?: CircuitBreakerConfig, clock?: Clock | undefined);
     // (undocumented)
     checkCircuit(endpoint: string): void;
     // (undocumented)
@@ -5487,7 +5488,7 @@ export interface ETagCacheConfig {
 
 // @public (undocumented)
 export class ETagCacheManager implements ICache {
-    constructor(config?: ETagCacheConfig, client?: ApiClient_2 | null);
+    constructor(config?: ETagCacheConfig, client?: ApiClient_2 | null, clock?: Clock | undefined);
     cleanup(): number;
     clear(): void;
     delete(url: string): boolean;
@@ -8360,7 +8361,7 @@ export interface RateLimitEndpointOverride {
 
 // @public (undocumented)
 export class RateLimiter implements IRateLimiter {
-    constructor(config?: RateLimiterConfig);
+    constructor(config?: RateLimiterConfig, clock?: Clock | undefined);
     // (undocumented)
     checkRateLimit(templatePath?: string, method?: string, requestHeaders?: Record<string, string>): Promise<void>;
     // (undocumented)
