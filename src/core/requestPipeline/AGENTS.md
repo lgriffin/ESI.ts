@@ -34,9 +34,11 @@ Checked against `ApiRequestHandler.ts` and `fetchExecution.ts`:
    also covers reading the whole body (a reset part way through the body is a
    network failure, like a reset before the headers). Last, it
    updates the rate limiter and records the result with the circuit breaker.
-5. **Status handling.** 201 returns directly. `handleEarlyStatus` handles 204
-   and 304. `handleErrorResponse` throws on 4xx/5xx, or serves stale cache on
-   5xx.
+5. **Status handling.** 201 returns directly. An endpoint flagged
+   `emptyWhenNoContent` returns no body for a 200 with `Content-Length: 0`
+   (`answeredWithNoContent`, shared with the page path and the generated
+   operations). `handleEarlyStatus` handles 204 and 304.
+   `handleErrorResponse` throws on 4xx/5xx, or serves stale cache on 5xx.
 6. **`parseJsonBody`** (or `response.text()` for an endpoint with
    `textResponse`, which also sets its Accept header), then **`cacheResponse`**.
 7. **Pagination.** Cursor pagination, or offset pagination across `X-Pages`.

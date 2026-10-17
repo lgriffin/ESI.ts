@@ -98,7 +98,7 @@ export function esiRequests(): readonly RecordedRequest[] {
   return sentRequests().filter((r) => r.url.host === 'esi.evetech.net');
 }
 
-// ── What the legacy endpoint definitions carried
+// ── What the custom endpoint definitions carry too
 
 export const PUBLIC_CONTRACT_ID = 214_400_001;
 export const PUBLIC_CONTRACT_BIDS_PATH = /\/contracts\/public\/bids\/\d+(\?|$)/;

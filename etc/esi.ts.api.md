@@ -2495,6 +2495,8 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     fetchAllCharacterContracts(characterId: number, concurrency?: number): Promise<Contract[]>;
     // (undocumented)
     fetchAllCorporationContracts(corporationId: number, concurrency?: number): Promise<Contract[]>;
+    fetchAllPublicContractBids(contractId: number, concurrency?: number): Promise<PublicContractBid[]>;
+    fetchAllPublicContractItems(contractId: number, concurrency?: number): Promise<PublicContractItem[]>;
     // (undocumented)
     fetchAllPublicContracts(regionId: number, concurrency?: number): Promise<PublicContract[]>;
     getCharacterContractBids(characterId: number, contractId: number): Promise<ContractBid[]>;
@@ -2510,6 +2512,8 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     streamCharacterContracts(characterId: number): AsyncGenerator<PageResult<Contract>, void, undefined>;
     // (undocumented)
     streamCorporationContracts(corporationId: number): AsyncGenerator<PageResult<Contract>, void, undefined>;
+    streamPublicContractBids(contractId: number): AsyncGenerator<PageResult<PublicContractBid>, void, undefined>;
+    streamPublicContractItems(contractId: number): AsyncGenerator<PageResult<PublicContractItem>, void, undefined>;
     // (undocumented)
     streamPublicContracts(regionId: number): AsyncGenerator<PageResult<PublicContract>, void, undefined>;
 }
@@ -6039,13 +6043,13 @@ export function fetchAllCursorPages<TResponse, TItem = unknown>(fetcher: (before
 // Warning: (ae-forgotten-export) The symbol "ResponseSchema" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function fetchAllPages<T = unknown>(client: ApiClient, endpoint: string, method: string, requiresAuth?: boolean, body?: unknown, templatePath?: string, responseSchema?: ResponseSchema, concurrency?: number): Promise<T[]>;
+export function fetchAllPages<T = unknown>(client: ApiClient, endpoint: string, method: string, requiresAuth?: boolean, body?: unknown, templatePath?: string, responseSchema?: ResponseSchema, concurrency?: number, emptyWhenNoContent?: boolean): Promise<T[]>;
 
 // @public (undocumented)
 export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 // @public (undocumented)
-export function fetchPages<T = unknown>(client: ApiClient, endpoint: string, method: string, requiresAuth?: boolean, body?: unknown, templatePath?: string, responseSchema?: ResponseSchema): AsyncGenerator<PageResult<T>, void, undefined>;
+export function fetchPages<T = unknown>(client: ApiClient, endpoint: string, method: string, requiresAuth?: boolean, body?: unknown, templatePath?: string, responseSchema?: ResponseSchema, emptyWhenNoContent?: boolean): AsyncGenerator<PageResult<T>, void, undefined>;
 
 // @public
 export class FileTokenStorage implements ITokenStorage {

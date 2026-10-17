@@ -316,7 +316,9 @@ header_read_sites:
   - file: src/core/requestPipeline/headers.ts
     headers: [cache-control]
   - file: src/core/requestPipeline/fetchExecution.ts
-    headers: [content-length, location]
+    headers: [location]
+  - file: src/core/requestPipeline/statusHandling.ts
+    headers: [content-length]
   - file: src/core/endpoints/createClient.ts
     headers:
       [
@@ -349,7 +351,5 @@ header_read_sites:
     headers: [x-pages]
   - file: src/core/pagination/CursorPaginationHandler.ts
     headers: [x-cursor-after, x-cursor-before]
-  - file: src/core/ApiRequestHandler.ts
-    headers: [content-length]
   - file: src/sde/ingestion/SdeDownloader.ts
     headers: [content-length]

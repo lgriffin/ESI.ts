@@ -3,6 +3,7 @@ import { buildDedupeKey } from './cache/cacheKey';
 import { logInfo } from './logger/clientLog';
 
 import {
+  answeredWithNoContent,
   trySpecAwareCacheHit,
   cacheResponse,
   currentWriteGeneration,
@@ -97,11 +98,12 @@ const executeRequest = async (
 
     // ESI answers an expired public contract with a 200 and Content-Length 0
     // where its spec says 204. Only endpoints that opt in read that as no
-    // content; elsewhere an empty body is a JSON_PARSE_ERROR.
+    // content; elsewhere an empty body is a JSON_PARSE_ERROR. A 204 reads as
+    // no content on every endpoint (handleEarlyStatus).
     if (
       emptyWhenNoContent &&
       response.status === 200 &&
-      response.headers.get('content-length') === '0'
+      answeredWithNoContent(response)
     ) {
       logInfo(client, `No Content for endpoint: ${url}`, { status: 200 });
       return finish({ headers: parsed.raw, body: undefined, status: 200 });
@@ -196,6 +198,7 @@ const executeRequest = async (
         resolveCircuitBreaker,
         requestTimeout,
         templatePath,
+        emptyWhenNoContent,
       );
       return Array.isArray(result.data)
         ? (result.data as unknown[])

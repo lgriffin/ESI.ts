@@ -247,7 +247,8 @@ log.info(data.name, {
 ### Text and empty responses
 
 - `meta.getOpenApiYaml()` goes through the full pipeline (cache, rate limiter, retry) and resolves the YAML document as a string.
-- ESI answers some calls with a 200 and no body. `getPublicContractItems` and `getPublicContractBids` resolve `[]` in that case, because an expired public contract has no items. Every other endpoint rejects an empty body with `JSON_PARSE_ERROR`, so a fault is never silently turned into "no data".
+- ESI answers some calls with a 200 and no body. `getPublicContractItems` and `getPublicContractBids` resolve `[]` in that case, because an expired public contract has no items, and so do `fetchAllPublicContractItems` and `fetchAllPublicContractBids`; `streamPublicContractItems` and `streamPublicContractBids` yield one empty page. Every other endpoint rejects an empty body with `JSON_PARSE_ERROR`, so a fault is never silently turned into "no data".
+- An endpoint whose definition carries `deprecated` (`DeprecationInfo`) logs one warning per call through the client's logger: `Endpoint '<method>' is deprecated.`, then the message, replacement and sunset date. `createEsi()` words its operation warnings with the same helper, and a unit test fails if the endpoint definitions and the spec disagree about which routes are deprecated. No endpoint is deprecated today.
 
 ## 5. Caching, rate limiting and resilience
 
@@ -300,7 +301,7 @@ const names = await client.batchPost(
 A paginated method comes in three forms:
 
 - The plain method fetches every page and returns one array.
-- The `stream*` form yields one validated page at a time, and stops fetching when you `break`. There are <!-- metric:streamMethods -->73<!-- /metric --> of these across <!-- metric:streamClients -->19<!-- /metric --> clients.
+- The `stream*` form yields one validated page at a time, and stops fetching when you `break`. There are <!-- metric:streamMethods -->75<!-- /metric --> of these across <!-- metric:streamClients -->19<!-- /metric --> clients.
 - The `fetchAll*` form fetches the remaining pages concurrently, eight at a time.
 
 Cursor routes, such as Freelance Jobs, page with opaque `before` and `after` tokens through `fetchAllCursorPages`.

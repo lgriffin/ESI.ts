@@ -13,7 +13,11 @@ import { IRateLimiter } from '../rateLimiter/IRateLimiter';
 import { ICircuitBreaker } from '../circuitBreaker/ICircuitBreaker';
 import { buildRequestHeaders } from './headers';
 import { applyRequestMiddleware } from './middlewareBridge';
-import { readEsiErrorReason, statusMessage } from './statusHandling';
+import {
+  answeredWithNoContent,
+  readEsiErrorReason,
+  statusMessage,
+} from './statusHandling';
 
 export interface RawFetchResult {
   response: Response;
@@ -278,20 +282,9 @@ export async function parseJsonBody(
 }
 
 /**
- * ESI's answer when a route has nothing to return: a 204, or a 200 with
- * `Content-Length: 0` where its spec says 204 (an expired public contract).
- */
-function answeredWithNoContent(response: Response): boolean {
-  return (
-    response.status === 204 ||
-    (response.status === 200 && response.headers.get('content-length') === '0')
-  );
-}
-
-/**
  * Fetch a single page: execute the fetch, check for errors, parse JSON.
  * With `emptyWhenNoContent`, a page ESI answers with no content
- * (`answeredWithNoContent`) has `undefined` data instead of failing to parse.
+ * (`answeredWithNoContent`) is an empty page instead of failing to parse.
  */
 export async function fetchOnePage(
   client: ApiClient,
@@ -336,7 +329,7 @@ export async function fetchOnePage(
     logInfo(client, `No Content for endpoint: ${url}`, {
       status: response.status,
     });
-    return { data: undefined, parsed, url };
+    return { data: [], parsed, url };
   }
 
   const data = await parseJsonBody(client, response, url);

@@ -9,7 +9,7 @@
  */
 import type { ApiClient } from '../core/ApiClient';
 import { handleRequest } from '../core/ApiRequestHandler';
-import { logWarn } from '../core/logger/clientLog';
+import { warnIfDeprecated } from '../core/endpoints/deprecationWarning';
 import { fetchPages } from '../core/pagination/AsyncPaginationIterator';
 import type {
   OperationMeta,
@@ -17,7 +17,11 @@ import type {
   OperationTransport,
   QueryValue,
 } from '../core/ports/OperationTransport';
-import { evictRejectedResponse, resolveCache } from '../core/requestPipeline';
+import {
+  emptyListWhenNoContent,
+  evictRejectedResponse,
+  resolveCache,
+} from '../core/requestPipeline';
 import { EsiValidationError } from '../core/util/error';
 import { validatePathParam, validateQueryParam } from '../core/util/validation';
 import { responseSchemas } from './responseSchemas.generated';
@@ -69,20 +73,6 @@ function build(
   };
 }
 
-/**
- * The warning a call to a deprecated operation logs, worded as the legacy
- * endpoint definitions word theirs (`createClient`'s `DeprecationInfo`).
- */
-function deprecationWarning(meta: OperationMeta): string | undefined {
-  if (!meta.deprecated && !meta.deprecation) return undefined;
-  const { message, replacedBy, sunsetDate } = meta.deprecation ?? {};
-  const parts = [`Operation '${meta.operationId}' is deprecated.`];
-  if (message) parts.push(message);
-  if (replacedBy) parts.push(`Use '${replacedBy}' instead.`);
-  if (sunsetDate) parts.push(`Sunset date: ${sunsetDate}.`);
-  return parts.join(' ');
-}
-
 export interface PipelineTransportOptions {
   /**
    * Check each body against the operation's generated schema. Off unless set:
@@ -124,9 +114,8 @@ export class PipelineTransport implements OperationTransport {
       emptyWhenNoContent,
     );
     // No content (a 204, or ESI's empty 200) on a route that documents it is
-    // an empty list, as the custom endpoint maps read it.
-    const body =
-      response.body === undefined && emptyWhenNoContent ? [] : response.body;
+    // an empty list, read by the same helper the custom clients use.
+    const body = emptyListWhenNoContent(response.body, emptyWhenNoContent);
     const schema = responseSchemas[meta.operationId];
     if (!schema || !this.validate) {
       return body as T;
@@ -170,10 +159,17 @@ export class PipelineTransport implements OperationTransport {
     }
   }
 
+  /**
+   * The custom clients' warning (`createClient`), worded by the same helper:
+   * on every operation the spec deprecates, with the overlay's guidance.
+   */
   private warnIfDeprecated(meta: OperationMeta): void {
-    const warning = deprecationWarning(meta);
-    if (warning) {
-      logWarn(this.client, warning, { operationId: meta.operationId });
-    }
+    warnIfDeprecated(
+      this.client,
+      'Operation',
+      meta.operationId,
+      meta.deprecation ?? (meta.deprecated ? {} : undefined),
+      { operationId: meta.operationId },
+    );
   }
 }

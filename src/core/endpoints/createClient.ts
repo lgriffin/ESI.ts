@@ -8,10 +8,14 @@ import {
   EsiResponseMeta,
 } from '../../types/api-responses';
 import { buildEndpointPath } from './buildEndpointPath';
+import { warnIfDeprecated } from './deprecationWarning';
 import { parseWarning } from '../util/headersUtil';
-import { logWarn } from '../logger/clientLog';
 import { EsiValidationError, toEsiError } from '../util/error';
-import { evictRejectedResponse, resolveCache } from '../requestPipeline';
+import {
+  emptyListWhenNoContent,
+  evictRejectedResponse,
+  resolveCache,
+} from '../requestPipeline';
 import type { z } from 'zod';
 
 export interface CursorOptions {
@@ -122,15 +126,9 @@ export function createClient<T extends EndpointMap>(
       methodName
     ] = async (...args: unknown[]) => {
       try {
-        if (def.deprecated) {
-          const parts = [`Endpoint '${methodName}' is deprecated.`];
-          if (def.deprecated.message) parts.push(def.deprecated.message);
-          if (def.deprecated.replacedBy)
-            parts.push(`Use '${def.deprecated.replacedBy}' instead.`);
-          if (def.deprecated.sunsetDate)
-            parts.push(`Sunset date: ${def.deprecated.sunsetDate}.`);
-          logWarn(apiClient, parts.join(' '), { endpoint: methodName });
-        }
+        warnIfDeprecated(apiClient, 'Endpoint', methodName, def.deprecated, {
+          endpoint: methodName,
+        });
 
         const built = buildEndpointPath(def, args, apiClient.getDatasource());
         let path = built.path;
@@ -235,10 +233,10 @@ export function createClient<T extends EndpointMap>(
           def.textResponse,
           def.emptyWhenNoContent,
         );
-        let responseBody = response.body;
-        if (responseBody === undefined && def.emptyWhenNoContent) {
-          responseBody = [];
-        }
+        let responseBody = emptyListWhenNoContent(
+          response.body,
+          def.emptyWhenNoContent,
+        );
         if (def.responseSchema && apiClient.getValidateResponse()) {
           const result = def.responseSchema.safeParse(responseBody);
           if (!result.success) {

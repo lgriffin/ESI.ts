@@ -64,9 +64,9 @@ That is the answer to [#183](https://github.com/lgriffin/ESI.ts/issues/183): the
 
 The public view sends no `Authorization` header, whatever tokens the runtime's other views hold. A public request is never attributed to a character.
 
-Two operations are not in ESI's specification and come from `scripts/spec/operation-overlay.json` instead: `esi.public.meta.openapiJson.get()` resolves with the parsed specification document and `esi.public.meta.openapiYaml.get()` with the YAML text, unparsed, asked for with `Accept: application/yaml, text/yaml, text/plain`, as the legacy `MetaClient` methods do.
+Two operations are not in ESI's specification and come from `scripts/spec/operation-overlay.json` instead: `esi.public.meta.openapiJson.get()` resolves with the parsed specification document and `esi.public.meta.openapiYaml.get()` with the YAML text, unparsed, asked for with `Accept: application/yaml, text/yaml, text/plain`, as `MetaClient.getOpenApiJson()` and `getOpenApiYaml()` on the custom clients do.
 
-When an operation the spec marks deprecated is called, through any view, the runtime logs one warning through its logger per call (per iteration for a paginated one): `Operation '<operationId>' is deprecated.`, followed by the message, replacement and sunset date when `scripts/spec/operation-overlay.json` records them. The same guidance is on `OperationMeta.deprecation` and in the operation's `@deprecated` JSDoc. No operation is deprecated in the current specification.
+When an operation the spec marks deprecated is called, through any view, the runtime logs one warning through its logger per call (per iteration for a paginated one): `Operation '<operationId>' is deprecated.`, followed by the message, replacement and sunset date when `scripts/spec/operation-overlay.json` records them. The same guidance is on `OperationMeta.deprecation` and in the operation's `@deprecated` JSDoc. The custom clients log the same warning, worded by the same helper, as `Endpoint '<method>' is deprecated.` from the endpoint definition's `DeprecationInfo`. No operation is deprecated in the current specification.
 
 ## Identities and `as()`
 

@@ -198,14 +198,15 @@ Feature: One runtime, many identities
       And the character's view requests the wallet balance
       Then the call shall resolve with the wallet balance after one request
 
-  # ── What the legacy endpoint definitions carried
+  # ── What the custom endpoint definitions carry too
 
   Rule: When a view invokes an operation the spec marks deprecated, the runtime shall log one warning through the runtime's logger naming the operation, its replacement and its sunset date.
     The first step of the deprecation process in guides/SEMVER.md is a
-    warning on every call, which the legacy endpoint definitions give through
-    DeprecationInfo. The generator carries the spec's deprecated flag and the
-    message, replacement and sunset date from scripts/spec/operation-overlay.json
-    into the operation's metadata. No operation in the vendored spec is
+    warning on every call, which the custom endpoint definitions give through
+    DeprecationInfo (0060-custom-client.feature), worded by the same helper.
+    The generator carries the spec's deprecated flag and the message,
+    replacement and sunset date from scripts/spec/operation-overlay.json into
+    the operation's metadata. No operation in the vendored spec is
     deprecated today, so the scenario marks the server status metadata
     deprecated for its duration.
 
@@ -226,7 +227,7 @@ Feature: One runtime, many identities
     ESI serves its specification under meta/ without listing those paths in
     the specification itself, so nothing is generated from the spec for them.
     The generator adds both from scripts/spec/operation-overlay.json, as the
-    legacy Meta client's endpoint map lists them.
+    custom Meta client's endpoint map lists them.
 
     Scenario: The JSON specification reaches the public view parsed
       Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
@@ -236,7 +237,7 @@ Feature: One runtime, many identities
 
   Rule: When the public view requests the OpenAPI document in YAML form, the runtime shall ask for YAML in the Accept header and resolve with the document as unparsed text.
     The YAML document is not JSON, so the overlay marks the operation as a
-    text response with the Accept header the legacy Meta client sends, and
+    text response with the Accept header the custom Meta client sends, and
     the transport hands the body back verbatim.
 
     Scenario: The YAML specification reaches the public view as text
@@ -251,7 +252,7 @@ Feature: One runtime, many identities
     and the detail read. The spec documents a 204 beside the 200 on both
     routes, and ESI in practice sends a 200 with Content-Length 0. The
     generator marks every operation whose spec pairs a JSON 200 with a 204,
-    and the runtime reads either answer as an empty list, as the legacy
+    and the runtime reads either answer as an empty list, as the custom
     Contracts client does. Every other operation keeps rejecting an empty
     200 body.
 

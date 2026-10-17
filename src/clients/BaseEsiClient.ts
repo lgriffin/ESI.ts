@@ -60,6 +60,7 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
       body,
       def.path,
       def.responseSchema,
+      def.emptyWhenNoContent === true,
     );
   }
 
@@ -84,6 +85,7 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
       def.path,
       def.responseSchema,
       concurrency,
+      def.emptyWhenNoContent === true,
     );
   }
 

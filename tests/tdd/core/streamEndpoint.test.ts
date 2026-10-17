@@ -430,6 +430,8 @@ describe('fetchAllEndpoint', () => {
       undefined,
       true,
       'secure/{characterId}/items/',
+      undefined,
+      false,
     );
   });
 
