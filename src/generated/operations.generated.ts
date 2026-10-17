@@ -8059,7 +8059,7 @@ export type UniverseBloodlinesGet = readonly {
   readonly name: string;
   readonly perception: number;
   readonly race_id: number;
-  readonly ship_type_id: number | null;
+  readonly ship_type_id: number;
   readonly willpower: number;
 }[];
 

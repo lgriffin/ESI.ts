@@ -80,8 +80,18 @@ export function generateResponseSchemas(
   /** The components being emitted, innermost last, for the overrides. */
   const stack: string[] = [];
 
+  for (const name of Object.keys(overrides)) {
+    if (!schemas[name]) {
+      throw new SpecGenerateError(`override names missing schema "${name}"`);
+    }
+  }
+  /**
+   * Only the innermost component: inline objects inside an overridden
+   * component match, but a component it references does not, since that one
+   * is emitted once and shared by every operation that reaches it.
+   */
   const nullableHere = (key: string): boolean =>
-    stack.some((name) => overrides[name]?.nullable?.includes(key) === true);
+    overrides[stack[stack.length - 1] ?? '']?.nullable?.includes(key) === true;
 
   const constName = (name: string): string =>
     `${name.replace(/[^\w$]/g, '_')}Schema`;

@@ -66,12 +66,11 @@ const fixture: OpenApiDocument = {
  * Writes the emitted module beside this test so Jest compiles it and resolves
  * its `zod` import like any other source file, then removes it.
  */
-function load(overrides: SchemaOverrides = {}): Record<string, z.ZodType> {
-  const { source } = generateResponseSchemas(
-    fixture,
-    'fixture.json',
-    overrides,
-  );
+function load(
+  overrides: SchemaOverrides = {},
+  doc: OpenApiDocument = fixture,
+): Record<string, z.ZodType> {
+  const { source } = generateResponseSchemas(doc, 'fixture.json', overrides);
   const file = path.join(
     __dirname,
     `.zod-fixture-${process.pid}-${++loads}.ts`,
@@ -136,5 +135,76 @@ describe('generateResponseSchemas', () => {
     expect(schemas.GetThing!.safeParse(body).success).toBe(false);
     const overridden = load({ Thing: { nullable: ['ship_type_id'] } });
     expect(overridden.GetThing!.safeParse(body).success).toBe(true);
+  });
+
+  it('applies an override inside its own component, not to a component it references', () => {
+    // Outer is emitted first (paths sort) and reaches Shared for the first
+    // time: Shared is memoised, so a leaked override would widen GetShared too.
+    const doc: OpenApiDocument = {
+      info: { version: '2026-01-01' },
+      components: {
+        schemas: {
+          Shared: {
+            type: 'object',
+            required: ['ship_type_id'],
+            properties: { ship_type_id: { type: 'integer' } },
+          },
+          Outer: {
+            type: 'object',
+            required: ['ship_type_id', 'inline', 'shared'],
+            properties: {
+              ship_type_id: { type: 'integer' },
+              inline: {
+                type: 'object',
+                required: ['ship_type_id'],
+                properties: { ship_type_id: { type: 'integer' } },
+              },
+              shared: { $ref: '#/components/schemas/Shared' },
+            },
+          },
+        },
+      },
+      paths: {
+        '/a-outer': {
+          get: {
+            operationId: 'GetOuter',
+            responses: ok({ $ref: '#/components/schemas/Outer' }),
+          },
+        },
+        '/b-shared': {
+          get: {
+            operationId: 'GetShared',
+            responses: ok({ $ref: '#/components/schemas/Shared' }),
+          },
+        },
+      },
+    };
+    const out = load({ Outer: { nullable: ['ship_type_id'] } }, doc);
+    const shared = { ship_type_id: 1 };
+    expect(
+      out.GetOuter!.safeParse({
+        ship_type_id: null,
+        inline: { ship_type_id: null },
+        shared,
+      }).success,
+    ).toBe(true);
+    expect(
+      out.GetOuter!.safeParse({
+        ship_type_id: 1,
+        inline: { ship_type_id: 1 },
+        shared: { ship_type_id: null },
+      }).success,
+    ).toBe(false);
+    expect(out.GetShared!.safeParse({ ship_type_id: null }).success).toBe(
+      false,
+    );
+  });
+
+  it('fails when an override names a component the document lacks', () => {
+    expect(() =>
+      generateResponseSchemas(fixture, 'fixture.json', {
+        Missing: { nullable: ['ship_type_id'] },
+      }),
+    ).toThrow(/override names missing schema "Missing"/);
   });
 });

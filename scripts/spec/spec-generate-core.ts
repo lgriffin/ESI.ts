@@ -73,7 +73,10 @@ export interface GenerateOptions {
   /**
    * Wire deviations from the document, by component schema: properties ESI
    * sends as null although the document does not allow it
-   * (scripts/spec/response-schema-overrides.json).
+   * (scripts/spec/response-schema-overrides.json). Widening an operation's
+   * TypeScript type is a major change (guides/SEMVER.md), so
+   * scripts/spec/spec-generate.ts passes these to the Zod emitter only in
+   * 12.x; the next major passes them here as well.
    */
   readonly overrides?: Readonly<
     Record<string, { readonly nullable?: readonly string[] }>
@@ -126,8 +129,14 @@ export function generateOperations(
   const overrides = options.overrides ?? {};
   /** The component schemas being emitted, innermost last. */
   const stack: string[] = [];
+  for (const name of Object.keys(overrides)) {
+    if (!schemas[name]) {
+      throw new SpecGenerateError(`override names missing schema "${name}"`);
+    }
+  }
+  /** Only the innermost component: a referenced component is shared. */
   const nullableHere = (key: string): boolean =>
-    stack.some((name) => overrides[name]?.nullable?.includes(key) === true);
+    overrides[stack[stack.length - 1] ?? '']?.nullable?.includes(key) === true;
 
   function refTarget(ref: string, kind: 'schemas' | 'parameters'): string {
     const prefix = `#/components/${kind}/`;

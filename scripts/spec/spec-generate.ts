@@ -42,13 +42,20 @@ async function render(): Promise<Rendered[]> {
   const doc = JSON.parse(
     fs.readFileSync(path.join(ROOT, SPEC_PATH), 'utf8'),
   ) as OpenApiDocument;
-  const overrides = JSON.parse(
-    fs.readFileSync(path.join(ROOT, OVERRIDES_PATH), 'utf8'),
+  // `$comment` documents the file; every other key names a component schema.
+  const overrides = Object.fromEntries(
+    Object.entries(
+      JSON.parse(
+        fs.readFileSync(path.join(ROOT, OVERRIDES_PATH), 'utf8'),
+      ) as Record<string, unknown>,
+    ).filter(([key]) => !key.startsWith('$')),
   ) as SchemaOverrides;
+  // The overrides widen the Zod schemas only. Widening the operation types
+  // too (number to number | null) is a major change under guides/SEMVER.md:
+  // pass `overrides` to generateOperations in the next major.
   const operations = generateOperations(doc, {
     specPath: SPEC_PATH,
     transportImport: '../core/ports/OperationTransport',
-    overrides,
   });
   const zod = generateResponseSchemas(doc, SPEC_PATH, overrides);
   return [
