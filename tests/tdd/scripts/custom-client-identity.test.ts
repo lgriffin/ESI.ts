@@ -102,6 +102,23 @@ const STILL_DEPRECATED = [
   'EsiTokenManager.createClient',
 ];
 
+/** The class the root entry exports under `name`. */
+function classNamed(name: string): abstract new (...args: never[]) => unknown {
+  return (root as unknown as Record<string, unknown>)[name] as abstract new (
+    ...args: never[]
+  ) => unknown;
+}
+
+/** Stops the cache sweep and breaker timers of a domain client's own ApiClient. */
+function stopTimers(client: unknown): void {
+  const api = (client as { _client?: ApiClient })._client;
+  const parts = [api?.getCache(), api?.getCircuitBreaker()] as unknown[];
+  for (const part of parts) {
+    const stop = (part as { shutdown?: () => void } | null)?.shutdown;
+    if (typeof stop === 'function') stop.call(part);
+  }
+}
+
 const DECLARATION =
   /^(export )?(?:declare )?(?:abstract )?(?:class|interface|type|function|const|enum) (\w+)\b/;
 
@@ -282,6 +299,59 @@ describe('ARCH-14: the custom clients stay the product', () => {
       expect(client).toBeInstanceOf(BaseEsiClient);
     },
   );
+
+  // The registry alone is not enough: each public construction path must
+  // hand out the custom class, so a surface rewired to the generated scope
+  // tree fails here even when the registry is untouched.
+  it.each(Object.entries(REGISTERED))(
+    'ARCH-08: EsiApiFactory.createClient(%s) returns a %s',
+    (type, className) => {
+      const client = root.EsiApiFactory.createClient(type as ApiClientType);
+      try {
+        expect(client).toBeInstanceOf(classNamed(className));
+        expect(client).toBeInstanceOf(BaseEsiClient);
+      } finally {
+        stopTimers(client);
+      }
+    },
+  );
+
+  it('ARCH-08: EsiClientBuilder builds a CustomEsiClient whose getters return the custom classes', () => {
+    const types = Object.keys(REGISTERED) as ApiClientType[];
+    const custom = new root.EsiClientBuilder().addClients(types).build();
+    try {
+      expect(custom).toBeInstanceOf(root.CustomEsiClient);
+      const wrong = types.filter((type) => {
+        const viaGetter = (custom as unknown as Record<string, unknown>)[type];
+        return !(
+          viaGetter instanceof classNamed(REGISTERED[type]) &&
+          viaGetter instanceof BaseEsiClient &&
+          (custom.getClient(type) as unknown) === viaGetter
+        );
+      });
+      expect(wrong).toEqual([]);
+    } finally {
+      custom.shutdown();
+    }
+  });
+
+  it("ARCH-08: EsiClient's domain properties return the custom classes", () => {
+    const client = new root.EsiClient();
+    try {
+      const wrong = (Object.keys(REGISTERED) as ApiClientType[]).filter(
+        (type) => {
+          const domain = (client as unknown as Record<string, unknown>)[type];
+          return !(
+            domain instanceof classNamed(REGISTERED[type]) &&
+            domain instanceof BaseEsiClient
+          );
+        },
+      );
+      expect(wrong).toEqual([]);
+    } finally {
+      client.shutdown();
+    }
+  });
 
   it('keeps the 11.0.0 deprecations of the named factories, and only those', () => {
     const states = STILL_DEPRECATED.map((name) => reportState(name));
