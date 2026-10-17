@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.2.0](https://github.com/lgriffin/ESI.ts/compare/v12.1.0...v12.2.0) (2026-10-17)
+
+
+### Added
+
+* **client:** keep the custom clients as the product and lift the 12.1.0 deprecations ([#666](https://github.com/lgriffin/ESI.ts/issues/666)) ([bd437e1](https://github.com/lgriffin/ESI.ts/commit/bd437e13ec23e79a5fd5eaa37d215865d2fb92fa))
+* **client:** validate generated operation responses with generated Zod schemas, opt-in ([#659](https://github.com/lgriffin/ESI.ts/issues/659)) ([c610204](https://github.com/lgriffin/ESI.ts/commit/c6102044cd6aa81d64bdecaf8f37a8eea465eb3f))
+* **pagination:** opt-in EsiPaginationError for incomplete page walks (incompletePages) ([#662](https://github.com/lgriffin/ESI.ts/issues/662)) ([f24161a](https://github.com/lgriffin/ESI.ts/commit/f24161a6278385b281f78fced5a122fc2321a4bd))
+
 ## [12.1.0](https://github.com/lgriffin/ESI.ts/compare/v12.0.0...v12.1.0) (2026-10-16)
 
 
