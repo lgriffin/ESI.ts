@@ -232,6 +232,7 @@ export const handleSinglePageRequest = async (
   requiresAuth: boolean = false,
   templatePath?: string,
   requestTimeout?: number,
+  emptyWhenNoContent: boolean = false,
 ): Promise<EsiHandlerResponse> => {
   // No If-None-Match: this path keeps no cache of its own, so a 304 would
   // leave it with no body to return (#292).
@@ -248,6 +249,7 @@ export const handleSinglePageRequest = async (
       resolveCircuitBreaker,
       requestTimeout,
       templatePath,
+      emptyWhenNoContent,
     ).then(({ data, parsed }) => ({
       headers: parsed.raw,
       body: data,

@@ -271,7 +271,7 @@ function isMissingToken(err: unknown): boolean {
 }
 ```
 
-A 200 with an empty body is an `EsiParseError` on every endpoint except two. `getPublicContractItems` and `getPublicContractBids` resolve with `[]` when ESI sends no content: a 204, or a 200 with `Content-Length: 0`. ESI answers that way for a public contract that has expired or been accepted.
+A 200 with an empty body is an `EsiParseError` on every endpoint except two. `getPublicContractItems` and `getPublicContractBids` resolve with `[]` when ESI sends no content: a 204, or a 200 with `Content-Length: 0`. ESI answers that way for a public contract that has expired or been accepted. On the `createEsi()` views, `contracts.public.items(id).get()` and `contracts.public.bids(id).get()` yield nothing in the same case: the generator marks every operation whose spec pairs a JSON 200 with a 204 (`OperationMeta.emptyWhenNoContent`), and those are the two.
 
 Two plain errors carry no code: `No token provider configured`, from calling `ApiClient.refreshToken()` directly without a provider, and `At least one client type must be specified`, from building an empty `EsiClientBuilder`. Both are raised outside a request.
 

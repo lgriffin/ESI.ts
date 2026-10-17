@@ -67,6 +67,8 @@ describe('MarketClient streaming', () => {
         undefined,
         false,
         'markets/{regionId}/orders/',
+        undefined,
+        false,
       );
     });
 
@@ -163,6 +165,8 @@ describe('MarketClient streaming', () => {
         undefined,
         false,
         'markets/{regionId}/types/',
+        undefined,
+        false,
       );
       expect(pages[0].data).toEqual([34, 35, 36]);
     });
@@ -189,6 +193,8 @@ describe('MarketClient streaming', () => {
         undefined,
         true,
         'markets/structures/{structureId}/',
+        undefined,
+        false,
       );
     });
   });

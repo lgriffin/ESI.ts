@@ -313,7 +313,7 @@ header_read_sites:
   - file: src/core/requestPipeline/headers.ts
     headers: [cache-control]
   - file: src/core/requestPipeline/fetchExecution.ts
-    headers: [location]
+    headers: [content-length, location]
   - file: src/core/endpoints/createClient.ts
     headers:
       [

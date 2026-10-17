@@ -1,0 +1,54 @@
+{
+  "$comment": "What the generator (scripts/spec/spec-generate-core.ts) adds to the vendored ESI OpenAPI document. `paths` holds operations ESI serves but does not list in its spec, in OpenAPI form; each must also be listed in esi-endpoint-exceptions.json, and the generator fails once the spec lists the path itself. `deprecations` maps the operationId of an operation the spec marks deprecated to its migration guidance (message, replacedBy, sunsetDate), carried into OperationMeta.deprecation; the generator fails on an entry whose operation is missing or not deprecated.",
+  "paths": {
+    "/meta/openapi.json": {
+      "get": {
+        "operationId": "GetMetaOpenapiJson",
+        "summary": "Get the OpenAPI document as JSON",
+        "description": "The specification document this API is generated from, parsed.",
+        "parameters": [
+          { "$ref": "#/components/parameters/AcceptLanguage" },
+          { "$ref": "#/components/parameters/IfNoneMatch" },
+          { "$ref": "#/components/parameters/CompatibilityDate" },
+          { "$ref": "#/components/parameters/Tenant" },
+          { "$ref": "#/components/parameters/IfModifiedSince" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "additionalProperties": true }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/meta/openapi.yaml": {
+      "get": {
+        "operationId": "GetMetaOpenapiYaml",
+        "summary": "Get the OpenAPI document as YAML",
+        "description": "The specification document this API is generated from, as unparsed YAML text.",
+        "parameters": [
+          { "$ref": "#/components/parameters/AcceptLanguage" },
+          { "$ref": "#/components/parameters/IfNoneMatch" },
+          { "$ref": "#/components/parameters/CompatibilityDate" },
+          { "$ref": "#/components/parameters/Tenant" },
+          { "$ref": "#/components/parameters/IfModifiedSince" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/yaml": { "schema": { "type": "string" } },
+              "text/yaml": { "schema": { "type": "string" } },
+              "text/plain": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "deprecations": {}
+}

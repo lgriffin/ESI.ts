@@ -8,6 +8,20 @@
 /** How an operation splits its results across calls. */
 export type OperationPagination = 'none' | 'page' | 'cursor';
 
+/**
+ * Migration guidance for a deprecated operation, from
+ * `scripts/spec/operation-overlay.json`. Each field is optional: the spec
+ * carries only the flag, so a field is present when the overlay names it.
+ */
+export interface OperationDeprecation {
+  /** Why the operation is deprecated, or what to do instead. */
+  readonly message?: string;
+  /** The operationId of the operation that replaces it. */
+  readonly replacedBy?: string;
+  /** The date ESI stops serving it, `YYYY-MM-DD`. */
+  readonly sunsetDate?: string;
+}
+
 export interface OperationMeta {
   readonly operationId: string;
   readonly method: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -22,6 +36,26 @@ export interface OperationMeta {
   readonly pagination: OperationPagination;
   /** The spec marks the operation `deprecated: true`. */
   readonly deprecated: boolean;
+  /**
+   * What the generator knows about a deprecated operation, beyond the spec's
+   * flag: why, what replaces it and when ESI stops serving it. Present on
+   * every operation the spec deprecates; the transport logs a warning on
+   * each call to an operation that carries it or has `deprecated` set.
+   */
+  readonly deprecation?: OperationDeprecation;
+  /**
+   * Read the body as text rather than JSON, asking for it with this Accept
+   * header. Set on the few ESI routes that are not JSON, such as
+   * `meta/openapi.yaml`.
+   */
+  readonly textResponse?: { readonly accept: string };
+  /**
+   * The spec pairs the JSON 200 with a 204: ESI answers with no content (a
+   * 204, or a 200 with `Content-Length: 0`) when there is nothing to return,
+   * as for a public contract that expired or was accepted. The transport then
+   * resolves with `[]` (or yields nothing) instead of failing to parse.
+   */
+  readonly emptyWhenNoContent?: boolean;
   /**
    * Header parameters the spec accepts (`X-Compatibility-Date`, `X-Tenant`,
    * `If-None-Match` and so on). They are client configuration, not call

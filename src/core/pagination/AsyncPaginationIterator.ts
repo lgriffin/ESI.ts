@@ -117,6 +117,7 @@ export async function* fetchPages<T = unknown>(
   body?: unknown,
   templatePath?: string,
   responseSchema?: ResponseSchema,
+  emptyWhenNoContent: boolean = false,
 ): AsyncGenerator<PageResult<T>, void, undefined> {
   const validate = client.getValidateResponse();
   const firstResponse = await handleSinglePageRequest(
@@ -126,6 +127,8 @@ export async function* fetchPages<T = unknown>(
     body,
     requiresAuth,
     templatePath,
+    undefined,
+    emptyWhenNoContent,
   );
 
   const firstBody = validatePageBody(
@@ -157,6 +160,8 @@ export async function* fetchPages<T = unknown>(
       body,
       requiresAuth,
       templatePath,
+      undefined,
+      emptyWhenNoContent,
     );
 
     const pageBody = validatePageBody(

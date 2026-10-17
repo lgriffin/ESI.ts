@@ -2,10 +2,17 @@ import fetchMock from 'jest-fetch-mock';
 import { PipelineTransport } from '../../../src/adapters/PipelineTransport';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
-import { EsiError } from '../../../src/core/util/error';
+import { EsiError, EsiParseError } from '../../../src/core/util/error';
+import type { ILogger } from '../../../src/core/logger/ILogger';
 import type { OperationMeta } from '../../../src/core/ports/OperationTransport';
+import type { OperationDeprecation } from '../../../src/client';
 import {
+  getContractsPublicBidsContractIdMeta,
+  getContractsPublicItemsContractIdMeta,
   getMarketsRegionIdOrders,
+  getMetaOpenapiJson,
+  getMetaOpenapiYaml,
+  getMetaOpenapiYamlMeta,
   getStatus,
 } from '../../../src/generated/operations.generated';
 
@@ -201,6 +208,195 @@ describe('PipelineTransport', () => {
       expect(sent(0).url.pathname).toBe('/markets/10000002/orders');
       expect(sent(0).url.searchParams.get('order_type')).toBe('sell');
       expect(sent(1).url.searchParams.get('page')).toBe('2');
+    });
+  });
+
+  describe('deprecated operations', () => {
+    const recording = () => {
+      const logger = {
+        fatal: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        info: jest.fn(),
+        debug: jest.fn(),
+        trace: jest.fn(),
+      } satisfies ILogger;
+      const client = newClient();
+      client.setLogger(logger);
+      return { logger, transport: new PipelineTransport(client) };
+    };
+
+    it('warns through the client logger with the message, replacement and sunset date', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({ id: 7 }));
+      const { logger, transport } = recording();
+
+      const deprecation: OperationDeprecation = {
+        message: 'Read the things list.',
+        replacedBy: 'GetThings',
+        sunsetDate: '2027-01-01',
+      };
+      const body = await transport.request(
+        meta({ deprecated: true, deprecation }),
+        { path: { thing_id: 7 }, query: {} },
+      );
+
+      expect(body).toEqual({ id: 7 });
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toHaveBeenCalledWith(
+        "Operation 'Test' is deprecated. Read the things list. Use 'GetThings' instead. Sunset date: 2027-01-01.",
+        { operationId: 'Test' },
+      );
+    });
+
+    it('warns on the spec flag alone, and on guidance without the flag', async () => {
+      fetchMock.mockResponse(JSON.stringify({}));
+      const { logger, transport } = recording();
+      const req = { path: { thing_id: 7 }, query: {} };
+
+      await transport.request(meta({ deprecated: true }), req);
+      await transport.request(
+        meta({ deprecation: { replacedBy: 'GetThings' } }),
+        req,
+      );
+
+      expect(logger.warn.mock.calls).toEqual([
+        ["Operation 'Test' is deprecated.", { operationId: 'Test' }],
+        [
+          "Operation 'Test' is deprecated. Use 'GetThings' instead.",
+          { operationId: 'Test' },
+        ],
+      ]);
+    });
+
+    it('warns once per paginated call, however many pages it follows', async () => {
+      fetchMock.mockResponses(
+        [JSON.stringify([1]), { headers: { 'x-pages': '2' } }],
+        [JSON.stringify([2]), { headers: { 'x-pages': '2' } }],
+      );
+      const { logger, transport } = recording();
+
+      const items: unknown[] = [];
+      for await (const item of transport.paginate(
+        meta({ path: '/things', pagination: 'page', deprecated: true }),
+        { path: {}, query: {} },
+      )) {
+        items.push(item);
+      }
+
+      expect(items).toEqual([1, 2]);
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs no warning for an operation that is not deprecated', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({}));
+      const { logger, transport } = recording();
+
+      await transport.request(meta({}), { path: { thing_id: 7 }, query: {} });
+
+      expect(logger.warn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('the OpenAPI document routes', () => {
+    it('asks for the YAML document as text and returns it verbatim', async () => {
+      const yaml = 'openapi: 3.1.0\ninfo:\n  title: ESI\n';
+      fetchMock.mockResponseOnce(yaml, {
+        headers: { 'content-type': 'application/yaml' },
+      });
+
+      const body = await getMetaOpenapiYaml(new PipelineTransport(newClient()));
+
+      expect(body).toBe(yaml);
+      expect(sent().url.pathname).toBe('/meta/openapi.yaml');
+      expect(sent().headers.get('accept')).toBe(
+        getMetaOpenapiYamlMeta.textResponse!.accept,
+      );
+    });
+
+    it('parses the JSON document', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({ openapi: '3.1.0' }));
+
+      const body = await getMetaOpenapiJson(new PipelineTransport(newClient()));
+
+      expect(body).toEqual({ openapi: '3.1.0' });
+      expect(sent().url.pathname).toBe('/meta/openapi.json');
+    });
+  });
+
+  describe('operations that answer with no content', () => {
+    const emptyOk = (): void => {
+      fetchMock.mockResponseOnce('', {
+        status: 200,
+        headers: { 'content-length': '0' },
+      });
+    };
+    // jest-fetch-mock refuses a 204, so the Response is built by hand.
+    const noContent = (): void => {
+      fetchMock.mockImplementationOnce(() =>
+        Promise.resolve(new Response(null, { status: 204 })),
+      );
+    };
+    const req = { path: { thing_id: 7 }, query: {} };
+
+    it.each([
+      ['an empty 200', emptyOk],
+      ['a 204', noContent],
+    ])(
+      'request resolves %s as [] where the meta opts in',
+      async (_, answer) => {
+        answer();
+        const body = await new PipelineTransport(newClient()).request(
+          meta({ emptyWhenNoContent: true }),
+          req,
+        );
+        expect(body).toEqual([]);
+      },
+    );
+
+    it('request still rejects an empty 200 as a parse error elsewhere', async () => {
+      emptyOk();
+      await expect(
+        new PipelineTransport(newClient()).request(meta({}), req),
+      ).rejects.toBeInstanceOf(EsiParseError);
+    });
+
+    it.each([
+      ['an empty 200', emptyOk],
+      ['a 204', noContent],
+    ])(
+      'paginate yields nothing for %s where the meta opts in',
+      async (_, answer) => {
+        answer();
+        const items: unknown[] = [];
+        for await (const item of new PipelineTransport(newClient()).paginate(
+          { ...getContractsPublicBidsContractIdMeta },
+          { path: { contract_id: 1 }, query: {} },
+        )) {
+          items.push(item);
+        }
+        expect(items).toEqual([]);
+        expect(fetchMock.mock.calls).toHaveLength(1);
+      },
+    );
+
+    it('paginate still rejects an empty 200 as a parse error elsewhere', async () => {
+      emptyOk();
+      const pages = new PipelineTransport(newClient()).paginate(
+        { ...getContractsPublicBidsContractIdMeta, emptyWhenNoContent: false },
+        { path: { contract_id: 1 }, query: {} },
+      );
+      await expect(pages[Symbol.asyncIterator]().next()).rejects.toBeInstanceOf(
+        EsiParseError,
+      );
+    });
+
+    it('is set by the generator on both public contract routes', () => {
+      expect(getContractsPublicBidsContractIdMeta.emptyWhenNoContent).toBe(
+        true,
+      );
+      expect(getContractsPublicItemsContractIdMeta.emptyWhenNoContent).toBe(
+        true,
+      );
     });
   });
 });

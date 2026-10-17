@@ -7,6 +7,7 @@
  */
 import type { ApiClient } from '../core/ApiClient';
 import { handleRequest } from '../core/ApiRequestHandler';
+import { logWarn } from '../core/logger/clientLog';
 import { fetchPages } from '../core/pagination/AsyncPaginationIterator';
 import type {
   OperationMeta,
@@ -63,15 +64,31 @@ function build(
   };
 }
 
+/**
+ * The warning a call to a deprecated operation logs, worded as the legacy
+ * endpoint definitions word theirs (`createClient`'s `DeprecationInfo`).
+ */
+function deprecationWarning(meta: OperationMeta): string | undefined {
+  if (!meta.deprecated && !meta.deprecation) return undefined;
+  const { message, replacedBy, sunsetDate } = meta.deprecation ?? {};
+  const parts = [`Operation '${meta.operationId}' is deprecated.`];
+  if (message) parts.push(message);
+  if (replacedBy) parts.push(`Use '${replacedBy}' instead.`);
+  if (sunsetDate) parts.push(`Sunset date: ${sunsetDate}.`);
+  return parts.join(' ');
+}
+
 export class PipelineTransport implements OperationTransport {
   constructor(private readonly client: ApiClient) {}
 
   async request<T>(meta: OperationMeta, req: OperationRequest): Promise<T> {
+    this.warnIfDeprecated(meta);
     const { url, template, requiresAuth } = build(
       meta,
       req,
       this.client.getDatasource(),
     );
+    const emptyWhenNoContent = meta.emptyWhenNoContent === true;
     const response = await handleRequest(
       this.client,
       url,
@@ -80,14 +97,25 @@ export class PipelineTransport implements OperationTransport {
       requiresAuth,
       true,
       template,
+      undefined,
+      meta.textResponse,
+      emptyWhenNoContent,
     );
+    // No content (a 204, or ESI's empty 200) on a route that documents it is
+    // an empty list, as the legacy endpoint maps read it.
+    if (response.body === undefined && emptyWhenNoContent) return [] as T;
     return response.body as T;
   }
 
+  /**
+   * Logs when iteration starts, once per call, as `request` does. A page ESI
+   * answers with no content on a route that documents it yields nothing.
+   */
   async *paginate<T>(
     meta: OperationMeta,
     req: OperationRequest,
   ): AsyncIterable<T> {
+    this.warnIfDeprecated(meta);
     const { url, template, requiresAuth } = build(
       meta,
       req,
@@ -100,8 +128,17 @@ export class PipelineTransport implements OperationTransport {
       requiresAuth,
       req.body,
       template,
+      undefined,
+      meta.emptyWhenNoContent === true,
     )) {
       yield* page.data;
+    }
+  }
+
+  private warnIfDeprecated(meta: OperationMeta): void {
+    const warning = deprecationWarning(meta);
+    if (warning) {
+      logWarn(this.client, warning, { operationId: meta.operationId });
     }
   }
 }

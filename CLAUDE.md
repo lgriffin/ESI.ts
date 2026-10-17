@@ -86,7 +86,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `src/core/circuitBreaker/` — Circuit breaker implementation + `ICircuitBreaker` interface
 - `src/core/ports/` — seven type-only ports (`CacheStore`, `Clock`, `HttpTransport`, `Identity`, `Logger`, `OperationTransport`, `TokenProvider`). They import nothing; exported from `./client`
 - `src/adapters/` — `PipelineTransport`, which implements `OperationTransport` over the existing pipeline. Internal; `./client` wraps it
-- `src/generated/` — `operations.generated.ts`: 233 typed operations, `ScopeTree`, `PublicScopeTree` and `createScopeTree`, generated from the vendored spec. Imports only the ports. `ScopeTree` and `PublicScopeTree` are exported from `./client`
+- `src/generated/` — `operations.generated.ts`: 235 typed operations (233 from the spec, two from `scripts/spec/operation-overlay.json`), `ScopeTree`, `PublicScopeTree` and `createScopeTree`, generated from the vendored spec. Imports only the ports. `ScopeTree` and `PublicScopeTree` are exported from `./client`
 - `src/auth/` — `EveSsoClient` (OAuth2 + PKCE), `EsiTokenManager` (multi-character tokens and refresh), `MemoryTokenStorage` / `FileTokenStorage`, auth errors
 - `src/errors.ts` — the `./errors` sub-path entry
 - `src/schemas/` — hand-written Zod v4 schemas: 36 domain modules plus `common.ts` and `esiEnum.ts`

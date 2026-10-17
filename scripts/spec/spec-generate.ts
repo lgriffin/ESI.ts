@@ -12,11 +12,41 @@ import * as prettier from 'prettier';
 import {
   generateOperations,
   OUT_PATH,
+  OVERLAY_PATH,
+  overlayRoutesMissingFrom,
   SPEC_PATH,
+  SpecGenerateError,
   type OpenApiDocument,
+  type OperationOverlay,
 } from './spec-generate-core';
 
 const ROOT = path.resolve(__dirname, '../..');
+
+/**
+ * The overlay, refused when it adds a route endpoint validation does not
+ * know the spec leaves out (scripts/spec/esi-endpoint-exceptions.json).
+ */
+export function readOverlay(): OperationOverlay {
+  const overlay = JSON.parse(
+    fs.readFileSync(path.join(ROOT, OVERLAY_PATH), 'utf8'),
+  ) as OperationOverlay;
+  const exceptions = JSON.parse(
+    fs.readFileSync(
+      path.join(ROOT, 'scripts/spec/esi-endpoint-exceptions.json'),
+      'utf8',
+    ),
+  ) as { key: string }[];
+  const missing = overlayRoutesMissingFrom(
+    overlay,
+    new Set(exceptions.map((e) => e.key)),
+  );
+  if (missing.length > 0) {
+    throw new SpecGenerateError(
+      `${OVERLAY_PATH} adds ${missing.join(', ')}, which scripts/spec/esi-endpoint-exceptions.json does not list`,
+    );
+  }
+  return overlay;
+}
 
 async function renderOperations(): Promise<{
   source: string;
@@ -26,9 +56,11 @@ async function renderOperations(): Promise<{
   const doc = JSON.parse(
     fs.readFileSync(path.join(ROOT, SPEC_PATH), 'utf8'),
   ) as OpenApiDocument;
+  const overlay = readOverlay();
   const result = generateOperations(doc, {
     specPath: SPEC_PATH,
     transportImport: '../core/ports/OperationTransport',
+    overlay,
   });
   const outFile = path.join(ROOT, OUT_PATH);
   const config = (await prettier.resolveConfig(outFile)) ?? {};

@@ -14,9 +14,13 @@ import { execFileSync } from 'child_process';
 import {
   functionNameFor,
   generateOperations,
+  mergeOverlay,
+  OVERLAY_PATH,
+  overlayRoutesMissingFrom,
   SPEC_PATH,
   SpecGenerateError,
   type OpenApiDocument,
+  type OperationOverlay,
 } from '../../../scripts/spec/spec-generate-core';
 import {
   checkCoverage,
@@ -386,6 +390,140 @@ describe('generateOperations refuses documents it cannot represent', () => {
   });
 });
 
+describe('generateOperations with an overlay', () => {
+  const json = (schema: Record<string, unknown>) => ({
+    content: { 'application/json': { schema } },
+  });
+  const overlay: OperationOverlay = {
+    paths: {
+      '/meta/openapi.yaml': {
+        get: {
+          operationId: 'GetMetaOpenapiYaml',
+          summary: 'The spec as YAML',
+          responses: {
+            '200': {
+              content: {
+                'application/yaml': { schema: { type: 'string' } },
+                'text/plain': { schema: { type: 'string' } },
+              },
+            },
+          },
+        },
+      },
+    },
+    deprecations: {
+      PostCharactersCharacterIdContacts: {
+        message: 'Contacts move to the new route.',
+        replacedBy: 'PostContacts',
+        sunsetDate: '2027-01-01',
+      },
+    },
+  };
+  const result = () => generateOperations(fixture, { ...options, overlay });
+  const op = (id: string) =>
+    result().operations.find((o) => o.operationId === id)!;
+
+  it('adds the overlay operations, reading a non-JSON body as text', () => {
+    const yaml = op('GetMetaOpenapiYaml');
+    expect(yaml.textResponse).toEqual({
+      accept: 'application/yaml, text/plain',
+    });
+    const source = result().source;
+    expect(source).toContain(
+      'textResponse: {"accept":"application/yaml, text/plain"},',
+    );
+    expect(source).toContain(
+      'export type GetMetaOpenapiYamlResponse = string;',
+    );
+    expect(source).toContain(`it comes from ${OVERLAY_PATH}.`);
+    expect(source).toContain(`, with the additions in ${OVERLAY_PATH}.`);
+  });
+
+  it('carries the overlay guidance into the Meta and the JSDoc', () => {
+    expect(op('PostCharactersCharacterIdContacts').deprecation).toEqual(
+      overlay.deprecations!.PostCharactersCharacterIdContacts,
+    );
+    const source = result().source;
+    expect(source).toContain(
+      'deprecation: {"message":"Contacts move to the new route.","replacedBy":"PostContacts","sunsetDate":"2027-01-01"},',
+    );
+    expect(source).toContain(
+      '@deprecated ESI marks this operation deprecated. Contacts move to the new route. Use `PostContacts` instead. Sunset date: 2027-01-01.',
+    );
+  });
+
+  it('gives a deprecated operation with no overlay entry an empty deprecation', () => {
+    const plain = generateOperations(fixture, options).operations.find(
+      (o) => o.operationId === 'PostCharactersCharacterIdContacts',
+    );
+    expect(plain?.deprecation).toEqual({});
+    expect(op('GetStatus').deprecation).toBeUndefined();
+  });
+
+  it('marks a GET whose spec pairs a JSON 200 with a 204 as empty when no content', () => {
+    const doc: OpenApiDocument = {
+      paths: {
+        '/bids': {
+          get: {
+            operationId: 'GetBids',
+            responses: {
+              '200': json({ type: 'array', items: { type: 'integer' } }),
+              '204': { description: 'Contract expired' },
+            },
+          },
+        },
+        '/fleet': {
+          put: {
+            operationId: 'PutFleet',
+            responses: { '204': { description: 'Updated' } },
+          },
+        },
+      },
+    };
+    const ops = generateOperations(doc, options).operations;
+    expect(
+      ops.find((o) => o.operationId === 'GetBids')?.emptyWhenNoContent,
+    ).toBe(true);
+    expect(
+      ops.find((o) => o.operationId === 'PutFleet')?.emptyWhenNoContent,
+    ).toBeUndefined();
+    expect(generateOperations(doc, options).source).toContain(
+      'emptyWhenNoContent: true,',
+    );
+  });
+
+  it.each([
+    [
+      'an overlay path the spec already lists',
+      { paths: { '/status': fixture.paths['/status']! } },
+      /\/status is now in the spec/,
+    ],
+    [
+      'guidance for an operation the spec does not deprecate',
+      { deprecations: { GetStatus: { message: 'x' } } },
+      /GetStatus: the spec does not deprecate it/,
+    ],
+    [
+      'guidance for an operation that does not exist',
+      { deprecations: { GetNothing: { message: 'x' } } },
+      /GetNothing: no such operation/,
+    ],
+  ])('refuses %s', (_label, bad: OperationOverlay, message) => {
+    expect(() =>
+      generateOperations(fixture, { ...options, overlay: bad }),
+    ).toThrow(message);
+  });
+
+  it('names the overlay routes endpoint validation does not list', () => {
+    expect(overlayRoutesMissingFrom(overlay, new Set())).toEqual([
+      'GET meta/openapi.yaml',
+    ]);
+    expect(
+      overlayRoutesMissingFrom(overlay, new Set(['GET meta/openapi.yaml'])),
+    ).toEqual([]);
+  });
+});
+
 describe('functionNameFor', () => {
   it('lower-cases the first letter only', () => {
     expect(functionNameFor('GetCharactersCharacterIdWallet')).toBe(
@@ -447,10 +585,15 @@ describe('checkCoverage', () => {
 });
 
 describe('the committed generated module', () => {
-  it('covers every operation in the vendored spec', () => {
-    const doc = JSON.parse(
-      fs.readFileSync(path.join(ROOT, SPEC_PATH), 'utf8'),
-    ) as OpenApiDocument;
+  it('covers every operation in the vendored spec and the overlay', () => {
+    const doc = mergeOverlay(
+      JSON.parse(
+        fs.readFileSync(path.join(ROOT, SPEC_PATH), 'utf8'),
+      ) as OpenApiDocument,
+      JSON.parse(
+        fs.readFileSync(path.join(ROOT, OVERLAY_PATH), 'utf8'),
+      ) as OperationOverlay,
+    );
     const report = checkCoverage(doc, metasOf(committed));
     expect(report.problems).toEqual([]);
     expect(report.generatedOperations).toBeGreaterThan(200);
