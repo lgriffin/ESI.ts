@@ -9,6 +9,7 @@
  */
 import type { ApiClient } from '../core/ApiClient';
 import { handleRequest } from '../core/ApiRequestHandler';
+import { warnIfDeprecated } from '../core/endpoints/deprecationWarning';
 import { fetchPages } from '../core/pagination/AsyncPaginationIterator';
 import type { EsiHandlerResponse } from '../core/requestPipeline/cachePolicy';
 import type {
@@ -17,7 +18,11 @@ import type {
   OperationTransport,
   QueryValue,
 } from '../core/ports/OperationTransport';
-import { evictRejectedResponse, resolveCache } from '../core/requestPipeline';
+import {
+  emptyListWhenNoContent,
+  evictRejectedResponse,
+  resolveCache,
+} from '../core/requestPipeline';
 import { EsiValidationError } from '../core/util/error';
 import { validatePathParam, validateQueryParam } from '../core/util/validation';
 import { responseSchemas } from './responseSchemas.generated';
@@ -99,11 +104,13 @@ export class PipelineTransport implements OperationTransport {
   }
 
   async request<T>(meta: OperationMeta, req: OperationRequest): Promise<T> {
+    this.warnIfDeprecated(meta);
     const { url, template, requiresAuth } = build(
       meta,
       req,
       this.client.getDatasource(),
     );
+    const emptyWhenNoContent = meta.emptyWhenNoContent === true;
     const response = await handleRequest(
       this.client,
       url,
@@ -112,13 +119,19 @@ export class PipelineTransport implements OperationTransport {
       requiresAuth,
       true,
       template,
+      undefined,
+      meta.textResponse,
+      emptyWhenNoContent,
     );
     this.observe?.(response);
+    // No content (a 204, or ESI's empty 200) on a route that documents it is
+    // an empty list, read by the same helper the custom clients use.
+    const body = emptyListWhenNoContent(response.body, emptyWhenNoContent);
     const schema = responseSchemas[meta.operationId];
     if (!schema || !this.validate) {
-      return response.body as T;
+      return body as T;
     }
-    const result = schema.safeParse(response.body);
+    const result = schema.safeParse(body);
     if (!result.success) {
       evictRejectedResponse(this.client, url, requiresAuth, resolveCache);
       throw new EsiValidationError(
@@ -129,10 +142,15 @@ export class PipelineTransport implements OperationTransport {
     return result.data as T;
   }
 
+  /**
+   * Logs when iteration starts, once per call, as `request` does. A page ESI
+   * answers with no content on a route that documents it yields nothing.
+   */
   async *paginate<T>(
     meta: OperationMeta,
     req: OperationRequest,
   ): AsyncIterable<T> {
+    this.warnIfDeprecated(meta);
     const { url, template, requiresAuth } = build(
       meta,
       req,
@@ -146,8 +164,23 @@ export class PipelineTransport implements OperationTransport {
       req.body,
       template,
       this.validate ? responseSchemas[meta.operationId] : undefined,
+      meta.emptyWhenNoContent === true,
     )) {
       yield* page.data;
     }
+  }
+
+  /**
+   * The custom clients' warning (`createClient`), worded by the same helper:
+   * on every operation the spec deprecates, with the overlay's guidance.
+   */
+  private warnIfDeprecated(meta: OperationMeta): void {
+    warnIfDeprecated(
+      this.client,
+      'Operation',
+      meta.operationId,
+      meta.deprecation ?? (meta.deprecated ? {} : undefined),
+      { operationId: meta.operationId },
+    );
   }
 }

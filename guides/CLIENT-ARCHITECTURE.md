@@ -47,6 +47,18 @@ Each step is additive or internal, so each can ship in a 12.x minor release. A f
    - **Diagnostics** (12.x): `EsiDiagnostics` backs `EsiClient.diagnostics`, the new `CustomEsiClient.diagnostics` and its shortcuts, and `esi.diagnostics`.
    - **Swappable middleware** (12.x): `cache`, `rateLimiter`, `circuitBreaker`, `deduplicator` and `clock` are `EsiClientConfig` fields that `configureApiClient` installs, so `EsiClient`, the builder, `EsiApiFactory.createClient` and `createEsi` (whose `EsiOptions` carry the same five) take them the same way.
 
+### Shared already
+
+A feature the generated layer gains reaches the custom clients through the same pipeline code, not a copy of it:
+
+| Feature                                | Custom clients                                                                                                                                       | `createEsi()`                                                             | One implementation                                                                                   |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Deprecation warnings                   | `DeprecationInfo` on the endpoint definition: `Endpoint '<method>' is deprecated. …`                                                                 | `OperationMeta.deprecation`: `Operation '<operationId>' is deprecated. …` | `src/core/endpoints/deprecationWarning.ts`                                                           |
+| The OpenAPI document, as JSON and YAML | `meta.getOpenApiJson()`, `meta.getOpenApiYaml()`                                                                                                     | `meta.openapiJson.get()`, `meta.openapiYaml.get()`                        | `textResponse` through `handleRequest`; the same Accept header and the same JSON schema              |
+| An empty answer on a public contract   | `getPublicContractBids/Items`, `fetchAllPublicContractBids/Items`, `streamPublicContractBids/Items`, and `streamEndpoint`/`fetchAllEndpoint` by name | `contracts.public.bids(id).get()`, `contracts.public.items(id).get()`     | `answeredWithNoContent` and `emptyListWhenNoContent` in `src/core/requestPipeline/statusHandling.ts` |
+
+The endpoint maps stay hand-written and `src/core` may not import the generated layer, so `tests/tdd/core/endpointOperationParity.test.ts` holds the two in step: it fails when an endpoint definition and its generated operation disagree about deprecation (with the message and sunset date from `scripts/spec/operation-overlay.json`), a text response and its Accept header, or reading no content as an empty list. Step 2 of the plan derives these facts instead of checking them.
+
 ---
 
 ## Where things live

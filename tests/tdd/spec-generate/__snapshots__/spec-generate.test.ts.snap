@@ -63,6 +63,7 @@ export const postCharactersCharacterIdContactsMeta: OperationMeta = {
   scopes: ['esi-characters.write_contacts.v1'],
   pagination: 'none',
   deprecated: true,
+  deprecation: {},
   headers: [],
 };
 

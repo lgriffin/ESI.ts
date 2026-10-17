@@ -39,6 +39,33 @@ export function statusMessage(response: Response): string {
 }
 
 /**
+ * ESI's answer when a route has nothing to return: a 204, or a 200 with
+ * `Content-Length: 0` where its spec says 204 (an expired or accepted public
+ * contract). Only routes flagged `emptyWhenNoContent` read it as an empty
+ * list. The custom clients (`EndpointDefinition`) and the generated
+ * operations (`OperationMeta`) carry the same flag and share this check.
+ */
+export function answeredWithNoContent(
+  response: Pick<Response, 'status' | 'headers'>,
+): boolean {
+  return (
+    response.status === 204 ||
+    (response.status === 200 && response.headers.get('content-length') === '0')
+  );
+}
+
+/**
+ * The body a call resolves with: `[]` for a no-content answer (no body) on a
+ * route flagged `emptyWhenNoContent`, otherwise the body as it arrived.
+ */
+export function emptyListWhenNoContent(
+  body: unknown,
+  emptyWhenNoContent: boolean | undefined,
+): unknown {
+  return body === undefined && emptyWhenNoContent === true ? [] : body;
+}
+
+/**
  * Handle early-return HTTP statuses (201, 204, 304).
  */
 export function handleEarlyStatus(

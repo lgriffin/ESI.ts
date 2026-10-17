@@ -142,6 +142,44 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     );
   }
 
+  /**
+   * Collect every page of bids on a public auction contract.
+   *
+   * @param contractId - The ID of the public contract whose bids to collect
+   * @param concurrency - How many pages to request at once (default 8)
+   * @returns Every bid on the contract; an empty list when ESI answers with no
+   *   content because the contract expired or was accepted
+   */
+  fetchAllPublicContractBids(
+    contractId: number,
+    concurrency?: number,
+  ): Promise<PublicContractBid[]> {
+    return this.fetchAllEndpoint<PublicContractBid>(
+      'getPublicContractBids',
+      [contractId],
+      concurrency,
+    );
+  }
+
+  /**
+   * Collect every page of items in a public contract.
+   *
+   * @param contractId - The ID of the public contract whose items to collect
+   * @param concurrency - How many pages to request at once (default 8)
+   * @returns Every item line in the contract; an empty list when ESI answers
+   *   with no content because the contract expired or was accepted
+   */
+  fetchAllPublicContractItems(
+    contractId: number,
+    concurrency?: number,
+  ): Promise<PublicContractItem[]> {
+    return this.fetchAllEndpoint<PublicContractItem>(
+      'getPublicContractItems',
+      [contractId],
+      concurrency,
+    );
+  }
+
   fetchAllCharacterContracts(
     characterId: number,
     concurrency?: number,
@@ -168,6 +206,38 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     regionId: number,
   ): AsyncGenerator<PageResult<PublicContract>, void, undefined> {
     return this.streamEndpoint<PublicContract>('getPublicContracts', regionId);
+  }
+
+  /**
+   * Stream the bids on a public auction contract one page at a time.
+   *
+   * @param contractId - The ID of the public contract whose bids to stream
+   * @returns The pages of bids; one empty page when ESI answers with no
+   *   content because the contract expired or was accepted
+   */
+  streamPublicContractBids(
+    contractId: number,
+  ): AsyncGenerator<PageResult<PublicContractBid>, void, undefined> {
+    return this.streamEndpoint<PublicContractBid>(
+      'getPublicContractBids',
+      contractId,
+    );
+  }
+
+  /**
+   * Stream the items in a public contract one page at a time.
+   *
+   * @param contractId - The ID of the public contract whose items to stream
+   * @returns The pages of item lines; one empty page when ESI answers with no
+   *   content because the contract expired or was accepted
+   */
+  streamPublicContractItems(
+    contractId: number,
+  ): AsyncGenerator<PageResult<PublicContractItem>, void, undefined> {
+    return this.streamEndpoint<PublicContractItem>(
+      'getPublicContractItems',
+      contractId,
+    );
   }
 
   streamCharacterContracts(

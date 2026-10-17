@@ -440,6 +440,77 @@ Feature: One runtime, many identities
       Given a runtime for the application "fleet-tool/2.1 (ops@example.com)" over a supplied cache store
       When the runtime is shut down twice
       Then the supplied cache store shall not have been shut down
+
+  # ── What the custom endpoint definitions carry too
+
+  Rule: When a view invokes an operation the spec marks deprecated, the runtime shall log one warning through the runtime's logger naming the operation, its replacement and its sunset date.
+    The first step of the deprecation process in guides/SEMVER.md is a
+    warning on every call, which the custom endpoint definitions give through
+    DeprecationInfo (0060-custom-client.feature), worded by the same helper.
+    The generator carries the spec's deprecated flag and the message,
+    replacement and sunset date from scripts/spec/operation-overlay.json into
+    the operation's metadata. No operation in the vendored spec is
+    deprecated today, so the scenario marks the server status metadata
+    deprecated for its duration.
+
+    Scenario: A deprecated operation called through the public view warns once
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)" that logs to a recording logger
+      And the server status operation is marked deprecated in favour of the route status
+      And ESI reports the server status
+      When the public view requests the server status
+      Then the runtime's logger shall receive one warning naming the server status operation, the route status and the sunset date
+
+    Scenario: An operation the spec does not deprecate logs no warning
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)" that logs to a recording logger
+      And ESI reports the server status
+      When the public view requests the server status
+      Then the runtime's logger shall receive no warning
+
+  Rule: When the public view requests the OpenAPI document in JSON form, the runtime shall resolve with the parsed document.
+    ESI serves its specification under meta/ without listing those paths in
+    the specification itself, so nothing is generated from the spec for them.
+    The generator adds both from scripts/spec/operation-overlay.json, as the
+    custom Meta client's endpoint map lists them.
+
+    Scenario: The JSON specification reaches the public view parsed
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And ESI serves its specification in JSON form
+      When the public view requests the OpenAPI document in JSON form
+      Then the view shall receive the parsed JSON specification
+
+  Rule: When the public view requests the OpenAPI document in YAML form, the runtime shall ask for YAML in the Accept header and resolve with the document as unparsed text.
+    The YAML document is not JSON, so the overlay marks the operation as a
+    text response with the Accept header the custom Meta client sends, and
+    the transport hands the body back verbatim.
+
+    Scenario: The YAML specification reaches the public view as text
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And ESI serves its specification in YAML form
+      When the public view requests the OpenAPI document in YAML form
+      Then the view shall receive the YAML specification as text
+      And the request shall carry the header "Accept" with the value "application/yaml, text/yaml, text/plain"
+
+  Rule: If ESI answers a request for a public contract's bids or items with no content, then the runtime shall yield no entries.
+    A public contract can expire or be accepted between the region listing
+    and the detail read. The spec documents a 204 beside the 200 on both
+    routes, and ESI in practice sends a 200 with Content-Length 0. The
+    generator marks every GET whose spec pairs a JSON 200 holding an array
+    with a 204, and the runtime reads either answer as an empty list, as the custom
+    Contracts client does. Every other operation keeps rejecting an empty
+    200 body.
+
+    Scenario: Bids on an auction accepted after the listing
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And ESI answers the public contract's bids with an empty 200 response
+      When the public view follows every page of the public contract's bids
+      Then the view shall receive no entries after one request
+
+    Scenario: Items on a contract answered with 204 No Content
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And ESI answers the public contract's items with 204 No Content
+      When the public view follows every page of the public contract's items
+      Then the view shall receive no entries after one request
+
   # ── Response validation
 
   Rule: While the validateResponse option is unset, the runtime shall return a generated operation's body as ESI sent it.

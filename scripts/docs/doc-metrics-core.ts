@@ -34,6 +34,7 @@ export const METRIC_NAMES = [
   'routes',
   'trailingSlashRoutes',
   'operations',
+  'specOperations',
   'streamMethods',
   'streamClients',
   'schemaModules',
@@ -165,8 +166,13 @@ export interface MetricInputs {
    */
   files: readonly string[];
   endpoints: readonly EndpointDef[];
-  /** How many `*Meta` operations `src/generated/operations.generated.ts` exports. */
+  /**
+   * How many `*Meta` operations `src/generated/operations.generated.ts`
+   * exports: the spec's operations plus those `scripts/spec/operation-overlay.json` adds.
+   */
   operations: number;
+  /** How many operations the vendored OpenAPI document itself lists. */
+  specOperations: number;
   clients: readonly ClientMethods[];
   features: readonly FeatureFile[];
   /** The text of `guides/CHARTER.md`. */
@@ -317,6 +323,7 @@ export function computeMetrics(input: MetricInputs): Metrics {
       .length,
     ...countRoutes(input.endpoints),
     operations: input.operations,
+    specOperations: input.specOperations,
     ...countStreams(input.clients),
     schemaModules: filesIn(files, 'src/schemas', /\.ts$/).filter(
       (f) => !['index.ts', 'common.ts', 'esiEnum.ts'].includes(basename(f)),

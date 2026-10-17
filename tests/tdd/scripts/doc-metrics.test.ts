@@ -159,6 +159,7 @@ describe('DOC-04: counting', () => {
       ],
       endpoints: [],
       operations: 7,
+      specOperations: 5,
       clients: [],
       features: [
         { file: 'tests/bdd/features/core/status.feature', source: FEATURE },
@@ -170,6 +171,7 @@ describe('DOC-04: counting', () => {
       schemaModules: 1,
       examples: 1,
       operations: 7,
+      specOperations: 5,
       featureFiles: 1,
       featureFilesCore: 1,
       requirements: 2,
@@ -187,6 +189,7 @@ describe('DOC-04: counting', () => {
       files: [],
       endpoints: [],
       operations: 0,
+      specOperations: 0,
       clients: [],
       features: [
         { file: 'tests/bdd/features/core/status.feature', source: FEATURE },

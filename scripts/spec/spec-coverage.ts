@@ -9,11 +9,20 @@ import * as path from 'path';
 
 import * as generated from '../../src/generated/operations.generated';
 import { checkCoverage, metasOf } from './spec-coverage-core';
-import { SPEC_PATH, type OpenApiDocument } from './spec-generate-core';
+import {
+  mergeOverlay,
+  SPEC_PATH,
+  type OpenApiDocument,
+} from './spec-generate-core';
+import { readOverlay } from './spec-generate';
 
-const doc = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, '../..', SPEC_PATH), 'utf8'),
-) as OpenApiDocument;
+// The overlay's operations are generated too, so they count as spec here.
+const doc = mergeOverlay(
+  JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, '../..', SPEC_PATH), 'utf8'),
+  ) as OpenApiDocument,
+  readOverlay(),
+);
 const report = checkCoverage(doc, metasOf(generated));
 
 if (report.problems.length > 0) {

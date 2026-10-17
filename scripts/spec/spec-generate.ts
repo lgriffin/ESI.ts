@@ -13,9 +13,14 @@ import * as prettier from 'prettier';
 
 import {
   generateOperations,
+  mergeOverlay,
   OUT_PATH,
+  OVERLAY_PATH,
+  overlayRoutesMissingFrom,
   SPEC_PATH,
+  SpecGenerateError,
   type OpenApiDocument,
+  type OperationOverlay,
 } from './spec-generate-core';
 import {
   generateResponseSchemas,
@@ -26,6 +31,32 @@ import {
 const OVERRIDES_PATH = 'scripts/spec/response-schema-overrides.json';
 
 const ROOT = path.resolve(__dirname, '../..');
+
+/**
+ * The overlay, refused when it adds a route endpoint validation does not
+ * know the spec leaves out (scripts/spec/esi-endpoint-exceptions.json).
+ */
+export function readOverlay(): OperationOverlay {
+  const overlay = JSON.parse(
+    fs.readFileSync(path.join(ROOT, OVERLAY_PATH), 'utf8'),
+  ) as OperationOverlay;
+  const exceptions = JSON.parse(
+    fs.readFileSync(
+      path.join(ROOT, 'scripts/spec/esi-endpoint-exceptions.json'),
+      'utf8',
+    ),
+  ) as { key: string }[];
+  const missing = overlayRoutesMissingFrom(
+    overlay,
+    new Set(exceptions.map((e) => e.key)),
+  );
+  if (missing.length > 0) {
+    throw new SpecGenerateError(
+      `${OVERLAY_PATH} adds ${missing.join(', ')}, which scripts/spec/esi-endpoint-exceptions.json does not list`,
+    );
+  }
+  return overlay;
+}
 
 async function format(source: string, outFile: string): Promise<string> {
   const config = (await prettier.resolveConfig(outFile)) ?? {};
@@ -50,14 +81,22 @@ async function render(): Promise<Rendered[]> {
       ) as Record<string, unknown>,
     ).filter(([key]) => !key.startsWith('$')),
   ) as SchemaOverrides;
+  const overlay = readOverlay();
   // The overrides widen the Zod schemas only. Widening the operation types
   // too (number to number | null) is a major change under guides/SEMVER.md:
   // pass `overrides` to generateOperations in the next major.
   const operations = generateOperations(doc, {
     specPath: SPEC_PATH,
     transportImport: '../core/ports/OperationTransport',
+    overlay,
   });
-  const zod = generateResponseSchemas(doc, SPEC_PATH, overrides);
+  // The overlay's routes get a schema too, so every generated operation with
+  // a JSON body has one, as the hand-written MetaClient validates its own.
+  const zod = generateResponseSchemas(
+    mergeOverlay(doc, overlay),
+    SPEC_PATH,
+    overrides,
+  );
   return [
     {
       outPath: OUT_PATH,

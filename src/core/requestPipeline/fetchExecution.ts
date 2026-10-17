@@ -13,7 +13,11 @@ import { IRateLimiter } from '../rateLimiter/IRateLimiter';
 import { ICircuitBreaker } from '../circuitBreaker/ICircuitBreaker';
 import { buildRequestHeaders } from './headers';
 import { applyRequestMiddleware } from './middlewareBridge';
-import { readEsiErrorReason, statusMessage } from './statusHandling';
+import {
+  answeredWithNoContent,
+  readEsiErrorReason,
+  statusMessage,
+} from './statusHandling';
 
 export interface RawFetchResult {
   response: Response;
@@ -279,6 +283,8 @@ export async function parseJsonBody(
 
 /**
  * Fetch a single page: execute the fetch, check for errors, parse JSON.
+ * With `emptyWhenNoContent`, a page ESI answers with no content
+ * (`answeredWithNoContent`) is an empty page instead of failing to parse.
  */
 export async function fetchOnePage(
   client: ApiClient,
@@ -292,6 +298,7 @@ export async function fetchOnePage(
   resolveCircuitBreaker: (client: ApiClient) => ICircuitBreaker | null,
   requestTimeout?: number,
   templatePath?: string,
+  emptyWhenNoContent: boolean = false,
 ): Promise<SingleFetchResult> {
   const { response, parsed, url } = await executeSingleFetch(
     client,
@@ -316,6 +323,13 @@ export async function fetchOnePage(
       url,
       parsed.requestId ?? undefined,
     );
+  }
+
+  if (emptyWhenNoContent && answeredWithNoContent(response)) {
+    logInfo(client, `No Content for endpoint: ${url}`, {
+      status: response.status,
+    });
+    return { data: [], parsed, url };
   }
 
   const data = await parseJsonBody(client, response, url);

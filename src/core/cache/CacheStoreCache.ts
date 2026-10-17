@@ -29,7 +29,7 @@ export class CacheStoreCache implements ICache {
 
   constructor(
     private readonly store: CacheStore,
-    private readonly clock?: Clock | null,
+    private readonly clock: Clock | null = null,
   ) {}
 
   get(url: string): CacheEntry | null {
@@ -65,7 +65,7 @@ export class CacheStoreCache implements ICache {
   ): void {
     this.store.set(url, etag, data, headers, customTtl);
     this.keys.delete(url);
-    this.keys.set(url, nowOn(this.clock ?? null));
+    this.keys.set(url, nowOn(this.clock));
     // A store expires entries on its own, unseen by the adapter; the bound
     // keeps the keys it remembers from growing with every URL ever written.
     while (this.keys.size > MAX_TRACKED_KEYS) {
@@ -148,7 +148,7 @@ export function cacheFromStore(
   }
   let adapter = adapters.get(store);
   if (!adapter) {
-    adapter = new CacheStoreCache(store, clock);
+    adapter = new CacheStoreCache(store, clock ?? null);
     adapters.set(store, adapter);
   }
   return adapter;

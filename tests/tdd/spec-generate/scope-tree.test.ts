@@ -42,6 +42,7 @@ describe('camelCase and singular', () => {
   it.each([
     ['paragon-hub', 'paragonHub'],
     ['agents_research', 'agentsResearch'],
+    ['openapi.json', 'openapiJson'],
     ['status', 'status'],
   ])('camelCase(%s) is %s', (input, output) => {
     expect(camelCase(input)).toBe(output);

@@ -34,6 +34,7 @@ export type {
   Identity,
   LogFields,
   Logger,
+  OperationDeprecation,
   OperationMeta,
   OperationPagination,
   OperationRequest,

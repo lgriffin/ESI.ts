@@ -8,6 +8,8 @@ export {
 } from './cachePolicy';
 export type { EsiHandlerResponse } from './cachePolicy';
 export {
+  answeredWithNoContent,
+  emptyListWhenNoContent,
   handleEarlyStatus,
   handleErrorResponse,
   readEsiErrorReason,
