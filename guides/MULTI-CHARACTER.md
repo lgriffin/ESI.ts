@@ -126,6 +126,12 @@ The in-flight deduplicator draws the same line: identical public GETs from two v
 
 When an application is done with a runtime, `esi.shutdown()` stops the cache's and circuit breaker's cleanup timers and drops the in-flight table, once for the runtime rather than once per view. The timers never keep a process alive on their own, so a script that forgets it still exits; the call is for an application that replaces a runtime and wants nothing of the old one left running. Calling it twice is harmless, and a view still answers afterwards.
 
+### Metadata, safe mode, diagnostics and your own middleware
+
+`esi.withMetadata()` and `esi.withSafeMode()` return the same `public` and `as(identity)` views over the same clients, resolving `{ data, meta }` or `{ ok, data | error }` instead of the bare body (paginated operations still yield items). `esi.diagnostics`, and the shortcuts `getCacheStats()`, `clearCache()`, `updateCacheConfig()`, `getCircuitBreakerStats()` and `resetCircuitBreaker()`, answer for the whole runtime.
+
+`EsiOptions` takes instances as well as configuration: `cache` (a `CacheStore`, such as a Redis-backed store, or an `ICache`), `rateLimiter`, `circuitBreaker` (which turns the breaker on), `deduplicator` (which turns deduplication on) and `clock` (the `Clock` port: cache age, retry back-off, rate-limit waits and the circuit reset timeout read it; the cleanup timers and request timeout stay on real time). `shutdown()` leaves a supplied cache, circuit breaker or deduplicator to its owner. A plain `CacheStore` cannot list its keys, so after a write the runtime invalidates only the entries written in this process. The custom clients take the same five options in `EsiClientConfig` and have the same diagnostics and views ([USAGE.md](USAGE.md#supplying-your-own-middleware)), so an `EsiClient` and a runtime given one `cache`, `rateLimiter` and `circuitBreaker` share them.
+
 ## Revoked tokens, scheduled refresh and concurrency
 
 With a token manager, a character whose refresh token SSO has revoked throws `TokenRevokedError` from `accessToken()`, so the call fails before any request. Catch it with `isTokenRevoked` from `@lgriffin/esi.ts/errors`, remove the character and send them through login again.

@@ -3,7 +3,11 @@ import {
   RequestInterceptor,
   ResponseInterceptor,
 } from './core/middleware/Middleware';
-import { createClientInstance, ApiClientType } from './clients/ClientRegistry';
+import {
+  createClientInstance,
+  ApiClientType,
+  type ClientInstance,
+} from './clients/ClientRegistry';
 import type { EsiClientConfig, EsiDatasource } from './core/EsiClientConfig';
 import { AllianceClient } from './clients/AllianceClient';
 import { AssetsClient } from './clients/AssetsClient';
@@ -67,6 +71,11 @@ import {
 } from './core/BatchRequestHandler';
 import { configureApiClient } from './core/configureApiClient';
 import { logInfo } from './core/logger/clientLog';
+import {
+  domainClientViews,
+  type MetadataClients,
+  type SafeModeClients,
+} from './clients/domainViews';
 
 export type { EsiClientConfig, EsiDatasource } from './core/EsiClientConfig';
 
@@ -80,6 +89,10 @@ export class EsiClient {
   private etagCacheEnabled: boolean;
   private _diagnostics: EsiDiagnostics | null = null;
   private deduplicator: RequestDeduplicator | null = null;
+  private suppliedCache: boolean;
+  private suppliedCircuitBreaker: boolean;
+  private metadataView: unknown;
+  private safeModeView: unknown;
 
   constructor(config?: EsiClientConfig) {
     const token = config?.accessToken || process.env.ESI_ACCESS_TOKEN;
@@ -115,6 +128,8 @@ export class EsiClient {
     const result = configureApiClient(this.apiClient, config);
     this.deduplicator = result.deduplicator;
     this.etagCacheEnabled = config?.enableETagCache !== false;
+    this.suppliedCache = config?.cache !== undefined;
+    this.suppliedCircuitBreaker = config?.circuitBreaker !== undefined;
 
     logInfo(this.apiClient, 'EsiClient initialized successfully', {
       baseUrl,
@@ -269,12 +284,38 @@ export class EsiClient {
     );
   }
 
+  /**
+   * Every domain client as its `withMetadata()` view, from one object:
+   * `client.withMetadata().market.getMarketPrices()` resolves `{ data, meta }`.
+   * The same object comes back on every call. See guides/USAGE.md.
+   */
+  withMetadata(): MetadataClients<this> {
+    this.metadataView ??= domainClientViews(
+      (name) => this.getClient<ClientInstance>(name),
+      'metadata',
+    );
+    return this.metadataView as MetadataClients<this>;
+  }
+
+  /**
+   * Every domain client as its `withSafeMode()` view, from one object: each
+   * method that answers once resolves `{ ok, ... }` instead of rejecting.
+   * The same object comes back on every call. See guides/ERRORS.md.
+   */
+  withSafeMode(): SafeModeClients<this> {
+    this.safeModeView ??= domainClientViews(
+      (name) => this.getClient<ClientInstance>(name),
+      'safe',
+    );
+    return this.safeModeView as SafeModeClients<this>;
+  }
+
   get diagnostics(): EsiDiagnostics {
     if (!this._diagnostics) {
       this._diagnostics = new EsiDiagnostics(
         this.apiClient,
         this.etagCacheEnabled,
-        this.deduplicator,
+        this.apiClient.getDeduplicator(),
       );
     }
     return this._diagnostics;
@@ -316,13 +357,18 @@ export class EsiClient {
     return batchPostFor(this.apiClient, ids, poster, chunkSize);
   }
 
+  /**
+   * Stops the cleanup timers of the cache and circuit breaker the client
+   * built and drops its in-flight table; a cache store, circuit breaker or
+   * deduplicator supplied in the config is left to its owner.
+   */
   shutdown(): void {
     const cache = this.apiClient.getCache();
-    if (cache) {
+    if (cache && !this.suppliedCache) {
       (cache as ETagCacheManager).shutdown();
     }
     const cb = this.apiClient.getCircuitBreaker();
-    if (cb) {
+    if (cb && !this.suppliedCircuitBreaker) {
       cb.shutdown();
     }
     if (this.deduplicator) {

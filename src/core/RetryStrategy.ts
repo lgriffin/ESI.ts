@@ -86,7 +86,8 @@ export class RetryStrategy implements IRetryStrategy {
             `Request to ${context.endpoint} failed (${error.statusCode}), retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${this.maxRetries})`,
             { method: context.method, statusCode: error.statusCode },
           );
-          await sleep(delay);
+          const clock = context.client?.getClock();
+          await (clock ? clock.sleep(delay) : sleep(delay));
           lastError = error;
           continue;
         }

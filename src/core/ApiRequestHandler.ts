@@ -1,4 +1,5 @@
 import { ApiClient } from './ApiClient';
+import { nowOn } from './clock';
 import { buildDedupeKey } from './cache/cacheKey';
 import { logInfo } from './logger/clientLog';
 
@@ -42,9 +43,9 @@ const executeRequest = async (
   textResponse?: TextResponse,
   emptyWhenNoContent?: boolean,
 ): Promise<EsiHandlerResponse> => {
-  const startTime = Date.now();
+  const startTime = nowOn(client.getClock());
   const finish = (r: EsiHandlerResponse) => {
-    r.responseTimeMs = Date.now() - startTime;
+    r.responseTimeMs = nowOn(client.getClock()) - startTime;
     const rawUrl = `${client.getLink()}/${endpoint}`;
     return applyResponseInterceptors(
       client,
@@ -284,7 +285,7 @@ export const handleRequest = async (
   emptyWhenNoContent: boolean = false,
 ): Promise<EsiHandlerResponse> => {
   const rawUrl = `${client.getLink()}/${endpoint}`;
-  const startTime = Date.now();
+  const startTime = nowOn(client.getClock());
   const specCacheHit = (): Promise<EsiHandlerResponse> | null => {
     const hit = trySpecAwareCacheHit(
       client,

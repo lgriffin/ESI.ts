@@ -315,7 +315,7 @@ header_read_sites:
     headers: [location]
   - file: src/core/requestPipeline/statusHandling.ts
     headers: [content-length]
-  - file: src/core/endpoints/createClient.ts
+  - file: src/core/responseMeta.ts
     headers:
       [
         content-language,

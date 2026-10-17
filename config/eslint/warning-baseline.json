@@ -220,9 +220,6 @@
       "@typescript-eslint/no-unused-vars": 1,
       "security/detect-object-injection": 2
     },
-    "src/clients/ClientRegistry.ts": {
-      "@typescript-eslint/no-unused-vars": 1
-    },
     "src/core/BatchRequestHandler.ts": {
       "security/detect-object-injection": 1
     },

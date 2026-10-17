@@ -10,6 +10,7 @@ import { IDeduplicator } from './IDeduplicator';
 import { IRetryStrategy } from './IRetryStrategy';
 import { RetryConfig } from './util/retry';
 import type { ILogger } from './logger/ILogger';
+import type { Clock } from './ports/Clock';
 import { validateHeaderOption } from './util/validation';
 import type { IncompletePagesMode } from './pagination/pageLimit';
 
@@ -43,6 +44,7 @@ export class ApiClient {
   private compatibilityDate?: string | undefined;
   private fetchFn: FetchLike | null = null;
   private logger: ILogger | null = null;
+  private clock: Clock | null = null;
 
   constructor(
     private clientId: string,
@@ -227,6 +229,18 @@ export class ApiClient {
 
   setLogger(logger: ILogger | null): void {
     this.logger = logger;
+  }
+
+  /**
+   * The clock the pipeline reads time from and waits on (cache age, retry
+   * back-off, response time), or null for the wall clock and real timers.
+   */
+  getClock(): Clock | null {
+    return this.clock;
+  }
+
+  setClock(clock: Clock | null): void {
+    this.clock = clock;
   }
 
   hasTokenProvider(): boolean {

@@ -5,6 +5,7 @@ import { RateLimiter } from './rateLimiter/RateLimiter';
 import { RequestDeduplicator } from './RequestDeduplicator';
 import { createDefaultLogger } from './logger/DefaultLogger';
 import type { EsiClientConfig } from './EsiClientConfig';
+import { cacheFromStore } from './cache/CacheStoreCache';
 
 export interface ConfigureApiClientResult {
   deduplicator: RequestDeduplicator | null;
@@ -19,12 +20,19 @@ export interface ConfigureApiClientResult {
  * The caller is responsible for creating the ApiClient (with baseUrl,
  * clientId, accessToken) and setting datasource/language/tokenProvider
  * before calling this function, since those vary by construction surface.
+ *
+ * Middleware the config supplies as instances (`cache`, `rateLimiter`,
+ * `circuitBreaker`, `deduplicator`) is installed in place of what the config
+ * would build: a supplied circuit breaker or deduplicator even when the
+ * config leaves that stage off, a supplied cache unless the config turns the
+ * ETag cache off. A supplied `clock` goes on the client and into every stage
+ * built here. The returned deduplicator is only one built here.
  */
 export function configureApiClient(
   client: ApiClient,
   config?: EsiClientConfig,
 ): ConfigureApiClientResult {
-  let deduplicator: RequestDeduplicator | null = null;
+  if (config?.clock) client.setClock(config.clock);
 
   // Per-client logger first, so the middleware built below (the ETag
   // cache's startup line included) logs to it from the start.
@@ -42,30 +50,7 @@ export function configureApiClient(
   if (config?.tenant !== undefined) client.setTenant(config.tenant);
   if (config?.userAgent !== undefined) client.setUserAgent(config.userAgent);
 
-  // Rate limiter (always)
-  const rateLimiter = new RateLimiter(config?.rateLimiterConfig);
-  rateLimiter.setClient(client);
-  client.setRateLimiter(rateLimiter);
-
-  // Request deduplication (on by default)
-  if (config?.enableRequestDeduplication !== false) {
-    deduplicator = new RequestDeduplicator();
-    deduplicator.setClient(client);
-    client.setDeduplicator(deduplicator);
-  }
-
-  // ETag cache (on by default)
-  if (config?.enableETagCache !== false) {
-    const cache = new ETagCacheManager(config?.etagCacheConfig, client);
-    client.setCache(cache);
-  }
-
-  // Circuit breaker (off by default, opt-in)
-  if (config?.enableCircuitBreaker) {
-    const cb = new CircuitBreaker(config.circuitBreakerConfig);
-    cb.setClient(client);
-    client.setCircuitBreaker(cb);
-  }
+  const deduplicator = installMiddleware(client, config);
 
   // Retry config — default to 3 retries with exponential backoff so that
   // transient ESI failures (502/503/504) are handled automatically.
@@ -131,4 +116,54 @@ function applyPipelineOptions(
   if (config?.timeout !== undefined) {
     client.setTimeout(config.timeout);
   }
+}
+
+/**
+ * Installs the rate limiter, deduplicator, ETag cache and circuit breaker:
+ * each one supplied in the config, or built from it on the supplied clock.
+ * Returns the deduplicator it built, if any.
+ */
+function installMiddleware(
+  client: ApiClient,
+  config: EsiClientConfig | undefined,
+): RequestDeduplicator | null {
+  const clock = config?.clock;
+  let deduplicator: RequestDeduplicator | null = null;
+
+  // Rate limiter (always)
+  if (config?.rateLimiter) {
+    client.setRateLimiter(config.rateLimiter);
+  } else {
+    const rateLimiter = new RateLimiter(config?.rateLimiterConfig, clock);
+    rateLimiter.setClient(client);
+    client.setRateLimiter(rateLimiter);
+  }
+
+  // Request deduplication (on by default)
+  if (config?.deduplicator) {
+    client.setDeduplicator(config.deduplicator);
+  } else if (config?.enableRequestDeduplication !== false) {
+    deduplicator = new RequestDeduplicator();
+    deduplicator.setClient(client);
+    client.setDeduplicator(deduplicator);
+  }
+
+  // ETag cache (on by default)
+  if (config?.enableETagCache !== false) {
+    const cache = config?.cache
+      ? cacheFromStore(config.cache, clock)
+      : new ETagCacheManager(config?.etagCacheConfig, client, clock);
+    client.setCache(cache);
+  }
+
+  // Circuit breaker (off by default, opt-in)
+  if (config?.circuitBreaker) {
+    client.setCircuitBreaker(config.circuitBreaker);
+  } else if (config?.enableCircuitBreaker) {
+    const cb = new CircuitBreaker(config.circuitBreakerConfig, clock);
+    cb.setClient(client);
+    client.setCircuitBreaker(cb);
+  }
+
+  return deduplicator;
 }

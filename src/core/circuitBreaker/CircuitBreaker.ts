@@ -2,6 +2,8 @@ import type { ApiClient } from '../ApiClient';
 import { logWarn, logInfo } from '../logger/clientLog';
 import type { CircuitState, ICircuitBreaker } from './ICircuitBreaker';
 import { CircuitOpenError } from '../util/error';
+import { nowOn } from '../clock';
+import type { Clock } from '../ports/Clock';
 
 export { CircuitOpenError };
 // CircuitState moved to ICircuitBreaker.ts so the interface no longer imports
@@ -40,7 +42,14 @@ export class CircuitBreaker implements ICircuitBreaker {
     this.client = client;
   }
 
-  constructor(config: CircuitBreakerConfig = {}) {
+  /**
+   * @param clock - where the breaker reads time for its reset timeout and
+   *   stale-circuit checks. Defaults to the wall clock.
+   */
+  constructor(
+    config: CircuitBreakerConfig = {},
+    private readonly clock?: Clock | undefined,
+  ) {
     this.failureThreshold = config.failureThreshold ?? 5;
     this.resetTimeoutMs = config.resetTimeoutMs ?? 30_000;
     this.halfOpenMaxAttempts = config.halfOpenMaxAttempts ?? 1;
@@ -78,7 +87,7 @@ export class CircuitBreaker implements ICircuitBreaker {
     if (record.state === 'closed') return;
 
     if (record.state === 'open') {
-      const elapsed = Date.now() - record.lastFailureTime;
+      const elapsed = nowOn(this.clock) - record.lastFailureTime;
       if (elapsed >= this.resetTimeoutMs) {
         record.state = 'half-open';
         // This call is the first probe, so it counts towards halfOpenMaxAttempts.
@@ -137,7 +146,7 @@ export class CircuitBreaker implements ICircuitBreaker {
     const record = this.getOrCreate(key);
 
     record.failures++;
-    record.lastFailureTime = Date.now();
+    record.lastFailureTime = nowOn(this.clock);
 
     if (record.state === 'half-open') {
       record.state = 'open';
@@ -165,7 +174,7 @@ export class CircuitBreaker implements ICircuitBreaker {
     if (!record) return 'closed';
 
     if (record.state === 'open') {
-      const elapsed = Date.now() - record.lastFailureTime;
+      const elapsed = nowOn(this.clock) - record.lastFailureTime;
       if (elapsed >= this.resetTimeoutMs) {
         return 'half-open';
       }
@@ -206,7 +215,7 @@ export class CircuitBreaker implements ICircuitBreaker {
   }
 
   cleanup(): number {
-    const now = Date.now();
+    const now = nowOn(this.clock);
     let cleaned = 0;
     for (const [key, record] of this.circuits.entries()) {
       if (

@@ -1,4 +1,5 @@
 import { ApiClient } from '../ApiClient';
+import { nowOn } from '../clock';
 import { logDebug } from '../logger/clientLog';
 import { ICache } from '../cache/ICache';
 import { buildCacheKey } from '../cache/cacheKey';
@@ -73,8 +74,11 @@ export function trySpecAwareCacheHit(
   const key = buildCacheKey(url, client, requiresAuth);
   const entry = cache.get(key);
   if (!entry) return null;
-  const age = Date.now() - entry.timestamp;
-  if (age < specTtlMs) {
+  const age = nowOn(client.getClock()) - entry.timestamp;
+  // A negative age means the entry was stamped by another clock (a shared
+  // store on wall time, a supplied clock behind it): its freshness is
+  // unknown, so it is revalidated rather than served.
+  if (age >= 0 && age < specTtlMs) {
     logDebug(
       client,
       `Spec-aware cache hit for ${url} (age=${Math.round(age / 1000)}s, ttl=${Math.round(specTtlMs / 1000)}s)`,

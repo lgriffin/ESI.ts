@@ -9,18 +9,36 @@
  * so two views draw on one error budget and one cache, and the cache keys
  * (`src/core/cache/cacheKey.ts`) keep their authenticated entries apart by
  * the character each token names.
+ *
+ * `esi.withMetadata()` and `esi.withSafeMode()` hand out the same two views
+ * over the same clients, answering `{ data, meta }` or `{ ok, ... }`; the
+ * diagnostics read and reset the shared middleware; and `EsiOptions` takes
+ * middleware instances (a cache store, rate limiter, circuit breaker,
+ * deduplicator and clock) in place of the ones it would build.
  */
-import { PipelineTransport } from '../adapters/PipelineTransport';
+import {
+  PipelineTransport,
+  type PipelineTransportOptions,
+} from '../adapters/PipelineTransport';
 import { ApiClient, type EsiDatasource } from '../core/ApiClient';
 import type { CircuitBreakerConfig } from '../core/circuitBreaker/CircuitBreaker';
 import type { ETagCacheConfig } from '../core/cache/ETagCacheManager';
+import type { ICircuitBreaker } from '../core/circuitBreaker/ICircuitBreaker';
 import { configureApiClient } from '../core/configureApiClient';
+import {
+  type CacheStats,
+  type CircuitBreakerStats,
+  EsiDiagnostics,
+} from '../core/EsiDiagnostics';
+import type { IDeduplicator } from '../core/IDeduplicator';
 import type { IRetryStrategy } from '../core/IRetryStrategy';
 import type { LogLevel } from '../core/logger/DefaultLogger';
 import type {
   RequestInterceptor,
   ResponseInterceptor,
 } from '../core/middleware/Middleware';
+import type { CacheStore } from '../core/ports/CacheStore';
+import type { Clock } from '../core/ports/Clock';
 import type { HttpTransport } from '../core/ports/HttpTransport';
 import type { Identity } from '../core/ports/Identity';
 import type { Logger } from '../core/ports/Logger';
@@ -30,6 +48,7 @@ import type {
   OperationTransport,
 } from '../core/ports/OperationTransport';
 import type { IncompletePagesMode } from '../core/pagination/pageLimit';
+import type { IRateLimiter } from '../core/rateLimiter/IRateLimiter';
 import type { RateLimiterConfig } from '../core/rateLimiter/RateLimiter';
 import { EsiConfigurationError } from '../core/util/error';
 import { RetryConfig } from '../core/util/retry';
@@ -39,6 +58,13 @@ import {
   type PublicScopeTree,
   type ScopeTree,
 } from '../generated/operations.generated';
+import {
+  type EsiViews,
+  type MetadataView,
+  MetadataTransport,
+  SafeTransport,
+  type SafeView,
+} from './modes';
 
 /** What `createEsi` takes. Everything but the user agent has a default. */
 export interface EsiOptions {
@@ -91,6 +117,51 @@ export interface EsiOptions {
   /** Where the pipeline logs. Defaults to the package's pino logger at `logLevel`. */
   readonly logger?: Logger;
   readonly logLevel?: LogLevel;
+  /**
+   * Where the conditional-request cache keeps bodies and ETags, in place of
+   * the in-memory cache `etagCacheConfig` configures: a shared store (Redis,
+   * a file) implementing the `CacheStore` port, or an `ICache` such as an
+   * `ETagCacheManager`. Ignored when `enableETagCache` is `false`. The
+   * runtime does not shut it down; its owner does.
+   */
+  readonly cache?: CacheStore;
+  /** The rate limiter every view draws on, in place of the one `rateLimiterConfig` builds. */
+  readonly rateLimiter?: IRateLimiter;
+  /**
+   * The circuit breaker every view goes through, in place of the one
+   * `circuitBreakerConfig` builds. Supplying one turns the breaker on. The
+   * runtime does not shut it down; its owner does.
+   */
+  readonly circuitBreaker?: ICircuitBreaker;
+  /** The in-flight table identical GETs join. Supplying one turns deduplication on. */
+  readonly deduplicator?: IDeduplicator;
+  /**
+   * Where the pipeline reads time and waits: cache entry age, retry back-off,
+   * the rate limiter's windows and waits, the circuit breaker's reset timeout
+   * and response times. Defaults to the wall clock and real timers. The
+   * cleanup timers and the request timeout always run on real time, and a
+   * supplied middleware instance keeps whatever clock it was built with.
+   */
+  readonly clock?: Clock;
+}
+
+/**
+ * Reads and resets the middleware every view shares. Each answers for the
+ * whole runtime, not for one view.
+ */
+export interface RuntimeDiagnostics {
+  /** The cache's entries, hits and misses; null when the ETag cache is off. */
+  getCacheStats(): CacheStats | null;
+  /** Drops every view's cached entries. */
+  clearCache(): void;
+  /** Changes the built-in cache's limits in place; a supplied cache keeps its own. */
+  updateCacheConfig(config: Partial<ETagCacheConfig>): void;
+  /** Each endpoint's circuit and failure count; null when the circuit breaker is off. */
+  getCircuitBreakerStats(): CircuitBreakerStats | null;
+  /** Closes one endpoint's circuit, or every circuit when `endpoint` is left out. */
+  resetCircuitBreaker(endpoint?: string): void;
+  /** How many requests are in flight for others to join; null when deduplication is off. */
+  getDeduplicatorStats(): { pendingRequests: number } | null;
 }
 
 /** One runtime and its views. */
@@ -104,9 +175,35 @@ export interface Esi {
    */
   as(identity: Identity): ScopeTree;
   /**
-   * Stops the shared cache's and circuit breaker's cleanup timers and drops
-   * the in-flight table. Safe to call more than once; the views still answer
-   * afterwards. One call per runtime, not per view.
+   * The same views, over the same clients and middleware, with every
+   * single-answer operation resolving `{ data, meta }`: the body and the
+   * response metadata (ETag, `Expires`, `X-Pages`, the error-limit headers,
+   * whether the cache answered). Paginated operations still yield items.
+   * The same object comes back on every call.
+   */
+  withMetadata(): EsiViews<
+    MetadataView<PublicScopeTree>,
+    MetadataView<ScopeTree>
+  >;
+  /**
+   * The same views with every single-answer operation resolving
+   * `{ ok: true, data, meta }` or `{ ok: false, error }` instead of
+   * rejecting. Paginated operations still yield items and reject on failure.
+   * The same object comes back on every call.
+   */
+  withSafeMode(): EsiViews<SafeView<PublicScopeTree>, SafeView<ScopeTree>>;
+  /** The shared middleware's statistics and resets; the methods below are shortcuts to it. */
+  readonly diagnostics: RuntimeDiagnostics;
+  getCacheStats(): CacheStats | null;
+  clearCache(): void;
+  updateCacheConfig(config: Partial<ETagCacheConfig>): void;
+  getCircuitBreakerStats(): CircuitBreakerStats | null;
+  resetCircuitBreaker(endpoint?: string): void;
+  /**
+   * Stops the cleanup timers of the cache and circuit breaker the runtime
+   * built and drops its in-flight table; a supplied cache, circuit breaker or
+   * deduplicator is left to its owner. Safe to call more than once; the views
+   * still answer afterwards. One call per runtime, not per view.
    */
   shutdown(): void;
 }
@@ -208,6 +305,7 @@ function viewClient(
   client.setCompatibilityDate(runtime.getCompatibilityDate());
   client.setDatasource(runtime.getDatasource());
   client.setLanguage(runtime.getLanguage());
+  client.setClock(runtime.getClock());
   if (options.transport) client.setFetch(options.transport);
   for (const fn of options.requestInterceptors ?? []) {
     client.addRequestInterceptor(fn);
@@ -241,6 +339,9 @@ export function createEsi(options: EsiOptions): Esi {
     runtime.setCompatibilityDate(options.compatibilityDate);
   }
   if (options.transport) runtime.setFetch(options.transport);
+  // The supplied middleware (cache, rateLimiter, circuitBreaker,
+  // deduplicator, clock) rides in the options, as it does in EsiClientConfig
+  // for the custom clients, so configureApiClient installs it for both.
   configureApiClient(runtime, {
     ...options,
     requestInterceptors: options.requestInterceptors?.slice(),
@@ -251,32 +352,86 @@ export function createEsi(options: EsiOptions): Esi {
   // ApiClient's validateResponse defaults to true for the hand-written
   // clients, and the generated operations have returned bodies unchecked
   // since the runtime shipped.
-  const transportOptions = {
+  const transportOptions: PipelineTransportOptions = {
     validateResponse: options.validateResponse === true,
   };
-  const views = new WeakMap<Identity, ScopeTree>();
+  const base = (mode: Mode, client: ApiClient): OperationTransport =>
+    mode === 'plain'
+      ? new PipelineTransport(client, transportOptions)
+      : new MetadataTransport(client, transportOptions);
+
+  const clients = new WeakMap<Identity, ApiClient>();
+  const clientFor = (identity: Identity): ApiClient => {
+    let client = clients.get(identity);
+    if (!client) {
+      client = viewClient(runtime, options, identity);
+      clients.set(identity, client);
+    }
+    return client;
+  };
+  const views = <TPublic, TScoped>(mode: Mode): EsiViews<TPublic, TScoped> => {
+    const byIdentity = new WeakMap<Identity, TScoped>();
+    return Object.freeze({
+      public: createScopeTree(
+        inMode(mode, new PublicTransport(base(mode, runtime))),
+      ) as unknown as TPublic,
+      as(identity: Identity): TScoped {
+        const known = byIdentity.get(identity);
+        if (known) return known;
+        const client = clientFor(identity);
+        const view = createScopeTree(
+          inMode(
+            mode,
+            new IdentityTransport(client, identity, base(mode, client)),
+          ),
+        ) as unknown as TScoped;
+        byIdentity.set(identity, view);
+        return view;
+      },
+    });
+  };
+
+  const plain = views<PublicScopeTree, ScopeTree>('plain');
+  let metadata:
+    | EsiViews<MetadataView<PublicScopeTree>, MetadataView<ScopeTree>>
+    | undefined;
+  let safe:
+    EsiViews<SafeView<PublicScopeTree>, SafeView<ScopeTree>> | undefined;
+  const diagnostics: RuntimeDiagnostics = new EsiDiagnostics(
+    runtime,
+    runtime.getCache() !== null,
+    runtime.getDeduplicator(),
+  );
   return Object.freeze({
-    public: createScopeTree(
-      new PublicTransport(new PipelineTransport(runtime, transportOptions)),
-    ),
-    as(identity: Identity): ScopeTree {
-      const known = views.get(identity);
-      if (known) return known;
-      const client = viewClient(runtime, options, identity);
-      const view = createScopeTree(
-        new IdentityTransport(
-          client,
-          identity,
-          new PipelineTransport(client, transportOptions),
-        ),
-      );
-      views.set(identity, view);
-      return view;
+    public: plain.public,
+    as: (identity: Identity): ScopeTree => plain.as(identity),
+    withMetadata() {
+      metadata ??= views('metadata');
+      return metadata;
     },
+    withSafeMode() {
+      safe ??= views('safe');
+      return safe;
+    },
+    diagnostics,
+    getCacheStats: () => diagnostics.getCacheStats(),
+    clearCache: () => diagnostics.clearCache(),
+    updateCacheConfig: (config: Partial<ETagCacheConfig>) =>
+      diagnostics.updateCacheConfig(config),
+    getCircuitBreakerStats: () => diagnostics.getCircuitBreakerStats(),
+    resetCircuitBreaker: (endpoint?: string) =>
+      diagnostics.resetCircuitBreaker(endpoint),
     shutdown(): void {
-      runtime.getCache()?.shutdown();
-      runtime.getCircuitBreaker()?.shutdown();
-      runtime.getDeduplicator()?.clear();
+      if (!options.cache) runtime.getCache()?.shutdown();
+      if (!options.circuitBreaker) runtime.getCircuitBreaker()?.shutdown();
+      if (!options.deduplicator) runtime.getDeduplicator()?.clear();
     },
   });
+}
+
+type Mode = 'plain' | 'metadata' | 'safe';
+
+/** The guarded transport, turned into results in safe mode. */
+function inMode(mode: Mode, guarded: OperationTransport): OperationTransport {
+  return mode === 'safe' ? new SafeTransport(guarded) : guarded;
 }

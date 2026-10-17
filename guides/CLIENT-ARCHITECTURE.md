@@ -43,6 +43,9 @@ Each step is additive or internal, so each can ship in a 12.x minor release. A f
 3. **Generate the baseline schemas, hand-write the overrides.** The generated response schemas become the baseline, and a hand-written schema stays only where ESI's wire differs from the spec. Schema drift becomes a generator diff instead of an audit.
 4. **Identity views for the custom clients.** A shared runtime with per-identity views, along the lines of `client.as(identity)` returning the same custom clients bound to one character over one cache, rate-limit budget and breaker, and a public-only builder whose types omit authenticated methods. Custom-client users get the multi-character model without learning a new call style.
 5. **Close runtime gaps once, in the shared runtime.** Parallel page collection, response metadata and safe mode, diagnostics, swappable middleware and nameable response types are built where both surfaces see them, not twice.
+   - **Response metadata and safe mode** (12.x): one reader, `buildResponseMeta` in `src/core/responseMeta.ts`, serves each domain client's `withMetadata()`, the new `EsiClient.withMetadata()` / `withSafeMode()` and `CustomEsiClient.withMetadata()` / `withSafeMode()` (every domain from one call), and `esi.withMetadata()` / `esi.withSafeMode()`.
+   - **Diagnostics** (12.x): `EsiDiagnostics` backs `EsiClient.diagnostics`, the new `CustomEsiClient.diagnostics` and its shortcuts, and `esi.diagnostics`.
+   - **Swappable middleware** (12.x): `cache`, `rateLimiter`, `circuitBreaker`, `deduplicator` and `clock` are `EsiClientConfig` fields that `configureApiClient` installs, so `EsiClient`, the builder, `EsiApiFactory.createClient` and `createEsi` (whose `EsiOptions` carry the same five) take them the same way.
 
 ### Shared already
 

@@ -46,9 +46,22 @@ import {
 } from './clients/ClientRegistry';
 import { EsiClientConfig } from './EsiClient';
 import { configureApiClient } from './core/configureApiClient';
-import { ETagCacheManager } from './core/cache/ETagCacheManager';
+import {
+  ETagCacheManager,
+  type ETagCacheConfig,
+} from './core/cache/ETagCacheManager';
 import { RequestDeduplicator } from './core/RequestDeduplicator';
+import {
+  EsiDiagnostics,
+  type CacheStats,
+  type CircuitBreakerStats,
+} from './core/EsiDiagnostics';
 import { logInfo } from './core/logger/clientLog';
+import {
+  domainClientViews,
+  type MetadataClients,
+  type SafeModeClients,
+} from './clients/domainViews';
 
 export { ApiClientType, ClientInstance };
 
@@ -62,6 +75,12 @@ export class CustomEsiClient {
   private clients: Map<string, ClientInstance> = new Map();
   private enabledClients: Set<ApiClientType>;
   private deduplicator: RequestDeduplicator | null = null;
+  private etagCacheEnabled: boolean;
+  private suppliedCache: boolean;
+  private suppliedCircuitBreaker: boolean;
+  private _diagnostics: EsiDiagnostics | null = null;
+  private metadataView: unknown;
+  private safeModeView: unknown;
 
   constructor(config: EsiClientConfig & { clients: ApiClientType[] }) {
     this.enabledClients = new Set(config.clients);
@@ -94,6 +113,9 @@ export class CustomEsiClient {
 
     const result = configureApiClient(this.apiClient, config);
     this.deduplicator = result.deduplicator;
+    this.etagCacheEnabled = config.enableETagCache !== false;
+    this.suppliedCache = config.cache !== undefined;
+    this.suppliedCircuitBreaker = config.circuitBreaker !== undefined;
 
     for (const name of this.enabledClients) {
       this.clients.set(name, createClientInstance(name, this.apiClient));
@@ -116,6 +138,70 @@ export class CustomEsiClient {
 
   getEnabledClients(): ApiClientType[] {
     return Array.from(this.enabledClients);
+  }
+
+  /**
+   * The enabled domain clients as their `withMetadata()` views, from one
+   * object; a domain the builder was not given is undefined. The same object
+   * comes back on every call.
+   */
+  withMetadata(): MetadataClients<this> {
+    this.metadataView ??= domainClientViews(
+      (name) => this.clients.get(name),
+      'metadata',
+    );
+    return this.metadataView as MetadataClients<this>;
+  }
+
+  /**
+   * The enabled domain clients as their `withSafeMode()` views, from one
+   * object; a domain the builder was not given is undefined. The same object
+   * comes back on every call.
+   */
+  withSafeMode(): SafeModeClients<this> {
+    this.safeModeView ??= domainClientViews(
+      (name) => this.clients.get(name),
+      'safe',
+    );
+    return this.safeModeView as SafeModeClients<this>;
+  }
+
+  /**
+   * Reads and resets the cache, circuit breaker and deduplicator the enabled
+   * clients share, as `EsiClient.diagnostics` does for its own.
+   */
+  get diagnostics(): EsiDiagnostics {
+    this._diagnostics ??= new EsiDiagnostics(
+      this.apiClient,
+      this.etagCacheEnabled,
+      this.apiClient.getDeduplicator(),
+    );
+    return this._diagnostics;
+  }
+
+  /** The cache's entries, hits and misses; null when the ETag cache is off. */
+  getCacheStats(): CacheStats | null {
+    return this.diagnostics.getCacheStats();
+  }
+
+  /** Drops every cached entry. */
+  clearCache(): void {
+    this.diagnostics.clearCache();
+  }
+
+  /** Changes the built-in cache's limits in place; a supplied cache keeps its own. */
+  updateCacheConfig(newConfig: Partial<ETagCacheConfig>): void {
+    this.diagnostics.updateCacheConfig(newConfig);
+  }
+
+  /** Each endpoint's circuit and failure count; null when the circuit breaker is off. */
+  getCircuitBreakerStats(): CircuitBreakerStats | null {
+    return this.diagnostics.getCircuitBreakerStats();
+  }
+
+  /** Closes one endpoint's circuit, or every circuit when `endpoint` is left out. */
+  resetCircuitBreaker(endpoint?: string): void {
+    this.diagnostics.resetCircuitBreaker(endpoint);
   }
 
   get alliance(): AllianceClient | undefined {
@@ -236,13 +322,18 @@ export class CustomEsiClient {
     return this.getClient('militaryCampaigns') as MilitaryCampaignsClient;
   }
 
+  /**
+   * Stops the cleanup timers of the cache and circuit breaker the client
+   * built and drops its in-flight table; a cache store, circuit breaker or
+   * deduplicator supplied in the config is left to its owner.
+   */
   shutdown(): void {
     const cache = this.apiClient.getCache();
-    if (cache) {
+    if (cache && !this.suppliedCache) {
       (cache as ETagCacheManager).shutdown();
     }
     const cb = this.apiClient.getCircuitBreaker();
-    if (cb) {
+    if (cb && !this.suppliedCircuitBreaker) {
       cb.shutdown();
     }
     if (this.deduplicator) {

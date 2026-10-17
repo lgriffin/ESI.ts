@@ -7,7 +7,7 @@ When(
   async function (client: string) {
     const logger = recordingLogger();
     this.values.logger = logger;
-    const custom = buildCustomClient(this, [client], undefined, logger);
+    const custom = buildCustomClient(this, [client], undefined, { logger });
     this.result = await custom.status!.getStatus();
   },
 );

@@ -7,6 +7,8 @@ import { camelToSnake } from '../util/stringUtil';
 import type { ApiClient } from '../ApiClient';
 import { logWarn } from '../logger/clientLog';
 import { sleep } from '../util/sleep';
+import { nowOn } from '../clock';
+import type { Clock } from '../ports/Clock';
 import { EsiError } from '../util/error';
 
 export interface RateLimitInfo {
@@ -113,7 +115,22 @@ export class RateLimiter implements IRateLimiter {
     this.client = client;
   }
 
-  constructor(config?: RateLimiterConfig) {
+  private now(): number {
+    return nowOn(this.clock);
+  }
+
+  private wait(ms: number): Promise<void> {
+    return this.clock ? this.clock.sleep(ms) : sleep(ms);
+  }
+
+  /**
+   * @param clock - where the limiter reads time and waits. Defaults to the
+   *   wall clock and real timers.
+   */
+  constructor(
+    config?: RateLimiterConfig,
+    private readonly clock?: Clock | undefined,
+  ) {
     this.minDelayMs = config?.minDelayMs ?? 50;
     this.decelerationThreshold = config?.decelerationThreshold ?? 0.2;
     this.userKeyExtractor = config?.userKeyExtractor;
@@ -195,11 +212,11 @@ export class RateLimiter implements IRateLimiter {
       userSet = {
         groups: new Map(),
         errorLimit: { ...DEFAULT_ERROR_LIMIT },
-        lastAccessed: Date.now(),
+        lastAccessed: this.now(),
       };
       this.userBuckets.set(userKey, userSet);
     }
-    userSet.lastAccessed = Date.now();
+    userSet.lastAccessed = this.now();
     return userSet;
   }
 
@@ -242,7 +259,7 @@ export class RateLimiter implements IRateLimiter {
 
   private cleanupStaleUsers(): void {
     if (!this.userBuckets) return;
-    const now = Date.now();
+    const now = this.now();
     if (now - this.lastCleanup < RateLimiter.CLEANUP_INTERVAL_MS) return;
     this.lastCleanup = now;
 
@@ -262,7 +279,7 @@ export class RateLimiter implements IRateLimiter {
   ): void {
     if (this.isTestMode) return;
 
-    const now = Date.now();
+    const now = this.now();
     const responseGroup = headers['x-ratelimit-group'] || undefined;
     const bucket = this.getBucket(
       templatePath,
@@ -339,7 +356,7 @@ export class RateLimiter implements IRateLimiter {
     let stillBlockedBucket: GroupBucket | undefined;
     for (let i = 0; i < 10; i++) {
       const bucket = this.getBucket(templatePath, method, requestHeaders);
-      const now = Date.now();
+      const now = this.now();
       if (bucket.blockedUntil <= now) {
         stillBlockedBucket = undefined;
         break;
@@ -352,7 +369,7 @@ export class RateLimiter implements IRateLimiter {
         `[ESI Rate Limit] Group '${bucket.group}' blocked for ${Math.ceil(waitTime / 1000)}s (420/429 received)`,
         { group: bucket.group, waitMs: waitTime },
       );
-      await sleep(waitTime);
+      await this.wait(waitTime);
       // Clear the block we waited for; leave intact if another response extended it
       if (bucket.blockedUntil <= waitedUntil) {
         bucket.blockedUntil = 0;
@@ -361,8 +378,8 @@ export class RateLimiter implements IRateLimiter {
     // Never proceed while still blocked: if concurrent responses kept
     // re-extending blockedUntil past the retry budget above, fail fast
     // with a retryable rate-limit error rather than sending the request.
-    if (stillBlockedBucket && stillBlockedBucket.blockedUntil > Date.now()) {
-      const waitTime = stillBlockedBucket.blockedUntil - Date.now();
+    if (stillBlockedBucket && stillBlockedBucket.blockedUntil > this.now()) {
+      const waitTime = stillBlockedBucket.blockedUntil - this.now();
       logWarn(
         this.client,
         `[ESI Rate Limit] Group '${stillBlockedBucket.group}' still blocked after retry budget exhausted; aborting request instead of sending while blocked`,
@@ -384,7 +401,7 @@ export class RateLimiter implements IRateLimiter {
           `[ESI Rate Limit] Legacy error limit low (${errorLimit.remain}), waiting ${delay}ms`,
           { errorLimitRemain: errorLimit.remain },
         );
-        await sleep(delay);
+        await this.wait(delay);
       }
     } else if (errorLimit.remain <= 0 && errorLimit.reset > 0) {
       const waitTime = errorLimit.reset * 1000;
@@ -393,7 +410,7 @@ export class RateLimiter implements IRateLimiter {
         `[ESI Rate Limit] Legacy error limit exhausted, waiting ${Math.ceil(waitTime / 1000)}s`,
         { errorLimitReset: errorLimit.reset },
       );
-      await sleep(waitTime);
+      await this.wait(waitTime);
     }
 
     const bucket = this.getBucket(templatePath, method, requestHeaders);
@@ -406,12 +423,12 @@ export class RateLimiter implements IRateLimiter {
           `[ESI Rate Limit] Group '${bucket.group}' token bucket empty, waiting 1s`,
           { group: bucket.group },
         );
-        await sleep(1000);
+        await this.wait(1000);
       } else if (ratio <= this.decelerationThreshold) {
         const extraDelay = Math.ceil(
           (1 - ratio / this.decelerationThreshold) * 1000,
         );
-        await sleep(extraDelay);
+        await this.wait(extraDelay);
       }
     }
 
@@ -424,17 +441,17 @@ export class RateLimiter implements IRateLimiter {
    */
   private async enforceMinDelay(): Promise<void> {
     if (this.isTestMode) {
-      this.lastRequestTime = Date.now();
+      this.lastRequestTime = this.now();
       return;
     }
 
     const run = async (): Promise<void> => {
-      const now = Date.now();
+      const now = this.now();
       const timeSinceLastRequest = now - this.lastRequestTime;
       if (timeSinceLastRequest < this.minDelayMs) {
-        await sleep(this.minDelayMs - timeSinceLastRequest);
+        await this.wait(this.minDelayMs - timeSinceLastRequest);
       }
-      this.lastRequestTime = Date.now();
+      this.lastRequestTime = this.now();
     };
 
     const scheduled = this.minDelayChain.then(run, run);
@@ -479,8 +496,8 @@ export class RateLimiter implements IRateLimiter {
       errorLimitRemain: this.globalErrorLimit.remain,
       errorLimitReset: this.globalErrorLimit.reset,
       retryAfter:
-        worstBucket.blockedUntil > Date.now()
-          ? Math.ceil((worstBucket.blockedUntil - Date.now()) / 1000)
+        worstBucket.blockedUntil > this.now()
+          ? Math.ceil((worstBucket.blockedUntil - this.now()) / 1000)
           : null,
       blockedUntil: worstBucket.blockedUntil,
     };
@@ -519,7 +536,7 @@ export class RateLimiter implements IRateLimiter {
   }
 
   isBlocked(group?: string): boolean {
-    const now = Date.now();
+    const now = this.now();
 
     if (group) {
       const bucket = this.defaultBuckets.get(group);

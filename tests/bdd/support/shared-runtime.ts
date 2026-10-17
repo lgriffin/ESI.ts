@@ -6,11 +6,17 @@
 import { EsiTokenManager } from '../../../src/auth/EsiTokenManager';
 import { MemoryTokenStorage } from '../../../src/auth/storage/MemoryTokenStorage';
 import {
+  type CachedResponse,
+  type CacheStore,
+  type Clock,
   createEsi,
   type Esi,
   type EsiOptions,
+  type Identity,
   type OperationMeta,
 } from '../../../src/client';
+import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
+import { RequestDeduplicator } from '../../../src/core/RequestDeduplicator';
 import { getStatusMeta } from '../../../src/generated/operations.generated';
 import {
   makeJwt,
@@ -35,6 +41,7 @@ export const WALLET_BALANCE = 1_234_567.89;
 
 export const WALLET_PATH = /\/characters\/\d+\/wallet(\?|$)/;
 export const CORPORATION_WALLETS_PATH = /\/corporations\/\d+\/wallets(\?|$)/;
+export const ALLIANCES_PATH = /\/alliances\/?(\?|$)/;
 
 export const corporationWallets = () => [
   { division: 1, balance: 10_000_000 },
@@ -96,6 +103,134 @@ export function queueWalletBalance(times = 1): void {
 /** The requests that went to ESI, leaving out the SSO refresh calls. */
 export function esiRequests(): readonly RecordedRequest[] {
   return sentRequests().filter((r) => r.url.host === 'esi.evetech.net');
+}
+
+// ── Response metadata (G8)
+
+/** The headers a metadata scenario's response carries, and what they read as. */
+export const RESPONSE_HEADERS = {
+  etag: '"meta-v1"',
+  expires: 'Sat, 17 Oct 2026 12:00:30 GMT',
+  'x-pages': '1',
+  'x-esi-error-limit-remain': '99',
+  'x-esi-error-limit-reset': '42',
+};
+
+export const EXPECTED_META = {
+  etag: '"meta-v1"',
+  expires: 'Sat, 17 Oct 2026 12:00:30 GMT',
+  pages: 1,
+  errorLimitRemain: 99,
+  errorLimitReset: 42,
+  fromCache: false,
+  stale: false,
+};
+
+/** The identity the "a view for a character" steps opened, for a mode view of the same character. */
+export function identityOf(world: World): Identity {
+  const identity = world.values.identity as Identity | undefined;
+  if (!identity)
+    throw new Error(
+      'No identity: add "Given a view for a character holding an access token" first',
+    );
+  return identity;
+}
+
+// ── Supplied middleware (G11)
+
+/** A `CacheStore` over a Map that records what it was asked, as a shared store would be. */
+export class MapCacheStore implements CacheStore {
+  readonly entries = new Map<string, CachedResponse>();
+  shutdowns = 0;
+
+  get(key: string): CachedResponse | null {
+    return this.entries.get(key) ?? null;
+  }
+
+  set(
+    key: string,
+    etag: string,
+    data: unknown,
+    headers: Record<string, string>,
+    ttlMs?: number,
+  ): void {
+    this.entries.set(key, {
+      etag,
+      data,
+      headers,
+      timestamp: Date.now(),
+      ...(ttlMs === undefined ? {} : { ttl: ttlMs }),
+    });
+  }
+
+  delete(key: string): boolean {
+    return this.entries.delete(key);
+  }
+
+  clear(): void {
+    this.entries.clear();
+  }
+
+  shutdown(): void {
+    this.shutdowns += 1;
+  }
+}
+
+/** The real rate limiter, counting the clearances it gives. */
+export class CountingRateLimiter extends RateLimiter {
+  cleared = 0;
+
+  constructor() {
+    super({ minDelayMs: 0 });
+  }
+
+  override async checkRateLimit(
+    templatePath?: string,
+    method?: string,
+    requestHeaders?: Record<string, string>,
+  ): Promise<void> {
+    this.cleared += 1;
+    return super.checkRateLimit(templatePath, method, requestHeaders);
+  }
+}
+
+/** The real deduplicator, counting the requests it is asked to coalesce. */
+export class CountingDeduplicator extends RequestDeduplicator {
+  asked = 0;
+
+  override dedupe<T>(key: string, execute: () => Promise<T>): Promise<T> {
+    this.asked += 1;
+    return super.dedupe(key, execute);
+  }
+}
+
+/** A clock a scenario moves by hand; its waits resolve at once and are recorded. */
+export class ManualClock implements Clock {
+  private offsetMs = 0;
+  readonly waits: number[] = [];
+
+  constructor(private readonly startMs: number = Date.now()) {}
+
+  now(): number {
+    return this.startMs + this.offsetMs;
+  }
+
+  sleep(ms: number): Promise<void> {
+    this.waits.push(ms);
+    return Promise.resolve();
+  }
+
+  advance(ms: number): void {
+    this.offsetMs += ms;
+  }
+}
+
+/** The middleware a Given step supplied, for a Then step to read. */
+export function suppliedOf<T>(world: World, name: string): T {
+  const supplied = world.values[name] as T | undefined;
+  if (supplied === undefined)
+    throw new Error(`No supplied ${name}: add the Given step that supplies it`);
+  return supplied;
 }
 
 // ── What the custom endpoint definitions carry too

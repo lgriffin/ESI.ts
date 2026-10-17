@@ -11,6 +11,7 @@ import type { ApiClient } from '../core/ApiClient';
 import { handleRequest } from '../core/ApiRequestHandler';
 import { warnIfDeprecated } from '../core/endpoints/deprecationWarning';
 import { fetchPages } from '../core/pagination/AsyncPaginationIterator';
+import type { EsiHandlerResponse } from '../core/requestPipeline/cachePolicy';
 import type {
   OperationMeta,
   OperationRequest,
@@ -81,16 +82,25 @@ export interface PipelineTransportOptions {
    * `validateResponse: true` explicitly.
    */
   readonly validateResponse?: boolean;
+  /**
+   * Called with the pipeline's response to each `request`, headers included,
+   * before the body is checked and returned. The runtime's metadata views read
+   * the response metadata through it.
+   */
+  readonly observe?: (response: EsiHandlerResponse) => void;
 }
 
 export class PipelineTransport implements OperationTransport {
   private readonly validate: boolean;
+  private readonly observe:
+    ((response: EsiHandlerResponse) => void) | undefined;
 
   constructor(
     private readonly client: ApiClient,
     options: PipelineTransportOptions = {},
   ) {
     this.validate = options.validateResponse === true;
+    this.observe = options.observe;
   }
 
   async request<T>(meta: OperationMeta, req: OperationRequest): Promise<T> {
@@ -113,6 +123,7 @@ export class PipelineTransport implements OperationTransport {
       meta.textResponse,
       emptyWhenNoContent,
     );
+    this.observe?.(response);
     // No content (a 204, or ESI's empty 200) on a route that documents it is
     // an empty list, read by the same helper the custom clients use.
     const body = emptyListWhenNoContent(response.body, emptyWhenNoContent);
