@@ -15,7 +15,9 @@
  * added `createMockTransport`. `.` was re-measured when #258 added the
  * `FileTokenStorage` cross-process lock (with room for #256's JWKS
  * verifier), and `./errors` (ESM) when #256 added `TokenVerificationError`
- * and when #662 gave `EsiPaginationError` its stop reason and partial result.
+ * and when #662 gave `EsiPaginationError` its stop reason and partial result;
+ * #662 re-measured `./errors` (CJS) too, which had shrunk below its stale
+ * 9246 B figure, and lowered its budget to match.
  *
  * Raising a budget: run `npm run build && npm run size`, set the new
  * measurement plus 5%, update the comment, and say in the pull request body
@@ -42,7 +44,7 @@ const budgets = {
     // TokenVerificationError, then for the incomplete-pagination fields on
     // EsiPaginationError (reason, partial and the rest; #662, about 1 kB).
     import: '6.7 kB', // measured 6350 B
-    require: '9.8 kB', // measured 9246 B
+    require: '9.1 kB', // measured 8577 B
   },
   './testing': {
     import: '19.5 kB', // measured 18540 B
