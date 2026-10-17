@@ -29,9 +29,10 @@ export function handleCursorPagination(
 }
 
 /**
- * Handle offset-based pagination. Fetches remaining pages if xPages > 1 and
- * resolves only with every page: a count above the page limit, an empty page
- * after the first, or a failed page rejects (DES-08). An `EsiError`,
+ * Handle offset-based pagination. Fetches remaining pages if xPages > 1. A
+ * failed page rejects; a count above the page limit or an empty page after
+ * the first follows the client's `incompletePages` mode, truncating with a
+ * warning by default and rejecting under `throw` (DES-08). An `EsiError`,
  * EsiPaginationError included, is rethrown as it is; anything else is
  * wrapped in an EsiPaginationError with reason `fetch-failed`.
  */

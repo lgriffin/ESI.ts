@@ -13,6 +13,7 @@ import {
   type OperationPagination,
   type ProviderIdentityOptions,
   type QueryValue,
+  type IncompletePagesMode,
 } from '../../src/client';
 
 declare const esi: Esi;
@@ -43,6 +44,22 @@ expectError(esi.public.setAccessToken);
 expectError(createEsi({}));
 expectError(createEsi({ baseUrl: 'https://esi.evetech.net' }));
 expectType<Esi>(createEsi({ userAgent: 'app/1.0 (dev@example.com)' }));
+
+// incompletePages takes the two modes and nothing else (DES-08).
+expectType<Esi>(
+  createEsi({
+    userAgent: 'app/1.0 (dev@example.com)',
+    incompletePages: 'throw',
+  }),
+);
+expectAssignable<IncompletePagesMode>('truncate');
+expectError<IncompletePagesMode>('fail');
+expectError(
+  createEsi({
+    userAgent: 'app/1.0 (dev@example.com)',
+    incompletePages: 'fail',
+  }),
+);
 
 // Identities: from a token, from a provider, or anything with the members.
 expectType<Identity>(identityFromToken('token'));

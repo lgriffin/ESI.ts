@@ -5122,7 +5122,8 @@ interface EsiOperationTypes {
 
 // @public
 export class EsiPaginationError extends EsiFaultError {
-    constructor(where: string, cause: unknown, details?: EsiPaginationErrorDetails);
+    constructor(where: string, cause: unknown);
+    constructor(where: string, cause: unknown, details: EsiPaginationErrorDetails);
     readonly endpoint: string;
     readonly fetchedPages: number;
     readonly itemCount: number;
@@ -6578,6 +6579,9 @@ export interface ILogger {
     // (undocumented)
     warn(message: string, context?: LogContext): void;
 }
+
+// @public
+export type IncompletePagesMode = 'truncate' | 'throw';
 
 // @public @deprecated (undocumented)
 export type Incursion = z.infer<typeof IncursionSchema>;

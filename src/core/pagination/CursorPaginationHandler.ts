@@ -19,6 +19,7 @@ import { ApiClient } from '../ApiClient';
 import { EsiError, EsiPaginationError } from '../util/error';
 import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { fetchOnePage } from '../requestPipeline/fetchExecution';
+import { incompleteWalk } from './incompleteWalk';
 import { MAX_PAGES } from './pageLimit';
 import {
   resolveCache,
@@ -112,10 +113,12 @@ export class CursorPaginationHandler {
   /**
    * Auto-fetch all pages by following `after` tokens until an empty
    * response, or a page without an `after` token, is received. Combines the
-   * caller-supplied first page data with all subsequent pages. It never
-   * returns a partial dataset (DES-08): after three consecutive failed pages
-   * it throws, and reaching `maxPages` with an `after` token still set
-   * throws an EsiPaginationError with reason `cursor-cap`.
+   * caller-supplied first page data with all subsequent pages. After three
+   * consecutive failed pages it throws rather than return a partial dataset
+   * (DES-08). Reaching `maxPages` with an `after` token still set follows the
+   * client's `incompletePages` mode: `truncate` (the default) returns the
+   * pages fetched with a warning, `throw` rejects with an EsiPaginationError
+   * whose reason is `cursor-cap`.
    */
   static async fetchAll(
     client: ApiClient,
@@ -193,13 +196,11 @@ export class CursorPaginationHandler {
       }
     }
 
+    // The page limit reached with an after cursor in hand: a short list.
+    // Throws under `incompletePages: 'throw'`; otherwise warns and returns
+    // what it has, as before the option existed.
     if (afterToken) {
-      logWarn(
-        client,
-        `Cursor pagination stopped at the ${opts.maxPages}-page limit with an after cursor still set.`,
-        { pages: pageCount, maxPages: opts.maxPages },
-      );
-      throw new EsiPaginationError(endpoint, undefined, {
+      incompleteWalk(client, endpoint, {
         reason: 'cursor-cap',
         endpoint,
         fetchedPages: pageCount,

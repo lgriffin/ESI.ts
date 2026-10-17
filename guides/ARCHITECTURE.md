@@ -637,17 +637,18 @@ Every resilience feature is behind an interface and scoped to one `ApiClient` in
 
 Per-client settings are plain values with a setter each. `configureApiClient` or the construction surface sets them from `EsiClientConfig`:
 
-| Setting                                | Setter                                           | Set by                      | Effect                                                              |
-| -------------------------------------- | ------------------------------------------------ | --------------------------- | ------------------------------------------------------------------- |
-| `tenant`                               | `setTenant()`                                    | `configureApiClient`        | `X-Tenant`; refused when not a legal header value                   |
-| `userAgent`                            | `setUserAgent()`                                 | `configureApiClient`        | Prefixes `User-Agent`, sets `X-User-Agent`; validated in the setter |
-| `compatibilityDate`                    | `setCompatibilityDate()`                         | All three surfaces          | `X-Compatibility-Date`                                              |
-| `language`                             | `setLanguage()`                                  | each surface                | `Accept-Language`                                                   |
-| `datasource`                           | `setDatasource()`                                | each surface                | `datasource` query parameter                                        |
-| `onTokenRefresh`                       | `setTokenProvider()`                             | each surface                | 401 refresh (§5)                                                    |
-| `accessToken`                          | `setAccessToken()`                               | the `ApiClient` constructor | `Authorization` on `requiresAuth` endpoints                         |
-| `validateResponse` / `validateRequest` | `setValidateResponse()` / `setValidateRequest()` | `configureApiClient`        | Zod validation ([§10](#10-response-and-request-validation))         |
-| `timeout`                              | `setTimeout()`                                   | `configureApiClient`        | Per-request `AbortController` timeout, default 30 s                 |
+| Setting                                | Setter                                           | Set by                      | Effect                                                                                                   |
+| -------------------------------------- | ------------------------------------------------ | --------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `tenant`                               | `setTenant()`                                    | `configureApiClient`        | `X-Tenant`; refused when not a legal header value                                                        |
+| `userAgent`                            | `setUserAgent()`                                 | `configureApiClient`        | Prefixes `User-Agent`, sets `X-User-Agent`; validated in the setter                                      |
+| `compatibilityDate`                    | `setCompatibilityDate()`                         | All three surfaces          | `X-Compatibility-Date`                                                                                   |
+| `language`                             | `setLanguage()`                                  | each surface                | `Accept-Language`                                                                                        |
+| `datasource`                           | `setDatasource()`                                | each surface                | `datasource` query parameter                                                                             |
+| `onTokenRefresh`                       | `setTokenProvider()`                             | each surface                | 401 refresh (§5)                                                                                         |
+| `accessToken`                          | `setAccessToken()`                               | the `ApiClient` constructor | `Authorization` on `requiresAuth` endpoints                                                              |
+| `validateResponse` / `validateRequest` | `setValidateResponse()` / `setValidateRequest()` | `configureApiClient`        | Zod validation ([§10](#10-response-and-request-validation))                                              |
+| `timeout`                              | `setTimeout()`                                   | `configureApiClient`        | Per-request `AbortController` timeout, default 30 s                                                      |
+| `incompletePages`                      | `setIncompletePages()`                           | `configureApiClient`        | Truncate (default) or throw on an incomplete page walk ([PAGINATION.md](PAGINATION.md#incomplete-walks)) |
 
 **Time is not injectable yet.** `src/core/clock.ts` exports `systemClock`, the `Clock` port's real implementation, and `npm run lint:determinism` blocks new direct reads of `Date.now()`, timers and `Math.random()` in `src/`. The existing sites in the rate limiter, cache, circuit breaker and request handler are listed in `scripts/quality/determinism-baseline.json` and still read the wall clock directly; no pipeline class takes a `Clock`. `EsiTokenManager` takes a `now` function for tests.
 

@@ -12,24 +12,51 @@ import { EsiError, EsiPaginationError } from '../../../src/core/util/error';
 import type { PageResult } from '../../../src/core/pagination/AsyncPaginationIterator';
 import { SdeError } from '../../../src/sde/errors';
 import { SdeExtractor } from '../../../src/sde/ingestion/SdeExtractor';
-import { queueResponse, sentRequests } from './transport';
+import type { IncompletePagesMode } from '../../../src/core/pagination/pageLimit';
+import { createSeamClient, queueResponse, sentRequests } from './transport';
 import { WALLET_CHARACTER_ID, balanceMatch } from './wallet';
 import type { World } from './world';
 
+/** The page cap every pagination entry point applies (security model P8). */
+export const PAGE_CAP = 1000;
+
 /** The paged route the P8 scenarios walk: the alliance ID list. */
 const PAGED_ROUTE_FIRST = /\/alliances\/?(\?(?!.*page=)|$)/;
+const PAGED_ROUTE_PAGE = /\/alliances\/?\?.*page=\d+/;
+
+/** The P8 scenarios' client, with the given `incompletePages` mode. */
+export function useIncompletePagesMode(
+  world: World,
+  mode: IncompletePagesMode,
+): void {
+  world.client = createSeamClient({ incompletePages: mode });
+  world.values['incompletePages'] = mode;
+}
 
 /**
- * ESI reports `reported` pages for the alliance list. Only page 1 is queued:
- * a count above the 1000-page cap (security model P8) stops the walk after
- * page 1, and a client that asks for any further page finds no response,
- * which fails the scenario.
+ * ESI reports `reported` pages for the alliance list. Under the default
+ * `incompletePages` mode exactly PAGE_CAP pages are queued: a client that
+ * asks for one more finds no response and fails, and one that asks for fewer
+ * leaves a queued page unrequested, which fails the scenario too. With
+ * `throw`, a count above the cap stops the walk after page 1, so only page 1
+ * is queued.
  */
-export function queueReportedPageCount(header: string, reported: number): void {
+export function queueReportedPageCount(
+  world: World,
+  header: string,
+  reported: number,
+): void {
   queueResponse({
     match: PAGED_ROUTE_FIRST,
     headers: { [header.toLowerCase()]: String(reported) },
     body: [1],
+  });
+  if (world.values['incompletePages'] === 'throw') return;
+  queueResponse({
+    match: PAGED_ROUTE_PAGE,
+    headers: { [header.toLowerCase()]: String(reported) },
+    body: [2],
+    times: PAGE_CAP - 1,
   });
 }
 
@@ -61,6 +88,13 @@ export async function walkWithAsyncIterator(world: World): Promise<void> {
     }
     return pages;
   });
+}
+
+/** The walk resolved with the first `pages` pages and requested exactly those. */
+export function expectCutOffAt(world: World, pages: number): void {
+  expect(world.error).toBeUndefined();
+  expect(world.result).toHaveLength(pages);
+  expect(pageRequestsSent()).toBe(pages);
 }
 
 /** The walk was refused at the page cap (a reported count above 1000). */

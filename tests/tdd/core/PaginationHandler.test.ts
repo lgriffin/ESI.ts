@@ -107,7 +107,64 @@ describe('PaginationHandler', () => {
       );
     });
 
-    it('DES-08: rejects with empty-page when a page after the first is empty', async () => {
+    it('DES-08: by default stops at an empty page after the first and resolves with the pages before it', async () => {
+      pageFetch.mockResolvedValueOnce([{ id: 2 }]).mockResolvedValueOnce([]);
+
+      const result = await PaginationHandler.fetchRemainingPages(
+        client,
+        'alliances',
+        'GET',
+        false,
+        [{ id: 1 }],
+        4,
+        undefined,
+        {},
+        pageFetch,
+      );
+
+      expect(client.getIncompletePages()).toBe('truncate');
+      expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(pageFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('DES-08: by default walks no further than maxPages and resolves with those pages', async () => {
+      pageFetch.mockResolvedValueOnce([{ id: 2 }]);
+
+      const result = await PaginationHandler.fetchRemainingPages(
+        client,
+        'alliances',
+        'GET',
+        false,
+        [{ id: 1 }],
+        5,
+        undefined,
+        { maxPages: 2 },
+        pageFetch,
+      );
+
+      expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(pageFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('DES-08: by default a maxPages of 1 returns page 1 without a request', async () => {
+      const result = await PaginationHandler.fetchRemainingPages(
+        client,
+        'alliances',
+        'GET',
+        false,
+        [{ id: 1 }],
+        3,
+        undefined,
+        { maxPages: 1 },
+        pageFetch,
+      );
+
+      expect(result).toEqual([{ id: 1 }]);
+      expect(pageFetch).not.toHaveBeenCalled();
+    });
+
+    it('DES-08: with incompletePages throw, rejects with empty-page when a page after the first is empty', async () => {
+      client.setIncompletePages('throw');
       const firstPageData = [{ id: 1 }];
       pageFetch.mockResolvedValueOnce([{ id: 2 }]).mockResolvedValueOnce([]);
 
@@ -138,7 +195,8 @@ describe('PaginationHandler', () => {
       expect(incomplete.itemCount).toBe(2);
     });
 
-    it('DES-08: rejects with empty-page when the last reported page is empty', async () => {
+    it('DES-08: with incompletePages throw, rejects with empty-page when the last reported page is empty', async () => {
+      client.setIncompletePages('throw');
       pageFetch.mockResolvedValueOnce([{ id: 2 }]).mockResolvedValueOnce([]);
 
       await expect(
@@ -156,7 +214,8 @@ describe('PaginationHandler', () => {
       ).rejects.toMatchObject({ reason: 'empty-page', fetchedPages: 3 });
     });
 
-    it('DES-08: rejects with page-cap without requesting a page when totalPages exceeds maxPages', async () => {
+    it('DES-08: with incompletePages throw, rejects with page-cap without requesting a page when totalPages exceeds maxPages', async () => {
+      client.setIncompletePages('throw');
       const error = await PaginationHandler.fetchRemainingPages(
         client,
         'alliances',
@@ -181,7 +240,8 @@ describe('PaginationHandler', () => {
       });
     });
 
-    it('DES-08: never raises the limit above MAX_PAGES', async () => {
+    it('DES-08: with incompletePages throw, never raises the limit above MAX_PAGES', async () => {
+      client.setIncompletePages('throw');
       await expect(
         PaginationHandler.fetchRemainingPages(
           client,
@@ -425,7 +485,62 @@ describe('PaginationHandler', () => {
       ]);
     });
 
-    it('DES-08: rejects on an empty page without logging, leaving the report to the caller', async () => {
+    it('DES-08: by default warns at an empty page, naming the incompletePages option', async () => {
+      pageFetch.mockResolvedValueOnce([]);
+
+      expect(await fetchRemaining(3)).toEqual([{ id: 1 }]);
+
+      expect(logger.warn.mock.calls).toEqual([
+        [
+          "[PAGINATION_INCOMPLETE] Pagination incomplete for x: page 2 of 3 was empty, so the collection changed during the walk; the result may be incomplete. Set incompletePages: 'throw' to reject such a walk with an EsiPaginationError instead (the default in a future major).",
+          {
+            page: 2,
+            reason: 'empty-page',
+            endpoint: 'x',
+            reportedPages: 3,
+            fetchedPages: 2,
+            itemCount: 1,
+          },
+        ],
+      ]);
+    });
+
+    it('DES-08: by default warns once the walk reaches maxPages short of the reported count', async () => {
+      pageFetch.mockResolvedValueOnce([{ id: 2 }]);
+
+      expect(
+        await PaginationHandler.fetchRemainingPages(
+          client,
+          'x',
+          'GET',
+          false,
+          [{ id: 1 }],
+          5,
+          undefined,
+          { maxPages: 2 },
+          pageFetch,
+        ),
+      ).toEqual([{ id: 1 }, { id: 2 }]);
+
+      expect(logger.warn.mock.calls).toEqual([
+        [
+          expect.stringContaining(
+            "Pagination incomplete for x: ESI reported 5 pages, more than the client requests for one call; the result may be incomplete. Set incompletePages: 'throw'",
+          ),
+          {
+            page: 2,
+            reason: 'page-cap',
+            endpoint: 'x',
+            reportedPages: 5,
+            fetchedPages: 2,
+            itemCount: 2,
+          },
+        ],
+      ]);
+    });
+
+    it('DES-08: with incompletePages throw, rejects on an empty page without logging, leaving the report to the caller', async () => {
+      client.setIncompletePages('throw');
       pageFetch.mockResolvedValueOnce([]);
 
       await expect(fetchRemaining(3)).rejects.toThrow(

@@ -102,6 +102,7 @@ const configured = new EsiClient({
   },
   validateResponse: true, // Zod-validate every response that has a schema (default: true)
   validateRequest: false, // Zod-validate request bodies before sending (default: false)
+  incompletePages: 'truncate', // 'throw' rejects an incomplete page walk with EsiPaginationError (default: 'truncate'; becomes 'throw' in a future major)
   logLevel: 'warn', // Level for the default pino logger (default: ESI_LOG_LEVEL, else 'warn')
 });
 ```

@@ -303,7 +303,7 @@ The hand-written counterparts are not generated and are not exempt from review: 
 
 ## 6 · Pagination rules (DES-08)
 
-Pagination helpers take the caller's HTTP method and must not return a truncated result as if it were complete. New pagination code passes `def.method` through to the retry context, as `BaseEsiClient.streamEndpoint` and `fetchAllEndpoint` do, and throws `EsiPaginationError` rather than truncates whenever it cannot prove the walk complete: a reported count above `MAX_PAGES` (`page-cap`), an empty page after the first (`empty-page`), a cursor still set at the page limit (`cursor-cap`) or a page that fails with a non-ESI error (`fetch-failed`). Put the items collected so far on `partial`. See [PAGINATION.md](PAGINATION.md#failure-semantics).
+Pagination helpers take the caller's HTTP method and must not return a truncated result as if it were complete. New pagination code passes `def.method` through to the retry context, as `BaseEsiClient.streamEndpoint` and `fetchAllEndpoint` do, and throws `EsiPaginationError` with reason `fetch-failed` when a page fails with a non-ESI error. When it cannot prove the walk complete (a reported count above `MAX_PAGES`, `page-cap`; an empty page after the first, `empty-page`; a cursor still set at the page limit, `cursor-cap`) it calls `incompleteWalk` (`src/core/pagination/incompleteWalk.ts`), which throws under `incompletePages: 'throw'` and otherwise logs a warning naming the option and lets the walk keep what it has. Put the items collected so far on `partial`. The default `truncate` is the one remaining exception and flips to `throw` in a future major. See [PAGINATION.md](PAGINATION.md#incomplete-walks).
 
 ---
 

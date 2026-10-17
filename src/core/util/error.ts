@@ -355,6 +355,14 @@ export class EsiPaginationError extends EsiFaultError {
   /** Items collected before the stop, in page order. Frozen. */
   readonly partial: readonly unknown[];
 
+  // The two-argument signature is kept as its own overload so the published
+  // declaration still carries it unchanged (guides/SEMVER.md).
+  constructor(where: string, cause: unknown);
+  constructor(
+    where: string,
+    cause: unknown,
+    details: EsiPaginationErrorDetails,
+  );
   constructor(
     where: string,
     cause: unknown,

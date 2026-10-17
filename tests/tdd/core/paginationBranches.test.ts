@@ -82,15 +82,34 @@ describe('PaginationHandler branch coverage', () => {
     ).rejects.toMatchObject({
       name: 'EsiPaginationError',
       reason: 'fetch-failed',
-      cause: 'string error',
+      cause: new Error('Failed to fetch page 2: string error'),
       fetchedPages: 1,
       partial: [{ id: 1 }],
       message:
-        '[PAGINATION_INCOMPLETE] Pagination incomplete for alliances: string error',
+        '[PAGINATION_INCOMPLETE] Pagination incomplete for alliances: Failed to fetch page 2: string error',
     });
   });
 
-  it('DES-08: rejects with empty-page when a page returns null', async () => {
+  it('DES-08: by default stops at a page that returns null', async () => {
+    pageFetch.mockResolvedValueOnce(null as unknown as unknown[]);
+
+    const result = await PaginationHandler.fetchRemainingPages(
+      client,
+      'alliances',
+      'GET',
+      false,
+      [{ id: 1 }],
+      3,
+      undefined,
+      {},
+      pageFetch,
+    );
+
+    expect(result).toEqual([{ id: 1 }]);
+  });
+
+  it('DES-08: with incompletePages throw, rejects with empty-page when a page returns null', async () => {
+    client.setIncompletePages('throw');
     pageFetch.mockResolvedValueOnce(null as unknown as unknown[]);
 
     await expect(

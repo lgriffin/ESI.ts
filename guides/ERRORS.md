@@ -96,7 +96,9 @@ The base of the failures the library raises itself rather than ESI. `statusCode`
 
 ### Incomplete pagination
 
-`EsiPaginationError` is how every collecting path says it does not hold the whole collection: the eager domain method, `fetchAll*`, `stream*` and the cursor handler never return a short list instead (`DES-08`, [PAGINATION.md](PAGINATION.md#failure-semantics)). The URL is sanitised in `url` and in the message; a page error that is not itself an `EsiError` is on `cause`.
+`EsiPaginationError` is how a collecting path (the eager domain method, `fetchAll*`, `stream*`, the cursor handler) says it does not hold the whole collection (`DES-08`, [PAGINATION.md](PAGINATION.md#incomplete-walks)). The URL is sanitised in `url` and in the message; a page error that is not itself an `EsiError` is on `cause`.
+
+**When it is thrown depends on the `incompletePages` option.** A page that fails with a non-ESI error (`fetch-failed`) always throws. The other three reasons, `page-cap`, `empty-page` and `cursor-cap`, throw only when the client is built with `incompletePages: 'throw'`. Under the default, `'truncate'`, those walks return the pages fetched so far and log a warning naming the option, as every 12.x release has. **The default becomes `'throw'` in a future major release.** Opt in now on either construction surface: `createEsi({ userAgent, incompletePages: 'throw' })` or `new EsiClient({ incompletePages: 'throw' })`.
 
 | Field           | Type                   | Meaning                                                                                                                 |
 | --------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -107,12 +109,12 @@ The base of the failures the library raises itself rather than ESI. `statusCode`
 | `partial`       | `readonly unknown[]`   | The items collected before the stop, in page order, frozen. Empty on a stream, whose pages were already yielded to you. |
 | `itemCount`     | `number`               | The items delivered before the stop: `partial.length`, or on a stream the number of items it yielded.                   |
 
-| `reason`       | Raised when                                                                                                                                                                                     |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `page-cap`     | Page 1 reported more than 1000 pages, the most the client requests for one call (security model P8). No further page is requested; `partial` holds page 1.                                      |
-| `empty-page`   | A page after the first that page 1 reported came back with no items. The collection shrank during the walk, so items moved onto pages already read and were skipped. The last page is included. |
-| `cursor-cap`   | The cursor handler reached its page limit while the last page still carried an `after` cursor.                                                                                                  |
-| `fetch-failed` | A page failed with an error that is not itself an `EsiError` (a throwing interceptor, for example). An `EsiError` from a page is rethrown as it is rather than wrapped.                         |
+| `reason`       | Raised when                                                                                                                                                                                                                      |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `page-cap`     | With `incompletePages: 'throw'`: page 1 reported more than 1000 pages, the most the client requests for one call (security model P8). No further page is requested; `partial` holds page 1.                                      |
+| `empty-page`   | With `incompletePages: 'throw'`: a page after the first that page 1 reported came back with no items. The collection shrank during the walk, so items moved onto pages already read and were skipped. The last page is included. |
+| `cursor-cap`   | With `incompletePages: 'throw'`: the cursor handler reached its page limit while the last page still carried an `after` cursor.                                                                                                  |
+| `fetch-failed` | In either mode: a page failed with an error that is not itself an `EsiError` (a throwing interceptor, for example). An `EsiError` from a page is rethrown as it is rather than wrapped.                                          |
 
 The error is not retryable, and none of these reasons is fixed by retrying at once: `empty-page` means the collection changed, so call again later for a consistent snapshot, or keep `partial` knowing it may miss items.
 
@@ -120,7 +122,7 @@ The error is not retryable, and none of these reasons is fixed by retrying at on
 import { EsiClient, isPaginationError } from '@lgriffin/esi.ts';
 import type { MarketOrder } from '@lgriffin/esi.ts';
 
-const esi = new EsiClient({ clientId: 'my-app' });
+const esi = new EsiClient({ clientId: 'my-app', incompletePages: 'throw' });
 
 async function forgeOrders(): Promise<{
   orders: MarketOrder[];
@@ -323,7 +325,7 @@ A 200 with an empty body is an `EsiParseError` on every endpoint except two. `ge
 
 Two plain errors carry no code: `No token provider configured`, from calling `ApiClient.refreshToken()` directly without a provider, and `At least one client type must be specified`, from building an empty `EsiClientBuilder`. Both are raised outside a request.
 
-A page failure during offset pagination that is itself an `EsiError` is rethrown as that error; only other failures become an `EsiPaginationError` with reason `fetch-failed`. A walk that cannot be complete (a page count above the limit, an empty page, a cursor still set at the limit) is an `EsiPaginationError` too; see [Incomplete pagination](#incomplete-pagination). Cursor and streaming failure semantics are covered in [PAGINATION.md](PAGINATION.md).
+A page failure during offset pagination that is itself an `EsiError` is rethrown as that error; only other failures become an `EsiPaginationError` with reason `fetch-failed`. With `incompletePages: 'throw'`, a walk that cannot be complete (a page count above the limit, an empty page, a cursor still set at the limit) is an `EsiPaginationError` too; by default it is truncated with a warning. See [Incomplete pagination](#incomplete-pagination). Cursor and streaming failure semantics are covered in [PAGINATION.md](PAGINATION.md).
 
 ---
 

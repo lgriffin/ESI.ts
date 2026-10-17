@@ -25,6 +25,8 @@ import { TokenRevokedError } from '../../../../src/auth/errors';
 import type { EsiResult } from '../../../../src/types/common';
 import { StatusClient } from '../../../../src/clients/StatusClient';
 import { CursorPaginationHandler } from '../../../../src/core/pagination/CursorPaginationHandler';
+import type { IncompletePagesMode } from '../../../../src/core/pagination/pageLimit';
+import { recordingLogger, type RecordingLogger } from '../../support/logging';
 import { EsiClient, EsiClientConfig } from '../../../../src/EsiClient';
 import {
   SEAM_RETRY,
@@ -249,6 +251,23 @@ function queueMarketOrdersUpToEmptyPage(
   return sizes;
 }
 
+/** The orders of the pages whose sizes are given, in page order. */
+const ordersOfPages = (sizes: number[], pages: number[]): unknown[] =>
+  pages.flatMap((page) =>
+    Array.from({ length: sizes[page - 1]! }, (_, j) => pagedOrder(page, j)),
+  );
+
+/** The one incompletePages warning the logger received, for `reason`. */
+function expectIncompletePagesWarning(
+  logger: RecordingLogger,
+  reason: string,
+): void {
+  const warnings = logger.lines.filter((line) => line.level === 'warn');
+  expect(warnings).toHaveLength(1);
+  expect(warnings[0]!.message).toContain("Set incompletePages: 'throw'");
+  expect(warnings[0]!.context).toMatchObject({ reason });
+}
+
 type MarketOrderEntryPoint =
   'the eager method' | 'the fetch-all helper' | 'the stream helper';
 
@@ -301,13 +320,19 @@ function expectPaginationProgress(
 }
 
 /** An ApiClient for the cursor handler: no retries, rate limiter in test mode. */
-function cursorPaginationApiClient(): ApiClient {
+function cursorPaginationApiClient(
+  incompletePages?: IncompletePagesMode,
+): ApiClient {
   const api = new ApiClient(
     'bdd-resilience',
     'https://esi.evetech.net',
     'bdd-access-token',
   );
-  configureApiClient(api, { retryConfig: NO_RETRIES, logLevel: 'error' });
+  configureApiClient(api, {
+    retryConfig: NO_RETRIES,
+    logLevel: 'error',
+    incompletePages,
+  });
   const limiter = new RateLimiter({ minDelayMs: 0 });
   limiter.setTestMode(true);
   api.setRateLimiter(limiter);
@@ -2199,9 +2224,12 @@ defineFeature(feature, (test) => {
     let client: EsiClient;
     let outcome: Outcome;
 
-    given('a client with retries enabled', () => {
-      client = createSeamClient();
-    });
+    given(
+      'a client with retries enabled and incompletePages set to throw',
+      () => {
+        client = createSeamClient({ incompletePages: 'throw' });
+      },
+    );
 
     and('ESI answers the market orders request with one empty page', () => {
       queueMarketOrderPages([0]);
@@ -2229,9 +2257,12 @@ defineFeature(feature, (test) => {
     let client: EsiClient;
     let outcome: Outcome;
 
-    given('a client with retries enabled', () => {
-      client = createSeamClient();
-    });
+    given(
+      'a client with retries enabled and incompletePages set to throw',
+      () => {
+        client = createSeamClient({ incompletePages: 'throw' });
+      },
+    );
 
     and(
       /^ESI answers the market orders request with page 1 reporting (\d+) pages$/,
@@ -2282,9 +2313,12 @@ defineFeature(feature, (test) => {
     let outcome: Outcome;
     let sizes: number[] = [];
 
-    given('a client with retries enabled', () => {
-      client = createSeamClient();
-    });
+    given(
+      'a client with retries enabled and incompletePages set to throw',
+      () => {
+        client = createSeamClient({ incompletePages: 'throw' });
+      },
+    );
 
     and(
       /^ESI answers the market orders request with (\d+) pages, page (\d+) empty$/,
@@ -2339,9 +2373,12 @@ defineFeature(feature, (test) => {
     let outcome: Outcome;
     const walk = projectWalk();
 
-    given('a cursor pagination client without retries', () => {
-      api = cursorPaginationApiClient();
-    });
+    given(
+      'a cursor pagination client without retries and incompletePages set to throw',
+      () => {
+        api = cursorPaginationApiClient('throw');
+      },
+    );
 
     and(
       /^ESI answers every corporation projects page with (\d+) projects? and an after cursor$/,
@@ -2395,9 +2432,12 @@ defineFeature(feature, (test) => {
     let outcome: Outcome;
     const walk = projectWalk();
 
-    given('a cursor pagination client without retries', () => {
-      api = cursorPaginationApiClient();
-    });
+    given(
+      'a cursor pagination client without retries and incompletePages set to throw',
+      () => {
+        api = cursorPaginationApiClient('throw');
+      },
+    );
 
     and(
       /^ESI answers the next corporation projects page with (\d+) projects? and then an empty page with an after cursor$/,
@@ -2435,9 +2475,12 @@ defineFeature(feature, (test) => {
     let outcome: Outcome;
     const walk = projectWalk();
 
-    given('a cursor pagination client without retries', () => {
-      api = cursorPaginationApiClient();
-    });
+    given(
+      'a cursor pagination client without retries and incompletePages set to throw',
+      () => {
+        api = cursorPaginationApiClient('throw');
+      },
+    );
 
     and(
       /^ESI answers the next corporation projects page with (\d+) projects? and an after cursor, then (\d+) projects? without one$/,
@@ -2475,9 +2518,12 @@ defineFeature(feature, (test) => {
     let outcome: Outcome;
     const yielded: unknown[] = [];
 
-    given('a client with retries enabled', () => {
-      client = createSeamClient();
-    });
+    given(
+      'a client with retries enabled and incompletePages set to throw',
+      () => {
+        client = createSeamClient({ incompletePages: 'throw' });
+      },
+    );
 
     and(
       /^ESI answers the market orders request with (\d+) pages, page (\d+) empty$/,
@@ -2518,6 +2564,209 @@ defineFeature(feature, (test) => {
     });
 
     and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(sentRequests()).toHaveLength(Number(count));
+    });
+  });
+
+  test('Market orders whose page 2 of 3 is empty resolve with page 1 through <entry point>', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+    let sizes: number[] = [];
+
+    given('a client with retries enabled', () => {
+      client = createSeamClient();
+    });
+
+    and(
+      /^ESI answers the market orders request with (\d+) pages, page (\d+) empty$/,
+      (pages: string, empty: string) => {
+        sizes = queueMarketOrdersUpToEmptyPage(Number(pages), Number(empty));
+      },
+    );
+
+    when(
+      /^the client collects the market orders through (.+)$/,
+      async (entryPoint: string) => {
+        outcome = await settle(
+          collectMarketOrders(client, entryPoint as MarketOrderEntryPoint),
+        );
+      },
+    );
+
+    then(
+      /^the client resolves with the orders before page (\d+)$/,
+      (page: string) => {
+        const before = Array.from(
+          { length: Number(page) - 1 },
+          (_, i) => i + 1,
+        );
+        expectResolvedWith(outcome, ordersOfPages(sizes, before));
+      },
+    );
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(sentRequests()).toHaveLength(Number(count));
+    });
+  });
+
+  test('Market orders whose page 2 of 3 is empty are collected around it by the fetch-all helper', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+    const sizes = [2, 0, 2];
+
+    given('a client with retries enabled', () => {
+      client = createSeamClient();
+    });
+
+    and(
+      'ESI answers the market orders request with 3 pages, page 2 empty and page 3 holding orders',
+      () => {
+        queueMarketOrderPages(sizes);
+      },
+    );
+
+    when(
+      'the client collects the market orders through the fetch-all helper',
+      async () => {
+        outcome = await settle(
+          collectMarketOrders(client, 'the fetch-all helper'),
+        );
+      },
+    );
+
+    then('the client resolves with the orders of pages 1 and 3', () => {
+      expectResolvedWith(outcome, ordersOfPages(sizes, [1, 3]));
+    });
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(sentRequests()).toHaveLength(Number(count));
+    });
+  });
+
+  test('A walk of market orders that stops at an empty page warns once', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let logger: RecordingLogger;
+
+    given('a client with retries enabled and a recording logger', () => {
+      logger = recordingLogger();
+      client = createSeamClient({ logger });
+    });
+
+    and(
+      /^ESI answers the market orders request with (\d+) pages, page (\d+) empty$/,
+      (pages: string, empty: string) => {
+        queueMarketOrdersUpToEmptyPage(Number(pages), Number(empty));
+      },
+    );
+
+    when(
+      'the client collects the market orders through the eager method',
+      async () => {
+        await settle(collectMarketOrders(client, 'the eager method'));
+      },
+    );
+
+    then(
+      /^the logger received one warning naming incompletePages for reason "([a-z-]+)"$/,
+      (reason: string) => {
+        expectIncompletePagesWarning(logger, reason);
+      },
+    );
+  });
+
+  test('A walk of market orders reported as 1001 pages warns once at page 1000', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let logger: RecordingLogger;
+
+    given('a client with retries enabled and a recording logger', () => {
+      logger = recordingLogger();
+      client = createSeamClient({ logger });
+    });
+
+    and(
+      /^ESI answers the market orders request with (\d+) pages reported and (\d+) pages of one order each$/,
+      (reported: string, pages: string) => {
+        queueMarketOrderPages(Array(Number(pages)).fill(1), Number(reported));
+      },
+    );
+
+    when(
+      'the client collects the market orders through the eager method',
+      async () => {
+        await settle(collectMarketOrders(client, 'the eager method'));
+      },
+    );
+
+    then(
+      /^the logger received one warning naming incompletePages for reason "([a-z-]+)"$/,
+      (reason: string) => {
+        expectIncompletePagesWarning(logger, reason);
+      },
+    );
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(sentRequests()).toHaveLength(Number(count));
+    });
+  });
+
+  test('Corporation projects that still have a next page at the limit resolve with the pages fetched', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let api: ApiClient;
+    let outcome: Outcome;
+    const walk = projectWalk();
+
+    given('a cursor pagination client without retries', () => {
+      api = cursorPaginationApiClient();
+    });
+
+    and(
+      /^ESI answers every corporation projects page with (\d+) projects? and an after cursor$/,
+      (count: string) => {
+        // The scenario's limit of 3 pages asks for two pages after the
+        // first; a third request would find no response.
+        walk.queuePage(Number(count), 'cursor-2');
+        walk.queuePage(Number(count), 'cursor-3');
+      },
+    );
+
+    when(
+      /^the handler fetches every corporation project after a first page of (\d+) projects?, at most (\d+) pages$/,
+      async (count: string, maxPages: string) => {
+        outcome = await settle(
+          walk.fetchAll(api, Number(count), Number(maxPages)),
+        );
+      },
+    );
+
+    then(/^the handler resolves with (\d+) projects$/, (count: string) => {
+      expectResolvedWith(outcome, walk.served(Number(count)));
+    });
+
+    and(/^the handler sent (\d+) requests$/, (count: string) => {
       expect(sentRequests()).toHaveLength(Number(count));
     });
   });

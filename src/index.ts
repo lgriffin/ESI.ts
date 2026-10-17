@@ -133,6 +133,9 @@ export type {
   PaginationStopReason,
   EsiPaginationErrorDetails,
 } from './core/util/error';
+// What pagination does with a walk it cannot prove complete
+// (`incompletePages` on EsiClientConfig and on createEsi's options).
+export type { IncompletePagesMode } from './core/pagination/pageLimit';
 
 // Middleware
 export {

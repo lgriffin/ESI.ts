@@ -4,6 +4,7 @@ import { ApiClient } from '../../../../src/core/ApiClient';
 import { EsiError, EsiPaginationError } from '../../../../src/core/util/error';
 import { RateLimiter } from '../../../../src/core/rateLimiter/RateLimiter';
 import { EsiClient } from '../../../../src/EsiClient';
+import type { IncompletePagesMode } from '../../../../src/core/pagination/pageLimit';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -22,13 +23,14 @@ const STATUS_BODY = JSON.stringify({
 /** GET markets/{region_id}/types is paginated by X-Pages; each page is a list of type ids. */
 const THE_FORGE = 10000002;
 
-function paginationClient(): EsiClient {
+function paginationClient(incompletePages?: IncompletePagesMode): EsiClient {
   return new EsiClient({
     clientId: 'bdd-response-headers',
     baseUrl: 'https://esi.evetech.net',
     retryConfig: { maxRetries: 0 },
     rateLimiterConfig: { minDelayMs: 0 },
     logLevel: 'error',
+    incompletePages,
   });
 }
 
@@ -293,7 +295,40 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('X-Pages of 1001 stops the walk after page 1', ({
+  test('X-Pages of 1001 is walked as far as page 1000', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let client: EsiClient;
+
+    given(
+      'ESI answers the market types with page 1 announcing 1001 pages and a type on every page',
+      () => {
+        client = paginationClient();
+        serveMarketTypePages(() => 1001);
+      },
+    );
+
+    when('the client requests the market types for The Forge', async () => {
+      result = await client.market.getMarketTypes(THE_FORGE);
+    });
+
+    then(/^the client resolves with (\d+) market types$/, (count: string) => {
+      expect(result).toHaveLength(Number(count));
+      expect(result[result.length - 1]).toBe(Number(count));
+    });
+
+    and(/^the client requested (\d+) pages$/, (count: string) => {
+      expect(requestedPages()).toEqual(
+        Array.from({ length: Number(count) }, (_, i) => i + 1),
+      );
+      client.shutdown();
+    });
+  });
+
+  test('X-Pages of 1001 with incompletePages set to throw stops the walk after page 1', ({
     given,
     when,
     then,
@@ -302,10 +337,13 @@ defineFeature(feature, (test) => {
     let client: EsiClient;
     let error: unknown;
 
-    given(
+    given('a client with incompletePages set to throw', () => {
+      client = paginationClient('throw');
+    });
+
+    and(
       'ESI answers the market types with page 1 announcing 1001 pages and a type on every page',
       () => {
-        client = paginationClient();
         serveMarketTypePages(() => 1001);
       },
     );

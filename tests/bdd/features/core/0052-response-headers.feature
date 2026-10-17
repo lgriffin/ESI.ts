@@ -89,8 +89,9 @@ Feature: ESI Response Header Best Practices
     Page 1's X-Pages is authoritative (PAGINATION.md). A count that grows
     while the pages are walked describes a different snapshot of the
     resource, so following it would stitch two snapshots together. A count
-    that shrinks shows up as an empty or missing page, and either one rejects
-    the walk (0051-resilience.feature).
+    that shrinks shows up as an empty or missing page: a missing page
+    rejects, and an empty one ends the walk or, with incompletePages set to
+    throw, rejects it (0051-resilience.feature).
 
     Scenario: Page 2 announcing a third page is the last page requested
       Given ESI answers the market types with page 1 announcing 2 pages and page 2 announcing 3
@@ -103,11 +104,19 @@ Feature: ESI Response Header Best Practices
     The cap bounds how long one call can run and how much of the error
     budget a misreported X-Pages can spend. No ESI resource comes near it.
     Every pagination path applies it (security model P8). A count above it
-    cannot be walked in full, so the walk is refused after page 1 rather
-    than truncated (0051-resilience.feature).
+    cannot be walked in full: by default the walk stops at page 1000 with a
+    warning, and with incompletePages set to throw it is refused after
+    page 1 (0051-resilience.feature).
 
-    Scenario: X-Pages of 1001 stops the walk after page 1
+    Scenario: X-Pages of 1001 is walked as far as page 1000
       Given ESI answers the market types with page 1 announcing 1001 pages and a type on every page
+      When the client requests the market types for The Forge
+      Then the client resolves with 1000 market types
+      And the client requested 1000 pages
+
+    Scenario: X-Pages of 1001 with incompletePages set to throw stops the walk after page 1
+      Given a client with incompletePages set to throw
+      And ESI answers the market types with page 1 announcing 1001 pages and a type on every page
       When the client tries to request the market types for The Forge
       Then the client rejects the walk as incomplete
       And the client requested 1 page

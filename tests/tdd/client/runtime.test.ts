@@ -172,6 +172,68 @@ describe('createEsi', () => {
     expect(sent(1).headers.get('authorization')).toBe('Bearer t2');
   });
 
+  describe('DES-08: incompletePages', () => {
+    const shrunk = () =>
+      fetchMock.mockResponses(
+        ['[{"item_id":1}]', { headers: { 'x-pages': '3' } }],
+        ['[]', { headers: { 'x-pages': '3' } }],
+      );
+    const collect = async (pages: AsyncIterable<{ item_id: number }>) => {
+      const ids: number[] = [];
+      for await (const item of pages) ids.push(item.item_id);
+      return ids;
+    };
+
+    it('by default a view stops at an empty page and yields what came before it', async () => {
+      const esi = createEsi(OPTIONS);
+      shrunk();
+
+      const ids = await collect(
+        esi.as(identityFromToken('t')).character(1).assets.get(),
+      );
+
+      expect(ids).toEqual([1]);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("with 'throw' a view rejects the walk with an EsiPaginationError", async () => {
+      const esi = createEsi({ ...OPTIONS, incompletePages: 'throw' });
+      shrunk();
+
+      await expect(
+        collect(esi.as(identityFromToken('t')).character(1).assets.get()),
+      ).rejects.toMatchObject({
+        name: 'EsiPaginationError',
+        reason: 'empty-page',
+        fetchedPages: 2,
+        itemCount: 1,
+      });
+    });
+
+    it("with 'throw' the public view rejects a walk above the page limit after page 1", async () => {
+      const esi = createEsi({
+        ...OPTIONS,
+        validateResponse: false,
+        incompletePages: 'throw',
+      });
+      fetchMock.mockResponses([
+        '[{"order_id":1}]',
+        { headers: { 'x-pages': '1001' } },
+      ]);
+
+      const walk = async () => {
+        for await (const order of esi.public
+          .market(10000002)
+          .orders.get({ order_type: 'all' })) {
+          void order;
+        }
+      };
+
+      await expect(walk()).rejects.toMatchObject({ reason: 'page-cap' });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('caches a response under the token that asked, not the one the view holds when it lands', async () => {
     // Two concurrent wallet requests under different (not yet accepted)
     // tokens. The first answer arrives after the second request has replaced

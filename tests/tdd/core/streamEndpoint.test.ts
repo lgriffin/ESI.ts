@@ -179,7 +179,27 @@ describe('streamEndpoint', () => {
     expect(mockHandleRequest).toHaveBeenCalledTimes(2);
   });
 
-  it('DES-08: throws EsiPaginationError at an empty page after yielding the pages before it', async () => {
+  it('DES-08: by default stops at an empty page after yielding the pages before it', async () => {
+    mockHandleRequest
+      .mockResolvedValueOnce({
+        headers: { 'x-pages': '3' },
+        body: [{ id: 1 }],
+      })
+      .mockResolvedValueOnce({
+        headers: { 'x-pages': '3' },
+        body: [],
+      });
+
+    const pages: PageResult<{ id: number }>[] = [];
+    for await (const page of testClient.streamItems(100)) {
+      pages.push(page);
+    }
+
+    expect(pages).toHaveLength(1);
+  });
+
+  it('DES-08: with incompletePages throw, throws EsiPaginationError at an empty page after yielding the pages before it', async () => {
+    apiClient.setIncompletePages('throw');
     mockHandleRequest
       .mockResolvedValueOnce({
         headers: { 'x-pages': '3' },

@@ -1,10 +1,12 @@
 /**
  * Pagination Handler for ESI API calls.
  *
- * Fetches pages 2..N of an offset-paginated resource and either returns the
- * whole collection or throws: a reported page count above MAX_PAGES, an empty
- * page after the first, or a page that fails with a non-ESI error all end in
- * an EsiPaginationError rather than a short list (DES-08).
+ * Fetches pages 2..N of an offset-paginated resource. A page that fails with
+ * a non-ESI error ends in an EsiPaginationError (`fetch-failed`). A walk that
+ * cannot be proven complete, a reported page count above MAX_PAGES or an
+ * empty page after the first, follows the client's `incompletePages` mode:
+ * `truncate` (the default) returns the pages fetched so far with a warning,
+ * `throw` rejects with an EsiPaginationError (DES-08).
  */
 
 import { ApiClient } from '../ApiClient';
@@ -13,8 +15,10 @@ import { resolveRetryStrategy } from '../requestPipeline/dependencies';
 import {
   EsiError,
   EsiPaginationError,
+  type EsiPaginationErrorDetails,
   PaginationStopReason,
 } from '../util/error';
+import { incompleteWalk } from './incompleteWalk';
 import { MAX_PAGES } from './pageLimit';
 
 export interface PaginationOptions {
@@ -26,16 +30,43 @@ export interface PaginationOptions {
 
 export type PageFetcher = (paginatedEndpoint: string) => Promise<unknown[]>;
 
+/**
+ * What a page that failed after its retries rejects the walk with: an
+ * `EsiError` as it is, anything else as an EsiPaginationError with reason
+ * `fetch-failed` (a thrown non-Error wrapped in an Error first, as before).
+ */
+function pageFailure(
+  client: ApiClient,
+  where: string,
+  page: number,
+  error: unknown,
+  details: EsiPaginationErrorDetails,
+): unknown {
+  const text = error instanceof Error ? error.message : String(error);
+  logError(client, `Failed to fetch page ${page}: ${text}`, { page });
+  if (error instanceof EsiError) return error;
+  return new EsiPaginationError(
+    where,
+    error instanceof Error
+      ? error
+      : new Error(`Failed to fetch page ${page}: ${text}`),
+    { ...details, reason: 'fetch-failed', fetchedPages: page - 1 },
+  );
+}
+
 export class PaginationHandler {
   /**
    * Fetch remaining pages (2..totalPages) and combine with first page data.
    * The caller has already fetched page 1 and knows the total page count.
    *
-   * Resolves only with every page page 1 reported. Throws EsiPaginationError
-   * with reason `page-cap` (before any further request) when totalPages is
-   * above the page limit, `empty-page` when a page after the first has no
-   * items, and `fetch-failed` when a page fails with a non-ESI error. An
-   * `EsiError` from a page is rethrown unchanged.
+   * A page that fails with a non-ESI error throws EsiPaginationError with
+   * reason `fetch-failed`; an `EsiError` from a page is rethrown unchanged.
+   * With the client's `incompletePages` set to `throw`, it also throws
+   * EsiPaginationError with reason `page-cap` (before any further request)
+   * when totalPages is above the page limit, and `empty-page` when a page
+   * after the first has no items. With the default, `truncate`, those two
+   * stop the walk at the limit or at the empty page, log a warning and
+   * resolve with the pages fetched.
    */
   static async fetchRemainingPages(
     client: ApiClient,
@@ -52,13 +83,10 @@ export class PaginationHandler {
     const maxPages = Math.min(options.maxPages ?? MAX_PAGES, MAX_PAGES);
     const rateLimiter = client.getRateLimiter();
     const allData: unknown[] = [...firstPageData];
+    const where = options.where ?? endpoint;
 
-    const stop = (
-      reason: PaginationStopReason,
-      fetchedPages: number,
-      cause?: unknown,
-    ) =>
-      new EsiPaginationError(options.where ?? endpoint, cause, {
+    const stop = (reason: PaginationStopReason, fetchedPages: number): void =>
+      incompleteWalk(client, where, {
         reason,
         endpoint,
         reportedPages: totalPages,
@@ -66,20 +94,21 @@ export class PaginationHandler {
         partial: allData,
       });
 
-    if (totalPages > maxPages) {
-      throw stop('page-cap', 1);
+    // `throw` mode rejects here, before page 2. `truncate` mode walks up to
+    // the limit and warns when it gets there.
+    if (totalPages > maxPages && client.getIncompletePages() === 'throw') {
+      stop('page-cap', 1);
+    }
+    const lastPage = Math.min(totalPages, maxPages);
+
+    if (lastPage > 1) {
+      logInfo(client, `Fetching pages 2-${lastPage} for ${endpoint}...`, {
+        method,
+        totalPages,
+      });
     }
 
-    if (totalPages <= 1) {
-      return allData;
-    }
-
-    logInfo(client, `Fetching pages 2-${totalPages} for ${endpoint}...`, {
-      method,
-      totalPages,
-    });
-
-    for (let page = 2; page <= totalPages; page++) {
+    for (let page = 2; page <= lastPage; page++) {
       let pageData: unknown[];
       try {
         if (rateLimiter) await rateLimiter.checkRateLimit(templatePath, method);
@@ -93,34 +122,37 @@ export class PaginationHandler {
           pageFetch,
         );
       } catch (error) {
-        logError(
-          client,
-          `Failed to fetch page ${page}: ${error instanceof Error ? error.message : String(error)}`,
-          { page },
-        );
-        if (error instanceof EsiError) throw error;
-        throw stop('fetch-failed', page - 1, error);
+        throw pageFailure(client, where, page, error, {
+          endpoint,
+          reportedPages: totalPages,
+          partial: allData,
+        });
       }
 
       // An empty page inside the reported count means the collection shrank
       // during the walk and items moved onto pages already read.
       if (!pageData || pageData.length === 0) {
-        throw stop('empty-page', page);
+        stop('empty-page', page);
+        return allData;
       }
 
       allData.push(...pageData);
       logInfo(
         client,
-        `Fetched page ${page}/${totalPages} (${pageData.length} items)`,
+        `Fetched page ${page}/${lastPage} (${pageData.length} items)`,
         { page, items: pageData.length },
       );
     }
 
-    logInfo(
-      client,
-      `Pagination complete. Fetched ${allData.length} total items from ${totalPages} pages.`,
-      { totalItems: allData.length },
-    );
+    if (totalPages > lastPage) {
+      stop('page-cap', Math.max(lastPage, 1));
+    } else if (lastPage > 1) {
+      logInfo(
+        client,
+        `Pagination complete. Fetched ${allData.length} total items from ${lastPage} pages.`,
+        { totalItems: allData.length },
+      );
+    }
     return allData;
   }
 

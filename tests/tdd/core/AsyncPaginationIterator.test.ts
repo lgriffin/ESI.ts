@@ -112,7 +112,61 @@ describe('AsyncPaginationIterator', () => {
       expect(pages[2].data).toEqual([{ id: 3 }]);
     });
 
-    it('DES-08: rejects with empty-page when a page after the first is empty, counting the items yielded', async () => {
+    it('DES-08: by default stops at an empty page after the first, after yielding the pages before it', async () => {
+      mockHandleRequest
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [{ id: 1 }],
+        })
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [],
+        });
+
+      const pages: PageResult[] = [];
+      for await (const page of fetchPages(client, 'alliances', 'GET')) {
+        pages.push(page);
+      }
+
+      expect(pages).toHaveLength(1);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(2);
+    });
+
+    it('DES-08: by default walks a count above 1000 as far as page 1000 and warns', async () => {
+      const logger = spyLogger();
+      client.setLogger(logger);
+      mockHandleRequest.mockImplementation((_c, endpoint: string) =>
+        Promise.resolve({
+          headers: { 'x-pages': '1001' },
+          body: [Number(/page=(\d+)/.exec(endpoint)?.[1] ?? '1')],
+        }),
+      );
+
+      const pages: PageResult[] = [];
+      for await (const page of fetchPages(client, 'alliances', 'GET')) {
+        pages.push(page);
+      }
+
+      expect(pages).toHaveLength(1000);
+      expect(pages[0]!.totalPages).toBe(1000);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(1000);
+      expect(logger.warn.mock.calls).toEqual([
+        [
+          expect.stringContaining("Set incompletePages: 'throw'"),
+          {
+            page: 1000,
+            reason: 'page-cap',
+            endpoint: 'alliances',
+            reportedPages: 1001,
+            fetchedPages: 1000,
+            itemCount: 1000,
+          },
+        ],
+      ]);
+    });
+
+    it('DES-08: with incompletePages throw, rejects with empty-page when a page after the first is empty, counting the items yielded', async () => {
+      client.setIncompletePages('throw');
       mockHandleRequest
         .mockResolvedValueOnce({
           headers: { 'x-pages': '3' },
@@ -146,7 +200,8 @@ describe('AsyncPaginationIterator', () => {
       expect(incomplete.itemCount).toBe(1);
     });
 
-    it('DES-08: rejects with page-cap before yielding when page 1 reports more than 1000 pages', async () => {
+    it('DES-08: with incompletePages throw, rejects with page-cap before yielding when page 1 reports more than 1000 pages', async () => {
+      client.setIncompletePages('throw');
       mockHandleRequest.mockResolvedValueOnce({
         headers: { 'x-pages': '1001' },
         body: [{ id: 1 }],
@@ -339,7 +394,61 @@ describe('AsyncPaginationIterator', () => {
       expect(mockHandleRequest).toHaveBeenCalledTimes(3);
     });
 
-    it('DES-08: rejects with empty-page and the prefix before it when a page in a wave is empty', async () => {
+    it('DES-08: by default collects past an empty page in a wave and warns once', async () => {
+      const logger = spyLogger();
+      client.setLogger(logger);
+      const bodies: Record<string, unknown[]> = {
+        '1': [{ id: 1 }],
+        '2': [],
+        '3': [],
+        '4': [{ id: 4 }],
+      };
+      mockHandleRequest.mockImplementation((_c, endpoint: string) =>
+        Promise.resolve({
+          headers: { 'x-pages': '4' },
+          body: bodies[/page=(\d+)/.exec(endpoint)?.[1] ?? '1'],
+        }),
+      );
+
+      await expect(fetchAllPages(client, 'alliances', 'GET')).resolves.toEqual([
+        { id: 1 },
+        { id: 4 },
+      ]);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(4);
+      expect(logger.warn.mock.calls).toEqual([
+        [
+          expect.stringContaining(
+            "page 2 of 4 was empty, so the collection changed during the walk; the result may be incomplete. Set incompletePages: 'throw'",
+          ),
+          {
+            page: 2,
+            reason: 'empty-page',
+            endpoint: 'alliances',
+            reportedPages: 4,
+            fetchedPages: 2,
+            itemCount: 1,
+          },
+        ],
+      ]);
+    });
+
+    it('DES-08: by default resolves with the first 1000 pages of a count above 1000', async () => {
+      mockHandleRequest.mockImplementation((_c, endpoint: string) =>
+        Promise.resolve({
+          headers: { 'x-pages': '100000000' },
+          body: [Number(/page=(\d+)/.exec(endpoint)?.[1] ?? '1')],
+        }),
+      );
+
+      const items = await fetchAllPages(client, 'alliances', 'GET');
+
+      expect(items).toHaveLength(1000);
+      expect(items[999]).toBe(1000);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(1000);
+    });
+
+    it('DES-08: with incompletePages throw, rejects with empty-page and the prefix before it when a page in a wave is empty', async () => {
+      client.setIncompletePages('throw');
       const bodies: Record<string, unknown[]> = {
         '1': [{ id: 1 }],
         '2': [{ id: 2 }],
@@ -371,7 +480,8 @@ describe('AsyncPaginationIterator', () => {
       );
     });
 
-    it('DES-08: rejects with page-cap after page 1 when page 1 reports more than 1000 pages', async () => {
+    it('DES-08: with incompletePages throw, rejects with page-cap after page 1 when page 1 reports more than 1000 pages', async () => {
+      client.setIncompletePages('throw');
       mockHandleRequest.mockResolvedValueOnce({
         headers: { 'x-pages': '100000000' },
         body: [{ id: 1 }],

@@ -421,7 +421,30 @@ describe('CursorPaginationHandler', () => {
       );
     });
 
-    it('DES-08: rejects with cursor-cap when maxPages is reached with an after cursor still set', async () => {
+    it('DES-08: by default resolves with the pages fetched when maxPages is reached with an after cursor still set', async () => {
+      const resp2 = cursorResponse([{ id: 2 }], null, 'c2');
+      fetchMock.mockResponseOnce(resp2.body, {
+        status: resp2.status,
+        headers: resp2.headers,
+      });
+
+      const result = await CursorPaginationHandler.fetchAll(
+        client,
+        'corporations/123/projects',
+        'GET',
+        false,
+        [{ id: 1 }],
+        { before: null, after: 'c1' },
+        undefined,
+        { maxPages: 2 },
+      );
+
+      expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('DES-08: with incompletePages throw, rejects with cursor-cap when maxPages is reached with an after cursor still set', async () => {
+      client.setIncompletePages('throw');
       const firstPageData = [{ id: 1 }];
       const firstCursors = { before: null, after: 'c1' };
 

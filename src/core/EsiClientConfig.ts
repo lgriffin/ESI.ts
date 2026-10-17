@@ -16,6 +16,7 @@ import type { RetryConfig } from './util/retry';
 import type { IRetryStrategy } from './IRetryStrategy';
 import type { ILogger } from './logger/ILogger';
 import type { LogLevel } from './logger/DefaultLogger';
+import type { IncompletePagesMode } from './pagination/pageLimit';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
 
@@ -53,6 +54,15 @@ export interface EsiClientConfig {
   responseInterceptors?: ResponseInterceptor[] | undefined;
   validateResponse?: boolean | undefined;
   validateRequest?: boolean | undefined;
+  /**
+   * What pagination does when it cannot prove a walk complete (a page count
+   * above 1000, an empty page after the first, a cursor still set at the page
+   * limit). `'truncate'`, the default, returns the pages fetched so far and
+   * logs a warning; `'throw'` rejects with an `EsiPaginationError` carrying
+   * the reason and the partial result. The default becomes `'throw'` in a
+   * future major. See guides/PAGINATION.md.
+   */
+  incompletePages?: IncompletePagesMode | undefined;
   /** Custom logger for this client. Falls back to the global logger, then pino. */
   logger?: ILogger | undefined;
   /**

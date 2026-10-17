@@ -5,6 +5,7 @@ import {
   EsiClientBuilder,
 } from '../../../src/EsiClientBuilder';
 import { IRetryStrategy } from '../../../src/core/IRetryStrategy';
+import type { ApiClient } from '../../../src/core/ApiClient';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -142,6 +143,37 @@ describe('ARCH-08: construction parity (every legacy surface configures the pipe
 
       esiClient.shutdown();
       customClient.shutdown();
+    });
+  });
+
+  describe('DES-08: incompletePages', () => {
+    const modes = (config?: EsiClientConfig) => {
+      const esiClient = new EsiClient(config);
+      const customClient = new CustomEsiClient({
+        ...config,
+        clients: ['status'],
+      });
+      const factoryClient = EsiApiFactory.createClient('status', config);
+      const result = [
+        (esiClient as unknown as { apiClient: ApiClient }).apiClient,
+        getApiClientFromDomainClient(customClient.getClient('status')),
+        getApiClientFromDomainClient(factoryClient),
+      ].map((client) => (client as ApiClient).getIncompletePages());
+      esiClient.shutdown();
+      customClient.shutdown();
+      return result;
+    };
+
+    it("defaults to 'truncate' on all three surfaces", () => {
+      expect(modes()).toEqual(['truncate', 'truncate', 'truncate']);
+    });
+
+    it("incompletePages: 'throw' reaches the pipeline of all three surfaces", () => {
+      expect(modes({ incompletePages: 'throw' })).toEqual([
+        'throw',
+        'throw',
+        'throw',
+      ]);
     });
   });
 
