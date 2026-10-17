@@ -23,15 +23,7 @@ import {
 } from '../types/api-responses';
 import { EsiError } from '../core/util/error';
 
-/**
- * Builds response objects in the shapes the legacy domain clients return.
- *
- * @deprecated Since 12.1.0; removed in 13.0.0 with the hand-written response
- * types it builds. Test an application on `createEsi()` with
- * `createMockTransport()` from `@lgriffin/esi.ts/testing`, answering with the
- * spec's shapes; fixtures typed by the generated responses are tracked in
- * guides/LEGACY-REMOVAL.md (G14).
- */
+/** Builds response objects in the shapes the custom domain clients return. */
 export class TestDataFactory {
   // Alliance test data
 
