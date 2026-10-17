@@ -14,18 +14,26 @@ Feature: Security boundary
   Rule: If ESI reports more than 1000 pages, then the client shall request no more than 1000 pages.
     X-Pages is a number the remote chooses. Without a bound, a response
     reporting a hundred million pages would start that many requests, so
-    every pagination path reads it through the same bounded page count.
+    every pagination path checks it against the same page limit. Under the
+    default incompletePages mode the walk stops at the limit with a warning;
+    with incompletePages set to throw it stops after page 1 with an
+    EsiPaginationError (0051-resilience.feature). The bound holds either way.
 
-    Scenario Outline: Every pagination entry point applies the same cap
-      Given ESI reports an "X-Pages" value of 100000000 for a paged route
+    Scenario Outline: Every pagination entry point applies the same cap in either incompletePages mode
+      Given a client whose incompletePages option is "<mode>"
+      And ESI reports an "X-Pages" value of 100000000 for a paged route
       When the consumer walks the route through <entry point>
       Then no more than 1000 page requests shall reach the transport
+      And the walk shall be <outcome>
 
       Examples:
-        | entry point             |
-        | a paged client method   |
-        | the collecting iterator |
-        | the async page iterator |
+        | entry point             | mode     | outcome                |
+        | a paged client method   | truncate | cut off at page 1000   |
+        | the collecting iterator | truncate | cut off at page 1000   |
+        | the async page iterator | truncate | cut off at page 1000   |
+        | a paged client method   | throw    | refused as incomplete  |
+        | the collecting iterator | throw    | refused as incomplete  |
+        | the async page iterator | throw    | refused as incomplete  |
 
   @sec-P6 @TEST-11
   Rule: If ESI answers with a redirect to another host, then the client shall not send the request or the token to that host.

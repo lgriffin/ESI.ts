@@ -19,6 +19,7 @@ import { ApiClient } from '../ApiClient';
 import { EsiError, EsiPaginationError } from '../util/error';
 import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { fetchOnePage } from '../requestPipeline/fetchExecution';
+import { incompleteWalk } from './incompleteWalk';
 import { MAX_PAGES } from './pageLimit';
 import {
   resolveCache,
@@ -111,9 +112,13 @@ export class CursorPaginationHandler {
 
   /**
    * Auto-fetch all pages by following `after` tokens until an empty
-   * response is received.  Combines the caller-supplied first page
-   * data with all subsequent pages. After three consecutive failed
-   * pages it throws rather than return a partial dataset (DES-08).
+   * response, or a page without an `after` token, is received. Combines the
+   * caller-supplied first page data with all subsequent pages. After three
+   * consecutive failed pages it throws rather than return a partial dataset
+   * (DES-08). Reaching `maxPages` with an `after` token still set follows the
+   * client's `incompletePages` mode: `truncate` (the default) returns the
+   * pages fetched with a warning, `throw` rejects with an EsiPaginationError
+   * whose reason is `cursor-cap`.
    */
   static async fetchAll(
     client: ApiClient,
@@ -157,6 +162,7 @@ export class CursorPaginationHandler {
             'Cursor pagination: empty page received, dataset complete.',
             { pages: pageCount },
           );
+          afterToken = null;
           break;
         }
 
@@ -185,9 +191,21 @@ export class CursorPaginationHandler {
             `${consecutiveFailures} consecutive failures. Stopping cursor pagination.`,
             { consecutiveFailures },
           );
-          throw incomplete(endpoint, error);
+          throw incomplete(endpoint, error, pageCount, allData);
         }
       }
+    }
+
+    // The page limit reached with an after cursor in hand: a short list.
+    // Throws under `incompletePages: 'throw'`; otherwise warns and returns
+    // what it has, as before the option existed.
+    if (afterToken) {
+      incompleteWalk(client, endpoint, {
+        reason: 'cursor-cap',
+        endpoint,
+        fetchedPages: pageCount,
+        partial: allData,
+      });
     }
 
     logInfo(
@@ -274,12 +292,22 @@ export class CursorPaginationHandler {
 /**
  * The error a cursor walk that stops part way rejects with: the last
  * page's own error when it is an ESI or circuit error, otherwise
- * PAGINATION_INCOMPLETE. Mirrors the offset path in
- * requestPipeline/paginationOrchestration.ts.
+ * PAGINATION_INCOMPLETE with reason `fetch-failed` and the items fetched so
+ * far. Mirrors the offset path in requestPipeline/paginationOrchestration.ts.
  */
-function incomplete(endpoint: string, error: unknown): unknown {
+function incomplete(
+  endpoint: string,
+  error: unknown,
+  fetchedPages: number,
+  partial: unknown[],
+): unknown {
   if (error instanceof EsiError) {
     return error;
   }
-  return new EsiPaginationError(endpoint, error);
+  return new EsiPaginationError(endpoint, error, {
+    reason: 'fetch-failed',
+    endpoint,
+    fetchedPages,
+    partial,
+  });
 }

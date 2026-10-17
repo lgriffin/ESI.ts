@@ -1,6 +1,8 @@
 /**
- * Generates src/generated/operations.generated.ts from the vendored ESI
- * OpenAPI document. The emitter lives in scripts/spec/spec-generate-core.ts.
+ * Generates src/generated/operations.generated.ts and
+ * src/adapters/responseSchemas.generated.ts from the vendored ESI OpenAPI
+ * document. The emitters live in scripts/spec/spec-generate-core.ts and
+ * scripts/spec/spec-zod.ts.
  *
  * Usage: npm run spec:generate          # write the file
  *        npm run spec:generate:check    # exit 1 when the file is stale
@@ -11,6 +13,7 @@ import * as prettier from 'prettier';
 
 import {
   generateOperations,
+  mergeOverlay,
   OUT_PATH,
   OVERLAY_PATH,
   overlayRoutesMissingFrom,
@@ -19,6 +22,13 @@ import {
   type OpenApiDocument,
   type OperationOverlay,
 } from './spec-generate-core';
+import {
+  generateResponseSchemas,
+  ZOD_OUT_PATH,
+  type SchemaOverrides,
+} from './spec-zod';
+
+const OVERRIDES_PATH = 'scripts/spec/response-schema-overrides.json';
 
 const ROOT = path.resolve(__dirname, '../..');
 
@@ -48,53 +58,84 @@ export function readOverlay(): OperationOverlay {
   return overlay;
 }
 
-async function renderOperations(): Promise<{
-  source: string;
-  operations: number;
-  types: number;
-}> {
+async function format(source: string, outFile: string): Promise<string> {
+  const config = (await prettier.resolveConfig(outFile)) ?? {};
+  return prettier.format(source, { ...config, filepath: outFile });
+}
+
+interface Rendered {
+  readonly outPath: string;
+  readonly source: string;
+  readonly summary: string;
+}
+
+async function render(): Promise<Rendered[]> {
   const doc = JSON.parse(
     fs.readFileSync(path.join(ROOT, SPEC_PATH), 'utf8'),
   ) as OpenApiDocument;
+  // `$comment` documents the file; every other key names a component schema.
+  const overrides = Object.fromEntries(
+    Object.entries(
+      JSON.parse(
+        fs.readFileSync(path.join(ROOT, OVERRIDES_PATH), 'utf8'),
+      ) as Record<string, unknown>,
+    ).filter(([key]) => !key.startsWith('$')),
+  ) as SchemaOverrides;
   const overlay = readOverlay();
-  const result = generateOperations(doc, {
+  // The overrides widen the Zod schemas only. Widening the operation types
+  // too (number to number | null) is a major change under guides/SEMVER.md:
+  // pass `overrides` to generateOperations in the next major.
+  const operations = generateOperations(doc, {
     specPath: SPEC_PATH,
     transportImport: '../core/ports/OperationTransport',
     overlay,
   });
-  const outFile = path.join(ROOT, OUT_PATH);
-  const config = (await prettier.resolveConfig(outFile)) ?? {};
-  const source = await prettier.format(result.source, {
-    ...config,
-    filepath: outFile,
-  });
-  return {
-    source,
-    operations: result.operations.length,
-    types: result.typeCount,
-  };
+  // The overlay's routes get a schema too, so every generated operation with
+  // a JSON body has one, as the hand-written MetaClient validates its own.
+  const zod = generateResponseSchemas(
+    mergeOverlay(doc, overlay),
+    SPEC_PATH,
+    overrides,
+  );
+  return [
+    {
+      outPath: OUT_PATH,
+      source: await format(operations.source, path.join(ROOT, OUT_PATH)),
+      summary: `${operations.operations.length} operations, ${operations.typeCount} types`,
+    },
+    {
+      outPath: ZOD_OUT_PATH,
+      source: await format(zod.source, path.join(ROOT, ZOD_OUT_PATH)),
+      summary: `${zod.operations} response schemas, ${zod.components} components`,
+    },
+  ];
 }
 
 async function main(): Promise<void> {
   const check = process.argv.includes('--check');
-  const { source, operations, types } = await renderOperations();
-  const outFile = path.join(ROOT, OUT_PATH);
-  if (check) {
-    const current = fs.existsSync(outFile)
-      ? fs.readFileSync(outFile, 'utf8')
-      : '';
-    if (current !== source) {
-      console.error(
-        `${OUT_PATH} is stale against ${SPEC_PATH}. Run \`npm run spec:generate\` and commit the result.`,
-      );
-      process.exit(1);
+  const files = await render();
+  let stale = false;
+  for (const { outPath, source, summary } of files) {
+    const outFile = path.join(ROOT, outPath);
+    if (check) {
+      const current = fs.existsSync(outFile)
+        ? fs.readFileSync(outFile, 'utf8')
+        : '';
+      if (current !== source) {
+        console.error(
+          `${outPath} is stale against ${SPEC_PATH}. Run \`npm run spec:generate\` and commit the result.`,
+        );
+        stale = true;
+      } else {
+        console.log(`${outPath} is up to date (${summary}).`);
+      }
+      continue;
     }
-    console.log(`${OUT_PATH} is up to date (${operations} operations).`);
-    return;
+    fs.mkdirSync(path.dirname(outFile), { recursive: true });
+    fs.writeFileSync(outFile, source);
+    console.log(`wrote ${outPath}: ${summary}`);
   }
-  fs.mkdirSync(path.dirname(outFile), { recursive: true });
-  fs.writeFileSync(outFile, source);
-  console.log(`wrote ${OUT_PATH}: ${operations} operations, ${types} types`);
+  if (stale) process.exit(1);
 }
 
 if (require.main === module) {

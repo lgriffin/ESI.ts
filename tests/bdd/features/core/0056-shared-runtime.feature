@@ -266,3 +266,47 @@ Feature: One runtime, many identities
       And ESI answers the public contract's items with 204 No Content
       When the public view follows every page of the public contract's items
       Then the view shall receive no entries after one request
+
+  # ── Response validation
+
+  Rule: While the validateResponse option is unset, the runtime shall return a generated operation's body as ESI sent it.
+    Generated operations have returned ESI's body unchecked since the runtime
+    shipped, so validating them by default would turn bodies applications
+    already accept into errors within a minor release. Validation is opt-in
+    until a future major makes it the default. The hand-written EsiClient
+    keeps validating by default; this concerns the generated operations only.
+
+    Scenario: A server status without its player count is returned when validation is left unset
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And ESI reports the server status without its player count
+      When the public view requests the server status
+      Then the call shall resolve with the server status as ESI sent it
+
+  Rule: Where response validation is turned on, if ESI answers a generated operation with a JSON body that does not match the operation's generated response schema, then the runtime shall reject the call with an EsiValidationError naming the request URL.
+    `validateResponse: true` checks a generated operation's body against a Zod
+    schema generated from the OpenAPI document beside its type, as the
+    hand-written clients check theirs. A body that breaks the type the caller
+    compiled against fails at the call, not three functions later. Fields ESI
+    adds are kept, and so is a new enum member.
+
+    Scenario: A server status without its player count is rejected when validation is on
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)" with response validation on
+      And ESI reports the server status without its player count
+      When the public view requests the server status
+      Then the call shall be rejected with an EsiValidationError naming "/status"
+
+    Scenario: A server status with a field the document does not name is accepted with that field when validation is on
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)" with response validation on
+      And ESI reports the server status with an extra field "shard"
+      When the public view requests the server status
+      Then the call shall resolve with the server status as ESI sent it
+
+  Rule: Where response validation is turned off, the runtime shall return a generated operation's body as ESI sent it.
+    `validateResponse: false` states the unvalidated behaviour explicitly, and
+    keeps it once a future major turns validation on by default.
+
+    Scenario: A server status without its player count is returned when validation is off
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)" with response validation off
+      And ESI reports the server status without its player count
+      When the public view requests the server status
+      Then the call shall resolve with the server status as ESI sent it

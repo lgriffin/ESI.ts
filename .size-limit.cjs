@@ -11,10 +11,15 @@
  * campaign and meta name schemas, and `.` once #419, #422 and #424 had
  * grown it past its budget. `./client` was measured when ROADMAP Phase 2
  * PR 11 added it: the generated operations and the pipeline make it the
- * largest sub-path after the root. `./testing` was re-measured when PR 12
- * added `createMockTransport`. `.` was re-measured when #258 added the
+ * largest sub-path after the root. It was re-measured when the generated
+ * operations gained their opt-in Zod response schemas (zod and 213 schemas,
+ * about 66 kB minified). `./testing` was re-measured when PR 12 added
+ * `createMockTransport`. `.` was re-measured when #258 added the
  * `FileTokenStorage` cross-process lock (with room for #256's JWKS
- * verifier), and `./errors` (ESM) when #256 added `TokenVerificationError`.
+ * verifier), and `./errors` (ESM) when #256 added `TokenVerificationError`
+ * and when #662 gave `EsiPaginationError` its stop reason and partial result;
+ * #662 re-measured `./errors` (CJS) too, which had shrunk below its stale
+ * 9246 B figure, and lowered its budget to match.
  *
  * Raising a budget: run `npm run build && npm run size`, set the new
  * measurement plus 5%, update the comment, and say in the pull request body
@@ -38,17 +43,18 @@ const budgets = {
   './errors': {
     // Raised for the typed error family (EsiNetworkError, CircuitOpenError,
     // the EsiFaultError classes and their guards), then for
-    // TokenVerificationError.
-    import: '5.5 kB', // measured 5224 B
-    require: '9.8 kB', // measured 9246 B
+    // TokenVerificationError, then for the incomplete-pagination fields on
+    // EsiPaginationError (reason, partial and the rest; #662, about 1 kB).
+    import: '6.7 kB', // measured 6350 B
+    require: '9.1 kB', // measured 8577 B
   },
   './testing': {
     import: '19.5 kB', // measured 18540 B
     require: '26.5 kB', // measured 25150 B
   },
   './client': {
-    import: '166.4 kB', // measured 158410 B
-    require: '175.1 kB', // measured 166730 B
+    import: '236.2 kB', // measured 224894 B
+    require: '249.7 kB', // measured 237724 B
   },
   './sde': {
     import: '45.4 kB', // measured 43203 B

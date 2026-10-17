@@ -6,11 +6,14 @@
  *   For any page count, any per-page transient failures within the retry
  *   budget (503 or a dropped connection), and any X-Pages value reported by
  *   pages after the first, the call resolves with pages 1..N in order, each
- *   exactly once, stopping before the first empty page after page 1
- *   (guides/PAGINATION.md: X-Pages is read from page 1; the walk stops at an
- *   empty page). Each page is requested once plus once per failure. A repeat
- *   call inside the spec TTL, and one after it that ESI answers with 304,
- *   return the same complete array.
+ *   exactly once (guides/PAGINATION.md: X-Pages is read from page 1). Each
+ *   page is requested once plus once per failure. A repeat call inside the
+ *   spec TTL, and one after it that ESI answers with 304, return the same
+ *   complete array. When a page after the first is empty, no later page is
+ *   requested: under the default `incompletePages` the call resolves with
+ *   the pages before it; under `throw` it rejects with an
+ *   EsiPaginationError (`empty-page`) whose `partial` is those pages
+ *   (DES-08).
  *
  * Offset, eager, a page that exhausts its retries
  *   The call rejects, or resolves with every page. It never resolves with a
@@ -19,8 +22,17 @@
  * Offset, `fetchAll*`
  *   For any page count, concurrency, per-page transient failures and any
  *   order in which responses arrive (fast-check scheduler), the result is
- *   pages 1..N in page order, each exactly once. No early stop on an empty
- *   page.
+ *   pages 1..N in page order, each exactly once, empty pages contributing
+ *   nothing (the default `incompletePages`), or, under `throw`, when a page
+ *   after the first is empty, an EsiPaginationError whose `partial` is the
+ *   pages before the first empty one.
+ *
+ * Offset, every collector (eager, `fetchAll*`, `stream*`), incompletePages throw
+ *   For any page sizes, empty pages included, and any page 1 count up to and
+ *   past the 1000-page limit, the walk either returns as many items as the
+ *   pages hold, in page order, or throws an EsiPaginationError whose
+ *   delivered items are a prefix of the dataset. It never returns a short
+ *   list (DES-08).
  *
  * Cursor, `fetchAllCursorPages`
  *   For any sequence of distinct opaque tokens ending in an empty page or a
@@ -31,6 +43,7 @@ import fetchMock from 'jest-fetch-mock';
 import * as fc from 'fast-check';
 
 import type { ApiClient } from '../../src/core/ApiClient';
+import type { IncompletePagesMode } from '../../src/core/pagination/pageLimit';
 import {
   FakeReply,
   FakeRequest,
@@ -40,7 +53,11 @@ import {
   useFakeClock,
 } from './support/fakeEsi';
 import { Pipeline, mutantPipeline, requirePipeline } from './support/pipeline';
-import { describeProperty, invariant } from './support/property';
+import {
+  InvariantViolation,
+  describeProperty,
+  invariant,
+} from './support/property';
 
 fetchMock.enableMocks();
 
@@ -177,6 +194,49 @@ function assertSameIds(
   );
 }
 
+/**
+ * The EsiPaginationError a walk threw, by name: a mutant pipeline loads its
+ * own copy of the error module, so `instanceof` would not see it.
+ */
+interface IncompleteWalk {
+  name: string;
+  code: string;
+  reason: string;
+  fetchedPages: number;
+  itemCount: number;
+  partial: readonly unknown[];
+}
+
+function asIncomplete(error: unknown, label: string): IncompleteWalk {
+  const e = error as Partial<IncompleteWalk> | undefined;
+  invariant(
+    e?.name === 'EsiPaginationError' && e.code === 'PAGINATION_INCOMPLETE',
+    `${label}: expected an EsiPaginationError, got ${String(error)}`,
+  );
+  return e as IncompleteWalk;
+}
+
+/** Run `call`, returning what it threw, or failing if it resolved. */
+async function rejection(
+  call: () => Promise<unknown>,
+  label: string,
+): Promise<unknown> {
+  let result: unknown;
+  try {
+    result = await call();
+  } catch (error) {
+    return error;
+  }
+  const length = Array.isArray(result) ? result.length : 'a non-array';
+  throw new InvariantViolation(
+    `${label}: resolved with ${length} items, expected an EsiPaginationError`,
+  );
+}
+
+/** Index of the first empty page after page 1, or -1. */
+const firstEmptyAfterPageOne = (sizes: readonly { size: number }[]): number =>
+  sizes.findIndex((page, i) => i >= 1 && page.size === 0);
+
 // ── Generators ──────────────────────────────────────────────────────────
 
 const pageArb = (
@@ -208,6 +268,9 @@ const pagesArb = (minSize: number): fc.Arbitrary<PageSpec[]> =>
 
 // ── Properties ──────────────────────────────────────────────────────────
 
+/** Either `incompletePages` mode: the default and the opt-in. */
+const modeArb = fc.constantFrom<IncompletePagesMode>('truncate', 'throw');
+
 function eagerProperty(p: Pipeline) {
   return fc.asyncProperty(
     resourceArb,
@@ -215,7 +278,8 @@ function eagerProperty(p: Pipeline) {
       { arbitrary: pagesArb(1), weight: 3 },
       { arbitrary: pagesArb(0), weight: 1 },
     ),
-    (resource, pages) => runEager(p, resource, pages),
+    modeArb,
+    (resource, pages, mode) => runEager(p, resource, pages, mode),
   );
 }
 
@@ -223,16 +287,48 @@ async function runEager(
   p: Pipeline,
   resource: Resource,
   pages: PageSpec[],
+  mode: IncompletePagesMode = 'truncate',
 ): Promise<void> {
   const server = pagedServer(resource, pages);
   const requests = installFakeEsi(server.reply);
   const { clock, restore } = useFakeClock();
-  const api = createFakeEsiApiClient(p, resource.accessToken);
+  const api = createFakeEsiApiClient(p, resource.accessToken, {
+    incompletePages: mode,
+  });
   try {
-    const stop = pages.findIndex((page, i) => i >= 1 && page.size === 0);
+    const stop = firstEmptyAfterPageOne(pages);
     const walked = stop === -1 ? pages.length : stop + 1;
     const kept = stop === -1 ? pages : pages.slice(0, stop);
     const expected = kept.flatMap((page, i) => itemIds(i, page.size));
+    const requestCounts = () =>
+      pages.forEach((page, i) => {
+        const want = i < walked ? page.failures + 1 : 0;
+        invariant(
+          server.attempts[i] === want,
+          `${resource.name}: page ${i + 1} was requested ${server.attempts[i]} times, expected ${want}`,
+        );
+      });
+
+    // Under the default the walk resolves with `kept`, checked below.
+    if (stop !== -1 && mode === 'throw') {
+      const label = `${resource.name}, page ${stop + 1} of ${pages.length} empty`;
+      const error = asIncomplete(
+        await rejection(() => resource.eager(p, api), label),
+        label,
+      );
+      invariant(
+        error.reason === 'empty-page' && error.fetchedPages === stop + 1,
+        `${label}: reason ${error.reason}, fetchedPages ${error.fetchedPages}; expected empty-page at page ${stop + 1}`,
+      );
+      assertSameIds(
+        [...error.partial],
+        expected,
+        resource.idOf,
+        `${label}, partial`,
+      );
+      requestCounts();
+      return;
+    }
 
     const first = await resource.eager(p, api);
     assertSameIds(
@@ -241,13 +337,7 @@ async function runEager(
       resource.idOf,
       `${resource.name}, first call`,
     );
-    pages.forEach((page, i) => {
-      const want = i < walked ? page.failures + 1 : 0;
-      invariant(
-        server.attempts[i] === want,
-        `${resource.name}: page ${i + 1} was requested ${server.attempts[i]} times, expected ${want}`,
-      );
-    });
+    requestCounts();
 
     const sentBeforeRepeat = requests.length;
     const repeat = await resource.eager(p, api);
@@ -342,7 +432,8 @@ function fetchAllProperty(p: Pipeline) {
     fc.scheduler(),
     pagesArb(0),
     fc.integer({ min: 1, max: 8 }),
-    async (s, pages, concurrency) => {
+    modeArb,
+    async (s, pages, concurrency, mode) => {
       const resource = RESOURCES[0]!;
       const server = pagedServer(resource, pages);
       installFakeEsi((request) => {
@@ -352,8 +443,40 @@ function fetchAllProperty(p: Pipeline) {
           `${request.url.search || 'page 1'}`,
         );
       });
-      const api = createFakeEsiApiClient(p, undefined);
+      const api = createFakeEsiApiClient(p, undefined, {
+        incompletePages: mode,
+      });
       try {
+        // Under the default an empty page contributes nothing and the walk
+        // goes on, so the expectation below holds for it too.
+        const stop = firstEmptyAfterPageOne(pages);
+        if (stop !== -1 && mode === 'throw') {
+          const label = `fetchAllMarketOrders(concurrency ${concurrency}), page ${stop + 1} empty`;
+          const error = asIncomplete(
+            await rejection(
+              () =>
+                s.waitFor(
+                  new p.MarketClient(api).fetchAllMarketOrders(
+                    REGION_ID,
+                    concurrency,
+                  ),
+                ),
+              label,
+            ),
+            label,
+          );
+          invariant(
+            error.reason === 'empty-page' && error.fetchedPages === stop + 1,
+            `${label}: reason ${error.reason}, fetchedPages ${error.fetchedPages}`,
+          );
+          assertSameIds(
+            [...error.partial],
+            pages.slice(0, stop).flatMap((page, i) => itemIds(i, page.size)),
+            resource.idOf,
+            `${label}, partial`,
+          );
+          return;
+        }
         const expected = pages.flatMap((page, i) => itemIds(i, page.size));
         const result = await s.waitFor(
           new p.MarketClient(api).fetchAllMarketOrders(REGION_ID, concurrency),
@@ -468,6 +591,126 @@ function cursorProperty(p: Pipeline) {
         shutdownApiClient(api);
       }
     },
+  );
+}
+
+type Collector = 'eager' | 'fetchAll' | 'stream';
+
+interface CollectorRun {
+  collector: Collector;
+  sizes: number[];
+  /** Pages past the 1000-page limit page 1 reports, or 0 for the true count. */
+  overCap: number;
+}
+
+const PAGE_LIMIT = 1000;
+
+/**
+ * With `incompletePages: 'throw'`, whatever the page sizes and the count
+ * page 1 reports, a collector returns as many items as the pages hold, in
+ * page order, or throws an EsiPaginationError whose delivered items are a
+ * prefix of the dataset.
+ */
+async function runCollector(p: Pipeline, run: CollectorRun): Promise<void> {
+  const resource = RESOURCES[0]!;
+  const { sizes, overCap, collector } = run;
+  const reported = overCap > 0 ? PAGE_LIMIT + overCap : sizes.length;
+  let requests = 0;
+  const unexpected: string[] = [];
+  installFakeEsi((request) => {
+    requests++;
+    const page = Number(request.url.searchParams.get('page') ?? '1');
+    if (!(page >= 1 && page <= sizes.length)) {
+      unexpected.push(request.url.toString());
+      return { status: 404, body: { error: 'not found' } };
+    }
+    return {
+      status: 200,
+      headers: { 'x-pages': String(page === 1 ? reported : sizes.length) },
+      body: itemIds(page - 1, sizes[page - 1]!).map(resource.item),
+    };
+  });
+  const api = createFakeEsiApiClient(p, undefined, {
+    incompletePages: 'throw',
+  });
+  const client = new p.MarketClient(api);
+  const reportedNote = overCap ? ', page 1 reporting ' + String(reported) : '';
+  const label = `${collector} over pages [${sizes.join(', ')}]${reportedNote}`;
+  const dataset = sizes.flatMap((size, i) => itemIds(i, size));
+  const firstEmpty = firstEmptyAfterPageOne(sizes.map((size) => ({ size })));
+  const delivered: unknown[] = [];
+  try {
+    let result: unknown[] | undefined;
+    let thrown: unknown;
+    try {
+      if (collector === 'eager') {
+        result = await client.getMarketOrders(REGION_ID);
+      } else if (collector === 'fetchAll') {
+        result = await client.fetchAllMarketOrders(REGION_ID);
+      } else {
+        for await (const page of client.streamMarketOrders(REGION_ID)) {
+          delivered.push(...page.data);
+        }
+        result = delivered;
+      }
+    } catch (error) {
+      thrown = error;
+    }
+
+    invariant(
+      unexpected.length === 0,
+      `${label}: requested pages ESI never reported: ${unexpected.join('; ')}`,
+    );
+    if (result !== undefined) {
+      assertSameIds(result, dataset, resource.idOf, `${label}, resolved`);
+      invariant(
+        overCap === 0 && firstEmpty === -1,
+        `${label}: resolved although the walk could not be complete`,
+      );
+      return;
+    }
+    const error = asIncomplete(thrown, label);
+    // A stream hands over what it yielded and carries the rest; the other
+    // collectors yield nothing and carry everything.
+    const got = [...delivered, ...error.partial];
+    invariant(
+      error.itemCount === got.length,
+      `${label}: itemCount ${error.itemCount} does not count the ${got.length} items delivered`,
+    );
+    const ids = got.map(resource.idOf);
+    invariant(
+      overCap > 0 || firstEmpty !== -1,
+      `${label}: threw ${error.reason} although every reported page carried items`,
+    );
+    invariant(
+      ids.every((id, i) => id === dataset[i]),
+      `${label}: delivered [${ids.join(', ')}], not a prefix of [${dataset.join(', ')}]`,
+    );
+    if (overCap > 0) {
+      invariant(
+        error.reason === 'page-cap' && requests === 1,
+        `${label}: threw ${error.reason} after ${requests} requests, expected page-cap after 1`,
+      );
+    }
+  } finally {
+    shutdownApiClient(api);
+  }
+}
+
+function collectorProperty(p: Pipeline) {
+  return fc.asyncProperty(
+    fc.record({
+      collector: fc.constantFrom<Collector>('eager', 'fetchAll', 'stream'),
+      sizes: fc.array(fc.integer({ min: 0, max: 3 }), {
+        minLength: 1,
+        maxLength: 10,
+      }),
+      overCap: fc.oneof(
+        { arbitrary: fc.constant(0), weight: 4 },
+        { arbitrary: fc.integer({ min: 1, max: 5 }), weight: 1 },
+      ),
+    }),
+    (run) => runCollector(p, run),
   );
 }
 
@@ -659,6 +902,79 @@ describeProperty<Pipeline>({
   timeoutMs: 120_000,
 });
 
+/** Swallow an EsiPaginationError, returning its partial result instead. */
+const returnsPartial = async <T>(walk: () => Promise<T>): Promise<T> => {
+  try {
+    return await walk();
+  } catch (error) {
+    const e = error as { name?: string; partial?: unknown };
+    if (e?.name === 'EsiPaginationError') return e.partial as T;
+    throw error;
+  }
+};
+
+const eagerReturnsPartial = mutantPipeline(() => {
+  jest.doMock('../../src/core/pagination/PaginationHandler', () => {
+    const actual = jest.requireActual<
+      typeof import('../../src/core/pagination/PaginationHandler')
+    >('../../src/core/pagination/PaginationHandler');
+    class ReturnsPartial extends actual.PaginationHandler {
+      static override fetchRemainingPages(
+        ...args: Parameters<typeof actual.PaginationHandler.fetchRemainingPages>
+      ) {
+        return returnsPartial(() =>
+          actual.PaginationHandler.fetchRemainingPages(...args),
+        );
+      }
+    }
+    return { ...actual, PaginationHandler: ReturnsPartial };
+  });
+});
+
+const helpersStopSilently = mutantPipeline(() => {
+  jest.doMock('../../src/core/pagination/AsyncPaginationIterator', () => {
+    const actual = jest.requireActual<
+      typeof import('../../src/core/pagination/AsyncPaginationIterator')
+    >('../../src/core/pagination/AsyncPaginationIterator');
+    return {
+      ...actual,
+      fetchAllPages: (...args: Parameters<typeof actual.fetchAllPages>) =>
+        returnsPartial(() => actual.fetchAllPages(...args)),
+      fetchPages: async function* (
+        ...args: Parameters<typeof actual.fetchPages>
+      ) {
+        try {
+          yield* actual.fetchPages(...args);
+        } catch (error) {
+          if ((error as { name?: string }).name !== 'EsiPaginationError') {
+            throw error;
+          }
+        }
+      },
+    };
+  });
+});
+
+describeProperty<Pipeline>({
+  name: "with incompletePages 'throw', every offset collector returns the whole dataset or throws EsiPaginationError (DES-08)",
+  file: __filename,
+  subject: requirePipeline,
+  mutants: {
+    'the eager method returns the partial result': eagerReturnsPartial,
+    'the helpers stop silently at an incomplete walk': helpersStopSilently,
+  },
+  property: collectorProperty,
+  // One empty-page walk per collector, and a count past the limit, so each
+  // mutant meets its case whatever the seed.
+  examples: [
+    [{ collector: 'eager', sizes: [2, 0, 1], overCap: 0 }],
+    [{ collector: 'fetchAll', sizes: [2, 0, 1], overCap: 0 }],
+    [{ collector: 'stream', sizes: [2, 0, 1], overCap: 0 }],
+    [{ collector: 'stream', sizes: [2], overCap: 3 }],
+  ],
+  timeoutMs: 120_000,
+});
+
 // ── Shrunk counter-examples, kept as named examples (tests/fuzz/AGENTS.md) ──
 
 describe('pagination counter-examples', () => {
@@ -683,5 +999,18 @@ describe('pagination counter-examples', () => {
     await expect(
       runExhausted(requirePipeline(), RESOURCES[0]!, 2, 2),
     ).resolves.toBeUndefined();
+  });
+
+  it("DES-08: with incompletePages 'throw', every collector rejects an empty last page rather than resolving with the pages before it", async () => {
+    // Under the default `truncate` every collector resolves with page 1 alone here.
+    for (const collector of ['eager', 'fetchAll', 'stream'] as const) {
+      await expect(
+        runCollector(requirePipeline(), {
+          collector,
+          sizes: [2, 0],
+          overCap: 0,
+        }),
+      ).resolves.toBeUndefined();
+    }
   });
 });

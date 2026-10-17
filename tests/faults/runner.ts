@@ -121,9 +121,10 @@ export interface Observation {
   cacheProblems: string[];
 }
 
-function faultClient(target: Target, logger: ILogger): EsiClient {
+function faultClient(target: Target, fault: Fault, logger: ILogger): EsiClient {
   return createSeamClient({
     logger,
+    incompletePages: fault.incompletePages,
     timeout: target.timeoutMs,
     retryConfig: { ...SEAM_RETRY, maxRetries: target.retries },
   });
@@ -147,7 +148,7 @@ export async function observe(
   const previousGlobal = getLogger();
   // The rate limiter logs through the global logger.
   setLogger(logger);
-  const client = faultClient(target, logger);
+  const client = faultClient(target, fault, logger);
   const good = target.good();
   const ctx: FaultContext = { target, good };
   const pastFreshness = () =>

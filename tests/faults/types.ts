@@ -5,6 +5,7 @@
 import type { HttpResponse } from '../bdd/support/transport';
 import type { z } from 'zod';
 import type { EsiClient } from '../../src/EsiClient';
+import type { IncompletePagesMode } from '../../src/core/pagination/pageLimit';
 
 /**
  * Where the behaviour a fault checks is specified. The self-test resolves
@@ -141,6 +142,11 @@ export interface Fault {
    * in place.
    */
   readonly prime?: boolean;
+  /**
+   * The client's `incompletePages` mode for this fault. Default `truncate`,
+   * the library's default; `throw` covers the opt-in (DES-08).
+   */
+  readonly incompletePages?: IncompletePagesMode;
   /** The responses the faulted call is served, in order. */
   exchange(ctx: FaultContext): readonly HttpResponse[];
   /** What the client must do. */

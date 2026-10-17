@@ -64,7 +64,7 @@ describe('PaginationHandler branch coverage', () => {
     expect(result).toEqual([{ id: 1 }, { id: 2 }]);
   });
 
-  it('should wrap non-Error thrown values in Error', async () => {
+  it('DES-08: wraps a non-Error thrown value in an EsiPaginationError with reason fetch-failed', async () => {
     pageFetch.mockRejectedValue('string error');
 
     await expect(
@@ -79,10 +79,18 @@ describe('PaginationHandler branch coverage', () => {
         {},
         pageFetch,
       ),
-    ).rejects.toThrow('Failed to fetch page 2: string error');
+    ).rejects.toMatchObject({
+      name: 'EsiPaginationError',
+      reason: 'fetch-failed',
+      cause: new Error('Failed to fetch page 2: string error'),
+      fetchedPages: 1,
+      partial: [{ id: 1 }],
+      message:
+        '[PAGINATION_INCOMPLETE] Pagination incomplete for alliances: Failed to fetch page 2: string error',
+    });
   });
 
-  it('should stop when stopOnEmptyPage is true and page returns null', async () => {
+  it('DES-08: by default stops at a page that returns null', async () => {
     pageFetch.mockResolvedValueOnce(null as unknown as unknown[]);
 
     const result = await PaginationHandler.fetchRemainingPages(
@@ -93,11 +101,30 @@ describe('PaginationHandler branch coverage', () => {
       [{ id: 1 }],
       3,
       undefined,
-      { stopOnEmptyPage: true },
+      {},
       pageFetch,
     );
 
     expect(result).toEqual([{ id: 1 }]);
+  });
+
+  it('DES-08: with incompletePages throw, rejects with empty-page when a page returns null', async () => {
+    client.setIncompletePages('throw');
+    pageFetch.mockResolvedValueOnce(null as unknown as unknown[]);
+
+    await expect(
+      PaginationHandler.fetchRemainingPages(
+        client,
+        'alliances',
+        'GET',
+        false,
+        [{ id: 1 }],
+        3,
+        undefined,
+        {},
+        pageFetch,
+      ),
+    ).rejects.toMatchObject({ reason: 'empty-page', fetchedPages: 2 });
   });
 });
 

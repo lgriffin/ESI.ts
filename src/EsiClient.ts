@@ -71,12 +71,8 @@ import { logInfo } from './core/logger/clientLog';
 export type { EsiClientConfig, EsiDatasource } from './core/EsiClientConfig';
 
 /**
- * Every legacy domain client on one shared `ApiClient`.
- *
- * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
- * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
- * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
- * lists every legacy surface, its replacement and the open parity gaps.
+ * Every custom domain client, created lazily, on one shared `ApiClient`.
+ * See guides/CLIENT-ARCHITECTURE.md.
  */
 export class EsiClient {
   private apiClient: ApiClient;
@@ -341,10 +337,6 @@ let _defaultClient: EsiClient | null = null;
 
 /**
  * A process-wide `EsiClient`, built on first call from the `ESI_*` environment variables.
- *
- * @deprecated Since 12.1.0; removed in 13.0.0. Build one runtime with
- * `createEsi({ userAgent })` from `@lgriffin/esi.ts/client` and share it.
- * See guides/LEGACY-REMOVAL.md.
  */
 export function getDefaultClient(): EsiClient {
   if (!_defaultClient) {

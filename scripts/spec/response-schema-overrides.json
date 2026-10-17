@@ -1,0 +1,7 @@
+{
+  "$comment": "Where ESI's wire responses differ from its OpenAPI document, by component schema. `nullable` names object properties (at any depth inside that component, but not inside a component it references) that ESI sends as null although the document does not allow it. The generated response schemas (scripts/spec/spec-zod.ts) accept null for them. The generated operation types (src/generated/operations.generated.ts) keep the document's type in 12.x, since widening a response type is major (guides/SEMVER.md); they widen in the next major; tests/tdd/adapters/responseSchemas.recorded.test.ts is the evidence. Remove an entry when ESI's document catches up.",
+  "UniverseBloodlinesGet": {
+    "nullable": ["ship_type_id"],
+    "evidence": "tests/contract/fixtures/recorded/universe.getBloodlines.json: two bloodlines send ship_type_id null"
+  }
+}

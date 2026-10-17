@@ -4,6 +4,7 @@
  */
 export { createEsi } from './runtime';
 export type { Esi, EsiOptions } from './runtime';
+export type { IncompletePagesMode } from '../core/pagination/pageLimit';
 export { identityFromProvider, identityFromToken } from './identity';
 export type { ProviderIdentityOptions } from './identity';
 export type {

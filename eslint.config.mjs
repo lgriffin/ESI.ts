@@ -3,7 +3,6 @@ import security from 'eslint-plugin-security';
 import sonarjs from 'eslint-plugin-sonarjs';
 import prettierConfig from 'eslint-config-prettier';
 import loggerImports from './config/eslint/logger-imports.rules.cjs';
-import legacyTests from './config/eslint/legacy-tests.cjs';
 
 export default tseslint.config(
   {
@@ -200,8 +199,7 @@ export default tseslint.config(
       // Tests pass undefined explicitly to pin the optional-argument path.
       'sonarjs/no-undefined-argument': 'off',
       // Tests keep deprecated APIs covered until they are removed; a warning
-      // keeps new uses visible. The tests that exist to exercise the legacy
-      // tree are exempted below (config/eslint/legacy-tests.cjs).
+      // keeps new uses visible.
       'sonarjs/deprecation': 'warn',
       // A style preference for test layout: a warning, fixed as files change.
       'sonarjs/parameterized-tests': 'warn',
@@ -212,34 +210,26 @@ export default tseslint.config(
     },
   },
 
-  // The legacy surfaces deprecated in 12.1.0 and removed in 13.0.0
-  // (guides/LEGACY-REMOVAL.md) refer to one another, so sonarjs/deprecation
-  // would report them against themselves: the construction tree, the
-  // hand-written response types (src/types, and the compile-time check that
-  // aligns them with the spec), createClient, which returns them, and
-  // TestDataFactory, which builds them. EsiTokenManager.createClient
-  // (deprecated) builds an EsiClient, and the live-health smoke stays on
-  // EsiClient until the generated operations validate responses (gap G17).
-  // Everywhere else in src/ and scripts/ a new use is still an error.
+  // Tests that exist to cover APIs that are still deprecated: EsiApiFactory's
+  // nine named factories and EsiTokenManager.createClient (since 11.0.0),
+  // AllianceClient.getContacts (a deprecated ESI route) and
+  // FactionWarfareLeaderboard. The custom clients themselves are never
+  // deprecated (CHARTER.md ARCH-14), so this list only shrinks: a file leaves
+  // it when the API it covers is removed in a future major release.
   {
     files: [
-      'src/EsiClient.ts',
-      'src/EsiClientBuilder.ts',
-      'src/clients/**/*.ts',
-      'src/core/ApiClientBuilder.ts',
-      'src/core/endpoints/createClient.ts',
-      'src/types/*.ts',
-      'src/types/generated/spec-alignment.check.ts',
-      'src/testing/TestDataFactory.ts',
-      'src/auth/EsiTokenManager.ts',
-      'scripts/quality/live-health.ts',
+      'tests/bdd/step-definitions/core/token-management.steps.ts',
+      'tests/bdd/steps/when/the-client-gathers-complete-alliance-information.ts',
+      'tests/bdd/steps/when/the-client-requests-contact-list-for-the-alliance.ts',
+      'tests/bdd/steps/when/the-client-requests-contact-list.ts',
+      'tests/integration/full-stack.test.ts',
+      'tests/tdd/alliances/AllianceClient.test.ts',
+      'tests/tdd/auth/EsiTokenManager.test.ts',
+      'tests/tdd/core/configValidation.test.ts',
+      'tests/tdd/core/coverageBranches.test.ts',
+      'tests/tdd/core/EsiClientBuilder.test.ts',
+      'tests/typetests/domain-responses.test-d.ts',
     ],
-    rules: { 'sonarjs/deprecation': 'off' },
-  },
-
-  // The tests of those deprecated surfaces (the list says how it changes).
-  {
-    files: legacyTests,
     rules: { 'sonarjs/deprecation': 'off' },
   },
 

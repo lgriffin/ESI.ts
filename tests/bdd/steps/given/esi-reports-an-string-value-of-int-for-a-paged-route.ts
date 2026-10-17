@@ -4,6 +4,6 @@ import { Given } from '../../support/steps';
 Given(
   'ESI reports an {string} value of {int} for a paged route',
   function (header: string, reported: number) {
-    queueReportedPageCount(header, reported);
+    queueReportedPageCount(this, header, reported);
   },
 );
