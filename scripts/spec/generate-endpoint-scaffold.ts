@@ -16,8 +16,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const ESI_OPENAPI_URL =
-  'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
+import { COMPATIBILITY_DATE } from '../../src/core/constants';
+
+const ESI_OPENAPI_URL = `https://esi.evetech.net/meta/openapi.json?compatibility_date=${COMPATIBILITY_DATE}`;
 const OUTPUT_FILE = path.resolve(
   __dirname,
   '../../etc/endpoint-scaffold.generated.reference.ts',
@@ -110,8 +111,7 @@ function extractEndpoints(spec: OpenApiSpec): ScaffoldEndpoint[] {
       const operationId = op.operationId ?? `${method}_${routePath}`;
 
       // Determine auth requirement
-      const requiresAuth =
-        Array.isArray(op.security) && op.security.length > 0;
+      const requiresAuth = Array.isArray(op.security) && op.security.length > 0;
 
       // Extract parameters
       const pathParams: string[] = [];
@@ -123,7 +123,12 @@ function extractEndpoints(spec: OpenApiSpec): ScaffoldEndpoint[] {
           const param = resolveParameter(spec, rawParam);
           if (param.in === 'path') {
             pathParams.push(snakeToCamel(param.name));
-          } else if (param.in === 'query' && param.name !== 'datasource' && param.name !== 'token' && param.name !== 'page') {
+          } else if (
+            param.in === 'query' &&
+            param.name !== 'datasource' &&
+            param.name !== 'token' &&
+            param.name !== 'page'
+          ) {
             queryParams[snakeToCamel(param.name)] = param.name;
           }
         }
@@ -174,7 +179,10 @@ function tagToVariableName(tag: string): string {
   return pascal.charAt(0).toLowerCase() + pascal.slice(1);
 }
 
-function generateScaffoldFile(endpoints: ScaffoldEndpoint[], specVersion: string): string {
+function generateScaffoldFile(
+  endpoints: ScaffoldEndpoint[],
+  specVersion: string,
+): string {
   const byTag = new Map<string, ScaffoldEndpoint[]>();
   for (const ep of endpoints) {
     const group = byTag.get(ep.tag) ?? [];
@@ -209,9 +217,13 @@ function generateScaffoldFile(endpoints: ScaffoldEndpoint[], specVersion: string
     lines.push('');
     lines.push(`export const ${varName} = {`);
 
-    for (const ep of [...group].sort((a, b) => a.operationId.localeCompare(b.operationId))) {
+    for (const ep of [...group].sort((a, b) =>
+      a.operationId.localeCompare(b.operationId),
+    )) {
       // Generate a readable method name from operationId
-      const methodName = snakeToCamel(ep.operationId.replace(/^(get|post|put|delete)_/i, ''));
+      const methodName = snakeToCamel(
+        ep.operationId.replace(/^(get|post|put|delete)_/i, ''),
+      );
 
       lines.push(`  // ${ep.operationId}`);
       if (ep.description) {
@@ -224,7 +236,9 @@ function generateScaffoldFile(endpoints: ScaffoldEndpoint[], specVersion: string
       lines.push(`    requiresAuth: ${ep.requiresAuth},`);
 
       if (ep.pathParams.length > 0) {
-        lines.push(`    pathParams: [${ep.pathParams.map((p) => `'${p}'`).join(', ')}],`);
+        lines.push(
+          `    pathParams: [${ep.pathParams.map((p) => `'${p}'`).join(', ')}],`,
+        );
       }
 
       if (Object.keys(ep.queryParams).length > 0) {
@@ -266,7 +280,9 @@ async function main(): Promise<void> {
   console.log('Fetching ESI OpenAPI spec...');
   const response = await fetch(ESI_OPENAPI_URL);
   if (!response.ok) {
-    console.error(`Failed to fetch spec: ${response.status} ${response.statusText}`);
+    console.error(
+      `Failed to fetch spec: ${response.status} ${response.statusText}`,
+    );
     process.exit(1);
   }
   const spec = (await response.json()) as OpenApiSpec;

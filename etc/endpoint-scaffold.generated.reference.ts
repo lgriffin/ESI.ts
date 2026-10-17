@@ -1,7 +1,7 @@
 /* eslint-disable */
 // Auto-generated endpoint scaffold from ESI OpenAPI spec — do not edit manually
-// Spec version: 2025-12-16
-// Total operations: 208
+// Spec version: 2026-08-18
+// Total operations: 233
 //
 // This file is a REFERENCE for comparing against hand-written endpoint
 // definitions in src/core/endpoints/. It shows what the OpenAPI spec defines
@@ -12,6 +12,60 @@
 //        diff this against hand-written files to find missing endpoints
 
 import { EndpointMap } from '../src/core/endpoints/EndpointDefinition';
+
+// --- Access List ---
+
+export const accessListEndpointScaffold = {
+  // GetCharactersAccessListsDetail
+  // Get the details of an Access List.
+  GetCharactersAccessListsDetail: {
+    path: 'characters/{characterId}/access-lists/{accessListId}',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['accessListId', 'characterId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetCharactersAccessListsListing
+  // Lists all Access Lists the character is Manager or Admin of.
+  GetCharactersAccessListsListing: {
+    path: 'characters/{characterId}/access-lists',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['characterId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+} as const satisfies EndpointMap;
+
+// --- Activities ---
+
+export const activitiesEndpointScaffold = {
+  // GetCharactersMercenaryTacticalOperationsDetail
+  // Get the details of a Mercenary Tactical Operation.
+  GetCharactersMercenaryTacticalOperationsDetail: {
+    path: 'characters/{characterId}/mercenary-tactical-operations/{operationId}',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['operationId', 'characterId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetCharactersMercenaryTacticalOperationsListing
+  // Listing of all Mercenary Tactical Operations for the character.
+  GetCharactersMercenaryTacticalOperationsListing: {
+    path: 'characters/{characterId}/mercenary-tactical-operations',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['characterId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetSkyhooksRaidable
+  // Listing of all Skyhooks that currently or will shortly be raidable.
+  GetSkyhooksRaidable: {
+    path: 'skyhooks/raidable',
+    method: 'GET',
+    requiresAuth: false,
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+} as const satisfies EndpointMap;
 
 // --- Alliance ---
 
@@ -162,15 +216,6 @@ export const calendarEndpointScaffold = {
 // --- Character ---
 
 export const characterEndpointScaffold = {
-  // GetCharactersCharacterId
-  // Public information about a character
-  GetCharactersCharacterId: {
-    path: 'characters/{characterId}',
-    method: 'GET',
-    requiresAuth: false,
-    pathParams: ['characterId'],
-    // responseSchema: TODO — wire hand-written Zod schema
-  },
   // GetCharactersCharacterIdAgentsResearch
   // Return a list of agents research information for a character. The formula for finding the current re
   GetCharactersCharacterIdAgentsResearch: {
@@ -267,6 +312,15 @@ export const characterEndpointScaffold = {
     path: 'characters/{characterId}/titles',
     method: 'GET',
     requiresAuth: true,
+    pathParams: ['characterId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetCharactersDetail
+  // Public information about a character
+  GetCharactersDetail: {
+    path: 'characters/{characterId}',
+    method: 'GET',
+    requiresAuth: false,
     pathParams: ['characterId'],
     // responseSchema: TODO — wire hand-written Zod schema
   },
@@ -733,6 +787,38 @@ export const corporationProjectsEndpointScaffold = {
     requiresAuth: true,
     pathParams: ['corporationId'],
     queryParams: { after: 'after', before: 'before', limit: 'limit', state: 'state' },
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+} as const satisfies EndpointMap;
+
+// --- Cosmetics ---
+
+export const cosmeticsEndpointScaffold = {
+  // GetCharactersCosmeticsSkinr
+  // Listing of all SKINR licenses you own
+  GetCharactersCosmeticsSkinr: {
+    path: 'characters/{characterId}/cosmetics/skinr',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['characterId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetCharactersCosmeticsSkinrComponents
+  // Listing of all SKINR component licenses you own
+  GetCharactersCosmeticsSkinrComponents: {
+    path: 'characters/{characterId}/cosmetics/skinr/components',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['characterId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetCosmeticsSkinr
+  // All attributes of a SKINR license
+  GetCosmeticsSkinr: {
+    path: 'cosmetics/skinr/{skinrId}',
+    method: 'GET',
+    requiresAuth: false,
+    pathParams: ['skinrId'],
     // responseSchema: TODO — wire hand-written Zod schema
   },
 } as const satisfies EndpointMap;
@@ -1225,7 +1311,7 @@ export const killmailsEndpointScaffold = {
 
 export const locationEndpointScaffold = {
   // GetCharactersCharacterIdLocation
-  // Information about the characters current location. Returns the current solar system id, and also the
+  // Get the current location of a character, including the station or structure it is docked in.
   GetCharactersCharacterIdLocation: {
     path: 'characters/{characterId}/location',
     method: 'GET',
@@ -1234,7 +1320,7 @@ export const locationEndpointScaffold = {
     // responseSchema: TODO — wire hand-written Zod schema
   },
   // GetCharactersCharacterIdOnline
-  // Checks if the character is currently online
+  // Get whether a character is online, and its login statistics.
   GetCharactersCharacterIdOnline: {
     path: 'characters/{characterId}/online',
     method: 'GET',
@@ -1243,7 +1329,7 @@ export const locationEndpointScaffold = {
     // responseSchema: TODO — wire hand-written Zod schema
   },
   // GetCharactersCharacterIdShip
-  // Get the current ship type, name and id
+  // Get the ship a character is currently in.
   GetCharactersCharacterIdShip: {
     path: 'characters/{characterId}/ship',
     method: 'GET',
@@ -1489,12 +1575,134 @@ export const metaEndpointScaffold = {
     requiresAuth: false,
     // responseSchema: TODO — wire hand-written Zod schema
   },
+  // GetMetaName
+  // Get the name ESI is currently going by, plus the full and glorious history of every name it has ever
+  GetMetaName: {
+    path: 'meta/name',
+    method: 'GET',
+    requiresAuth: false,
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
   // GetMetaStatus
   // Get the health status of each API route.
   GetMetaStatus: {
     path: 'meta/status',
     method: 'GET',
     requiresAuth: false,
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+} as const satisfies EndpointMap;
+
+// --- Military Campaigns ---
+
+export const militaryCampaignsEndpointScaffold = {
+  // GetCharactersMilitaryCampaignsObjectivesListing
+  // Listing of the military campaign objectives the character has participated in.
+  GetCharactersMilitaryCampaignsObjectivesListing: {
+    path: 'characters/{characterId}/military-campaigns/objectives',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['characterId'],
+    queryParams: { after: 'after', before: 'before', limit: 'limit' },
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetCharactersMilitaryCampaignsObjectivesParticipation
+  // Show your participation in a military campaign objective.
+  GetCharactersMilitaryCampaignsObjectivesParticipation: {
+    path: 'characters/{characterId}/military-campaigns/objectives/{objectiveId}',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['characterId', 'objectiveId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetMilitaryCampaignsDetail
+  // Get the details of a military campaign.
+  GetMilitaryCampaignsDetail: {
+    path: 'military-campaigns/{campaignId}',
+    method: 'GET',
+    requiresAuth: false,
+    pathParams: ['campaignId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetMilitaryCampaignsListing
+  // Listing of all active military campaigns.
+  GetMilitaryCampaignsListing: {
+    path: 'military-campaigns',
+    method: 'GET',
+    requiresAuth: false,
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetMilitaryCampaignsObjectivesDetail
+  // Get the details of an objective of a military campaign.
+  GetMilitaryCampaignsObjectivesDetail: {
+    path: 'military-campaigns/{campaignId}/objectives/{objectiveId}',
+    method: 'GET',
+    requiresAuth: false,
+    pathParams: ['campaignId', 'objectiveId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetMilitaryCampaignsObjectivesListing
+  // Listing of all active, completed or expired objectives of a military campaign.
+  GetMilitaryCampaignsObjectivesListing: {
+    path: 'military-campaigns/{campaignId}/objectives',
+    method: 'GET',
+    requiresAuth: false,
+    pathParams: ['campaignId'],
+    queryParams: { after: 'after', before: 'before', limit: 'limit' },
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+} as const satisfies EndpointMap;
+
+// --- Paragon Hub ---
+
+export const paragonHubEndpointScaffold = {
+  // GetCharactersParagonHubSkinr
+  // List the SKINR listings a character has posted on the Paragon Hub.
+  GetCharactersParagonHubSkinr: {
+    path: 'characters/{characterId}/paragon-hub/skinr',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['characterId'],
+    queryParams: { after: 'after', before: 'before', limit: 'limit' },
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetParagonHubSkinr
+  // Browse the SKINR listings publicly available on the Paragon Hub.
+  GetParagonHubSkinr: {
+    path: 'paragon-hub/skinr',
+    method: 'GET',
+    requiresAuth: false,
+    queryParams: { after: 'after', before: 'before', limit: 'limit' },
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetParagonHubSkinrAlliances
+  // Browse the SKINR listings on the Paragon Hub that are visible to the given alliance.
+  GetParagonHubSkinrAlliances: {
+    path: 'paragon-hub/skinr/alliances/{allianceId}',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['allianceId'],
+    queryParams: { after: 'after', before: 'before', limit: 'limit' },
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetParagonHubSkinrCharacters
+  // Browse the SKINR listings on the Paragon Hub that are visible to the given character.
+  GetParagonHubSkinrCharacters: {
+    path: 'paragon-hub/skinr/characters/{characterId}',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['characterId'],
+    queryParams: { after: 'after', before: 'before', limit: 'limit' },
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetParagonHubSkinrCorporations
+  // Browse the SKINR listings on the Paragon Hub that are visible to the given corporation.
+  GetParagonHubSkinrCorporations: {
+    path: 'paragon-hub/skinr/corporations/{corporationId}',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['corporationId'],
+    queryParams: { after: 'after', before: 'before', limit: 'limit' },
     // responseSchema: TODO — wire hand-written Zod schema
   },
 } as const satisfies EndpointMap;
@@ -1613,18 +1821,10 @@ export const sovereigntyEndpointScaffold = {
     requiresAuth: false,
     // responseSchema: TODO — wire hand-written Zod schema
   },
-  // GetSovereigntyMap
-  // Shows sovereignty information for solar systems
-  GetSovereigntyMap: {
-    path: 'sovereignty/map',
-    method: 'GET',
-    requiresAuth: false,
-    // responseSchema: TODO — wire hand-written Zod schema
-  },
-  // GetSovereigntyStructures
-  // Shows sovereignty data for structures.
-  GetSovereigntyStructures: {
-    path: 'sovereignty/structures',
+  // GetSovereigntySystems
+  // Listing of sovereignty details for all K-space systems in New Eden.
+  GetSovereigntySystems: {
+    path: 'sovereignty/systems',
     method: 'GET',
     requiresAuth: false,
     // responseSchema: TODO — wire hand-written Zod schema
@@ -1640,6 +1840,65 @@ export const statusEndpointScaffold = {
     path: 'status',
     method: 'GET',
     requiresAuth: false,
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+} as const satisfies EndpointMap;
+
+// --- Structures ---
+
+export const structuresEndpointScaffold = {
+  // GetCharactersStructuresMercenaryDensDetail
+  // Get the details of a Mercenary Den.
+  GetCharactersStructuresMercenaryDensDetail: {
+    path: 'characters/{characterId}/structures/mercenary-dens/{mercenaryDenId}',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['mercenaryDenId', 'characterId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetCharactersStructuresMercenaryDensListing
+  // Listing of all Mercenary Dens.
+  GetCharactersStructuresMercenaryDensListing: {
+    path: 'characters/{characterId}/structures/mercenary-dens',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['characterId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetCorporationsStructuresSkyhooksDetail
+  // Get the details of a Skyhook.
+  GetCorporationsStructuresSkyhooksDetail: {
+    path: 'corporations/{corporationId}/structures/skyhooks/{skyhookId}',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['skyhookId', 'corporationId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetCorporationsStructuresSkyhooksListing
+  // Listing of all Skyhooks.
+  GetCorporationsStructuresSkyhooksListing: {
+    path: 'corporations/{corporationId}/structures/skyhooks',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['corporationId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetCorporationsStructuresSovereigntyHubsDetail
+  // Get the details of a Sovereignty Hub.
+  GetCorporationsStructuresSovereigntyHubsDetail: {
+    path: 'corporations/{corporationId}/structures/sovereignty-hubs/{sovereigntyHubId}',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['sovereigntyHubId', 'corporationId'],
+    // responseSchema: TODO — wire hand-written Zod schema
+  },
+  // GetCorporationsStructuresSovereigntyHubsListing
+  // Listing of all Sovereignty Hubs.
+  GetCorporationsStructuresSovereigntyHubsListing: {
+    path: 'corporations/{corporationId}/structures/sovereignty-hubs',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['corporationId'],
     // responseSchema: TODO — wire hand-written Zod schema
   },
 } as const satisfies EndpointMap;
@@ -2051,8 +2310,10 @@ export const warsEndpointScaffold = {
 
 // --- Coverage Summary ---
 //
-// Total tags: 33
-// Total operations: 208
+// Total tags: 39
+// Total operations: 233
+//   Access List: 2 operations
+//   Activities: 3 operations
 //   Alliance: 4 operations
 //   Assets: 6 operations
 //   Calendar: 4 operations
@@ -2062,6 +2323,7 @@ export const warsEndpointScaffold = {
 //   Contracts: 9 operations
 //   Corporation: 22 operations
 //   Corporation Projects: 4 operations
+//   Cosmetics: 3 operations
 //   Dogma: 5 operations
 //   Faction Warfare: 8 operations
 //   Fittings: 3 operations
@@ -2075,13 +2337,16 @@ export const warsEndpointScaffold = {
 //   Loyalty: 2 operations
 //   Mail: 9 operations
 //   Market: 11 operations
-//   Meta: 3 operations
+//   Meta: 4 operations
+//   Military Campaigns: 6 operations
+//   Paragon Hub: 5 operations
 //   Planetary Interaction: 4 operations
 //   Routes: 1 operations
 //   Search: 1 operations
 //   Skills: 3 operations
-//   Sovereignty: 3 operations
+//   Sovereignty: 2 operations
 //   Status: 1 operations
+//   Structures: 6 operations
 //   Universe: 30 operations
 //   User Interface: 5 operations
 //   Wallet: 6 operations

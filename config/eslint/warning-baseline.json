@@ -216,54 +216,12 @@
     "src/auth/EsiTokenManager.ts": {
       "security/detect-object-injection": 1
     },
-    "src/clients/AssetsClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 2
-    },
     "src/clients/BaseEsiClient.ts": {
       "@typescript-eslint/no-unused-vars": 1,
       "security/detect-object-injection": 2
     },
-    "src/clients/CharacterClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 2
-    },
     "src/clients/ClientRegistry.ts": {
       "@typescript-eslint/no-unused-vars": 1
-    },
-    "src/clients/ContactsClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/DogmaClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 5
-    },
-    "src/clients/FittingsClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/FleetClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 2
-    },
-    "src/clients/IncursionsClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/InsuranceClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/LocationClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 3
-    },
-    "src/clients/MailClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 2
-    },
-    "src/clients/SearchClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/SovereigntyClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 2
-    },
-    "src/clients/StatusClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 1
-    },
-    "src/clients/UniverseClient.ts": {
-      "@typescript-eslint/no-unnecessary-type-assertion": 31
     },
     "src/core/BatchRequestHandler.ts": {
       "security/detect-object-injection": 1
@@ -323,20 +281,8 @@
       "security/detect-non-literal-regexp": 1,
       "security/detect-object-injection": 2
     },
-    "tests/bdd/step-definitions/core/token-management.steps.ts": {
-      "sonarjs/deprecation": 1
-    },
     "tests/bdd/steps/then/the-returned-record-shall-list-dogma-attributes-materials-role-bonus-es.ts": {
       "sonarjs/no-nested-conditional": 1
-    },
-    "tests/bdd/steps/when/the-client-gathers-complete-alliance-information.ts": {
-      "sonarjs/deprecation": 1
-    },
-    "tests/bdd/steps/when/the-client-requests-contact-list-for-the-alliance.ts": {
-      "sonarjs/deprecation": 1
-    },
-    "tests/bdd/steps/when/the-client-requests-contact-list.ts": {
-      "sonarjs/deprecation": 1
     },
     "tests/bdd/support/transport.ts": {
       "sonarjs/no-nested-template-literals": 2
@@ -395,17 +341,8 @@
     "tests/integration/esi-spec-contract.test.ts": {
       "sonarjs/cognitive-complexity": 2
     },
-    "tests/integration/full-stack.test.ts": {
-      "sonarjs/deprecation": 1
-    },
     "tests/integration/gated-auth.test.ts": {
       "sonarjs/prefer-regexp-exec": 1
-    },
-    "tests/tdd/alliances/AllianceClient.test.ts": {
-      "sonarjs/deprecation": 2
-    },
-    "tests/tdd/auth/EsiTokenManager.test.ts": {
-      "sonarjs/deprecation": 2
     },
     "tests/tdd/benchmark/bench-compare.test.ts": {
       "@typescript-eslint/no-unused-vars": 1
@@ -444,20 +381,13 @@
       "@typescript-eslint/no-unused-vars": 3,
       "sonarjs/no-dead-store": 3
     },
-    "tests/tdd/core/EsiClientBuilder.test.ts": {
-      "sonarjs/deprecation": 10
-    },
     "tests/tdd/core/circuitBreaker.test.ts": {
       "@typescript-eslint/no-unused-vars": 1,
       "sonarjs/parameterized-tests": 1
     },
     "tests/tdd/core/configValidation.test.ts": {
       "@typescript-eslint/no-unused-vars": 1,
-      "sonarjs/deprecation": 9,
       "sonarjs/parameterized-tests": 1
-    },
-    "tests/tdd/core/coverageBranches.test.ts": {
-      "sonarjs/deprecation": 5
     },
     "tests/tdd/core/esiScopes.test.ts": {
       "@typescript-eslint/no-unused-vars": 1,
@@ -499,8 +429,7 @@
       "@typescript-eslint/no-unused-vars": 1
     },
     "tests/typetests/domain-responses.test-d.ts": {
-      "@typescript-eslint/no-unused-vars": 2,
-      "sonarjs/deprecation": 4
+      "@typescript-eslint/no-unused-vars": 2
     },
     "tests/typetests/endpoint-args.test-d.ts": {
       "@typescript-eslint/no-unused-vars": 2

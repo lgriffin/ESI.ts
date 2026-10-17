@@ -1,3 +1,17 @@
+/**
+ * The `./schemas` entry: the hand-written Zod response schemas the legacy
+ * domain clients validate with.
+ *
+ * Deprecated since 12.1.0 as a whole and removed in 13.0.0 with the legacy
+ * clients, unless guides/LEGACY-REMOVAL.md records a decision to keep it for
+ * the generated operations' runtime validation (G1). No declaration carries
+ * a `@deprecated` tag: a tag on each of the 225 would flag every internal
+ * endpoint map and type and every schema test rather than consumers' uses,
+ * and aliasing the root `schemas` namespace to tag it would drop the schemas
+ * from the API report, which is how a tightened schema is caught as a break.
+ *
+ * @packageDocumentation
+ */
 export { esiEnum } from './esiEnum';
 export * from './common';
 export * from './access-lists';

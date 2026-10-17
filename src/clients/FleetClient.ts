@@ -9,6 +9,14 @@ import {
 } from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
+/**
+ * A legacy domain client over the hand-written endpoint map.
+ *
+ * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
+ * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
+ * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
+ * lists every legacy surface, its replacement and the open parity gaps.
+ */
 export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
   constructor(client: ApiClient) {
     super(client, fleetEndpoints);
@@ -150,9 +158,7 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    * @requires Authentication
    */
   createFleetWing(fleetId: number, body: object): Promise<{ wing_id: number }> {
-    return this.api.createFleetWing(fleetId, body) as Promise<{
-      wing_id: number;
-    }>;
+    return this.api.createFleetWing(fleetId, body);
   }
 
   /**
@@ -201,9 +207,7 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
     fleetId: number,
     wingId: number,
   ): Promise<{ squad_id: number }> {
-    return this.api.createFleetSquad(fleetId, wingId) as Promise<{
-      squad_id: number;
-    }>;
+    return this.api.createFleetSquad(fleetId, wingId);
   }
 
   fetchAllFleetMembers(
