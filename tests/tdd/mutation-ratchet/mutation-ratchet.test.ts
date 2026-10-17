@@ -28,7 +28,7 @@ describe('BDD mutation ratchet', () => {
     ['src/sde/errors.ts', 'src/sde'],
     ['src/sde/providers/yaml/SdeDataProvider.ts', 'src/sde/providers'],
     ['src/sde/domain/universe/schemas.ts', 'src/sde/domain'],
-    ['src/sde/ingestion/SdeDatabaseBuilder.ts', 'src/sde/ingestion'],
+    ['src/sde/ingestion/SdeDownloader.ts', 'src/sde/ingestion'],
     ['src/auth/EveSsoClient.ts', 'src/auth'],
     [
       'D:\\repo\\src\\core\\rateLimiter\\RateLimiter.ts',

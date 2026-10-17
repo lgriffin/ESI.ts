@@ -17,15 +17,10 @@ import * as memoryEntry from '../../../src/sde/memory';
 import { SdeDataProvider } from '../../../src/sde/providers/yaml/SdeDataProvider';
 import { SdeError } from '../../../src/sde/errors';
 import { SdeTestDataFactory } from '../../../src/sde/testing/SdeTestDataFactory';
-import { SdeDatabaseBuilder } from '../../../src/sde/ingestion/SdeDatabaseBuilder';
 import { SdeDownloader } from '../../../src/sde/ingestion/SdeDownloader';
 import { SdeExtractor } from '../../../src/sde/ingestion/SdeExtractor';
-import type { ParsedSdeFile } from '../../../src/sde/ingestion/SdeExtractor';
 import { SDE_FILE_REGISTRY } from '../../../src/sde/ingestion/constants';
-import {
-  transformRecord,
-  transformRecordNative,
-} from '../../../src/sde/ingestion/transforms';
+import { transformRecordNative } from '../../../src/sde/ingestion/transforms';
 import { queueResponse } from './transport';
 import type { World } from './world';
 
@@ -33,7 +28,7 @@ import type { World } from './world';
 // Time
 // ---------------------------------------------------------------------------
 
-/** The instant every loaded provider and built database is stamped with. */
+/** The instant every loaded provider is stamped with. */
 export const IMPORTED_AT = '2026-09-28T12:00:00.000Z';
 
 export const fixedClock: Clock = {
@@ -127,25 +122,9 @@ export const NON_RECORD_SDE_FILES: Record<string, unknown> = {
 };
 
 /**
- * `count` types named after their IDs 1 to `count`, where only the last one
- * carries `basePrice`, so a column taken from leading records alone misses it.
- */
-export function typesWithLateField(
-  count: number,
-  basePrice: number,
-): Record<string, unknown> {
-  const types: Record<number, Record<string, unknown>> = {};
-  for (let id = 1; id <= count; id++) {
-    types[id] = { name: { en: `Type ${id}` }, groupID: 18 };
-  }
-  types[count] = { ...types[count], basePrice };
-  return { '_sde.yaml': { sde: BUILD }, 'types.yaml': types };
-}
-
-/**
- * An export that exercises the SQLite build's schema: type 34 carries a null
- * field and a nested object, type 35 a fractional volume where type 34's is
- * whole; a table keyed by strings; a file whose records keep their own IDs
+ * An export that exercises the record transform: type 34 carries a null field
+ * and a nested object, type 35 a fractional volume where type 34's is whole;
+ * a table keyed by strings; a file whose records keep their own IDs
  * (characterTitles); and a market groups file with no records at all.
  */
 export const SCHEMA_SDE_FILES: Record<string, unknown> = {
@@ -167,27 +146,6 @@ export const SCHEMA_SDE_FILES: Record<string, unknown> = {
   'characterTitles.yaml': { captain: { name: { en: 'Captain' } } },
   'marketGroups.yaml': {},
 };
-
-/**
- * The raw export, but type 34 also carries a typeID that is not a number, so
- * its row cannot go into the INTEGER primary key.
- */
-export const UNSTORABLE_SDE_FILES: Record<string, unknown> = {
-  ...RAW_SDE_FILES,
-  'types.yaml': {
-    ...(RAW_SDE_FILES['types.yaml'] as Record<number, Record<string, unknown>>),
-    34: { name: { en: 'Tritanium' }, typeID: 'not-a-number' },
-  },
-};
-
-/** `count` types named after their IDs 1 to `count`, all in group 18. */
-export function manyTypes(count: number): Record<string, unknown> {
-  const types: Record<number, Record<string, unknown>> = {};
-  for (let id = 1; id <= count; id++) {
-    types[id] = { name: { en: `Type ${id}` }, groupID: 18 };
-  }
-  return { '_sde.yaml': { sde: BUILD }, 'types.yaml': types };
-}
 
 /** The YAML files a `listFiles` over `RAW_SDE_FILES` reports, in archive order. */
 export const RAW_YAML_FILES = Object.keys(RAW_SDE_FILES);
@@ -623,7 +581,7 @@ export function fileMatchesServedArchive(
 }
 
 // ---------------------------------------------------------------------------
-// The extractor and the database builder
+// The extractor
 // ---------------------------------------------------------------------------
 
 export function readArchiveMetadata(world: World): void {
@@ -640,118 +598,6 @@ export function listArchiveFiles(world: World): void {
 
 export function parseArchiveFiles(world: World, filenames: string[]): void {
   world.result = new SdeExtractor().parseFiles(sdeArchive(world), filenames);
-}
-
-/** The parsed files of the archive that the registry knows, ready to build. */
-function parseRegistryFiles(world: World): ParsedSdeFile[] {
-  return new SdeExtractor().parseFiles(
-    sdeArchive(world),
-    SDE_FILE_REGISTRY.map((spec) => spec.yamlFile),
-  );
-}
-
-/** Build a SQLite database from the archive and remember its path. */
-/**
- * Build a database from the scenario's archive, recording every progress
- * report. `outputPath` overrides the file the build writes.
- */
-export function buildDatabase(
-  world: World,
-  options: { outputPath?: string } = {},
-): void {
-  const outputPath = options.outputPath ?? tempPath(world, 'sde.sqlite');
-  world.values.database = outputPath;
-  const progress: Array<[string, number, number]> = [];
-  world.values.progress = progress;
-  const metadata = new SdeExtractor().readMetadata(sdeArchive(world));
-  try {
-    new SdeDatabaseBuilder({ clock: fixedClock }).build({
-      outputPath,
-      parsedFiles: parseRegistryFiles(world),
-      sdeVersion: metadata.buildNumber,
-      buildDate: metadata.releaseDate,
-      onProgress: (table, inserted, total) =>
-        progress.push([table, inserted, total]),
-    });
-  } catch (err) {
-    world.error = err;
-  }
-}
-
-/** Whether SQLite left a write-ahead file beside the built database. */
-export function writeAheadFileLeft(world: World): boolean {
-  return fs.existsSync(`${world.values.database as string}-wal`);
-}
-
-interface SqliteDatabase {
-  pragma(pragma: string, options?: { simple?: boolean }): unknown;
-  prepare(sql: string): {
-    get(...params: unknown[]): unknown;
-    all(...params: unknown[]): unknown[];
-  };
-  close(): void;
-}
-
-type SqliteConstructor = new (
-  file: string,
-  options?: { readonly?: boolean },
-) => SqliteDatabase;
-
-/** better-sqlite3 ships no types; the builder loads it the same way. */
-function loadSqlite(): SqliteConstructor {
-  return require('better-sqlite3') as SqliteConstructor;
-}
-
-/** One column as `PRAGMA table_info` reports it. */
-export interface BuiltColumn {
-  name: string;
-  type: string;
-  pk: number;
-}
-
-export interface BuiltDatabase {
-  metadata: Record<string, string>;
-  journalMode: string;
-  /** The table's columns in order, or null when there is no such table. */
-  columns(table: string): BuiltColumn[] | null;
-  rowCount(table: string): number;
-  column(table: string, id: number, column: string): unknown;
-}
-
-/** Read the built database back, the way a consumer would. */
-export function openBuiltDatabase(world: World): BuiltDatabase {
-  const Database = loadSqlite();
-  const db = new Database(world.values.database as string, { readonly: true });
-  world.cleanups.push(() => db.close());
-  const metadata: Record<string, string> = {};
-  for (const row of db
-    .prepare('SELECT key, value FROM sde_metadata')
-    .all() as Array<{ key: string; value: string }>) {
-    metadata[row.key] = row.value;
-  }
-  return {
-    metadata,
-    journalMode: db.pragma('journal_mode', { simple: true }) as string,
-    columns: (table) => {
-      const columns = db
-        .prepare('SELECT name, type, pk FROM pragma_table_info(?)')
-        .all(table) as BuiltColumn[];
-      return columns.length === 0 ? null : columns;
-    },
-    rowCount: (table) =>
-      (db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number })
-        .n,
-    column: (table, id, column) => {
-      const spec = SDE_FILE_REGISTRY.find((s) => s.tableName === table);
-      if (!spec) throw new Error(`Unknown SDE table ${table}`);
-      const row = db
-        .prepare(
-          `SELECT ${column} AS v FROM ${table} WHERE ${spec.idAttribute} = ?`,
-        )
-        .get(id) as { v: unknown } | undefined;
-      return row?.v;
-    },
-  };
 }
 
 // ---------------------------------------------------------------------------
@@ -782,12 +628,11 @@ export function metadataText(builds: {
   return yaml.dump(document);
 }
 
-/** Reshape one raw record of `files` the way the provider or the SQLite build does. */
+/** Reshape one raw record of `files` the way the provider does. */
 export function transformRawRecord(
   files: Record<string, unknown>,
   yamlFile: string,
   id: number | string,
-  target: 'provider' | 'sqlite',
 ): Record<string, unknown> {
   const spec = SDE_FILE_REGISTRY.find((s) => s.yamlFile === yamlFile);
   if (!spec) throw new Error(`${yamlFile} is not in the SDE file registry`);
@@ -795,23 +640,16 @@ export function transformRawRecord(
     String(id)
   ];
   if (!raw) throw new Error(`No raw record ${id} in ${yamlFile}`);
-  return target === 'provider'
-    ? transformRecordNative(id, raw, spec)
-    : transformRecord(id, raw, spec);
+  return transformRecordNative(id, raw, spec);
 }
 
-/** Reshape one raw type of `RAW_SDE_FILES` the way the provider or the SQLite build does. */
-export function transformRawType(
-  typeId: number,
-  target: 'provider' | 'sqlite',
-): Record<string, unknown> {
+/** Reshape one raw type of `RAW_SDE_FILES` the way the provider does. */
+export function transformRawType(typeId: number): Record<string, unknown> {
   const spec = SDE_FILE_REGISTRY.find((s) => s.yamlFile === 'types.yaml');
   if (!spec) throw new Error('types.yaml is not in the SDE file registry');
   const raw = (
     RAW_SDE_FILES['types.yaml'] as Record<number, Record<string, unknown>>
   )[typeId];
   if (!raw) throw new Error(`No raw type ${typeId} in RAW_SDE_FILES`);
-  return target === 'provider'
-    ? transformRecordNative(typeId, raw, spec)
-    : transformRecord(typeId, raw, spec);
+  return transformRecordNative(typeId, raw, spec);
 }

@@ -80,7 +80,7 @@ const selfSde = (specifier) =>
  * it loads lazily (see src/sde/optionalPeers.ts). Node built-ins are allowed
  * by their `node:` prefix.
  */
-const SDE_PACKAGES = ['zod', 'js-yaml', 'adm-zip', 'better-sqlite3'];
+const SDE_PACKAGES = ['zod', 'js-yaml', 'adm-zip'];
 
 /** The SDE's entry points, the only files that may import src/sde/testing. */
 const SDE_ENTRIES = ['src/sde/index.ts', 'src/sde/memory.ts'];

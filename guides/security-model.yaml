@@ -115,7 +115,7 @@ inputs:
   - id: sde-archive
     name: SDE archive and build info
     trust: untrusted
-    protects: [P9, P12]
+    protects: [P9]
     sites:
       - src/sde/ingestion/SdeDownloader.ts
       - src/sde/ingestion/SdeExtractor.ts
@@ -204,12 +204,8 @@ properties:
     charter: [SEC-03, SEC-04, SEC-05, SEC-06]
     rule: none
     rule_reason: A property of the release workflow, not of library behaviour; the workflow test reads release.yml.
-  - id: P12
-    claim: SDE content never alters the structure of the SQL SdeDatabaseBuilder builds
-    severity: high
-    tests: [tests/tdd/sde/ingestion/SdeDatabaseBuilder.test.ts]
-    rule: none
-    rule_reason: The SQL a build issues is internal to SdeDatabaseBuilder; the unit test builds a real SQLite database from a hostile key and value.
+  # P12 (SDE content never alters the SQL SdeDatabaseBuilder builds) is
+  # retired: the builder was removed after 12.2.0, and the id is not reused.
 
 disclaimed:
   - id: D1

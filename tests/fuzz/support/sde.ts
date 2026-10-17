@@ -249,7 +249,7 @@ function ids(rows: ReadonlyArray<{ id: number }>): number[] {
 /**
  * A `MemorySdeData` set whose records carry only the fields the lookups
  * read, typed as the provider's data (the memory provider stores what it is
- * given; the SQLite route reads the same fields back from YAML).
+ * given; the YAML directory route reads the same fields back from YAML).
  */
 export interface SdeDataSet {
   data: MemorySdeData;

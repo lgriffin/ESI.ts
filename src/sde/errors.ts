@@ -5,9 +5,22 @@ export class SdeError extends Error {
   }
 }
 
+/**
+ * A storage fault raised by the SQLite database builder.
+ *
+ * @deprecated Nothing in the package throws this any more: the SQLite
+ * database builder that raised it was removed with the optional
+ * `better-sqlite3` peer. The class and {@link isSdeDatabaseError} stay
+ * exported with the same shape so existing `instanceof` checks keep
+ * compiling, and will be removed in the next major release.
+ */
 export class SdeDatabaseError extends SdeError {
   public override readonly cause: unknown;
 
+  /**
+   * @deprecated Nothing in the package throws `SdeDatabaseError` any more;
+   * it will be removed in the next major release.
+   */
   constructor(message: string, cause?: unknown) {
     super(message);
     this.name = 'SdeDatabaseError';
@@ -46,7 +59,16 @@ export function isSdeError(error: unknown): error is SdeError {
   return error instanceof SdeError;
 }
 
+/**
+ * True for a {@link SdeDatabaseError}.
+ *
+ * @deprecated Nothing in the package throws `SdeDatabaseError` any more, so
+ * this guard is always false for errors the package raises. It will be
+ * removed in the next major release with the class.
+ */
+// eslint-disable-next-line sonarjs/deprecation -- the deprecated guard names its deprecated class until the next major release
 export function isSdeDatabaseError(error: unknown): error is SdeDatabaseError {
+  // eslint-disable-next-line sonarjs/deprecation -- see the signature above
   return error instanceof SdeDatabaseError;
 }
 

@@ -67,7 +67,7 @@ describe('the unit shards partition the directories the unit run mutates', () =>
       shardsClaiming('src/sde/providers/yaml/SdeDataProvider.ts', shards),
     ).toEqual(['sde']);
     expect(
-      shardsClaiming('src/sde/ingestion/SdeDatabaseBuilder.ts', shards),
+      shardsClaiming('src/sde/ingestion/SdeDownloader.ts', shards),
     ).toEqual(['sde']);
   });
 

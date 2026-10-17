@@ -265,18 +265,10 @@
     "src/core/util/error.ts": {
       "security/detect-non-literal-regexp": 1
     },
-    "src/sde/ingestion/SdeDatabaseBuilder.ts": {
-      "security/detect-object-injection": 1,
-      "sonarjs/cognitive-complexity": 1,
-      "sonarjs/no-nested-conditional": 1
-    },
     "src/sde/ingestion/SdeDownloader.ts": {
       "@typescript-eslint/no-unsafe-assignment": 2,
       "@typescript-eslint/no-unsafe-member-access": 3,
       "security/detect-non-literal-fs-filename": 1
-    },
-    "src/sde/ingestion/transforms.ts": {
-      "security/detect-object-injection": 2
     },
     "src/sde/providers/memory/MemorySdeProvider.ts": {
       "security/detect-object-injection": 2
@@ -424,10 +416,6 @@
       "sonarjs/different-types-comparison": 1
     },
     "tests/tdd/sde/SdeTestDataFactory.test.ts": {
-      "@typescript-eslint/no-unused-vars": 1,
-      "sonarjs/no-dead-store": 1
-    },
-    "tests/tdd/sde/ingestion/SdeDatabaseBuilder.test.ts": {
       "@typescript-eslint/no-unused-vars": 1,
       "sonarjs/no-dead-store": 1
     },

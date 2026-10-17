@@ -9,15 +9,9 @@ describe('src/sde/ingestion/index barrel export', () => {
     expect(ingestion.SdeExtractor).toBeDefined();
   });
 
-  it('should export SdeDatabaseBuilder', () => {
-    expect(ingestion.SdeDatabaseBuilder).toBeDefined();
-  });
-
   it('should export transform functions', () => {
     expect(ingestion.extractLocale).toBeDefined();
     expect(ingestion.normalizeSdeFieldName).toBeDefined();
-    expect(ingestion.toSqliteValue).toBeDefined();
-    expect(ingestion.transformRecord).toBeDefined();
   });
 
   it('should export constants', () => {

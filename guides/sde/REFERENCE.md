@@ -401,7 +401,7 @@ npm run fuzz -- --testPathPatterns sde-
 
 fast-check properties in `tests/fuzz/`, 100 runs each on a pull request and 10,000 in `nightly-properties.yml` (`npm run fuzz:properties` selects all three) (`FC_NUM_RUNS`, `FC_SEED` and `FC_PATH` replay a failure, see `tests/fuzz/AGENTS.md`):
 
-- `sde-transforms.property.test.ts` -- field-name normalisation is idempotent and reversible on the `ID` suffix; locale extraction always yields a string; record transforms rename keys and extract locale maps at any depth and flatten to SQLite values; metadata reads the nested `sde:` block first
+- `sde-transforms.property.test.ts` -- field-name normalisation is idempotent and reversible on the `ID` suffix; locale extraction always yields a string; record transforms rename keys and extract locale maps at any depth; metadata reads the nested `sde:` block first
 - `sde-provider-model.property.test.ts` -- a generated, internally consistent data set (a controlled fraction of foreign keys dangling) loaded into `MemorySdeProvider`, and into `SdeDataProvider` from a directory, answers every lookup as a naive oracle over the same arrays, lazily built foreign-key indexes included
 - `sde-schema-fuzz.test.ts` -- a record generated from each zod schema round-trips through `parse` with an extra field kept, and is rejected once a required key is removed
 
@@ -436,7 +436,7 @@ Feature files in `tests/bdd/features/sde/`, one EARS requirement per `Rule:`:
 - `0020-sde-loading.feature` -- `fromDirectory` and `fromZip`: the version record, locale and ID-suffix reshaping, foreign-key lookups, missing paths, `close`
 - `0021-sde-optional-peers.feature` -- the `SdeError` raised when js-yaml or adm-zip is not installed
 - `0022-sde-memory-entry.feature` -- `./sde/memory` exports everything `./sde` does except `SdeDataProvider`
-- `0023-sde-ingestion.feature` -- downloader, extractor, database builder and the transforms, with the network answered at the transport seam
+- `0023-sde-ingestion.feature` -- downloader, extractor and the transforms, with the network answered at the transport seam
 
 `npm run spec:coverage:sde` lists the provider methods no Rule names and no
 bound step reaches; `scripts/sde/sde-spec-coverage-baseline.json` holds that

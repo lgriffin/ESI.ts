@@ -9,8 +9,8 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 | Domain clients                                                 | <!-- metric:clients -->39<!-- /metric -->                                                                         |
 | ESI endpoints wired                                            | <!-- metric:routes -->235<!-- /metric -->                                                                         |
 | Generated operations (`src/generated/operations.generated.ts`) | <!-- metric:operations -->235<!-- /metric -->                                                                     |
-| EARS requirements in the specification                         | <!-- metric:requirements -->648<!-- /metric --> (<!-- metric:featureFiles -->77<!-- /metric --> feature files)    |
-| Gherkin scenarios                                              | <!-- metric:scenarios -->845<!-- /metric -->                                                                      |
+| EARS requirements in the specification                         | <!-- metric:requirements -->636<!-- /metric --> (<!-- metric:featureFiles -->77<!-- /metric --> feature files)    |
+| Gherkin scenarios                                              | <!-- metric:scenarios -->831<!-- /metric -->                                                                      |
 | Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->367<!-- /metric -->                                                                      |
 | Statement coverage                                             | 97.8% (`npm run coverage` on master `114a485a`, 2026-09-28; floor 90%)                                            |
 | OpenSSF Scorecard                                              | 8.3 / 10 (`scorecard.yml` run 36409177565 on master `9486fe2c`, 2026-09-28; 8.2 on 2026-09-21, 6.7 on 2026-08-24) |
@@ -31,6 +31,8 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 - **11.0.0 decisions since revision 2** stand as recorded under Amendments: no bridge between the core and the SDE, mutation off the release path, and the exclusions stated as Rules.
 
 ### Amendments after revision 2 (the detail behind revision 3)
+
+- **2026-10-17, the SQLite path removed (12.x, minor).** `SdeDatabaseBuilder` was exported by no entry point, used by no script, and replaced by the YAML provider by design. The maintainer ruled it removed, with the SQLite-only transforms and the `better-sqlite3` optional peer, and approved dropping the peer in a 12.x minor release: no public export loads it, so an install that has it keeps working ([SEMVER.md](SEMVER.md)). `SdeDatabaseError` and `isSdeDatabaseError` stay exported from `./sde` and `./sde/memory` with the same shape, marked `@deprecated` because nothing in the package throws the class any more, and leave in the next major. ARCH-12 and ARCH-13 keep their ids and now state what ingestion still does, download and extract; ARCH-10 loses the peer, and ARCH-11 keeps the class as deprecated. The security model retires P12 rather than renumbering.
 
 - **2026-10-17, the custom clients are the product ([#664](https://github.com/lgriffin/ESI.ts/issues/664)).** 12.1.0 marked every custom-client surface `@deprecated` for removal in 13.0.0 (`EsiClient`, `EsiClientBuilder` and `CustomEsiClient`, `EsiApiFactory`, `BaseEsiClient`, the 39 domain clients, 194 hand-written response types, `TestDataFactory`, the `./schemas` entry and 25 root pipeline exports), following a plan that made the generated `createEsi()` surface the only one. #664 asked whether that was the project's direction, and the maintainer chose option D: "The core identity of the project is the custom approach and we should never give that up. This needs enshrined in the charter". The custom clients stay the public product, and the generated layer becomes the foundation under them, not a replacement. Posture 1 now says so first. ARCH-14 (new, Enforced) fails a change that deprecates, removes or replaces a custom-client construction surface. ARCH-08 no longer says 13.0.0 removes anything, and calls `createEsi` the spec-shaped low-level surface and future engine. Its requirement no longer asks every surface, `createEsi` included, for the same set of operations: it asks all four to configure the pipeline through `configureApiClient` and the three custom-client surfaces to hand out the same registered domain clients, which the identity test now checks through each public construction path, so ARCH-08 moves from Partial to Enforced (review of #666). 12.2.0 lifts the 12.1.0 deprecations, a compatible change, and exports the root pipeline declarations directly again instead of through deprecated re-exports, with every name and type unchanged. The 11.0.0 deprecations of `EsiApiFactory`'s nine named factories and `EsiTokenManager.createClient` stay, now pointing at `createClient(type)` and the builder, with removal left to a future major that has no date. `guides/LEGACY-REMOVAL.md` is replaced by [CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md), which records the decision and the plan. No 13.0 is planned.
 
@@ -222,7 +224,7 @@ Error
 │   ├── TokenDecodeError                                  no type guard yet
 │   ├── TokenVerificationError
 │   └── CharacterNotFoundError
-└── SdeError → SdeDatabaseError | SdeValidationError | SdeVersionMismatchError
+└── SdeError → SdeValidationError | SdeVersionMismatchError
 ```
 
 Every failure the request pipeline raises is an `EsiError`, `CircuitOpenError` included, so `isEsiError(err)` is true for all of them ([ERRORS.md](ERRORS.md#hierarchy)). The auth subtree is exported from the root and from `./errors`, with guards `isAuthError`, `isSsoError`, `isTokenRevoked`, `isTokenVerificationError` and `isCharacterNotFound`.
@@ -296,31 +298,31 @@ All pipeline logging **shall** go through the per-client logger with structured 
 
 #### ARCH-10 · Ubiquitous · Enforced
 
-`src/sde` **shall** import only Node built-ins, its own files, its peer packages (`zod`, `js-yaml`, `adm-zip`, `better-sqlite3`) and `src/core/ports`, be imported by no file under `src/` outside `src/sde`, and keep the `./sde/memory` bundle free of file-system, YAML, ZIP or SQLite code.
+`src/sde` **shall** import only Node built-ins, its own files, its peer packages (`zod`, `js-yaml`, `adm-zip`) and `src/core/ports`, be imported by no file under `src/` outside `src/sde`, and keep the `./sde/memory` bundle free of file-system, YAML, ZIP or SQLite code.
 
 - **Why:** The SDE is a side module: an offline lookup layer that enriches ESI responses without a consumer in the pipeline. Holding the boundary in both directions keeps the SDE free to change without a release of the client, and keeps the client free of the SDE's optional peers. A bridge between the two was considered on 2026-09-27 and cut, and so was a static-data port under `src/core/ports` for the client to resolve names through; if either is ever wanted it is a separate package above both, so nothing here is added for it.
-- **Verified by:** Gate: `npm run lint:layers` (the `sde` and `sideModule` messages of `layers/inward-imports`, covered in both directions by `tests/tdd/layers/layers-lint.test.ts`). Test: `tests/tdd/sde/memory-entry-bundle.test.ts`, which bundles `src/sde/memory.ts` and the built `dist/sde/memory.{mjs,js}` and fails on `node:fs`, `js-yaml`, `adm-zip` or `better-sqlite3`.
+- **Verified by:** Gate: `npm run lint:layers` (the `sde` and `sideModule` messages of `layers/inward-imports`, covered in both directions by `tests/tdd/layers/layers-lint.test.ts`). Test: `tests/tdd/sde/memory-entry-bundle.test.ts`, which bundles `src/sde/memory.ts` and the built `dist/sde/memory.{mjs,js}` and fails on `node:fs`, `js-yaml`, `adm-zip` or `better-sqlite3` (no longer a peer, still forbidden).
 
 #### ARCH-11 · Ubiquitous · Enforced
 
 Every error class of the SDE module (`SdeError`, `SdeDatabaseError`, `SdeValidationError` and `SdeVersionMismatchError`) **shall** descend from `SdeError`, carry the context of its failure as fields as well as in its message, and be exported from `@lgriffin/esi.ts/sde` with a type guard that is true for its own class and its subclasses.
 
-- **Why:** The SDE shares no code with the pipeline (ARCH-10), so ARCH-07 does not reach its errors, yet a consumer branches on them the same way: a validation failure names the entity type and ID, a version mismatch names both versions, a storage fault keeps its cause. Until 2026-10-12 no requirement named them, and their feature carried no charter tag.
+- **Why:** The SDE shares no code with the pipeline (ARCH-10), so ARCH-07 does not reach its errors, yet a consumer branches on them the same way: a validation failure names the entity type and ID, a version mismatch names both versions. `SdeDatabaseError` is deprecated since the SQLite builder was removed: nothing in the package throws it, and it stays exported with its guard until the next major. Until 2026-10-12 no requirement named them, and their feature carried no charter tag.
 - **Verified by:** Test: `tests/bdd/features/sde/0007-sde-error-handling.feature`, `tests/tdd/sde/errors.test.ts` (the classes, their fields and the four guards) and `tests/tdd/sde/index.test.ts` (the exports of `./sde`).
 
 #### ARCH-12 · Event-driven · Enforced
 
-When an SDE export is ingested, the ingestion pipeline (`SdeDownloader`, `SdeExtractor`, `SdeDatabaseBuilder` and the record transforms) **shall** read the build number and release date from the export, parse every registry file the archive holds, and write one database table per non-empty file holding every record with a column for every field any record carries.
+When an SDE export is ingested, the ingestion pipeline (`SdeDownloader`, `SdeExtractor` and the record transforms) **shall** read the build number and release date from the export, write the downloaded archive and every extracted file to the paths the caller names, and parse every registry file the archive holds into records keyed by ID.
 
-- **Why:** The ingestion pipeline is the only path from CCP's published export to a database a tool can query. A field that first appears after the fiftieth record was once dropped from its table (#609); a requirement makes that class of loss a test failure rather than a support question.
-- **Verified by:** Test: `tests/bdd/features/sde/0023-sde-ingestion.feature`, `tests/tdd/sde/ingestion/SdeExtractor.test.ts`, `tests/tdd/sde/ingestion/SdeDatabaseBuilder.test.ts` and `tests/tdd/sde/ingestion/transforms.test.ts`.
+- **Why:** The ingestion pipeline is the only path from CCP's published export to the files the provider loads. A file written short, a stale copy left in place, or a registry file skipped would surface later as missing records with no error to trace. Through 12.2.0 the pipeline also built a SQLite database; that builder was removed (the YAML provider replaced it), and this requirement now covers download and extraction only.
+- **Verified by:** Test: `tests/bdd/features/sde/0023-sde-ingestion.feature`, `tests/tdd/sde/ingestion/SdeExtractor.test.ts` and `tests/tdd/sde/ingestion/transforms.test.ts`.
 
 #### ARCH-13 · Unwanted · Enforced
 
-If the SDE ingestion pipeline cannot fetch the export, find a file in the archive, or store a record or the database, then the SDE ingestion pipeline **shall** throw an `SdeError` or `SdeDatabaseError` that names the failure: the HTTP status, the abort, the missing file, or the table and record ID.
+If the SDE ingestion pipeline cannot fetch or write the export, find a file in the archive, or extract an entry inside the target directory, then the SDE ingestion pipeline **shall** throw an `SdeError` that names the failure: the HTTP status, the abort, the write failure, the byte limit, the missing file, or the refused path.
 
 - **Why:** Ingestion runs unattended (`nightly-sde.yml`, a consumer's build step). An untyped or unnamed failure there leaves the reader of a log with nothing to act on, and a consumer catching `isSdeError` would miss it.
-- **Verified by:** Test: the `If …` Rules of `tests/bdd/features/sde/0023-sde-ingestion.feature`, `tests/tdd/sde/ingestion/SdeDownloader.test.ts` and the failures group of `tests/tdd/sde/ingestion/SdeDatabaseBuilder.test.ts`.
+- **Verified by:** Test: the `If …` Rules of `tests/bdd/features/sde/0023-sde-ingestion.feature`, `tests/tdd/sde/ingestion/SdeDownloader.test.ts` and `tests/tdd/sde/ingestion/SdeExtractor.test.ts`.
 
 #### ARCH-14 · Unwanted · Enforced
 
@@ -411,7 +413,7 @@ This table is the canonical tier order. Both testing guides merge into one and c
 | Tier | Name                           | Where                            | Files                                                                                                                                                                    | Runner                    | Runs on                                                        |
 | ---- | ------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | -------------------------------------------------------------- |
 | 1    | Unit (TDD)                     | `tests/tdd`                      | <!-- metric:unitSuites -->238<!-- /metric -->                                                                                                                            | jest.unit                 | push (Node 22), PR (Node 22/24)                                |
-| 2    | Specification (EARS/BDD)       | `tests/bdd`                      | <!-- metric:featureFiles -->77<!-- /metric --> features · <!-- metric:requirements -->648<!-- /metric --> rules · <!-- metric:scenarios -->845<!-- /metric --> scenarios | jest.unit + jest-cucumber | push (`npm test`), PR (`bdd-tests`), plus `spec:audit`         |
+| 2    | Specification (EARS/BDD)       | `tests/bdd`                      | <!-- metric:featureFiles -->77<!-- /metric --> features · <!-- metric:requirements -->636<!-- /metric --> rules · <!-- metric:scenarios -->831<!-- /metric --> scenarios | jest.unit + jest-cucumber | push (`npm test`), PR (`bdd-tests`), plus `spec:audit`         |
 | 3    | Type tests                     | `tests/typetests`                | <!-- metric:typeTestFiles -->13<!-- /metric -->                                                                                                                          | tsd                       | PR (full suite)                                                |
 | 4    | Property fuzz                  | `tests/fuzz`                     | <!-- metric:fuzzSuites -->15<!-- /metric -->                                                                                                                             | jest.fuzz + fast-check    | PR, nightly properties                                         |
 | 5    | Contract                       | `tests/contract`                 | 6 (2 live + 4 replay) + snapshot                                                                                                                                         | jest.contract(.replay)    | PR (`contract-replay`), soft-skip on ESI 503                   |

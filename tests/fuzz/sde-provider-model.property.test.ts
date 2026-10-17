@@ -20,7 +20,7 @@
  * Both providers sort every table by ID at load time (feature 0008, "ordered
  * by ID ascending"), so the oracle is the generated arrays sorted by ID
  * whichever order they were given in, for the memory provider and for the
- * SQLite route alike. The SQLite route's foreign-key indexes are built on
+ * YAML directory route alike. The YAML route's foreign-key indexes are built on
  * first use; the sequences repeat and interleave foreign-key queries so the
  * lazily built index answers alongside the fresh scan. Both providers are
  * specified by the Rules under tests/bdd/features/sde; this file checks them
