@@ -69,6 +69,14 @@ export interface EsiOptions {
   readonly enableRequestDeduplication?: boolean;
   readonly requestInterceptors?: readonly RequestInterceptor[];
   readonly responseInterceptors?: readonly ResponseInterceptor[];
+  /**
+   * Set `true` to check each response against the operation's Zod schema,
+   * generated from the OpenAPI document, and throw `EsiValidationError` on a
+   * mismatch. Unset or `false`, the generated operations return bodies as ESI
+   * sent them, as they always have. A future major release will make
+   * validation the default for `createEsi`; set `false` to keep bodies
+   * unvalidated then.
+   */
   readonly validateResponse?: boolean;
   readonly validateRequest?: boolean;
   /** Where the pipeline logs. Defaults to the package's pino logger at `logLevel`. */
@@ -229,17 +237,28 @@ export function createEsi(options: EsiOptions): Esi {
     responseInterceptors: options.responseInterceptors?.slice(),
   });
 
+  // Only an explicit `true` validates the generated operations: the
+  // ApiClient's validateResponse defaults to true for the hand-written
+  // clients, and the generated operations have returned bodies unchecked
+  // since the runtime shipped.
+  const transportOptions = {
+    validateResponse: options.validateResponse === true,
+  };
   const views = new WeakMap<Identity, ScopeTree>();
   return Object.freeze({
     public: createScopeTree(
-      new PublicTransport(new PipelineTransport(runtime)),
+      new PublicTransport(new PipelineTransport(runtime, transportOptions)),
     ),
     as(identity: Identity): ScopeTree {
       const known = views.get(identity);
       if (known) return known;
       const client = viewClient(runtime, options, identity);
       const view = createScopeTree(
-        new IdentityTransport(client, identity, new PipelineTransport(client)),
+        new IdentityTransport(
+          client,
+          identity,
+          new PipelineTransport(client, transportOptions),
+        ),
       );
       views.set(identity, view);
       return view;

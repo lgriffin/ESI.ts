@@ -85,7 +85,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `src/core/endpoints/` — 39 endpoint maps (`*Endpoints.ts`), `createClient()`, and the generated TTL, rate-limit-group and scope tables
 - `src/core/circuitBreaker/` — Circuit breaker implementation + `ICircuitBreaker` interface
 - `src/core/ports/` — seven type-only ports (`CacheStore`, `Clock`, `HttpTransport`, `Identity`, `Logger`, `OperationTransport`, `TokenProvider`). They import nothing; exported from `./client`
-- `src/adapters/` — `PipelineTransport`, which implements `OperationTransport` over the existing pipeline. Internal; `./client` wraps it
+- `src/adapters/` — `PipelineTransport`, which implements `OperationTransport` over the existing pipeline and, when `createEsi` is given `validateResponse: true`, validates responses against `responseSchemas.generated.ts` (one Zod schema per operation, generated with the operations). Internal; `./client` wraps it
 - `src/generated/` — `operations.generated.ts`: 233 typed operations, `ScopeTree`, `PublicScopeTree` and `createScopeTree`, generated from the vendored spec. Imports only the ports. `ScopeTree` and `PublicScopeTree` are exported from `./client`
 - `src/auth/` — `EveSsoClient` (OAuth2 + PKCE), `EsiTokenManager` (multi-character tokens and refresh), `MemoryTokenStorage` / `FileTokenStorage`, auth errors
 - `src/errors.ts` — the `./errors` sub-path entry
@@ -113,7 +113,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - **Dual CJS/ESM build** via tsup (esbuild) for JS bundles + tsc for declaration files.
 - **Logging** via pino behind the `ILogger` interface. Level controlled by `ESI_LOG_LEVEL` env var (default: `warn`).
 - **Conventional commits** enforced by commitlint + husky. Types: feat, fix, chore, docs, test, refactor, perf. The type and `!` decide the released version; see Semantic Versioning below.
-- **Generated files** (`*.generated.ts`) are auto-generated from the ESI OpenAPI spec. Re-generate with `npm run generate:types` (types, TTLs, rate-limit groups, scopes) or `npm run spec:generate` (`src/generated/operations.generated.ts`, from the vendored snapshot); do not edit manually.
+- **Generated files** (`*.generated.ts`) are auto-generated from the ESI OpenAPI spec. Re-generate with `npm run generate:types` (types, TTLs, rate-limit groups, scopes) or `npm run spec:generate` (`src/generated/operations.generated.ts` and `src/adapters/responseSchemas.generated.ts`, from the vendored snapshot); do not edit manually.
 - **Layers** point inward: `npm run lint:layers` (`config/eslint/layers.rules.cjs`) forbids core importing the layers above it, ports importing anything, and generated code importing anything but the ports. Its `BASELINE` only shrinks. See `guides/DESIGN-RULES.md` §7.
 
 ## Architecture
@@ -181,6 +181,7 @@ Review against the checklist and severities in `AGENTS.md` (Reviewer Checklist).
 - `src/types/generated/` — auto-generated from OpenAPI spec
 - `src/core/endpoints/esi-*.generated.ts` — auto-generated cache TTLs, rate limits, scopes
 - `src/generated/operations.generated.ts` — generated operations and scope tree (`npm run spec:generate`)
+- `src/adapters/responseSchemas.generated.ts` — generated response schemas (`npm run spec:generate`)
 - `dist/` — build output
 - `etc/esi.ts.api.md` — auto-generated API surface report
 - `okf/` — auto-generated OKF knowledge bundle from OpenAPI spec

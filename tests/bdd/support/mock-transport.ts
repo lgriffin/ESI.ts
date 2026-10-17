@@ -7,7 +7,17 @@ import { createMockTransport, type MockTransport } from '../../../src/testing';
 import { createSeamRuntime } from './shared-runtime';
 import type { World } from './world';
 
-export const ASSET_PAGE = [{ item_id: 1, type_id: 34, quantity: 1 }];
+export const ASSET_PAGE = [
+  {
+    is_singleton: false,
+    item_id: 1,
+    location_flag: 'Hangar',
+    location_id: 60003760,
+    location_type: 'station',
+    quantity: 1,
+    type_id: 34,
+  },
+];
 export const NAMES_LOOKUP_IDS = [1, 2];
 export const namesOfIds = () => [
   { id: 1, name: 'Alpha', category: 'character' },
