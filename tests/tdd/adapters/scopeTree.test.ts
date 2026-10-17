@@ -11,6 +11,7 @@ import {
   type PublicScopeTree,
   type ScopeTree,
 } from '../../../src/generated/operations.generated';
+import { killmail, marketOrder, STATUS } from '../helpers/generatedBodies';
 
 fetchMock.enableMocks();
 
@@ -35,7 +36,7 @@ describe('the generated scope tree', () => {
   beforeEach(() => fetchMock.resetMocks());
 
   it('reaches a public root operation', async () => {
-    fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }));
+    fetchMock.mockResponseOnce(JSON.stringify(STATUS));
 
     const status = await tree().status.get();
 
@@ -72,7 +73,7 @@ describe('the generated scope tree', () => {
   });
 
   it('passes consecutive path parameters from one call', async () => {
-    fetchMock.mockResponseOnce(JSON.stringify({ killmail_id: 1 }));
+    fetchMock.mockResponseOnce(JSON.stringify(killmail(1)));
 
     await tree().killmail(1, 'abc').get();
 
@@ -82,10 +83,10 @@ describe('the generated scope tree', () => {
   it('pages a page-paginated leaf and passes its query parameters', async () => {
     fetchMock.mockResponses(
       [
-        JSON.stringify([{ order_id: 1 }, { order_id: 2 }]),
+        JSON.stringify([marketOrder(1), marketOrder(2)]),
         { headers: { 'x-pages': '2' } },
       ],
-      [JSON.stringify([{ order_id: 3 }]), { headers: { 'x-pages': '2' } }],
+      [JSON.stringify([marketOrder(3)]), { headers: { 'x-pages': '2' } }],
     );
 
     const ids: number[] = [];

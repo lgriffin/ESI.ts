@@ -1,9 +1,11 @@
 /**
- * The root entry exports the pipeline pieces only the legacy tree needs as
- * deprecated aliases (src/legacyExports.ts, guides/LEGACY-REMOVAL.md). Until
- * 13.0.0 removes them, each alias must be the very object the pipeline uses,
+ * The root entry exports the pipeline pieces the custom clients are built
+ * on: `ApiClient`, `configureApiClient`, the page, cursor and batch helpers,
+ * diagnostics and their types. 12.1.0 routed them through deprecated
+ * re-exports; 12.2.0 lifted that (guides/CLIENT-ARCHITECTURE.md) and exports
+ * the declarations again. Each must stay the very object the pipeline uses,
  * so `instanceof`, identity checks and module mocks behave as before, and
- * each type alias must stay interchangeable with the declaration behind it.
+ * each type must stay interchangeable with the declaration behind it.
  */
 import * as root from '../../../src';
 import type {
@@ -43,7 +45,7 @@ import {
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const same = <A, B>(proof: Same<A, B>): boolean => proof;
 
-describe('deprecated root aliases', () => {
+describe('root pipeline exports', () => {
   it('export the same values the pipeline uses', () => {
     expect(root.ApiClient).toBe(CoreApiClient);
     expect(root.configureApiClient).toBe(configureApiClient);
@@ -56,17 +58,20 @@ describe('deprecated root aliases', () => {
     expect(root.EsiDiagnostics).toBe(EsiDiagnostics);
   });
 
-  it('keep instanceof working across the alias', () => {
-    const client = new root.ApiClient('alias-test', 'https://esi.evetech.net');
-    expect(client).toBeInstanceOf(CoreApiClient);
-    const typed: root.ApiClient = new CoreApiClient(
-      'alias-test',
+  it('keep instanceof working through the root export', () => {
+    const client = new root.ApiClient(
+      'root-export-test',
       'https://esi.evetech.net',
     );
-    expect(typed.getClientId()).toBe('alias-test');
+    expect(client).toBeInstanceOf(CoreApiClient);
+    const typed: root.ApiClient = new CoreApiClient(
+      'root-export-test',
+      'https://esi.evetech.net',
+    );
+    expect(typed.getClientId()).toBe('root-export-test');
   });
 
-  it('keep the type aliases interchangeable with their declarations', () => {
+  it('keep the root types interchangeable with their declarations', () => {
     const proofs = [
       same<CreateClientOptions, createClientTypes.CreateClientOptions>(true),
       same<CursorOptions, createClientTypes.CursorOptions>(true),

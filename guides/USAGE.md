@@ -2,7 +2,7 @@
 
 **Implements:** `ARCH-08` · `DOC-01` · `DOC-05`. See [CHARTER.md](CHARTER.md) Part 2 and Part 7.
 
-This guide covers the consumer surface as it ships in 10.x: how to construct a client and configure it, which domain clients exist, and the everyday features on top of them. The last section lists what the 11.0.0 release changes.
+This guide covers the custom clients, which are the product ([CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)): how to construct a client and configure it, which domain clients exist, and the everyday features on top of them. The last sections list what each release since 11.0.0 changes.
 
 The README gives the one-minute tour. Deeper topics have their own guides:
 
@@ -49,7 +49,7 @@ const marketClient = EsiApiFactory.createClient('market', {
 const prices = await marketClient.getMarketPrices();
 ```
 
-**Deprecated, removed in 13.0.0:** every construction surface on this page. 11.0.0 deprecated `EsiApiFactory`'s nine named methods (`createMarketClient`, `createWalletClient` and the rest) and `EsiTokenManager.createClient`; 12.1.0 deprecates the rest of the legacy tree: `EsiClient`, `getDefaultClient`, `EsiClientBuilder` and `CustomEsiClient`, `EsiApiFactory` with `createClient(type)`, `ApiClientBuilder`, `BaseEsiClient` and the 39 domain clients. They all still work until 13.0.0. Use `createEsi()` from `@lgriffin/esi.ts/client` and `esi.public` or `esi.as(identity)` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)). [LEGACY-REMOVAL.md](LEGACY-REMOVAL.md) lists each surface with its replacement, and the capabilities `createEsi()` does not offer yet.
+These three surfaces and the domain clients are supported, and the charter keeps them so (ARCH-14). Two narrower things are deprecated since 11.0.0 and still work: `EsiApiFactory`'s nine named methods (`createMarketClient`, `createWalletClient` and the rest), in favour of `EsiApiFactory.createClient(type)` or `EsiClientBuilder`, and `EsiTokenManager.createClient`, in favour of `esi.as(tokens.identity(id))` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)). Removing either needs a future major release, and none is scheduled. 12.1.0 deprecated the rest of the custom-client tree for a 13.0.0 removal; 12.2.0 lifted that, and no 13.0 is planned (section 11). `createEsi()` from `@lgriffin/esi.ts/client` is the spec-shaped low-level alternative for calls that mirror the URL and the spec's parameters.
 
 Call `shutdown()` when you are done with a client. It stops the cache sweep timer and the circuit-breaker cleanup timer, so a script can exit. It is synchronous.
 
@@ -363,8 +363,8 @@ npm run example:sde-basic
 11.0.0 was released on 2026-09-28; [CHANGELOG.md](../CHANGELOG.md) has the full list of breaking changes. For a consumer:
 
 - **Node 22 becomes the floor.** `engines.node` is `>=22.12.0` (the first 22.x that loads an ES module through `require()` without a flag), and CI tests Node 22.12, the latest 22 and 24 only. 10.x stays the line for Node 18 and 20, which are end of life. To upgrade, move the runtime (and any `.nvmrc`, Docker base image or CI `node-version`) to Node 22.12 or later before installing 11.x; on Node 18 or 20, keep `"@lgriffin/esi.ts": "^10.0.0"`. No code change is needed for the Node floor itself.
-- **A new client beside the old one.** `createEsi()` from `@lgriffin/esi.ts/client` builds one shared runtime, holding the rate limiter, error budget, cache and transport. `esi.public` is a typed view in which an authenticated call does not compile. `esi.as(identity)` is an immutable per-character view over the same runtime. The runtime requires a user agent. [MULTI-CHARACTER.md](MULTI-CHARACTER.md) is the guide; `createMockTransport()` in `./testing` answers its requests in your own tests ([TESTING.md](TESTING.md#testing-your-application)).
-- **Nothing on this page is removed in 11.0.** `EsiApiFactory`'s nine named methods and `EsiTokenManager.createClient` are `@deprecated`, pointing at `createEsi()` and `esi.as(identity)`; `EsiApiFactory.createClient(type)` is not deprecated. Removal waits for 12.0.0 at the earliest, per [SEMVER.md](SEMVER.md).
+- **A spec-shaped surface beside the custom clients.** `createEsi()` from `@lgriffin/esi.ts/client` builds one shared runtime, holding the rate limiter, error budget, cache and transport. `esi.public` is a typed view in which an authenticated call does not compile. `esi.as(identity)` is an immutable per-character view over the same runtime. The runtime requires a user agent. [MULTI-CHARACTER.md](MULTI-CHARACTER.md) is the guide; `createMockTransport()` in `./testing` answers its requests in your own tests ([TESTING.md](TESTING.md#testing-your-application)).
+- **Nothing on this page is removed in 11.0.** `EsiApiFactory`'s nine named methods and `EsiTokenManager.createClient` are `@deprecated`, pointing at `createEsi()` and `esi.as(identity)`; `EsiApiFactory.createClient(type)` is not deprecated. Removal needs a major release, per [SEMVER.md](SEMVER.md); none is scheduled.
 - **Also in the 11.0.0 release notes:**
   - The default compatibility date is 2026-08-18.
   - Several schemas now match what ESI sends: raidable skyhooks, military campaigns, and `meta.getChangelog`, which returns `{ changelog }`.
@@ -393,4 +393,12 @@ npm run example:sde-basic
 
 - **`getAccessList(characterId, accessListId)`** returns `id`, `name`, `description` and `membership` (`allow_everyone`, plus `alliances`, `corporations` and `characters`, each with an `access` level) instead of `access_list_id` and `entries`. `AccessListEntry`, `AccessListEntrySchema` and `TestDataFactory.createAccessListEntry` are removed; use `AccessList`, `AccessListSchema` and `createAccessList`.
 - **Detail shapes.** Mercenary den evolution levels are `{ amount, level }` with `level` one of `'Level0'` to `'Level4'`, instead of `{ level: number, progress }`. Sovereignty hub resources are `{ available, allocated }` instead of `{ available?, used? }`; reagents carry `burning_per_hour`, and `workforce_transport` carries `configuration` and `state`. SKINR layout slots carry `id` and `configuration`.
-- **Still deprecated, not removed.** `EsiApiFactory`'s nine named methods and `EsiTokenManager.createClient` keep working in 12.0.0. 13.0.0 removes them with the rest of the legacy tree ([LEGACY-REMOVAL.md](LEGACY-REMOVAL.md)).
+- **Still deprecated, not removed.** `EsiApiFactory`'s nine named methods and `EsiTokenManager.createClient` keep working in 12.0.0 and later. Removing them needs a future major release, and none is scheduled.
+
+## 11. What 12.1.0 and 12.2.0 change
+
+Neither release breaks anything.
+
+- **12.1.0 marked the custom clients `@deprecated` for removal in 13.0.0:** `EsiClient`, `getDefaultClient`, `EsiClientBuilder` and `CustomEsiClient`, `EsiApiFactory` with `createClient(type)`, `ApiClientBuilder`, `BaseEsiClient`, the 39 domain clients, the hand-written response types, `TestDataFactory`, the `./schemas` entry and 25 root pipeline exports. Editors struck them through; nothing changed at runtime.
+- **12.2.0 lifts those deprecations.** The custom clients are the product, and the generated layer becomes their foundation rather than their replacement ([CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md), decided in [#664](https://github.com/lgriffin/ESI.ts/issues/664)). Every name and type is unchanged; the strike-through goes away. There is no 13.0 removal, and none is planned.
+- **Still deprecated since 11.0.0:** `EsiApiFactory`'s nine named methods, in favour of `createClient(type)` and the builder, and `EsiTokenManager.createClient`. Removal needs a future major release with no date.

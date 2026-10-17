@@ -10,6 +10,8 @@ import {
   identityFromToken,
   type Identity,
 } from '../../../src/client';
+import { EsiValidationError } from '../../../src/errors';
+import { asset, STATUS, without } from '../helpers/generatedBodies';
 
 fetchMock.enableMocks();
 
@@ -67,7 +69,7 @@ describe('createEsi', () => {
       language: 'de',
       datasource: 'singularity',
     });
-    fetchMock.mockResponses('{"players":1}', '12.5');
+    fetchMock.mockResponses(JSON.stringify(STATUS), '12.5');
 
     await esi.public.status.get();
     await esi.as(identityFromToken('t')).character(1).wallet.get();
@@ -82,7 +84,10 @@ describe('createEsi', () => {
 
   it('sends every request through the configured transport', async () => {
     const transport = jest.fn(
-      async () => new Response('{"players":3}', { status: 200 }),
+      async () =>
+        new Response(JSON.stringify({ ...STATUS, players: 3 }), {
+          status: 200,
+        }),
     );
     const esi = createEsi({ ...OPTIONS, transport });
 
@@ -123,7 +128,7 @@ describe('createEsi', () => {
   it('does not ask a public operation for a token', async () => {
     const accessToken = jest.fn(() => Promise.resolve('t'));
     const esi = createEsi(OPTIONS);
-    fetchMock.mockResponseOnce('{"players":1}');
+    fetchMock.mockResponseOnce(JSON.stringify(STATUS));
 
     await esi.as({ accessToken }).status.get();
 
@@ -134,8 +139,8 @@ describe('createEsi', () => {
   it('pages an authenticated collection under the identity token', async () => {
     const esi = createEsi(OPTIONS);
     fetchMock.mockResponses(
-      ['[{"item_id":1}]', { headers: { 'x-pages': '2' } }],
-      ['[{"item_id":2}]', { headers: { 'x-pages': '2' } }],
+      [JSON.stringify([asset(1)]), { headers: { 'x-pages': '2' } }],
+      [JSON.stringify([asset(2)]), { headers: { 'x-pages': '2' } }],
     );
 
     const ids: number[] = [];
@@ -158,8 +163,8 @@ describe('createEsi', () => {
       identityFromProvider(() => Promise.resolve(`t${++calls}`)),
     );
     fetchMock.mockResponses(
-      ['[{"item_id":1}]', { headers: { 'x-pages': '2' } }],
-      ['[{"item_id":2}]', { headers: { 'x-pages': '2' } }],
+      [JSON.stringify([asset(1)]), { headers: { 'x-pages': '2' } }],
+      [JSON.stringify([asset(2)]), { headers: { 'x-pages': '2' } }],
     );
 
     const ids: number[] = [];
@@ -301,8 +306,8 @@ describe('createEsi', () => {
       esi.shutdown();
       expect(jest.getTimerCount()).toBe(0);
 
-      fetchMock.mockResponseOnce('{"players":1}');
-      await expect(esi.public.status.get()).resolves.toEqual({ players: 1 });
+      fetchMock.mockResponseOnce(JSON.stringify(STATUS));
+      await expect(esi.public.status.get()).resolves.toEqual(STATUS);
     } finally {
       jest.useRealTimers();
     }
@@ -359,5 +364,55 @@ describe('createEsi', () => {
       'no session',
     );
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  describe('validateResponse on the generated operations', () => {
+    const statusWithoutPlayers = without(STATUS, 'players');
+    const assetWithoutType = without(asset(1), 'type_id');
+
+    async function callBoth(validateResponse?: boolean) {
+      const esi = createEsi(
+        validateResponse === undefined
+          ? OPTIONS
+          : { ...OPTIONS, validateResponse },
+      );
+      fetchMock.mockResponses(
+        JSON.stringify(statusWithoutPlayers),
+        JSON.stringify([assetWithoutType]),
+      );
+      const status = await esi.public.status.get().catch((e: unknown) => e);
+      const assets: unknown[] = [];
+      const paged = await (async () => {
+        for await (const item of esi
+          .as(identityFromToken('t'))
+          .character(1)
+          .assets.get()) {
+          assets.push(item);
+        }
+        return assets;
+      })().catch((e: unknown) => e);
+      return { status, paged };
+    }
+
+    it('returns bodies unvalidated when the option is unset, as before validation existed', async () => {
+      const { status, paged } = await callBoth();
+
+      expect(status).toEqual(statusWithoutPlayers);
+      expect(paged).toEqual([assetWithoutType]);
+    });
+
+    it('returns bodies unvalidated when the option is false', async () => {
+      const { status, paged } = await callBoth(false);
+
+      expect(status).toEqual(statusWithoutPlayers);
+      expect(paged).toEqual([assetWithoutType]);
+    });
+
+    it('rejects a request and a page that break their schemas when the option is true', async () => {
+      const { status, paged } = await callBoth(true);
+
+      expect(status).toBeInstanceOf(EsiValidationError);
+      expect(paged).toBeInstanceOf(EsiValidationError);
+    });
   });
 });

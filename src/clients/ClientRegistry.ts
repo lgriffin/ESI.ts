@@ -39,14 +39,7 @@ import { CosmeticsClient } from './CosmeticsClient';
 import { ParagonHubClient } from './ParagonHubClient';
 import { MilitaryCampaignsClient } from './MilitaryCampaignsClient';
 
-/**
- * The names `EsiClientBuilder` and `EsiApiFactory.createClient` take.
- *
- * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
- * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
- * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
- * lists every legacy surface, its replacement and the open parity gaps.
- */
+/** The names `EsiClientBuilder` and `EsiApiFactory.createClient` take. */
 export type ApiClientType =
   | 'alliance'
   | 'assets'
@@ -88,14 +81,7 @@ export type ApiClientType =
   | 'militaryCampaigns'
   | 'accessLists';
 
-/**
- * Any legacy domain client.
- *
- * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
- * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
- * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
- * lists every legacy surface, its replacement and the open parity gaps.
- */
+/** Any custom domain client. */
 export type ClientInstance =
   | AllianceClient
   | AssetsClient
@@ -182,14 +168,7 @@ const clientFactories: Record<
   accessLists: AccessListsClient,
 };
 
-/**
- * Constructs the named legacy domain client on `apiClient`.
- *
- * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
- * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
- * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
- * lists every legacy surface, its replacement and the open parity gaps.
- */
+/** Constructs the named custom domain client on `apiClient`. */
 export function createClientInstance(
   name: ApiClientType,
   apiClient: ApiClient,

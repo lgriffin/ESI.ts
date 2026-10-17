@@ -85,3 +85,11 @@ expectAssignable<OperationPagination>('page');
 expectError<OperationPagination>('offset');
 expectAssignable<QueryValue>(['a', 1, true]);
 expectAssignable<ProviderIdentityOptions>({ characterId: 1 });
+
+// A response-schema override (scripts/spec/response-schema-overrides.json)
+// widens only the generated Zod schema in 12.x: the operation's TypeScript
+// type keeps the document's shape, and widens in the next major (#659).
+declare const bloodlines: Awaited<
+  ReturnType<PublicScopeTree['universe']['bloodlines']['get']>
+>;
+expectType<number>(bloodlines[0]!.ship_type_id);
