@@ -177,9 +177,10 @@ export function createClientInstance(
   return new clientFactories[name](apiClient);
 }
 
-const allClientTypes: ApiClientType[] = Object.keys(
-  clientFactories,
-) as ApiClientType[];
+/** Every registered domain name, in registration order. */
+export const CLIENT_TYPES: readonly ApiClientType[] = Object.freeze(
+  Object.keys(clientFactories) as ApiClientType[],
+);
 
 // Re-export client classes for direct use
 export {

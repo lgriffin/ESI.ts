@@ -1,8 +1,9 @@
 /**
  * What one ESI response says about itself beyond its body: the caching,
- * paging and error-budget headers, and whether the cache answered. The legacy
- * `withMetadata()` clients and the shared runtime's metadata views
- * (`esi.withMetadata()`) both build it here, from the pipeline's response.
+ * paging and error-budget headers, and whether the cache answered. The custom
+ * clients' `withMetadata()` views (per domain client, or every domain at once
+ * from `EsiClient` and `CustomEsiClient`) and the shared runtime's metadata
+ * views (`esi.withMetadata()`) all build it here, from the pipeline's response.
  */
 import type { EsiHandlerResponse } from './requestPipeline/cachePolicy';
 import { parseWarning } from './util/headersUtil';
@@ -18,7 +19,7 @@ export type ResponseRateLimit = {
 
 /**
  * One response's metadata. A type alias rather than an interface, so it is
- * assignable to the legacy `EsiResponseMeta`, whose schema allows extra keys.
+ * assignable to the custom clients' `EsiResponseMeta`, whose schema allows extra keys.
  */
 export type ResponseMeta = {
   /** Every response header, names lower-cased. */

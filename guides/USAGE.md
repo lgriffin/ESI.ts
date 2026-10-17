@@ -109,6 +109,38 @@ const configured = new EsiClient({
 
 `rateLimiterConfig`, `requestInterceptors`, `responseInterceptors`, `logger` and `unsafeAllowCustomHost` are covered in [ARCHITECTURE.md](ARCHITECTURE.md) and [LOGGING.md](LOGGING.md). After construction, `setAccessToken`, `setTokenProvider`, `updateCacheConfig`, `resetCircuitBreaker` and the interceptor methods change a live client.
 
+### Supplying your own middleware
+
+The config also takes middleware instances, in place of the ones the client would build. `EsiClient`, `EsiClientBuilder.withConfig()` and `EsiApiFactory.createClient(type, config)` all accept them, and `createEsi()` takes the same five options, because every surface hands its config to `configureApiClient`.
+
+| Option           | Type                           | Effect                                                                                                                                                                    |
+| ---------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cache`          | `CacheStore` (or an `ICache`)  | Bodies and ETags live in your store (Redis, a file) instead of memory. Ignored when `enableETagCache` is `false`. A plain `CacheStore` invalidates only the keys it wrote |
+| `rateLimiter`    | `IRateLimiter`                 | Every request draws on it, so two clients can share one budget                                                                                                            |
+| `circuitBreaker` | `ICircuitBreaker`              | Supplying one turns the breaker on                                                                                                                                        |
+| `deduplicator`   | `IDeduplicator`                | Supplying one turns deduplication on                                                                                                                                      |
+| `clock`          | `Clock` (`now()`, `sleep(ms)`) | Cache age, retry back-off, rate-limit waits and the circuit reset timeout read it. The cleanup timers and the request timeout stay on real time                           |
+
+`shutdown()` leaves a supplied cache, circuit breaker or deduplicator to its owner.
+
+```typescript
+import {
+  CircuitBreaker,
+  EsiClient,
+  EsiClientBuilder,
+  type CacheStore,
+} from '@lgriffin/esi.ts';
+
+declare const sharedStore: CacheStore; // your adapter over Redis or a file
+
+const breaker = new CircuitBreaker({ failureThreshold: 5 });
+const main = new EsiClient({ cache: sharedStore, circuitBreaker: breaker });
+const market = new EsiClientBuilder()
+  .addClient('market')
+  .withConfig({ cache: sharedStore, circuitBreaker: breaker })
+  .build();
+```
+
 ### Environment variables
 
 | Variable           | Read by                    | Default                   |
@@ -215,10 +247,10 @@ See [RUNTIME-VALIDATION.md](RUNTIME-VALIDATION.md).
 
 ### Response metadata
 
-`withMetadata()` returns a view of a domain client whose methods resolve `{ data, meta }` (deprecated with the domain clients):
+`withMetadata()` returns a view of a domain client whose methods resolve `{ data, meta }`. On `EsiClient` and `CustomEsiClient` it returns every domain at once, so `client.withMetadata().alliance` is `client.alliance.withMetadata()`; a `CustomEsiClient` built without a domain has `undefined` there. The plain methods keep their return types.
 
 ```typescript
-const withMeta = client.alliance.withMetadata();
+const withMeta = client.withMetadata().alliance;
 const { data, meta } = await withMeta.getAllianceById(99000001);
 
 log.info(data.name, {
@@ -242,9 +274,9 @@ log.info(data.name, {
 | `contentLanguage` | string, optional         | The `Content-Language` header                   |
 | `warning`         | object, optional         | ESI's deprecation `warning` header, parsed      |
 
-`withSafeMode()` is the same idea for errors: methods resolve a result envelope instead of throwing. See [ERRORS.md](ERRORS.md).
+`withSafeMode()` is the same idea for errors: methods resolve a result envelope instead of throwing, per domain client or from `client.withSafeMode()` for every domain. See [ERRORS.md](ERRORS.md).
 
-On the shared runtime, `esi.withMetadata()` hands out the same two views over the same clients: `esi.withMetadata().public.status.get()` and `esi.withMetadata().as(identity).character(id).wallet.get()` resolve `{ data, meta }`, with `meta` typed `ResponseMeta` (the fields above) from `@lgriffin/esi.ts/client`. A paginated operation still yields its items. `esi.getCacheStats()`, `clearCache()`, `updateCacheConfig()`, `getCircuitBreakerStats()` and `resetCircuitBreaker()` (or `esi.diagnostics`) read and reset the middleware every view shares, and `EsiOptions` takes a `cache` (any `CacheStore`), `rateLimiter`, `circuitBreaker`, `deduplicator` and `clock` in place of the ones the runtime would build; see [MULTI-CHARACTER.md](MULTI-CHARACTER.md).
+The spec-shaped `createEsi()` surface has the same pair: `esi.withMetadata().public.status.get()` and `esi.withMetadata().as(identity).character(id).wallet.get()` resolve `{ data, meta }`, with `meta` typed `ResponseMeta` (the fields above) from `@lgriffin/esi.ts/client`, built by the same code. A paginated operation still yields its items. See [MULTI-CHARACTER.md](MULTI-CHARACTER.md).
 
 ### Text and empty responses
 
@@ -255,7 +287,7 @@ On the shared runtime, `esi.withMetadata()` hands out the same two views over th
 
 These are on by default and need no configuration. [ARCHITECTURE.md](ARCHITECTURE.md) is the canonical description, and this is the summary a consumer needs:
 
-- **Cache.** A GET inside the TTL generated from the spec is answered with no HTTP call. An older entry is revalidated with `If-None-Match`. A 5xx with a cached copy serves the stale body and marks `meta.stale`. A successful write invalidates the cached reads under the same path. Cache keys hash the `Authorization` header, so two tokens never share an entry. `client.getCacheStats()` and `client.clearCache()` inspect and reset it.
+- **Cache.** A GET inside the TTL generated from the spec is answered with no HTTP call. An older entry is revalidated with `If-None-Match`. A 5xx with a cached copy serves the stale body and marks `meta.stale`. A successful write invalidates the cached reads under the same path. Cache keys hash the `Authorization` header, so two tokens never share an entry. `client.getCacheStats()` and `client.clearCache()` inspect and reset it, on `EsiClient` and `CustomEsiClient` alike (both also have `diagnostics`, `updateCacheConfig()`, `getCircuitBreakerStats()` and `resetCircuitBreaker()`).
 - **Rate limiting.** There is one token bucket per ESI rate-limit group: 46 groups, generated from the spec. The limiter adopts the `x-ratelimit-*` headers, honours `Retry-After`, and blocks only the affected group on a 420 or 429. Multi-character applications can bucket per token with `rateLimiterConfig.userKeyExtractor`. Its return value is held in memory as a bucket key, so derive it from a digest or a character id, never the raw `Authorization` header.
 - **Retry.** Exponential backoff with jitter on 0, 420, 429, 502, 503 and 504, up to three retries. A 401 triggers one token refresh when a provider exists. Mutations are not retried unless `retryMutations` is set.
 - **Deduplication.** Identical in-flight GETs from the same identity share one request.

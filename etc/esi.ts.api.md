@@ -273,6 +273,7 @@ export class ApiClient {
     getCircuitBreaker(): ICircuitBreaker | null;
     // (undocumented)
     getClientId(): string;
+    getClock(): Clock | null;
     // (undocumented)
     getCompatibilityDate(): string | undefined;
     // Warning: (ae-forgotten-export) The symbol "EsiDatasource_2" needs to be exported by the entry point index.d.ts
@@ -318,6 +319,8 @@ export class ApiClient {
     setCache(cache: ICache | null): void;
     // (undocumented)
     setCircuitBreaker(cb: ICircuitBreaker | null): void;
+    // (undocumented)
+    setClock(clock: Clock | null): void;
     // (undocumented)
     setCompatibilityDate(date: string | undefined): void;
     // (undocumented)
@@ -583,6 +586,18 @@ const BulkIdResultSchema: z.ZodObject<{
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
+// @public
+export interface CachedResponse {
+    // (undocumented)
+    readonly data: unknown;
+    // (undocumented)
+    readonly etag: string;
+    // (undocumented)
+    readonly headers: Readonly<Record<string, string>>;
+    readonly timestamp: number;
+    readonly ttl?: number;
+}
+
 // @public (undocumented)
 export interface CacheStats {
     // (undocumented)
@@ -599,6 +614,19 @@ export interface CacheStats {
     oldestEntry: number | null;
     // (undocumented)
     totalEntries: number;
+}
+
+// @public (undocumented)
+export interface CacheStore {
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    delete(key: string): boolean;
+    get(key: string): CachedResponse | null;
+    // (undocumented)
+    set(key: string, etag: string, data: unknown, headers: Record<string, string>,
+    ttlMs?: number): void;
+    shutdown(): void;
 }
 
 // Warning: (ae-forgotten-export) The symbol "calendarEndpoints" needs to be exported by the entry point index.d.ts
@@ -2154,7 +2182,6 @@ const CharacterTitleSchema: z.ZodObject<{
 
 // @public (undocumented)
 export class CircuitBreaker implements ICircuitBreaker {
-    // Warning: (ae-forgotten-export) The symbol "Clock" needs to be exported by the entry point index.d.ts
     constructor(config?: CircuitBreakerConfig, clock?: Clock | undefined);
     // (undocumented)
     checkCircuit(endpoint: string): void;
@@ -2231,6 +2258,12 @@ export class CircuitOpenError extends EsiError {
 
 // @public (undocumented)
 export type CircuitState = 'closed' | 'open' | 'half-open';
+
+// @public
+export interface Clock {
+    now(): number;
+    sleep(ms: number): Promise<void>;
+}
 
 // @public (undocumented)
 export type CloneInfo = z.infer<typeof CloneInfoSchema>;
@@ -4316,6 +4349,7 @@ export class CustomEsiClient {
     get calendar(): CalendarClient | undefined;
     // (undocumented)
     get characters(): CharacterClient | undefined;
+    clearCache(): void;
     // (undocumented)
     get clones(): ClonesClient | undefined;
     // (undocumented)
@@ -4328,6 +4362,7 @@ export class CustomEsiClient {
     get corporations(): CorporationsClient | undefined;
     // (undocumented)
     get cosmetics(): CosmeticsClient | undefined;
+    get diagnostics(): EsiDiagnostics;
     // (undocumented)
     get dogma(): DogmaClient | undefined;
     // (undocumented)
@@ -4338,6 +4373,8 @@ export class CustomEsiClient {
     get fleets(): FleetClient | undefined;
     // (undocumented)
     get freelanceJobs(): FreelanceJobsClient | undefined;
+    getCacheStats(): CacheStats | null;
+    getCircuitBreakerStats(): CircuitBreakerStats | null;
     // Warning: (ae-forgotten-export) The symbol "ClientInstance" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -4372,11 +4409,11 @@ export class CustomEsiClient {
     get paragonHub(): ParagonHubClient | undefined;
     // (undocumented)
     get pi(): PiClient | undefined;
+    resetCircuitBreaker(endpoint?: string): void;
     // (undocumented)
     get route(): RouteClient | undefined;
     // (undocumented)
     get search(): SearchClient | undefined;
-    // (undocumented)
     shutdown(): void;
     // (undocumented)
     get skills(): CharacterSkillsClient | undefined;
@@ -4390,10 +4427,13 @@ export class CustomEsiClient {
     get ui(): UiClient | undefined;
     // (undocumented)
     get universe(): UniverseClient | undefined;
+    updateCacheConfig(newConfig: Partial<ETagCacheConfig>): void;
     // (undocumented)
     get wallet(): WalletClient | undefined;
     // (undocumented)
     get wars(): WarsClient | undefined;
+    withMetadata(): MetadataClients<this>;
+    withSafeMode(): SafeModeClients<this>;
 }
 
 // @public (undocumented)
@@ -4635,6 +4675,14 @@ interface DogmaEffectsEffectIdGet {
 }
 
 // @public
+export type DomainClientName<T> = {
+    [K in keyof T]-?: NonNullable<T[K]> extends {
+        withMetadata(): unknown;
+        withSafeMode(): unknown;
+    } ? K : never;
+}[keyof T];
+
+// @public
 export class EsiApiFactory {
     // @deprecated
     static createAllianceClient(config?: EsiClientConfig): AllianceClient;
@@ -4744,7 +4792,6 @@ export class EsiClient {
     setAccessToken(token: string): void;
     // (undocumented)
     setTokenProvider(provider: TokenProvider | undefined): void;
-    // (undocumented)
     shutdown(): void;
     // (undocumented)
     get skills(): CharacterSkillsClient;
@@ -4764,6 +4811,8 @@ export class EsiClient {
     get wallet(): WalletClient;
     // (undocumented)
     get wars(): WarsClient;
+    withMetadata(): MetadataClients<this>;
+    withSafeMode(): SafeModeClients<this>;
 }
 
 // @public
@@ -4788,14 +4837,18 @@ export interface EsiClientConfig {
     accessToken?: string | undefined;
     // (undocumented)
     baseUrl?: string | undefined;
+    cache?: CacheStore | undefined;
+    circuitBreaker?: ICircuitBreaker | undefined;
     // (undocumented)
     circuitBreakerConfig?: CircuitBreakerConfig | undefined;
     // (undocumented)
     clientId?: string | undefined;
+    clock?: Clock | undefined;
     // (undocumented)
     compatibilityDate?: string | undefined;
     // (undocumented)
     datasource?: EsiDatasource | undefined;
+    deduplicator?: IDeduplicator | undefined;
     // (undocumented)
     enableCircuitBreaker?: boolean | undefined;
     // (undocumented)
@@ -4811,6 +4864,7 @@ export interface EsiClientConfig {
     logLevel?: LogLevel | 'silent' | undefined;
     // (undocumented)
     onTokenRefresh?: TokenProvider | undefined;
+    rateLimiter?: IRateLimiter | undefined;
     // (undocumented)
     rateLimiterConfig?: RateLimiterConfig | undefined;
     // (undocumented)
@@ -4854,7 +4908,7 @@ export type EsiDatasource = 'tranquility' | 'singularity';
 
 // @public (undocumented)
 export class EsiDiagnostics {
-    constructor(apiClient: ApiClient, etagCacheEnabled: boolean, deduplicator: RequestDeduplicator | null);
+    constructor(apiClient: ApiClient, etagCacheEnabled: boolean, deduplicator: IDeduplicator | null);
     // (undocumented)
     clearCache(): void;
     // (undocumented)
@@ -5687,7 +5741,7 @@ export interface ETagCacheConfig {
 
 // @public (undocumented)
 export class ETagCacheManager implements ICache {
-    constructor(config?: ETagCacheConfig, client?: ApiClient | null);
+    constructor(config?: ETagCacheConfig, client?: ApiClient | null, clock?: Clock | undefined);
     cleanup(): number;
     clear(): void;
     delete(url: string): boolean;
@@ -7861,6 +7915,13 @@ const MetaCompatibilityDatesSchema: z.ZodObject<{
     compatibility_dates: z.ZodArray<z.ZodString>;
 }, z.core.$loose>;
 
+// @public
+export type MetadataClients<T> = {
+    readonly [K in DomainClientName<T>]: T[K] extends infer C ? C extends {
+        withMetadata(): infer R;
+    } ? R : undefined : never;
+};
+
 // @public (undocumented)
 export type MetaName = z.infer<typeof MetaNameSchema>;
 
@@ -8832,6 +8893,13 @@ export interface RouteOptions {
     // (undocumented)
     security_penalty?: number | undefined;
 }
+
+// @public
+export type SafeModeClients<T> = {
+    readonly [K in DomainClientName<T>]: T[K] extends infer C ? C extends {
+        withSafeMode(): infer R;
+    } ? R : undefined : never;
+};
 
 // @public (undocumented)
 export function sanitizeUrl(url?: string): string | undefined;

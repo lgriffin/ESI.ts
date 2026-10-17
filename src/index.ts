@@ -73,6 +73,11 @@ export {
   WithSafeMode,
   fetchAllCursorPages,
 } from './core/endpoints/createClient';
+export type {
+  DomainClientName,
+  MetadataClients,
+  SafeModeClients,
+} from './clients/domainViews';
 export { CursorTokens } from './core/pagination/CursorPaginationHandler';
 
 // Error class & type guards
@@ -181,6 +186,8 @@ export { buildEndpointPath } from './core/endpoints/buildEndpointPath';
 
 // Interfaces (for custom implementations / testing)
 export { ICache } from './core/cache/ICache';
+export type { CacheStore, CachedResponse } from './core/ports/CacheStore';
+export type { Clock } from './core/ports/Clock';
 export {
   IRateLimiter,
   RateLimitGroupStatus,

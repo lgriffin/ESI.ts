@@ -33,8 +33,11 @@ const { sizeLimitChecks } = require('./scripts/package/size-limit-checks.cjs');
 
 const budgets = {
   '.': {
-    import: '245.1 kB', // measured 233410 B
-    require: '268.5 kB', // measured 255633 B
+    // Raised when the custom clients took the supplied middleware (CacheStore
+    // adapter, clock wiring), CustomEsiClient diagnostics and the
+    // every-domain metadata and safe-mode views (#665): measurement + 5%.
+    import: '257.4 kB', // measured 245118 B
+    require: '282.6 kB', // measured 269140 B
   },
   './schemas': {
     import: '61 kB', // measured 58083 B

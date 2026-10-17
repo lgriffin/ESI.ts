@@ -384,7 +384,9 @@ if (result.ok) {
 
 Every failure is delivered as the `EsiError` the throwing API would have raised, with its class intact: a `CircuitOpenError` keeps `retryAfterMs`, an `EsiConfigurationError` keeps its `code`. Anything that is not an `EsiError` arrives as an `EsiFaultError` with code `ESIJS_ERROR` and the original on `cause`. `meta` is not populated on failure in the current implementation.
 
-On the shared runtime, `esi.withSafeMode()` gives both views the same treatment: every single-answer operation resolves `OperationResult<T>` (`{ ok: true, data, meta }` or `{ ok: false, error }`, from `@lgriffin/esi.ts/client`), and the refusal of an authenticated operation on the public view arrives as an `EsiConfigurationError` coded `NO_AUTH_TOKEN` instead of a rejection. A paginated operation still yields items and rejects on a failing page.
+`client.withSafeMode()` on `EsiClient` or `CustomEsiClient` returns every domain client's safe-mode view from one object: `await client.withSafeMode().status.getStatus()` resolves the same envelope as `client.status.withSafeMode().getStatus()`.
+
+On the spec-shaped `createEsi()` surface, `esi.withSafeMode()` gives both views the same treatment: every single-answer operation resolves `OperationResult<T>` (`{ ok: true, data, meta }` or `{ ok: false, error }`, from `@lgriffin/esi.ts/client`), and the refusal of an authenticated operation on the public view arrives as an `EsiConfigurationError` coded `NO_AUTH_TOKEN` instead of a rejection. A paginated operation still yields items and rejects on a failing page.
 
 On a value already typed `EsiError`, prefer the instance methods (`result.error.isNotFound()`) or `instanceof` with the class. The guards take `unknown`, so they narrow here as well: `isCircuitOpen(result.error)` narrows to `CircuitOpenError`.
 

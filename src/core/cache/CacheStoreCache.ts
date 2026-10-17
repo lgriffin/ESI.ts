@@ -104,7 +104,7 @@ export class CacheStoreCache implements ICache {
 /**
  * The cache the pipeline uses for a supplied store: the store itself when it
  * already implements the pipeline's wider `ICache` (an `ETagCacheManager`, or
- * a cache written against the legacy builder), otherwise the adapter.
+ * any `ICache` written for `ApiClient.setCache`), otherwise the adapter.
  */
 export function cacheFromStore(store: CacheStore): ICache {
   const wide = store as Partial<ICache>;

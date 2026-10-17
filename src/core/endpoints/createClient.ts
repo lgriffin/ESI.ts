@@ -65,7 +65,7 @@ export type WithSafeMode<T> = {
     : T[K];
 };
 
-/** The legacy name for the shared reader; the runtime's metadata views use it too. */
+/** The custom clients' name for the shared reader; the runtime's metadata views call it directly. */
 function buildMeta(response: EsiHandlerResponse): EsiResponseMeta {
   return buildResponseMeta(response);
 }

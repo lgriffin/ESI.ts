@@ -31,6 +31,7 @@ const STATUS = {
   players: 23_456,
   server_version: '2987654',
   start_time: '2026-09-27T11:00:00Z',
+  vip: false,
 };
 
 const SEAM = {

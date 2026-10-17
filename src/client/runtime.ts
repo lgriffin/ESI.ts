@@ -23,7 +23,6 @@ import {
 import { ApiClient, type EsiDatasource } from '../core/ApiClient';
 import type { CircuitBreakerConfig } from '../core/circuitBreaker/CircuitBreaker';
 import type { ETagCacheConfig } from '../core/cache/ETagCacheManager';
-import { cacheFromStore } from '../core/cache/CacheStoreCache';
 import type { ICircuitBreaker } from '../core/circuitBreaker/ICircuitBreaker';
 import { configureApiClient } from '../core/configureApiClient';
 import {
@@ -340,21 +339,14 @@ export function createEsi(options: EsiOptions): Esi {
     runtime.setCompatibilityDate(options.compatibilityDate);
   }
   if (options.transport) runtime.setFetch(options.transport);
-  configureApiClient(
-    runtime,
-    {
-      ...options,
-      requestInterceptors: options.requestInterceptors?.slice(),
-      responseInterceptors: options.responseInterceptors?.slice(),
-    },
-    {
-      cache: options.cache && cacheFromStore(options.cache),
-      rateLimiter: options.rateLimiter,
-      circuitBreaker: options.circuitBreaker,
-      deduplicator: options.deduplicator,
-      clock: options.clock,
-    },
-  );
+  // The supplied middleware (cache, rateLimiter, circuitBreaker,
+  // deduplicator, clock) rides in the options, as it does in EsiClientConfig
+  // for the custom clients, so configureApiClient installs it for both.
+  configureApiClient(runtime, {
+    ...options,
+    requestInterceptors: options.requestInterceptors?.slice(),
+    responseInterceptors: options.responseInterceptors?.slice(),
+  });
 
   // Only an explicit `true` validates the generated operations: the
   // ApiClient's validateResponse defaults to true for the hand-written
