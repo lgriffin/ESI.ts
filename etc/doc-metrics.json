@@ -1,5 +1,5 @@
 {
-  "version": "12.0.0",
+  "version": "12.1.0",
   "compatibilityDate": "2026-08-18",
   "clients": 39,
   "endpointMaps": 39,
@@ -22,8 +22,8 @@
   "scenarioOutlines": 14,
   "requirementsSde": 168,
   "scenariosSde": 237,
-  "testFiles": 359,
-  "unitSuites": 230,
+  "testFiles": 361,
+  "unitSuites": 232,
   "compositionSuites": 7,
   "bddSuites": 78,
   "typeTestFiles": 13,

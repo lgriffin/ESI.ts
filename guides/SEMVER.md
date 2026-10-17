@@ -100,6 +100,8 @@ A removal should never be the first a consumer hears of it.
 
 When ESI has already removed the endpoint and every call fails, steps 1 and 3 can land in consecutive releases. The method still stays until a major release.
 
+A deprecation that spans many exports gets a manifest: [LEGACY-REMOVAL.md](LEGACY-REMOVAL.md) lists each surface the 13.0.0 removal of the legacy construction tree takes, its replacement and the version it goes in, and a test holds every listed name `@deprecated` in the API report. Adding `@deprecated` changes no signature and no behaviour, but it is a change to the contract consumers read, so it goes in as `feat:` (11.0.0's `feat(client): deprecate EsiApiFactory's named methods …` is the precedent) and reaches a minor release and the changelog. The API report rewrites each declaration's comment line to `// @public @deprecated`, which the `api-semver` gate reads as a changed line, so the commit carries an `API-Compatible:` trailer saying only tags were added.
+
 ---
 
 ## Saying it in the commit
