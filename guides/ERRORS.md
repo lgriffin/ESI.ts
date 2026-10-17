@@ -87,12 +87,62 @@ The breaker is off unless `enableCircuitBreaker` is set. Its thresholds are cove
 
 The base of the failures the library raises itself rather than ESI. `statusCode` is `0`, `.retryable` and `isTimeout()` are `false`, `code` is one of the `EsiFaultCode` values below, and the message starts with `[<code>] `. `cause` holds the error that led to it, where there was one. An `EsiFaultError` with code `ESIJS_ERROR` wraps anything unexpected that reached the pipeline's final catch (a throwing interceptor, for example); the original is on `cause`.
 
-| Class                   | `code`                                                     | Raised when                                                                                                              |
-| ----------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `EsiConfigurationError` | `VALIDATION_ERROR`, `NO_AUTH_TOKEN`, `CONFIGURATION_ERROR` | The client's setup or a call's arguments are wrong. See [Configuration faults](#configuration-faults).                   |
-| `EsiParseError`         | `JSON_PARSE_ERROR`                                         | A response body is not the JSON it should be. `url` is the request URL; the parser's error is on `cause`.                |
-| `EsiPaginationError`    | `PAGINATION_INCOMPLETE`                                    | A page walk stopped on a failure that is not itself an `EsiError`. The page's error is on `cause`; the URL is sanitised. |
-| `EsiTokenRefreshError`  | `TOKEN_REFRESH_FAILED`                                     | The token provider threw during a 401 refresh. What it threw (a `TokenRevokedError`, an `SsoError`) is on `cause`.       |
+| Class                   | `code`                                                     | Raised when                                                                                                        |
+| ----------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `EsiConfigurationError` | `VALIDATION_ERROR`, `NO_AUTH_TOKEN`, `CONFIGURATION_ERROR` | The client's setup or a call's arguments are wrong. See [Configuration faults](#configuration-faults).             |
+| `EsiParseError`         | `JSON_PARSE_ERROR`                                         | A response body is not the JSON it should be. `url` is the request URL; the parser's error is on `cause`.          |
+| `EsiPaginationError`    | `PAGINATION_INCOMPLETE`                                    | A page walk stopped before it held the whole collection. See [Incomplete pagination](#incomplete-pagination).      |
+| `EsiTokenRefreshError`  | `TOKEN_REFRESH_FAILED`                                     | The token provider threw during a 401 refresh. What it threw (a `TokenRevokedError`, an `SsoError`) is on `cause`. |
+
+### Incomplete pagination
+
+`EsiPaginationError` is how a collecting path (the eager domain method, `fetchAll*`, `stream*`, the cursor handler) says it does not hold the whole collection (`DES-08`, [PAGINATION.md](PAGINATION.md#incomplete-walks)). The URL is sanitised in `url` and in the message; a page error that is not itself an `EsiError` is on `cause`.
+
+**When it is thrown depends on the `incompletePages` option.** A page that fails with a non-ESI error (`fetch-failed`) always throws. The other three reasons, `page-cap`, `empty-page` and `cursor-cap`, throw only when the client is built with `incompletePages: 'throw'`. Under the default, `'truncate'`, those walks return the pages fetched so far and log a warning naming the option, as every 12.x release has. **The default becomes `'throw'` in a future major release.** Opt in now on either construction surface: `createEsi({ userAgent, incompletePages: 'throw' })` or `new EsiClient({ incompletePages: 'throw' })`.
+
+| Field           | Type                   | Meaning                                                                                                                 |
+| --------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `reason`        | `PaginationStopReason` | Why the walk stopped: `page-cap`, `empty-page`, `cursor-cap` or `fetch-failed` (below).                                 |
+| `endpoint`      | `string`               | The endpoint path the walk started from, sensitive query parameters redacted.                                           |
+| `reportedPages` | `number \| undefined`  | The page count page 1 reported in `X-Pages`; `undefined` on a cursor walk, which has none.                              |
+| `fetchedPages`  | `number`               | Pages read in order before the stop, the page it stopped at included.                                                   |
+| `partial`       | `readonly unknown[]`   | The items collected before the stop, in page order, frozen. Empty on a stream, whose pages were already yielded to you. |
+| `itemCount`     | `number`               | The items delivered before the stop: `partial.length`, or on a stream the number of items it yielded.                   |
+
+| `reason`       | Raised when                                                                                                                                                                                                                      |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `page-cap`     | With `incompletePages: 'throw'`: page 1 reported more than 1000 pages, the most the client requests for one call (security model P8). No further page is requested; `partial` holds page 1.                                      |
+| `empty-page`   | With `incompletePages: 'throw'`: a page after the first that page 1 reported came back with no items. The collection shrank during the walk, so items moved onto pages already read and were skipped. The last page is included. |
+| `cursor-cap`   | With `incompletePages: 'throw'`: the cursor handler reached its page limit while the last page still carried an `after` cursor.                                                                                                  |
+| `fetch-failed` | In either mode: a page failed with an error that is not itself an `EsiError` (a throwing interceptor, for example). An `EsiError` from a page is rethrown as it is rather than wrapped.                                          |
+
+The error is not retryable, and none of these reasons is fixed by retrying at once: `empty-page` means the collection changed, so call again later for a consistent snapshot, or keep `partial` knowing it may miss items.
+
+```typescript
+import { EsiClient, isPaginationError } from '@lgriffin/esi.ts';
+import type { MarketOrder } from '@lgriffin/esi.ts';
+
+const esi = new EsiClient({ clientId: 'my-app', incompletePages: 'throw' });
+
+async function forgeOrders(): Promise<{
+  orders: MarketOrder[];
+  complete: boolean;
+}> {
+  try {
+    return {
+      orders: await esi.market.getMarketOrders(10000002),
+      complete: true,
+    };
+  } catch (err) {
+    if (isPaginationError(err) && err.reason === 'empty-page') {
+      // The order book moved mid-walk. Use what arrived, marked incomplete,
+      // and fetch again on the next cycle.
+      return { orders: err.partial as MarketOrder[], complete: false };
+    }
+    throw err;
+  }
+}
+```
 
 ### Auth family
 
@@ -275,7 +325,7 @@ A 200 with an empty body is an `EsiParseError` on every endpoint except two. `ge
 
 Two plain errors carry no code: `No token provider configured`, from calling `ApiClient.refreshToken()` directly without a provider, and `At least one client type must be specified`, from building an empty `EsiClientBuilder`. Both are raised outside a request.
 
-A page failure during offset pagination that is itself an `EsiError` is rethrown as that error; only other failures become an `EsiPaginationError`. Cursor and streaming failure semantics are covered in [PAGINATION.md](PAGINATION.md).
+A page failure during offset pagination that is itself an `EsiError` is rethrown as that error; only other failures become an `EsiPaginationError` with reason `fetch-failed`. With `incompletePages: 'throw'`, a walk that cannot be complete (a page count above the limit, an empty page, a cursor still set at the limit) is an `EsiPaginationError` too; by default it is truncated with a warning. See [Incomplete pagination](#incomplete-pagination). Cursor and streaming failure semantics are covered in [PAGINATION.md](PAGINATION.md).
 
 ---
 

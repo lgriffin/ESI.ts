@@ -5,7 +5,10 @@
  * operations that answer once change shape; a paginated operation still
  * yields its items.
  */
-import { PipelineTransport } from '../adapters/PipelineTransport';
+import {
+  PipelineTransport,
+  type PipelineTransportOptions,
+} from '../adapters/PipelineTransport';
 import type { ApiClient } from '../core/ApiClient';
 import type {
   OperationMeta,
@@ -85,12 +88,18 @@ export interface EsiViews<TPublic, TScoped> {
 
 /** Resolves each request with the body and the metadata of its response. */
 export class MetadataTransport implements OperationTransport {
-  constructor(private readonly client: ApiClient) {}
+  constructor(
+    private readonly client: ApiClient,
+    private readonly options: PipelineTransportOptions = {},
+  ) {}
 
   async request<T>(meta: OperationMeta, req: OperationRequest): Promise<T> {
     let seen: EsiHandlerResponse | undefined;
-    const data = await new PipelineTransport(this.client, (response) => {
-      seen = response;
+    const data = await new PipelineTransport(this.client, {
+      ...this.options,
+      observe: (response) => {
+        seen = response;
+      },
     }).request<unknown>(meta, req);
     const answer: OperationResponse<unknown> = {
       data,
@@ -100,7 +109,10 @@ export class MetadataTransport implements OperationTransport {
   }
 
   paginate<T>(meta: OperationMeta, req: OperationRequest): AsyncIterable<T> {
-    return new PipelineTransport(this.client).paginate<T>(meta, req);
+    return new PipelineTransport(this.client, this.options).paginate<T>(
+      meta,
+      req,
+    );
   }
 }
 

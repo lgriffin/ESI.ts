@@ -22,7 +22,7 @@ The rest of this guide explains each part of that, how it relates to `EsiClient`
 
 `createEsi(options)` builds one request pipeline: rate limiter, error budget, circuit breaker (when enabled), in-flight deduplicator, ETag cache and transport. Every view hands its requests to that one pipeline. The options are the pipeline options `EsiClient` takes, with two differences:
 
-- **`userAgent` is required.** CCP asks every caller to identify itself, so a misbehaving application can be contacted rather than blocked. The legacy client left it optional for compatibility; the new surface refuses to construct without one, at construction rather than on every request, and refuses a value that is not a legal header value for the same reason (`0055-request-headers.feature`).
+- **`userAgent` is required.** CCP asks every caller to identify itself, so a misbehaving application can be contacted rather than blocked. `EsiClient` leaves it optional for compatibility; `createEsi` refuses to construct without one, at construction rather than on every request, and refuses a value that is not a legal header value for the same reason (`0055-request-headers.feature`).
 - **There is no token option.** Tokens belong to identities, below. The runtime itself never holds one.
 
 ```ts
@@ -142,7 +142,7 @@ A test hands the runtime a mock transport instead of the network: `createMockTra
 
 ## Moving from `EsiTokenManager.createClient`
 
-`tokens.createClient(id)` builds a complete `EsiClient` per character, each with its own rate limiter, error budget and cache. It still works and behaves as before, but 11.0.0 marks it `@deprecated`, as it does `EsiApiFactory`'s nine named `create*Client` methods, and 12.1.0 deprecates the rest of the legacy tree. 13.0.0 removes all of it; [LEGACY-REMOVAL.md](LEGACY-REMOVAL.md) is the list, with the capabilities still to close first. To move an application to one runtime:
+`tokens.createClient(id)` builds a complete `EsiClient` per character, each with its own rate limiter, error budget and cache. It still works and behaves as before, but 11.0.0 marks it `@deprecated`, as it does `EsiApiFactory`'s nine named `create*Client` methods (use `EsiApiFactory.createClient(type)` or `EsiClientBuilder` for those). Removing them needs a future major release, and none is scheduled. The rest of the custom clients are supported and stay the product ([CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)); identity views for them are on that plan. To move an application to one runtime today:
 
 | Before                                                        | After                                                             |
 | ------------------------------------------------------------- | ----------------------------------------------------------------- |

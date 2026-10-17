@@ -96,6 +96,20 @@ export function configureApiClient(
     }
   }
 
+  applyPipelineOptions(client, config);
+
+  return { deduplicator };
+}
+
+/**
+ * The plain per-client switches: response and request validation, what
+ * pagination does with an incomplete walk, and the timeout. Each is set only
+ * when the config names it, so the ApiClient's own default stands otherwise.
+ */
+function applyPipelineOptions(
+  client: ApiClient,
+  config: EsiClientConfig | undefined,
+): void {
   // Validate response
   if (config?.validateResponse !== undefined) {
     client.setValidateResponse(config.validateResponse);
@@ -106,12 +120,15 @@ export function configureApiClient(
     client.setValidateRequest(config.validateRequest);
   }
 
+  // Incomplete pagination (truncate by default, throw opt-in)
+  if (config?.incompletePages !== undefined) {
+    client.setIncompletePages(config.incompletePages);
+  }
+
   // Timeout
   if (config?.timeout !== undefined) {
     client.setTimeout(config.timeout);
   }
-
-  return { deduplicator };
 }
 
 /**

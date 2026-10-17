@@ -23,6 +23,7 @@ export type {
   IRateLimiter,
   RateLimitGroupStatus,
 } from '../core/rateLimiter/IRateLimiter';
+export type { IncompletePagesMode } from '../core/pagination/pageLimit';
 export { identityFromProvider, identityFromToken } from './identity';
 export type { ProviderIdentityOptions } from './identity';
 export type {

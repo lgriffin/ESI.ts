@@ -3,7 +3,9 @@
  * pipeline: rate limiter, circuit breaker, deduplication, retry, ETag cache,
  * and the tenant, user agent and compatibility date headers. It holds no
  * state of its own, so every operation shares the ApiClient's budgets and
- * cache with the hand-written clients.
+ * cache with the hand-written clients. When constructed with
+ * `validateResponse: true`, a JSON body is checked against the operation's
+ * generated Zod schema, as the hand-written clients check theirs.
  */
 import type { ApiClient } from '../core/ApiClient';
 import { handleRequest } from '../core/ApiRequestHandler';
@@ -15,7 +17,10 @@ import type {
   OperationTransport,
   QueryValue,
 } from '../core/ports/OperationTransport';
+import { evictRejectedResponse, resolveCache } from '../core/requestPipeline';
+import { EsiValidationError } from '../core/util/error';
 import { validatePathParam, validateQueryParam } from '../core/util/validation';
+import { responseSchemas } from './responseSchemas.generated';
 
 interface BuiltRequest {
   /** Relative URL: the filled path plus its query string. */
@@ -64,16 +69,34 @@ function build(
   };
 }
 
-export class PipelineTransport implements OperationTransport {
+export interface PipelineTransportOptions {
   /**
-   * @param observe - called with the pipeline's response to each `request`,
-   *   headers included, before the body is returned. The runtime's metadata
-   *   views read the response metadata through it.
+   * Check each body against the operation's generated schema. Off unless set:
+   * the ApiClient's own `validateResponse` defaults to `true` for the
+   * hand-written clients, so `createEsi` passes this only when its caller set
+   * `validateResponse: true` explicitly.
    */
+  readonly validateResponse?: boolean;
+  /**
+   * Called with the pipeline's response to each `request`, headers included,
+   * before the body is checked and returned. The runtime's metadata views read
+   * the response metadata through it.
+   */
+  readonly observe?: (response: EsiHandlerResponse) => void;
+}
+
+export class PipelineTransport implements OperationTransport {
+  private readonly validate: boolean;
+  private readonly observe:
+    ((response: EsiHandlerResponse) => void) | undefined;
+
   constructor(
     private readonly client: ApiClient,
-    private readonly observe?: (response: EsiHandlerResponse) => void,
-  ) {}
+    options: PipelineTransportOptions = {},
+  ) {
+    this.validate = options.validateResponse === true;
+    this.observe = options.observe;
+  }
 
   async request<T>(meta: OperationMeta, req: OperationRequest): Promise<T> {
     const { url, template, requiresAuth } = build(
@@ -91,7 +114,19 @@ export class PipelineTransport implements OperationTransport {
       template,
     );
     this.observe?.(response);
-    return response.body as T;
+    const schema = responseSchemas[meta.operationId];
+    if (!schema || !this.validate) {
+      return response.body as T;
+    }
+    const result = schema.safeParse(response.body);
+    if (!result.success) {
+      evictRejectedResponse(this.client, url, requiresAuth, resolveCache);
+      throw new EsiValidationError(
+        `${this.client.getLink()}/${url}`,
+        result.error,
+      );
+    }
+    return result.data as T;
   }
 
   async *paginate<T>(
@@ -110,6 +145,7 @@ export class PipelineTransport implements OperationTransport {
       requiresAuth,
       req.body,
       template,
+      this.validate ? responseSchemas[meta.operationId] : undefined,
     )) {
       yield* page.data;
     }

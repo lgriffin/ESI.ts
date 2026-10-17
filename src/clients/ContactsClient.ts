@@ -4,14 +4,6 @@ import { contactEndpoints } from '../core/endpoints/contactEndpoints';
 import { Contact, ContactLabel } from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-/**
- * A legacy domain client over the hand-written endpoint map.
- *
- * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
- * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
- * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
- * lists every legacy surface, its replacement and the open parity gaps.
- */
 export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
   constructor(client: ApiClient) {
     super(client, contactEndpoints);

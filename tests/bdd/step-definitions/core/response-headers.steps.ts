@@ -1,9 +1,10 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { StatusClient } from '../../../../src/clients/StatusClient';
 import { ApiClient } from '../../../../src/core/ApiClient';
-import { EsiError } from '../../../../src/core/util/error';
+import { EsiError, EsiPaginationError } from '../../../../src/core/util/error';
 import { RateLimiter } from '../../../../src/core/rateLimiter/RateLimiter';
 import { EsiClient } from '../../../../src/EsiClient';
+import type { IncompletePagesMode } from '../../../../src/core/pagination/pageLimit';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -22,13 +23,14 @@ const STATUS_BODY = JSON.stringify({
 /** GET markets/{region_id}/types is paginated by X-Pages; each page is a list of type ids. */
 const THE_FORGE = 10000002;
 
-function paginationClient(): EsiClient {
+function paginationClient(incompletePages?: IncompletePagesMode): EsiClient {
   return new EsiClient({
     clientId: 'bdd-response-headers',
     baseUrl: 'https://esi.evetech.net',
     retryConfig: { maxRetries: 0 },
     rateLimiterConfig: { minDelayMs: 0 },
     logLevel: 'error',
+    incompletePages,
   });
 }
 
@@ -319,8 +321,52 @@ defineFeature(feature, (test) => {
     });
 
     and(/^the client requested (\d+) pages$/, (count: string) => {
-      expect(requestedPages()).toHaveLength(Number(count));
-      expect(Math.max(...requestedPages())).toBe(Number(count));
+      expect(requestedPages()).toEqual(
+        Array.from({ length: Number(count) }, (_, i) => i + 1),
+      );
+      client.shutdown();
+    });
+  });
+
+  test('X-Pages of 1001 with incompletePages set to throw stops the walk after page 1', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let client: EsiClient;
+    let error: unknown;
+
+    given('a client with incompletePages set to throw', () => {
+      client = paginationClient('throw');
+    });
+
+    and(
+      'ESI answers the market types with page 1 announcing 1001 pages and a type on every page',
+      () => {
+        serveMarketTypePages(() => 1001);
+      },
+    );
+
+    when(
+      'the client tries to request the market types for The Forge',
+      async () => {
+        error = await client.market.getMarketTypes(THE_FORGE).then(
+          () => undefined,
+          (e: unknown) => e,
+        );
+      },
+    );
+
+    then('the client rejects the walk as incomplete', () => {
+      expect(error).toBeInstanceOf(EsiPaginationError);
+      expect((error as EsiPaginationError).reason).toBe('page-cap');
+    });
+
+    and(/^the client requested (\d+) pages?$/, (count: string) => {
+      expect(requestedPages()).toEqual(
+        Array.from({ length: Number(count) }, (_, i) => i + 1),
+      );
       client.shutdown();
     });
   });

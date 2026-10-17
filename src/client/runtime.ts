@@ -16,7 +16,10 @@
  * middleware instances (a cache store, rate limiter, circuit breaker,
  * deduplicator and clock) in place of the ones it would build.
  */
-import { PipelineTransport } from '../adapters/PipelineTransport';
+import {
+  PipelineTransport,
+  type PipelineTransportOptions,
+} from '../adapters/PipelineTransport';
 import { ApiClient, type EsiDatasource } from '../core/ApiClient';
 import type { CircuitBreakerConfig } from '../core/circuitBreaker/CircuitBreaker';
 import type { ETagCacheConfig } from '../core/cache/ETagCacheManager';
@@ -45,6 +48,7 @@ import type {
   OperationRequest,
   OperationTransport,
 } from '../core/ports/OperationTransport';
+import type { IncompletePagesMode } from '../core/pagination/pageLimit';
 import type { IRateLimiter } from '../core/rateLimiter/IRateLimiter';
 import type { RateLimiterConfig } from '../core/rateLimiter/RateLimiter';
 import { EsiConfigurationError } from '../core/util/error';
@@ -93,8 +97,24 @@ export interface EsiOptions {
   readonly enableRequestDeduplication?: boolean;
   readonly requestInterceptors?: readonly RequestInterceptor[];
   readonly responseInterceptors?: readonly ResponseInterceptor[];
+  /**
+   * Set `true` to check each response against the operation's Zod schema,
+   * generated from the OpenAPI document, and throw `EsiValidationError` on a
+   * mismatch. Unset or `false`, the generated operations return bodies as ESI
+   * sent them, as they always have. A future major release will make
+   * validation the default for `createEsi`; set `false` to keep bodies
+   * unvalidated then.
+   */
   readonly validateResponse?: boolean;
   readonly validateRequest?: boolean;
+  /**
+   * What pagination does when it cannot prove a walk complete (a page count
+   * above 1000, an empty page after the first). `'truncate'`, the default,
+   * yields the pages fetched so far and logs a warning; `'throw'` rejects with
+   * an `EsiPaginationError` carrying the reason. The default becomes
+   * `'throw'` in a future major. See guides/PAGINATION.md.
+   */
+  readonly incompletePages?: IncompletePagesMode;
   /** Where the pipeline logs. Defaults to the package's pino logger at `logLevel`. */
   readonly logger?: Logger;
   readonly logLevel?: LogLevel;
@@ -278,6 +298,7 @@ function viewClient(
   client.setRetryStrategy(runtime.getRetryStrategy());
   client.setValidateResponse(runtime.getValidateResponse());
   client.setValidateRequest(runtime.getValidateRequest());
+  client.setIncompletePages(runtime.getIncompletePages());
   client.setTimeout(runtime.getTimeout());
   client.setLogger(runtime.getLogger());
   client.setTenant(runtime.getTenant());
@@ -334,6 +355,18 @@ export function createEsi(options: EsiOptions): Esi {
       clock: options.clock,
     },
   );
+
+  // Only an explicit `true` validates the generated operations: the
+  // ApiClient's validateResponse defaults to true for the hand-written
+  // clients, and the generated operations have returned bodies unchecked
+  // since the runtime shipped.
+  const transportOptions: PipelineTransportOptions = {
+    validateResponse: options.validateResponse === true,
+  };
+  const base = (mode: Mode, client: ApiClient): OperationTransport =>
+    mode === 'plain'
+      ? new PipelineTransport(client, transportOptions)
+      : new MetadataTransport(client, transportOptions);
 
   const clients = new WeakMap<Identity, ApiClient>();
   const clientFor = (identity: Identity): ApiClient => {
@@ -405,13 +438,6 @@ export function createEsi(options: EsiOptions): Esi {
 }
 
 type Mode = 'plain' | 'metadata' | 'safe';
-
-/** The transport under the guards: the pipeline, answering with metadata outside plain mode. */
-function base(mode: Mode, client: ApiClient): OperationTransport {
-  return mode === 'plain'
-    ? new PipelineTransport(client)
-    : new MetadataTransport(client);
-}
 
 /** The guarded transport, turned into results in safe mode. */
 function inMode(mode: Mode, guarded: OperationTransport): OperationTransport {

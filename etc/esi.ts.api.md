@@ -18,10 +18,10 @@ import { ZodString } from 'zod';
 import { ZodType } from 'zod';
 import { ZodUnknown } from 'zod';
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AccessList = z.infer<typeof AccessListSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AccessListAllianceMember = z.infer<typeof AccessListAllianceMemberSchema>;
 
 // @public (undocumented)
@@ -30,7 +30,7 @@ const AccessListAllianceMemberSchema: z.ZodObject<{
     access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AccessListCharacterMember = z.infer<typeof AccessListCharacterMemberSchema>;
 
 // @public (undocumented)
@@ -39,7 +39,7 @@ const AccessListCharacterMemberSchema: z.ZodObject<{
     access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AccessListCorporationMember = z.infer<typeof AccessListCorporationMemberSchema>;
 
 // @public (undocumented)
@@ -48,7 +48,7 @@ const AccessListCorporationMemberSchema: z.ZodObject<{
     access: z.ZodType<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Allowed" | "Blocked" | "Manager" | "Admin", unknown>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AccessListMembership = z.infer<typeof AccessListMembershipSchema>;
 
 // @public (undocumented)
@@ -92,15 +92,14 @@ const AccessListSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "accessListEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class AccessListsClient extends BaseEsiClient<typeof accessListEndpoints> {
-    // Warning: (ae-forgotten-export) The symbol "ApiClient_2" needs to be exported by the entry point index.d.ts
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getAccessList(characterId: number, accessListId: number): Promise<AccessList>;
     getCharacterAccessLists(characterId: number): Promise<CharacterAccessListsResponse>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AccessListSummary = z.infer<typeof AccessListSummarySchema>;
 
 // @public
@@ -116,7 +115,7 @@ export interface AddCharacterOptions extends ExchangeCodeOptions {
 // @public
 const AddedContactIdsSchema: z.ZodArray<z.ZodNumber>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AgentResearch = z.infer<typeof AgentResearchSchema>;
 
 // @public (undocumented)
@@ -130,9 +129,9 @@ const AgentResearchSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "allianceEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllAlliances(concurrency?: number): Promise<number[]>;
     // (undocumented)
@@ -145,18 +144,16 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
     getContacts(allianceId: number): Promise<AllianceContact[]>;
     getCorporations(allianceId: number): Promise<number[]>;
     getIcons(allianceId: number): Promise<AllianceIcon>;
-    // Warning: (ae-forgotten-export) The symbol "PageResult_2" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    streamAlliances(): AsyncGenerator<PageResult_2<number>, void, undefined>;
+    streamAlliances(): AsyncGenerator<PageResult<number>, void, undefined>;
     // (undocumented)
-    streamCorporations(allianceId: number): AsyncGenerator<PageResult_2<number>, void, undefined>;
+    streamCorporations(allianceId: number): AsyncGenerator<PageResult<number>, void, undefined>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AllianceContact = z.infer<typeof AllianceContactSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AllianceContactLabel = z.infer<typeof AllianceContactLabelSchema>;
 
 // @public (undocumented)
@@ -173,7 +170,7 @@ const AllianceContactSchema: z.ZodObject<{
     label_ids: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AllianceIcon = z.infer<typeof AllianceIconSchema>;
 
 // @public (undocumented)
@@ -187,7 +184,7 @@ const AllianceIconSchema: z.ZodObject<{
 // @public (undocumented)
 export type AllianceId = Brand<number, 'AllianceId'>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AllianceInfo = z.infer<typeof AllianceInfoSchema>;
 
 // @public (undocumented)
@@ -248,7 +245,7 @@ interface AlliancesDetail {
     ticker: string;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Ancestry = z.infer<typeof AncestrySchema>;
 
 // @public (undocumented)
@@ -261,16 +258,106 @@ const AncestrySchema: z.ZodObject<{
     icon_id: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated
-export const ApiClient: typeof ApiClient_2;
+// @public (undocumented)
+export class ApiClient {
+    constructor(clientId: string, link: string, accessToken?: string | undefined);
+    // (undocumented)
+    addRequestInterceptor(fn: RequestInterceptor): () => void;
+    // (undocumented)
+    addResponseInterceptor(fn: ResponseInterceptor): () => void;
+    // (undocumented)
+    getAuthorizationHeader(): string | undefined;
+    // (undocumented)
+    getCache(): ICache | null;
+    // (undocumented)
+    getCircuitBreaker(): ICircuitBreaker | null;
+    // (undocumented)
+    getClientId(): string;
+    // (undocumented)
+    getCompatibilityDate(): string | undefined;
+    // Warning: (ae-forgotten-export) The symbol "EsiDatasource_2" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    getDatasource(): EsiDatasource_2 | undefined;
+    // (undocumented)
+    getDeduplicator(): IDeduplicator | null;
+    // (undocumented)
+    getFetch(): FetchLike;
+    getIncompletePages(): IncompletePagesMode;
+    // (undocumented)
+    getLanguage(): string | undefined;
+    // (undocumented)
+    getLink(): string;
+    // (undocumented)
+    getLogger(): ILogger | null;
+    // Warning: (ae-forgotten-export) The symbol "MiddlewareManager" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    getMiddleware(): MiddlewareManager;
+    // (undocumented)
+    getRateLimiter(): IRateLimiter | null;
+    // (undocumented)
+    getRetryConfig(): RetryConfig | null;
+    // (undocumented)
+    getRetryStrategy(): IRetryStrategy | null;
+    getTenant(): string | undefined;
+    // (undocumented)
+    getTimeout(): number;
+    getUserAgent(): string | undefined;
+    // (undocumented)
+    getValidateRequest(): boolean;
+    // (undocumented)
+    getValidateResponse(): boolean;
+    // (undocumented)
+    hasTokenProvider(): boolean;
+    // (undocumented)
+    refreshToken(): Promise<string>;
+    // (undocumented)
+    setAccessToken(token: string): void;
+    // (undocumented)
+    setCache(cache: ICache | null): void;
+    // (undocumented)
+    setCircuitBreaker(cb: ICircuitBreaker | null): void;
+    // (undocumented)
+    setCompatibilityDate(date: string | undefined): void;
+    // (undocumented)
+    setDatasource(datasource: EsiDatasource_2 | undefined): void;
+    // (undocumented)
+    setDeduplicator(dedup: IDeduplicator | null): void;
+    // (undocumented)
+    setFetch(fn: FetchLike): void;
+    // (undocumented)
+    setIncompletePages(mode: IncompletePagesMode): void;
+    // (undocumented)
+    setLanguage(language: string | undefined): void;
+    // (undocumented)
+    setLogger(logger: ILogger | null): void;
+    // (undocumented)
+    setRateLimiter(limiter: IRateLimiter | null): void;
+    // (undocumented)
+    setRetryConfig(config: RetryConfig | null): void;
+    // (undocumented)
+    setRetryStrategy(strategy: IRetryStrategy | null): void;
+    // (undocumented)
+    setTenant(tenant: string | undefined): void;
+    // (undocumented)
+    setTimeout(timeout: number): void;
+    // (undocumented)
+    setTokenProvider(provider: TokenProvider | undefined): void;
+    // (undocumented)
+    setUserAgent(userAgent: string | undefined): void;
+    // (undocumented)
+    setValidateRequest(validate: boolean): void;
+    // (undocumented)
+    setValidateResponse(validate: boolean): void;
+    // (undocumented)
+    toJSON(): Record<string, unknown>;
+}
 
-// @public @deprecated (undocumented)
-export type ApiClient = ApiClient_2;
-
-// @public @deprecated
+// @public
 export class ApiClientBuilder {
     // (undocumented)
-    build(): ApiClient_2;
+    build(): ApiClient;
     // (undocumented)
     setAccessToken(accessToken?: string): ApiClientBuilder;
     // (undocumented)
@@ -289,10 +376,10 @@ export class ApiClientBuilder {
     setTimeout(timeout: number): ApiClientBuilder;
 }
 
-// @public @deprecated
+// @public
 export type ApiClientType = 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones' | 'contacts' | 'contracts' | 'corporations' | 'corporationProjects' | 'dogma' | 'factions' | 'fittings' | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location' | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills' | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta' | 'freelanceJobs' | 'skyhooks' | 'cosmetics' | 'paragonHub' | 'mercenary' | 'militaryCampaigns' | 'accessLists';
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AssetLocation = z.infer<typeof AssetLocationSchema>;
 
 // @public (undocumented)
@@ -305,7 +392,7 @@ const AssetLocationSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AssetName = z.infer<typeof AssetNameSchema>;
 
 // @public (undocumented)
@@ -316,9 +403,9 @@ const AssetNameSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "assetEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllCharacterAssets(characterId: number, concurrency?: number): Promise<CharacterAsset[]>;
     // (undocumented)
@@ -330,12 +417,12 @@ export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
     postCorporationAssetLocations(corporationId: number, itemIds: number[]): Promise<AssetLocation[]>;
     postCorporationAssetNames(corporationId: number, itemIds: number[]): Promise<AssetName[]>;
     // (undocumented)
-    streamCharacterAssets(characterId: number): AsyncGenerator<PageResult_2<CharacterAsset>, void, undefined>;
+    streamCharacterAssets(characterId: number): AsyncGenerator<PageResult<CharacterAsset>, void, undefined>;
     // (undocumented)
-    streamCorporationAssets(corporationId: number): AsyncGenerator<PageResult_2<CharacterAsset>, void, undefined>;
+    streamCorporationAssets(corporationId: number): AsyncGenerator<PageResult<CharacterAsset>, void, undefined>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type AsteroidBeltInfo = z.infer<typeof AsteroidBeltInfoSchema>;
 
 // @public (undocumented)
@@ -364,52 +451,50 @@ export interface AuthorizationUrlOptions {
 
 // Warning: (ae-forgotten-export) The symbol "EndpointMap" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public
 export abstract class BaseEsiClient<T extends EndpointMap> {
-    constructor(client: ApiClient_2, endpoints: T);
+    constructor(client: ApiClient, endpoints: T);
     // Warning: (ae-forgotten-export) The symbol "ClientMethods" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     protected api: ClientMethods<T>;
     // (undocumented)
-    protected _client: ApiClient_2;
+    protected _client: ApiClient;
     // (undocumented)
     protected _endpoints: T;
     // (undocumented)
     fetchAllEndpoint<R>(endpointName: string & keyof T, args: unknown[], concurrency?: number): Promise<R[]>;
     // (undocumented)
-    streamEndpoint<R>(endpointName: string & keyof T, ...args: unknown[]): AsyncGenerator<PageResult_2<R>, void, undefined>;
-    // Warning: (ae-forgotten-export) The symbol "WithMetadata_2" needs to be exported by the entry point index.d.ts
-    //
+    streamEndpoint<R>(endpointName: string & keyof T, ...args: unknown[]): AsyncGenerator<PageResult<R>, void, undefined>;
     // (undocumented)
-    withMetadata(): WithMetadata_2<Omit<this, 'withMetadata' | 'withSafeMode'>>;
-    // Warning: (ae-forgotten-export) The symbol "WithSafeMode_2" needs to be exported by the entry point index.d.ts
-    //
+    withMetadata(): WithMetadata<Omit<this, 'withMetadata' | 'withSafeMode'>>;
     // (undocumented)
-    withSafeMode(): WithSafeMode_2<Omit<this, 'withMetadata' | 'withSafeMode'>>;
+    withSafeMode(): WithSafeMode<Omit<this, 'withMetadata' | 'withSafeMode'>>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "batchFetch_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated
-export const batchFetch: typeof batchFetch_2;
+// @public (undocumented)
+export function batchFetch<K, T>(keys: K[], fetcher: (key: K) => Promise<T>, options?: BatchOptions): Promise<BatchResult<K, T>>;
 
-// Warning: (ae-forgotten-export) The symbol "BatchOptions_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export type BatchOptions = BatchOptions_2;
+// @public (undocumented)
+export interface BatchOptions {
+    // (undocumented)
+    concurrency?: number | undefined;
+    // (undocumented)
+    onProgress?: ((completed: number, total: number) => void) | undefined;
+}
 
-// Warning: (ae-forgotten-export) The symbol "batchPost_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated
-export const batchPost: typeof batchPost_2;
+// @public (undocumented)
+export function batchPost<T>(ids: number[], poster: (chunk: number[]) => Promise<T[]>, chunkSize?: number): Promise<T[]>;
 
-// Warning: (ae-forgotten-export) The symbol "BatchResult_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export type BatchResult<K, T> = BatchResult_2<K, T>;
+// @public (undocumented)
+export interface BatchResult<K, T> {
+    // (undocumented)
+    errors: Map<K, EsiError | Error>;
+    // (undocumented)
+    results: Map<K, T>;
+}
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Bloodline = z.infer<typeof BloodlineSchema>;
 
 // @public (undocumented)
@@ -427,7 +512,7 @@ const BloodlineSchema: z.ZodObject<{
     willpower: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Blueprint = z.infer<typeof BlueprintSchema>;
 
 // @public (undocumented)
@@ -445,12 +530,13 @@ const BlueprintSchema: z.ZodObject<{
 // @public (undocumented)
 export function brand<T>(value: number): T;
 
-// Warning: (ae-forgotten-export) The symbol "buildEndpointPath_2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "EndpointDefinition" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "EndpointPathResult" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
-export const buildEndpointPath: typeof buildEndpointPath_2;
+// @public (undocumented)
+export function buildEndpointPath(def: EndpointDefinition, args: unknown[], datasource?: string): EndpointPathResult;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type BulkIdResult = z.infer<typeof BulkIdResultSchema>;
 
 // @public (undocumented)
@@ -497,16 +583,29 @@ const BulkIdResultSchema: z.ZodObject<{
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
-// Warning: (ae-forgotten-export) The symbol "CacheStats_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export type CacheStats = CacheStats_2;
+// @public (undocumented)
+export interface CacheStats {
+    // (undocumented)
+    hitRate: number;
+    // (undocumented)
+    hits: number;
+    // (undocumented)
+    maxEntries: number;
+    // (undocumented)
+    misses: number;
+    // (undocumented)
+    newestEntry: number | null;
+    // (undocumented)
+    oldestEntry: number | null;
+    // (undocumented)
+    totalEntries: number;
+}
 
 // Warning: (ae-forgotten-export) The symbol "calendarEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class CalendarClient extends BaseEsiClient<typeof calendarEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllCalendarEvents(characterId: number, concurrency?: number): Promise<CalendarEvent[]>;
     // (undocumented)
@@ -516,15 +615,15 @@ export class CalendarClient extends BaseEsiClient<typeof calendarEndpoints> {
     getEventAttendees(characterId: number, eventId: number): Promise<CalendarEventAttendee[]>;
     respondToCalendarEvent(characterId: number, eventId: number, response: string): Promise<void>;
     // (undocumented)
-    streamCalendarEvents(characterId: number): AsyncGenerator<PageResult_2<CalendarEvent>, void, undefined>;
+    streamCalendarEvents(characterId: number): AsyncGenerator<PageResult<CalendarEvent>, void, undefined>;
     // (undocumented)
-    streamEventAttendees(characterId: number, eventId: number): AsyncGenerator<PageResult_2<CalendarEventAttendee>, void, undefined>;
+    streamEventAttendees(characterId: number, eventId: number): AsyncGenerator<PageResult<CalendarEventAttendee>, void, undefined>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CalendarEvent = z.infer<typeof CalendarEventSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CalendarEventAttendee = z.infer<typeof CalendarEventAttendeeSchema>;
 
 // @public
@@ -533,7 +632,7 @@ const CalendarEventAttendeeSchema: z.ZodObject<{
     event_response: z.ZodOptional<z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CalendarEventDetail = z.infer<typeof CalendarEventDetailSchema>;
 
 // @public (undocumented)
@@ -559,7 +658,7 @@ const CalendarEventSchema: z.ZodObject<{
     event_response: z.ZodOptional<z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterAccessListsResponse = z.infer<typeof CharacterAccessListsResponseSchema>;
 
 // @public
@@ -569,7 +668,7 @@ const CharacterAccessListsResponseSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterAffiliation = z.infer<typeof CharacterAffiliationSchema>;
 
 // @public (undocumented)
@@ -580,7 +679,7 @@ const CharacterAffiliationSchema: z.ZodObject<{
     faction_id: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterAsset = z.infer<typeof CharacterAssetSchema>;
 
 // @public (undocumented)
@@ -595,7 +694,7 @@ const CharacterAssetSchema: z.ZodObject<{
     is_blueprint_copy: z.ZodOptional<z.ZodBoolean>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterAttributes = z.infer<typeof CharacterAttributesSchema>;
 
 // @public (undocumented)
@@ -612,9 +711,9 @@ const CharacterAttributesSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "characterEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllCharacterAgentsResearch(characterId: number, concurrency?: number): Promise<AgentResearch[]>;
     // (undocumented)
@@ -646,24 +745,24 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
     postCharacterAffiliation(characters: number[]): Promise<CharacterAffiliation[]>;
     postCspaChargeCost(characterId: number, characters: number[]): Promise<number>;
     // (undocumented)
-    streamCharacterAgentsResearch(characterId: number): AsyncGenerator<PageResult_2<AgentResearch>, void, undefined>;
+    streamCharacterAgentsResearch(characterId: number): AsyncGenerator<PageResult<AgentResearch>, void, undefined>;
     // (undocumented)
-    streamCharacterBlueprints(characterId: number): AsyncGenerator<PageResult_2<Blueprint>, void, undefined>;
+    streamCharacterBlueprints(characterId: number): AsyncGenerator<PageResult<Blueprint>, void, undefined>;
     // (undocumented)
-    streamCharacterCorporationHistory(characterId: number): AsyncGenerator<PageResult_2<CorporationHistory>, void, undefined>;
+    streamCharacterCorporationHistory(characterId: number): AsyncGenerator<PageResult<CorporationHistory>, void, undefined>;
     // (undocumented)
-    streamCharacterMedals(characterId: number): AsyncGenerator<PageResult_2<Medal>, void, undefined>;
+    streamCharacterMedals(characterId: number): AsyncGenerator<PageResult<Medal>, void, undefined>;
     // (undocumented)
-    streamCharacterNotifications(characterId: number): AsyncGenerator<PageResult_2<Notification_2>, void, undefined>;
+    streamCharacterNotifications(characterId: number): AsyncGenerator<PageResult<Notification_2>, void, undefined>;
     // (undocumented)
-    streamCharacterNotificationsContacts(characterId: number): AsyncGenerator<PageResult_2<Notification_2>, void, undefined>;
+    streamCharacterNotificationsContacts(characterId: number): AsyncGenerator<PageResult<Notification_2>, void, undefined>;
     // (undocumented)
-    streamCharacterStandings(characterId: number): AsyncGenerator<PageResult_2<Standing>, void, undefined>;
+    streamCharacterStandings(characterId: number): AsyncGenerator<PageResult<Standing>, void, undefined>;
     // (undocumented)
-    streamCharacterTitles(characterId: number): AsyncGenerator<PageResult_2<CharacterTitle>, void, undefined>;
+    streamCharacterTitles(characterId: number): AsyncGenerator<PageResult<CharacterTitle>, void, undefined>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterFleetInfo = z.infer<typeof CharacterFleetInfoSchema>;
 
 // @public (undocumented)
@@ -675,7 +774,7 @@ const CharacterFleetInfoSchema: z.ZodObject<{
     wing_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterFreelanceJobsListing = z.infer<typeof CharacterFreelanceJobsListingSchema>;
 
 // @public (undocumented)
@@ -703,7 +802,7 @@ const CharacterFreelanceJobsListingSchema: z.ZodObject<{
 // @public (undocumented)
 export type CharacterId = Brand<number, 'CharacterId'>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterInfo = z.infer<typeof CharacterInfoSchema>;
 
 // @public (undocumented)
@@ -726,7 +825,7 @@ const CharacterInfoSchema: z.ZodObject<{
     birthday: z.ZodString;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterLocation = z.infer<typeof CharacterLocationSchema>;
 
 // @public (undocumented)
@@ -736,10 +835,10 @@ const CharacterLocationSchema: z.ZodObject<{
     structure_id: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterMarketOrder = z.infer<typeof CharacterMarketOrderSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterMarketOrderHistory = z.infer<typeof CharacterMarketOrderHistorySchema>;
 
 // @public
@@ -779,7 +878,7 @@ const CharacterMarketOrderSchema: z.ZodObject<{
     escrow: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterMilitaryCampaignObjective = z.infer<typeof CharacterMilitaryCampaignObjectiveSchema>;
 
 // @public (undocumented)
@@ -791,7 +890,7 @@ const CharacterMilitaryCampaignObjectiveSchema: z.ZodObject<{
     last_modified: z.ZodString;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterMilitaryCampaignObjectivesResponse = z.infer<typeof CharacterMilitaryCampaignObjectivesResponseSchema>;
 
 // @public (undocumented)
@@ -816,7 +915,7 @@ export class CharacterNotFoundError extends AuthError {
     readonly characterId: number;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterOnline = z.infer<typeof CharacterOnlineSchema>;
 
 // @public (undocumented)
@@ -827,7 +926,7 @@ const CharacterOnlineSchema: z.ZodObject<{
     logins: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterPortrait = z.infer<typeof CharacterPortraitSchema>;
 
 // @public (undocumented)
@@ -838,7 +937,7 @@ const CharacterPortraitSchema: z.ZodObject<{
     px512x512: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterRole = z.infer<typeof CharacterRoleSchema>;
 
 // @public (undocumented)
@@ -1765,7 +1864,7 @@ interface CharactersFreelanceJobsParticipation {
     state: 'Unspecified' | 'Committed' | 'Kicked' | 'Resigned';
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterShip = z.infer<typeof CharacterShipSchema>;
 
 // @public (undocumented)
@@ -1775,7 +1874,7 @@ const CharacterShipSchema: z.ZodObject<{
     ship_type_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterSkill = z.infer<typeof CharacterSkillSchema>;
 
 // @public (undocumented)
@@ -1788,9 +1887,9 @@ const CharacterSkillSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "skillEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class CharacterSkillsClient extends BaseEsiClient<typeof skillEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllCharacterSkillQueue(characterId: number, concurrency?: number): Promise<SkillQueue[]>;
     getCharacterAttributes(characterId: number): Promise<CharacterAttributes>;
@@ -1801,7 +1900,7 @@ export class CharacterSkillsClient extends BaseEsiClient<typeof skillEndpoints> 
         unallocated_sp?: number | undefined;
     }>;
     // (undocumented)
-    streamCharacterSkillQueue(characterId: number): AsyncGenerator<PageResult_2<SkillQueue>, void, undefined>;
+    streamCharacterSkillQueue(characterId: number): AsyncGenerator<PageResult<SkillQueue>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -1816,10 +1915,10 @@ const CharacterSkillsResponseSchema: z.ZodObject<{
     unallocated_sp: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterSkinr = z.infer<typeof CharacterSkinrSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterSkinrComponents = z.infer<typeof CharacterSkinrComponentsSchema>;
 
 // @public (undocumented)
@@ -2044,7 +2143,7 @@ export interface CharacterSummary {
     scopes: string[];
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CharacterTitle = z.infer<typeof CharacterTitleSchema>;
 
 // @public (undocumented)
@@ -2083,7 +2182,7 @@ export class CircuitBreaker implements ICircuitBreaker {
     // (undocumented)
     reset(endpoint?: string): void;
     // (undocumented)
-    setClient(client: ApiClient_2 | null): void;
+    setClient(client: ApiClient | null): void;
     // (undocumented)
     shutdown(): void;
 }
@@ -2102,10 +2201,18 @@ export interface CircuitBreakerConfig {
     staleThresholdMs?: number | undefined;
 }
 
-// Warning: (ae-forgotten-export) The symbol "CircuitBreakerStats_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export type CircuitBreakerStats = CircuitBreakerStats_2;
+// @public (undocumented)
+export interface CircuitBreakerStats {
+    // (undocumented)
+    circuits: Record<string, {
+        state: 'closed' | 'open' | 'half-open';
+        failures: number;
+    }>;
+    // (undocumented)
+    openCircuits: number;
+    // (undocumented)
+    totalCircuits: number;
+}
 
 // @public
 export class CircuitOpenError extends EsiError {
@@ -2125,7 +2232,7 @@ export class CircuitOpenError extends EsiError {
 // @public (undocumented)
 export type CircuitState = 'closed' | 'open' | 'half-open';
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CloneInfo = z.infer<typeof CloneInfoSchema>;
 
 // @public (undocumented)
@@ -2147,21 +2254,21 @@ const CloneInfoSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "cloneEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class ClonesClient extends BaseEsiClient<typeof cloneEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllImplants(characterId: number, concurrency?: number): Promise<number[]>;
     getClones(characterId: number): Promise<CloneInfo>;
     getImplants(characterId: number): Promise<number[]>;
     // (undocumented)
-    streamImplants(characterId: number): AsyncGenerator<PageResult_2<number>, void, undefined>;
+    streamImplants(characterId: number): AsyncGenerator<PageResult<number>, void, undefined>;
 }
 
 // @public
 export function codeChallengeFromVerifier(codeVerifier: string): string;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ColonyLayout = z.infer<typeof ColonyLayoutSchema>;
 
 // @public (undocumented)
@@ -2209,17 +2316,16 @@ const ColonyLayoutSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// Warning: (ae-forgotten-export) The symbol "configureApiClient_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated
-export const configureApiClient: typeof configureApiClient_2;
+// @public
+export function configureApiClient(client: ApiClient, config?: EsiClientConfig): ConfigureApiClientResult;
 
-// Warning: (ae-forgotten-export) The symbol "ConfigureApiClientResult_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export type ConfigureApiClientResult = ConfigureApiClientResult_2;
+// @public (undocumented)
+export interface ConfigureApiClientResult {
+    // (undocumented)
+    deduplicator: RequestDeduplicator | null;
+}
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ConstellationInfo = z.infer<typeof ConstellationInfoSchema>;
 
 // @public (undocumented)
@@ -2235,10 +2341,10 @@ const ConstellationInfoSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Contact = z.infer<typeof ContactSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ContactLabel = z.infer<typeof ContactLabelSchema>;
 
 // @public (undocumented)
@@ -2268,9 +2374,9 @@ const ContactSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "contactEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     deleteCharacterContacts(characterId: number, contactIds: number[]): Promise<void>;
     // (undocumented)
     fetchAllAllianceContactLabels(allianceId: number, concurrency?: number): Promise<ContactLabel[]>;
@@ -2293,20 +2399,20 @@ export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
     postCharacterContacts(characterId: number, standing: number, contactIds: number[]): Promise<number[]>;
     putCharacterContacts(characterId: number, standing: number, contactIds: number[]): Promise<void>;
     // (undocumented)
-    streamAllianceContactLabels(allianceId: number): AsyncGenerator<PageResult_2<ContactLabel>, void, undefined>;
+    streamAllianceContactLabels(allianceId: number): AsyncGenerator<PageResult<ContactLabel>, void, undefined>;
     // (undocumented)
-    streamAllianceContacts(allianceId: number): AsyncGenerator<PageResult_2<Contact>, void, undefined>;
+    streamAllianceContacts(allianceId: number): AsyncGenerator<PageResult<Contact>, void, undefined>;
     // (undocumented)
-    streamCharacterContactLabels(characterId: number): AsyncGenerator<PageResult_2<ContactLabel>, void, undefined>;
+    streamCharacterContactLabels(characterId: number): AsyncGenerator<PageResult<ContactLabel>, void, undefined>;
     // (undocumented)
-    streamCharacterContacts(characterId: number): AsyncGenerator<PageResult_2<Contact>, void, undefined>;
+    streamCharacterContacts(characterId: number): AsyncGenerator<PageResult<Contact>, void, undefined>;
     // (undocumented)
-    streamCorporationContactLabels(corporationId: number): AsyncGenerator<PageResult_2<ContactLabel>, void, undefined>;
+    streamCorporationContactLabels(corporationId: number): AsyncGenerator<PageResult<ContactLabel>, void, undefined>;
     // (undocumented)
-    streamCorporationContacts(corporationId: number): AsyncGenerator<PageResult_2<Contact>, void, undefined>;
+    streamCorporationContacts(corporationId: number): AsyncGenerator<PageResult<Contact>, void, undefined>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ContainerLog = z.infer<typeof ContainerLogSchema>;
 
 // @public (undocumented)
@@ -2325,10 +2431,10 @@ const ContainerLogSchema: z.ZodObject<{
     new_config_bitmask: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Contract = z.infer<typeof ContractSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ContractBid = z.infer<typeof ContractBidSchema>;
 
 // @public
@@ -2342,7 +2448,7 @@ const ContractBidSchema: z.ZodObject<{
 // @public (undocumented)
 export type ContractId = Brand<number, 'ContractId'>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ContractItem = z.infer<typeof ContractItemSchema>;
 
 // @public
@@ -2383,9 +2489,9 @@ const ContractSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "contractEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllCharacterContracts(characterId: number, concurrency?: number): Promise<Contract[]>;
     // (undocumented)
@@ -2402,11 +2508,11 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     getPublicContractItems(contractId: number): Promise<PublicContractItem[]>;
     getPublicContracts(regionId: number): Promise<PublicContract[]>;
     // (undocumented)
-    streamCharacterContracts(characterId: number): AsyncGenerator<PageResult_2<Contract>, void, undefined>;
+    streamCharacterContracts(characterId: number): AsyncGenerator<PageResult<Contract>, void, undefined>;
     // (undocumented)
-    streamCorporationContracts(corporationId: number): AsyncGenerator<PageResult_2<Contract>, void, undefined>;
+    streamCorporationContracts(corporationId: number): AsyncGenerator<PageResult<Contract>, void, undefined>;
     // (undocumented)
-    streamPublicContracts(regionId: number): AsyncGenerator<PageResult_2<PublicContract>, void, undefined>;
+    streamPublicContracts(regionId: number): AsyncGenerator<PageResult<PublicContract>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -2477,7 +2583,7 @@ interface ContractsPublicRegionIdGet {
     volume?: number;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationAllianceHistory = z.infer<typeof CorporationAllianceHistorySchema>;
 
 // @public (undocumented)
@@ -2529,7 +2635,7 @@ interface CorporationCorporationIdMiningObserversObserverIdGet {
     type_id: number;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationDivisions = z.infer<typeof CorporationDivisionsSchema>;
 
 // @public (undocumented)
@@ -2544,7 +2650,7 @@ const CorporationDivisionsSchema: z.ZodObject<{
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationFacility = z.infer<typeof CorporationFacilitySchema>;
 
 // @public (undocumented)
@@ -2554,7 +2660,7 @@ const CorporationFacilitySchema: z.ZodObject<{
     system_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationFreelanceJobsListing = z.infer<typeof CorporationFreelanceJobsListingSchema>;
 
 // @public (undocumented)
@@ -2579,7 +2685,7 @@ const CorporationFreelanceJobsListingSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationHistory = z.infer<typeof CorporationHistorySchema>;
 
 // @public (undocumented)
@@ -2600,7 +2706,7 @@ const CorporationIconSchema: z.ZodObject<{
 // @public (undocumented)
 export type CorporationId = Brand<number, 'CorporationId'>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationIndustryJob = z.infer<typeof CorporationIndustryJobSchema>;
 
 // @public
@@ -2629,7 +2735,7 @@ const CorporationIndustryJobSchema: z.ZodObject<{
     location_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationInfo = z.infer<typeof CorporationInfoSchema>;
 
 // @public
@@ -2664,7 +2770,7 @@ const CorporationInfoSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationIssuedMedal = z.infer<typeof CorporationIssuedMedalSchema>;
 
 // @public
@@ -2677,10 +2783,10 @@ const CorporationIssuedMedalSchema: z.ZodObject<{
     status: z.ZodType<(string & {}) | "private" | "public", unknown, z.core.$ZodTypeInternals<(string & {}) | "private" | "public", unknown>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationMarketOrder = z.infer<typeof CorporationMarketOrderSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationMarketOrderHistory = z.infer<typeof CorporationMarketOrderHistorySchema>;
 
 // @public
@@ -2722,7 +2828,7 @@ const CorporationMarketOrderSchema: z.ZodObject<{
     escrow: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationMedal = z.infer<typeof CorporationMedalSchema>;
 
 // @public
@@ -2734,7 +2840,7 @@ const CorporationMedalSchema: z.ZodObject<{
     created_at: z.ZodString;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationMemberRole = z.infer<typeof CorporationMemberRoleSchema>;
 
 // @public (undocumented)
@@ -2750,7 +2856,7 @@ const CorporationMemberRoleSchema: z.ZodObject<{
     grantable_roles_at_other: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationMemberTitle = z.infer<typeof CorporationMemberTitleSchema>;
 
 // @public (undocumented)
@@ -2759,7 +2865,7 @@ const CorporationMemberTitleSchema: z.ZodObject<{
     titles: z.ZodArray<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationMemberTracking = z.infer<typeof CorporationMemberTrackingSchema>;
 
 // @public (undocumented)
@@ -2774,10 +2880,10 @@ const CorporationMemberTrackingSchema: z.ZodObject<{
     ship_type_id: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationProject = z.infer<typeof CorporationProjectSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationProjectContribution = z.infer<typeof CorporationProjectContributionSchema>;
 
 // @public
@@ -2786,7 +2892,7 @@ const CorporationProjectContributionSchema: z.ZodObject<{
     last_modified: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationProjectContributor = z.infer<typeof CorporationProjectContributorSchema>;
 
 // @public
@@ -2796,7 +2902,7 @@ const CorporationProjectContributorSchema: z.ZodObject<{
     contributed: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationProjectContributorsListing = z.infer<typeof CorporationProjectContributorsListingSchema>;
 
 // @public
@@ -2812,7 +2918,7 @@ const CorporationProjectContributorsListingSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationProjectCursor = z.infer<typeof CorporationProjectCursorSchema>;
 
 // @public
@@ -2857,16 +2963,16 @@ const CorporationProjectSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "corporationProjectEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class CorporationProjectsClient extends BaseEsiClient<typeof corporationProjectEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getCorporationProject(corporationId: number, projectId: string): Promise<CorporationProject>;
     getCorporationProjectContribution(corporationId: number, projectId: string, characterId: number): Promise<CorporationProjectContribution>;
     getCorporationProjectContributors(corporationId: number, projectId: string, before?: string, after?: string): Promise<CorporationProjectContributorsListing>;
     getCorporationProjects(corporationId: number, before?: string, after?: string): Promise<CorporationProjectsListing>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationProjectsListing = z.infer<typeof CorporationProjectsListingSchema>;
 
 // @public
@@ -2891,7 +2997,7 @@ const CorporationProjectsListingSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationProjectSummary = z.infer<typeof CorporationProjectSummarySchema>;
 
 // @public
@@ -2910,7 +3016,7 @@ const CorporationProjectSummarySchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationRoleHistory = z.infer<typeof CorporationRoleHistorySchema>;
 
 // @public
@@ -2925,9 +3031,9 @@ const CorporationRoleHistorySchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "corporationEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class CorporationsClient extends BaseEsiClient<typeof corporationEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllCorporationAllianceHistory(corporationId: number, concurrency?: number): Promise<CorporationAllianceHistory[]>;
     // (undocumented)
@@ -2989,39 +3095,39 @@ export class CorporationsClient extends BaseEsiClient<typeof corporationEndpoint
     getCorporationTitles(corporationId: number): Promise<CorporationTitle[]>;
     getNpcCorporations(): Promise<number[]>;
     // (undocumented)
-    streamCorporationAllianceHistory(corporationId: number): AsyncGenerator<PageResult_2<CorporationAllianceHistory>, void, undefined>;
+    streamCorporationAllianceHistory(corporationId: number): AsyncGenerator<PageResult<CorporationAllianceHistory>, void, undefined>;
     // (undocumented)
-    streamCorporationAlscLogs(corporationId: number): AsyncGenerator<PageResult_2<ContainerLog>, void, undefined>;
+    streamCorporationAlscLogs(corporationId: number): AsyncGenerator<PageResult<ContainerLog>, void, undefined>;
     // (undocumented)
-    streamCorporationBlueprints(corporationId: number): AsyncGenerator<PageResult_2<Blueprint>, void, undefined>;
+    streamCorporationBlueprints(corporationId: number): AsyncGenerator<PageResult<Blueprint>, void, undefined>;
     // (undocumented)
-    streamCorporationFacilities(corporationId: number): AsyncGenerator<PageResult_2<CorporationFacility>, void, undefined>;
+    streamCorporationFacilities(corporationId: number): AsyncGenerator<PageResult<CorporationFacility>, void, undefined>;
     // (undocumented)
-    streamCorporationIssuedMedals(corporationId: number): AsyncGenerator<PageResult_2<CorporationIssuedMedal>, void, undefined>;
+    streamCorporationIssuedMedals(corporationId: number): AsyncGenerator<PageResult<CorporationIssuedMedal>, void, undefined>;
     // (undocumented)
-    streamCorporationMedals(corporationId: number): AsyncGenerator<PageResult_2<CorporationMedal>, void, undefined>;
+    streamCorporationMedals(corporationId: number): AsyncGenerator<PageResult<CorporationMedal>, void, undefined>;
     // (undocumented)
-    streamCorporationMembers(corporationId: number): AsyncGenerator<PageResult_2<number>, void, undefined>;
+    streamCorporationMembers(corporationId: number): AsyncGenerator<PageResult<number>, void, undefined>;
     // (undocumented)
-    streamCorporationMemberTitles(corporationId: number): AsyncGenerator<PageResult_2<CorporationMemberTitle>, void, undefined>;
+    streamCorporationMemberTitles(corporationId: number): AsyncGenerator<PageResult<CorporationMemberTitle>, void, undefined>;
     // (undocumented)
-    streamCorporationMemberTracking(corporationId: number): AsyncGenerator<PageResult_2<CorporationMemberTracking>, void, undefined>;
+    streamCorporationMemberTracking(corporationId: number): AsyncGenerator<PageResult<CorporationMemberTracking>, void, undefined>;
     // (undocumented)
-    streamCorporationRoles(corporationId: number): AsyncGenerator<PageResult_2<CorporationMemberRole>, void, undefined>;
+    streamCorporationRoles(corporationId: number): AsyncGenerator<PageResult<CorporationMemberRole>, void, undefined>;
     // (undocumented)
-    streamCorporationRolesHistory(corporationId: number): AsyncGenerator<PageResult_2<CorporationRoleHistory>, void, undefined>;
+    streamCorporationRolesHistory(corporationId: number): AsyncGenerator<PageResult<CorporationRoleHistory>, void, undefined>;
     // (undocumented)
-    streamCorporationShareholders(corporationId: number): AsyncGenerator<PageResult_2<CorporationShareholder>, void, undefined>;
+    streamCorporationShareholders(corporationId: number): AsyncGenerator<PageResult<CorporationShareholder>, void, undefined>;
     // (undocumented)
-    streamCorporationStandings(corporationId: number): AsyncGenerator<PageResult_2<Standing>, void, undefined>;
+    streamCorporationStandings(corporationId: number): AsyncGenerator<PageResult<Standing>, void, undefined>;
     // (undocumented)
-    streamCorporationStarbases(corporationId: number): AsyncGenerator<PageResult_2<CorporationStarbase>, void, undefined>;
+    streamCorporationStarbases(corporationId: number): AsyncGenerator<PageResult<CorporationStarbase>, void, undefined>;
     // (undocumented)
-    streamCorporationStructures(corporationId: number): AsyncGenerator<PageResult_2<CorporationStructure>, void, undefined>;
+    streamCorporationStructures(corporationId: number): AsyncGenerator<PageResult<CorporationStructure>, void, undefined>;
     // (undocumented)
-    streamCorporationTitles(corporationId: number): AsyncGenerator<PageResult_2<CorporationTitle>, void, undefined>;
+    streamCorporationTitles(corporationId: number): AsyncGenerator<PageResult<CorporationTitle>, void, undefined>;
     // (undocumented)
-    streamNpcCorporations(): AsyncGenerator<PageResult_2<number>, void, undefined>;
+    streamNpcCorporations(): AsyncGenerator<PageResult<number>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -3815,7 +3921,7 @@ interface CorporationsFreelanceJobsParticipants {
     })[];
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationShareholder = z.infer<typeof CorporationShareholderSchema>;
 
 // @public (undocumented)
@@ -4009,10 +4115,10 @@ interface CorporationsStructuresSovereigntyHubsListing {
     })[];
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationStarbase = z.infer<typeof CorporationStarbaseSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationStarbaseDetail = z.infer<typeof CorporationStarbaseDetailSchema>;
 
 // @public
@@ -4048,7 +4154,7 @@ const CorporationStarbaseSchema: z.ZodObject<{
     unanchor_at: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationStructure = z.infer<typeof CorporationStructureSchema>;
 
 // @public (undocumented)
@@ -4073,7 +4179,7 @@ const CorporationStructureSchema: z.ZodObject<{
     next_reinforce_apply: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationTitle = z.infer<typeof CorporationTitleSchema>;
 
 // @public (undocumented)
@@ -4096,7 +4202,7 @@ const CorporationWalletDivisionSchema: z.ZodObject<{
     balance: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CorporationWalletTransaction = z.infer<typeof CorporationWalletTransactionSchema>;
 
 // @public
@@ -4114,9 +4220,9 @@ const CorporationWalletTransactionSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "cosmeticsEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class CosmeticsClient extends BaseEsiClient<typeof cosmeticsEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     getCharacterSkinr(characterId: number): Promise<CharacterSkinr>;
     // (undocumented)
@@ -4151,10 +4257,13 @@ interface CosmeticsSkinr {
     };
 }
 
-// Warning: (ae-forgotten-export) The symbol "CreateClientOptions_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export type CreateClientOptions = CreateClientOptions_2;
+// @public (undocumented)
+export interface CreateClientOptions {
+    // (undocumented)
+    returnMetadata?: boolean;
+    // (undocumented)
+    safeMode?: boolean;
+}
 
 // @public
 export function createConsoleLogger(level?: LogLevel | 'silent'): ILogger;
@@ -4168,25 +4277,33 @@ export function createNoopLogger(): ILogger;
 // @public
 const CspaChargeCostSchema: z.ZodNumber;
 
-// Warning: (ae-forgotten-export) The symbol "CursorOptions_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export type CursorOptions = CursorOptions_2;
+// @public (undocumented)
+export interface CursorOptions {
+    // (undocumented)
+    after?: string;
+    // (undocumented)
+    before?: string;
+}
 
-// Warning: (ae-forgotten-export) The symbol "CursorResult_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export type CursorResult<T = unknown> = CursorResult_2<T>;
+// @public (undocumented)
+export interface CursorResult<T = unknown> {
+    // (undocumented)
+    cursors: CursorTokens;
+    // (undocumented)
+    data: T[];
+}
 
-// Warning: (ae-forgotten-export) The symbol "CursorTokens_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export type CursorTokens = CursorTokens_2;
+// @public (undocumented)
+export interface CursorTokens {
+    // (undocumented)
+    after: string | null;
+    // (undocumented)
+    before: string | null;
+}
 
-// @public @deprecated
+// @public
 export class CustomEsiClient {
-    // Warning: (ae-forgotten-export) The symbol "EsiClientConfig_2" needs to be exported by the entry point index.d.ts
-    constructor(config: EsiClientConfig_2 & {
+    constructor(config: EsiClientConfig & {
         clients: ApiClientType[];
     });
     // (undocumented)
@@ -4279,7 +4396,7 @@ export class CustomEsiClient {
     get wars(): WarsClient | undefined;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type CustomsOffice = z.infer<typeof CustomsOfficeSchema>;
 
 // @public (undocumented)
@@ -4328,12 +4445,17 @@ export const DEFAULT_SSO_BASE_URL = "https://login.eveonline.com";
 // @public
 export const DEFAULT_SSO_JWKS_URL = "https://login.eveonline.com/oauth/jwks";
 
-// Warning: (ae-forgotten-export) The symbol "DeprecationInfo_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated
-export type DeprecationInfo = DeprecationInfo_2;
+// @public (undocumented)
+export interface DeprecationInfo {
+    // (undocumented)
+    message?: string;
+    // (undocumented)
+    replacedBy?: string;
+    // (undocumented)
+    sunsetDate?: string;
+}
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type DogmaAttribute = z.infer<typeof DogmaAttributeSchema>;
 
 // @public (undocumented)
@@ -4376,9 +4498,9 @@ const DogmaAttributeSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "dogmaEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class DogmaClient extends BaseEsiClient<typeof dogmaEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getAttributeById(attributeId: number): Promise<DogmaAttribute>;
     getAttributes(): Promise<number[]>;
     getDynamicItemInfo(typeId: number, itemId: number): Promise<DogmaDynamicItem>;
@@ -4386,7 +4508,7 @@ export class DogmaClient extends BaseEsiClient<typeof dogmaEndpoints> {
     getEffects(): Promise<number[]>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type DogmaDynamicItem = z.infer<typeof DogmaDynamicItemSchema>;
 
 // @public (undocumented)
@@ -4424,7 +4546,7 @@ interface DogmaDynamicItemsTypeIdItemIdGet {
     source_type_id: number;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type DogmaEffect = z.infer<typeof DogmaEffectSchema>;
 
 // @public (undocumented)
@@ -4512,33 +4634,32 @@ interface DogmaEffectsEffectIdGet {
     tracking_speed_attribute_id?: number;
 }
 
-// @public @deprecated
+// @public
 export class EsiApiFactory {
     // @deprecated
-    static createAllianceClient(config?: EsiClientConfig_2): AllianceClient;
+    static createAllianceClient(config?: EsiClientConfig): AllianceClient;
     // @deprecated
-    static createAssetsClient(config?: EsiClientConfig_2): AssetsClient;
+    static createAssetsClient(config?: EsiClientConfig): AssetsClient;
     // @deprecated
-    static createCharacterClient(config?: EsiClientConfig_2): CharacterClient;
+    static createCharacterClient(config?: EsiClientConfig): CharacterClient;
+    static createClient(clientType: ApiClientType, config?: EsiClientConfig): ClientInstance;
     // @deprecated
-    static createClient(clientType: ApiClientType, config?: EsiClientConfig_2): ClientInstance;
+    static createCorporationClient(config?: EsiClientConfig): CorporationsClient;
     // @deprecated
-    static createCorporationClient(config?: EsiClientConfig_2): CorporationsClient;
+    static createFleetClient(config?: EsiClientConfig): FleetClient;
     // @deprecated
-    static createFleetClient(config?: EsiClientConfig_2): FleetClient;
+    static createMailClient(config?: EsiClientConfig): MailClient;
     // @deprecated
-    static createMailClient(config?: EsiClientConfig_2): MailClient;
+    static createMarketClient(config?: EsiClientConfig): MarketClient;
     // @deprecated
-    static createMarketClient(config?: EsiClientConfig_2): MarketClient;
+    static createUniverseClient(config?: EsiClientConfig): UniverseClient;
     // @deprecated
-    static createUniverseClient(config?: EsiClientConfig_2): UniverseClient;
-    // @deprecated
-    static createWalletClient(config?: EsiClientConfig_2): WalletClient;
+    static createWalletClient(config?: EsiClientConfig): WalletClient;
 }
 
-// @public @deprecated
+// @public
 export class EsiClient {
-    constructor(config?: EsiClientConfig_2);
+    constructor(config?: EsiClientConfig);
     // (undocumented)
     get accessLists(): AccessListsClient;
     // (undocumented)
@@ -4550,7 +4671,7 @@ export class EsiClient {
     // (undocumented)
     get assets(): AssetsClient;
     // (undocumented)
-    batch<K, T>(keys: K[], fetcher: (key: K) => Promise<T>, options?: BatchOptions_2): Promise<BatchResult_2<K, T>>;
+    batch<K, T>(keys: K[], fetcher: (key: K) => Promise<T>, options?: BatchOptions): Promise<BatchResult<K, T>>;
     // (undocumented)
     batchPost<T>(ids: number[], poster: (chunk: number[]) => Promise<T[]>, chunkSize?: number): Promise<T[]>;
     // (undocumented)
@@ -4571,10 +4692,8 @@ export class EsiClient {
     get corporations(): CorporationsClient;
     // (undocumented)
     get cosmetics(): CosmeticsClient;
-    // Warning: (ae-forgotten-export) The symbol "EsiDiagnostics_2" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    get diagnostics(): EsiDiagnostics_2;
+    get diagnostics(): EsiDiagnostics;
     // (undocumented)
     get dogma(): DogmaClient;
     // (undocumented)
@@ -4586,9 +4705,9 @@ export class EsiClient {
     // (undocumented)
     get freelanceJobs(): FreelanceJobsClient;
     // (undocumented)
-    getCacheStats(): CacheStats_2 | null;
+    getCacheStats(): CacheStats | null;
     // (undocumented)
-    getCircuitBreakerStats(): CircuitBreakerStats_2 | null;
+    getCircuitBreakerStats(): CircuitBreakerStats | null;
     // (undocumented)
     get incursions(): IncursionsClient;
     // (undocumented)
@@ -4647,7 +4766,7 @@ export class EsiClient {
     get wars(): WarsClient;
 }
 
-// @public @deprecated
+// @public
 export class EsiClientBuilder {
     // (undocumented)
     addClient(clientType: ApiClientType): this;
@@ -4660,18 +4779,68 @@ export class EsiClientBuilder {
     // (undocumented)
     withClientId(clientId: string): this;
     // (undocumented)
-    withConfig(config: EsiClientConfig_2): this;
+    withConfig(config: EsiClientConfig): this;
 }
 
-// @public @deprecated
-export type EsiClientConfig = EsiClientConfig_2;
+// @public (undocumented)
+export interface EsiClientConfig {
+    // (undocumented)
+    accessToken?: string | undefined;
+    // (undocumented)
+    baseUrl?: string | undefined;
+    // (undocumented)
+    circuitBreakerConfig?: CircuitBreakerConfig | undefined;
+    // (undocumented)
+    clientId?: string | undefined;
+    // (undocumented)
+    compatibilityDate?: string | undefined;
+    // (undocumented)
+    datasource?: EsiDatasource | undefined;
+    // (undocumented)
+    enableCircuitBreaker?: boolean | undefined;
+    // (undocumented)
+    enableETagCache?: boolean | undefined;
+    // (undocumented)
+    enableRequestDeduplication?: boolean | undefined;
+    // (undocumented)
+    etagCacheConfig?: ETagCacheConfig | undefined;
+    incompletePages?: IncompletePagesMode | undefined;
+    // (undocumented)
+    language?: string | undefined;
+    logger?: ILogger | undefined;
+    logLevel?: LogLevel | 'silent' | undefined;
+    // (undocumented)
+    onTokenRefresh?: TokenProvider | undefined;
+    // (undocumented)
+    rateLimiterConfig?: RateLimiterConfig | undefined;
+    // (undocumented)
+    requestInterceptors?: RequestInterceptor[] | undefined;
+    // (undocumented)
+    responseInterceptors?: ResponseInterceptor[] | undefined;
+    // (undocumented)
+    retryAttempts?: number | undefined;
+    // (undocumented)
+    retryConfig?: RetryConfig | undefined;
+    // (undocumented)
+    retryStrategy?: IRetryStrategy | undefined;
+    tenant?: string | undefined;
+    // (undocumented)
+    timeout?: number | undefined;
+    // (undocumented)
+    unsafeAllowCustomHost?: boolean | undefined;
+    userAgent?: string | undefined;
+    // (undocumented)
+    validateRequest?: boolean | undefined;
+    // (undocumented)
+    validateResponse?: boolean | undefined;
+}
 
 // @public
 export class EsiConfigurationError extends EsiFaultError {
     constructor(code: 'VALIDATION_ERROR' | 'NO_AUTH_TOKEN' | 'CONFIGURATION_ERROR', message: string);
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type EsiCursor = z.infer<typeof EsiCursorSchema>;
 
 // @public
@@ -4683,11 +4852,24 @@ const EsiCursorSchema: z.ZodObject<{
 // @public (undocumented)
 export type EsiDatasource = 'tranquility' | 'singularity';
 
-// @public @deprecated
-export const EsiDiagnostics: typeof EsiDiagnostics_2;
-
-// @public @deprecated (undocumented)
-export type EsiDiagnostics = EsiDiagnostics_2;
+// @public (undocumented)
+export class EsiDiagnostics {
+    constructor(apiClient: ApiClient, etagCacheEnabled: boolean, deduplicator: RequestDeduplicator | null);
+    // (undocumented)
+    clearCache(): void;
+    // (undocumented)
+    getCacheStats(): CacheStats | null;
+    // (undocumented)
+    getCircuitBreakerStats(): CircuitBreakerStats | null;
+    // (undocumented)
+    getDeduplicatorStats(): {
+        pendingRequests: number;
+    } | null;
+    // (undocumented)
+    resetCircuitBreaker(endpoint?: string): void;
+    // (undocumented)
+    updateCacheConfig(newConfig: Partial<ETagCacheConfig>): void;
+}
 
 // @public (undocumented)
 export const esiEndpointScopes: Record<string, EsiScope[]>;
@@ -5124,6 +5306,23 @@ interface EsiOperationTypes {
 // @public
 export class EsiPaginationError extends EsiFaultError {
     constructor(where: string, cause: unknown);
+    constructor(where: string, cause: unknown, details: EsiPaginationErrorDetails);
+    readonly endpoint: string;
+    readonly fetchedPages: number;
+    readonly itemCount: number;
+    readonly partial: readonly unknown[];
+    readonly reason: PaginationStopReason;
+    readonly reportedPages: number | undefined;
+}
+
+// @public
+export interface EsiPaginationErrorDetails {
+    readonly endpoint?: string;
+    readonly fetchedPages?: number;
+    readonly itemCount?: number;
+    readonly partial?: readonly unknown[];
+    readonly reason?: PaginationStopReason;
+    readonly reportedPages?: number;
 }
 
 // @public
@@ -5131,7 +5330,7 @@ export class EsiParseError extends EsiFaultError {
     constructor(message: string, url?: string, cause?: unknown);
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export interface EsiResponse<T> {
     // (undocumented)
     data: T;
@@ -5173,7 +5372,7 @@ function esiResponse<T extends z.ZodType>(dataSchema: T): z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$strip>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type EsiResponseMeta = z.infer<typeof EsiResponseMetaSchema>;
 
 // @public (undocumented)
@@ -5207,7 +5406,7 @@ const EsiResponseMetaSchema: z.ZodObject<{
     errorLimitReset: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type EsiResult<T> = {
     ok: true;
     data: T;
@@ -5488,7 +5687,7 @@ export interface ETagCacheConfig {
 
 // @public (undocumented)
 export class ETagCacheManager implements ICache {
-    constructor(config?: ETagCacheConfig, client?: ApiClient_2 | null, clock?: Clock | undefined);
+    constructor(config?: ETagCacheConfig, client?: ApiClient | null);
     cleanup(): number;
     clear(): void;
     delete(url: string): boolean;
@@ -5508,7 +5707,7 @@ export class ETagCacheManager implements ICache {
     has(url: string): boolean;
     set(url: string, etag: string, data: unknown, headers: Record<string, string>, customTtl?: number): void;
     // (undocumented)
-    setClient(client: ApiClient_2 | null): void;
+    setClient(client: ApiClient | null): void;
     shutdown(): void;
     updateConfig(newConfig: Partial<ETagCacheConfig>): void;
 }
@@ -5562,14 +5761,14 @@ export interface ExchangeCodeOptions {
     redirectUri?: string | undefined;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Faction = z.infer<typeof FactionSchema>;
 
 // Warning: (ae-forgotten-export) The symbol "factionEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getCharacterStats(characterId: number): Promise<FactionWarfareCharacterStats>;
     getCorporationStats(corporationId: number): Promise<FactionWarfareCorporationStats>;
     getLeaderboardsCharacters(): Promise<FactionWarfareCharacterLeaderboard>;
@@ -5597,7 +5796,7 @@ const FactionSchema: z.ZodObject<{
     militia_corporation_id: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FactionWarfareCharacterLeaderboard = z.infer<typeof FactionWarfareCharacterLeaderboardSchema>;
 
 // @public
@@ -5632,7 +5831,7 @@ const FactionWarfareCharacterLeaderboardSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FactionWarfareCharacterStats = z.infer<typeof FactionWarfareCharacterStatsSchema>;
 
 // @public (undocumented)
@@ -5653,7 +5852,7 @@ const FactionWarfareCharacterStatsSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FactionWarfareCorporationLeaderboard = z.infer<typeof FactionWarfareCorporationLeaderboardSchema>;
 
 // @public
@@ -5688,7 +5887,7 @@ const FactionWarfareCorporationLeaderboardSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FactionWarfareCorporationStats = z.infer<typeof FactionWarfareCorporationStatsSchema>;
 
 // @public (undocumented)
@@ -5708,7 +5907,7 @@ const FactionWarfareCorporationStatsSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FactionWarfareFactionLeaderboard = z.infer<typeof FactionWarfareFactionLeaderboardSchema>;
 
 // @public
@@ -5790,7 +5989,7 @@ const FactionWarfareLeaderboardSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FactionWarfareStats = z.infer<typeof FactionWarfareStatsSchema>;
 
 // @public (undocumented)
@@ -5810,7 +6009,7 @@ const FactionWarfareStatsSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FactionWarfareSystem = z.infer<typeof FactionWarfareSystemSchema>;
 
 // @public (undocumented)
@@ -5823,7 +6022,7 @@ const FactionWarfareSystemSchema: z.ZodObject<{
     victory_points_threshold: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FactionWarfareWar = z.infer<typeof FactionWarfareWarSchema>;
 
 // @public (undocumented)
@@ -5832,23 +6031,22 @@ const FactionWarfareWarSchema: z.ZodObject<{
     against_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// Warning: (ae-forgotten-export) The symbol "fetchAllCursorPages_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated
-export const fetchAllCursorPages: typeof fetchAllCursorPages_2;
+// @public
+export function fetchAllCursorPages<TResponse, TItem = unknown>(fetcher: (before?: string, after?: string) => Promise<TResponse>, getItems: (response: TResponse) => TItem[], getCursor: (response: TResponse) => {
+    before?: string | null | undefined;
+    after?: string | null | undefined;
+}): Promise<TItem[]>;
 
-// Warning: (ae-forgotten-export) The symbol "fetchAllPages_2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ResponseSchema" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
-export const fetchAllPages: typeof fetchAllPages_2;
+// @public (undocumented)
+export function fetchAllPages<T = unknown>(client: ApiClient, endpoint: string, method: string, requiresAuth?: boolean, body?: unknown, templatePath?: string, responseSchema?: ResponseSchema, concurrency?: number): Promise<T[]>;
 
 // @public (undocumented)
 export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
-// Warning: (ae-forgotten-export) The symbol "fetchPages_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated
-export const fetchPages: typeof fetchPages_2;
+// @public (undocumented)
+export function fetchPages<T = unknown>(client: ApiClient, endpoint: string, method: string, requiresAuth?: boolean, body?: unknown, templatePath?: string, responseSchema?: ResponseSchema): AsyncGenerator<PageResult<T>, void, undefined>;
 
 // @public
 export class FileTokenStorage implements ITokenStorage {
@@ -5880,7 +6078,7 @@ export interface FileTokenStorageOptions {
     mode?: number | undefined;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Fitting = z.infer<typeof FittingSchema>;
 
 // @public
@@ -5903,9 +6101,9 @@ const FittingSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "fittingEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     createFitting(characterId: number, fittingData: object): Promise<{
         fitting_id: number;
     }>;
@@ -5914,14 +6112,14 @@ export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
     fetchAllFittings(characterId: number, concurrency?: number): Promise<Fitting[]>;
     getFittings(characterId: number): Promise<Fitting[]>;
     // (undocumented)
-    streamFittings(characterId: number): AsyncGenerator<PageResult_2<Fitting>, void, undefined>;
+    streamFittings(characterId: number): AsyncGenerator<PageResult<Fitting>, void, undefined>;
 }
 
 // Warning: (ae-forgotten-export) The symbol "fleetEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     createFleetInvitation(fleetId: number, body: object): Promise<void>;
     createFleetSquad(fleetId: number, wingId: number): Promise<{
         squad_id: number;
@@ -5944,16 +6142,16 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
     renameFleetSquad(fleetId: number, squadId: number, name: string): Promise<void>;
     renameFleetWing(fleetId: number, wingId: number, name: string): Promise<void>;
     // (undocumented)
-    streamFleetMembers(fleetId: number): AsyncGenerator<PageResult_2<FleetMember>, void, undefined>;
+    streamFleetMembers(fleetId: number): AsyncGenerator<PageResult<FleetMember>, void, undefined>;
     // (undocumented)
-    streamFleetWings(fleetId: number): AsyncGenerator<PageResult_2<FleetWing>, void, undefined>;
+    streamFleetWings(fleetId: number): AsyncGenerator<PageResult<FleetWing>, void, undefined>;
     updateFleet(fleetId: number, body: object): Promise<void>;
 }
 
 // @public (undocumented)
 export type FleetId = Brand<number, 'FleetId'>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FleetInfo = z.infer<typeof FleetInfoSchema>;
 
 // @public (undocumented)
@@ -5966,7 +6164,7 @@ const FleetInfoSchema: z.ZodObject<{
     motd: z.ZodString;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FleetMember = z.infer<typeof FleetMemberSchema>;
 
 // @public (undocumented)
@@ -6037,7 +6235,7 @@ const FleetSquadCreatedSchema: z.ZodObject<{
     squad_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FleetWing = z.infer<typeof FleetWingSchema>;
 
 // @public
@@ -6055,7 +6253,7 @@ const FleetWingSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FreelanceJobDetail = z.infer<typeof FreelanceJobDetailSchema>;
 
 // @public (undocumented)
@@ -6114,7 +6312,7 @@ const FreelanceJobDetailSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FreelanceJobParticipant = z.infer<typeof FreelanceJobParticipantSchema>;
 
 // @public
@@ -6125,7 +6323,7 @@ const FreelanceJobParticipantSchema: z.ZodObject<{
     contributed: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FreelanceJobParticipantsListing = z.infer<typeof FreelanceJobParticipantsListingSchema>;
 
 // @public
@@ -6142,7 +6340,7 @@ const FreelanceJobParticipantsListingSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FreelanceJobParticipation = z.infer<typeof FreelanceJobParticipationSchema>;
 
 // @public
@@ -6154,9 +6352,9 @@ const FreelanceJobParticipationSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "freelanceJobsEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class FreelanceJobsClient extends BaseEsiClient<typeof freelanceJobsEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getCharacterFreelanceJobParticipation(characterId: number, jobId: string): Promise<FreelanceJobParticipation>;
     getCharacterFreelanceJobs(characterId: number, before?: string, after?: string): Promise<CharacterFreelanceJobsListing>;
     getCorporationFreelanceJobParticipants(corporationId: number, jobId: string): Promise<FreelanceJobParticipantsListing>;
@@ -6231,7 +6429,7 @@ interface FreelanceJobsDetail {
     state: 'Unspecified' | 'Active' | 'Closed' | 'Completed' | 'Expired' | 'Deleted';
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FreelanceJobsListing = z.infer<typeof FreelanceJobsListingSchema>;
 
 // @public (undocumented)
@@ -6280,7 +6478,7 @@ const FreelanceJobsListingSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type FreelanceJobSummary = z.infer<typeof FreelanceJobSummarySchema>;
 
 // @public (undocumented)
@@ -6456,13 +6654,13 @@ export function generatePkcePair(): PkcePair;
 // @public
 export function generateState(): string;
 
-// @public @deprecated
+// @public
 export function getDefaultClient(): EsiClient;
 
 // @public (undocumented)
 export const getLogger: () => ILogger;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type GraphicInfo = z.infer<typeof GraphicInfoSchema>;
 
 // @public (undocumented)
@@ -6564,7 +6762,10 @@ export interface ILogger {
     warn(message: string, context?: LogContext): void;
 }
 
-// @public @deprecated (undocumented)
+// @public
+export type IncompletePagesMode = 'truncate' | 'throw';
+
+// @public (undocumented)
 export type Incursion = z.infer<typeof IncursionSchema>;
 
 // @public (undocumented)
@@ -6581,9 +6782,9 @@ const IncursionSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "incursionEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class IncursionsClient extends BaseEsiClient<typeof incursionEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getIncursions(): Promise<Incursion[]>;
 }
 
@@ -6609,9 +6810,9 @@ interface IncursionsGet {
 
 // Warning: (ae-forgotten-export) The symbol "industryEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllCharacterIndustryJobs(characterId: number, concurrency?: number): Promise<IndustryJob[]>;
     // (undocumented)
@@ -6637,21 +6838,21 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     getIndustrySystems(): Promise<IndustrySystem[]>;
     getMoonExtractionTimers(corporationId: number): Promise<MoonExtractionTimer[]>;
     // (undocumented)
-    streamCharacterIndustryJobs(characterId: number): AsyncGenerator<PageResult_2<IndustryJob>, void, undefined>;
+    streamCharacterIndustryJobs(characterId: number): AsyncGenerator<PageResult<IndustryJob>, void, undefined>;
     // (undocumented)
-    streamCharacterMiningLedger(characterId: number): AsyncGenerator<PageResult_2<MiningLedgerEntry>, void, undefined>;
+    streamCharacterMiningLedger(characterId: number): AsyncGenerator<PageResult<MiningLedgerEntry>, void, undefined>;
     // (undocumented)
-    streamCorporationIndustryJobs(corporationId: number): AsyncGenerator<PageResult_2<CorporationIndustryJob>, void, undefined>;
+    streamCorporationIndustryJobs(corporationId: number): AsyncGenerator<PageResult<CorporationIndustryJob>, void, undefined>;
     // (undocumented)
-    streamCorporationMiningObserver(corporationId: number, observerId: number): AsyncGenerator<PageResult_2<MiningObserverEntry>, void, undefined>;
+    streamCorporationMiningObserver(corporationId: number, observerId: number): AsyncGenerator<PageResult<MiningObserverEntry>, void, undefined>;
     // (undocumented)
-    streamCorporationMiningObservers(corporationId: number): AsyncGenerator<PageResult_2<MiningObserver>, void, undefined>;
+    streamCorporationMiningObservers(corporationId: number): AsyncGenerator<PageResult<MiningObserver>, void, undefined>;
     // (undocumented)
-    streamIndustryFacilities(): AsyncGenerator<PageResult_2<IndustryFacility>, void, undefined>;
+    streamIndustryFacilities(): AsyncGenerator<PageResult<IndustryFacility>, void, undefined>;
     // (undocumented)
-    streamIndustrySystems(): AsyncGenerator<PageResult_2<IndustrySystem>, void, undefined>;
+    streamIndustrySystems(): AsyncGenerator<PageResult<IndustrySystem>, void, undefined>;
     // (undocumented)
-    streamMoonExtractionTimers(corporationId: number): AsyncGenerator<PageResult_2<MoonExtractionTimer>, void, undefined>;
+    streamMoonExtractionTimers(corporationId: number): AsyncGenerator<PageResult<MoonExtractionTimer>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -6670,7 +6871,7 @@ interface IndustryFacilitiesGet {
     type_id: number;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type IndustryFacility = z.infer<typeof IndustryFacilitySchema>;
 
 // @public (undocumented)
@@ -6683,7 +6884,7 @@ const IndustryFacilitySchema: z.ZodObject<{
     type_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type IndustryJob = z.infer<typeof IndustryJobSchema>;
 
 // @public
@@ -6712,7 +6913,7 @@ const IndustryJobSchema: z.ZodObject<{
     successful_runs: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type IndustrySystem = z.infer<typeof IndustrySystemSchema>;
 
 // @public (undocumented)
@@ -6735,20 +6936,24 @@ interface IndustrySystemsGet {
     solar_system_id: number;
 }
 
-// Warning: (ae-forgotten-export) The symbol "InferEndpointResult_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export type InferEndpointResult<D> = InferEndpointResult_2<D>;
+// @public
+export type InferEndpointResult<D> = D extends {
+    cursorPagination: true;
+} ? D extends {
+    responseSchema: infer S extends z.ZodType;
+} ? CursorResult<UnwrapArray<z.infer<S>>> : CursorResult : D extends {
+    responseSchema: infer S extends z.ZodType;
+} ? z.infer<S> : unknown;
 
 // Warning: (ae-forgotten-export) The symbol "insuranceEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class InsuranceClient extends BaseEsiClient<typeof insuranceEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getInsurancePrices(): Promise<InsurancePrice[]>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type InsurancePrice = z.infer<typeof InsurancePriceSchema>;
 
 // @public (undocumented)
@@ -6869,7 +7074,7 @@ export function isUnauthorized(error: unknown): error is EsiError;
 // @public (undocumented)
 export function isValidationError(error: unknown): error is EsiValidationError;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
 // @public (undocumented)
@@ -6880,7 +7085,7 @@ const ItemCategorySchema: z.ZodObject<{
     published: z.ZodBoolean;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ItemGroup = z.infer<typeof ItemGroupSchema>;
 
 // @public (undocumented)
@@ -6905,7 +7110,7 @@ export interface ITokenStorage {
     withLock?<T>(characterId: number, fn: () => Promise<T>): Promise<T>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type JumpFatigue = z.infer<typeof JumpFatigueSchema>;
 
 // @public (undocumented)
@@ -6915,7 +7120,7 @@ const JumpFatigueSchema: z.ZodObject<{
     last_update_date: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Killmail = z.infer<typeof KillmailSchema>;
 
 // @public (undocumented)
@@ -6957,9 +7162,9 @@ const KillmailSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "killmailEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class KillmailsClient extends BaseEsiClient<typeof killmailEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllCharacterRecentKillmails(characterId: number, concurrency?: number): Promise<KillmailSummary[]>;
     // (undocumented)
@@ -6968,9 +7173,9 @@ export class KillmailsClient extends BaseEsiClient<typeof killmailEndpoints> {
     getCorporationRecentKillmails(corporationId: number): Promise<KillmailSummary[]>;
     getKillmail(killmailId: number, killmailHash: string): Promise<Killmail>;
     // (undocumented)
-    streamCharacterRecentKillmails(characterId: number): AsyncGenerator<PageResult_2<KillmailSummary>, void, undefined>;
+    streamCharacterRecentKillmails(characterId: number): AsyncGenerator<PageResult<KillmailSummary>, void, undefined>;
     // (undocumented)
-    streamCorporationRecentKillmails(corporationId: number): AsyncGenerator<PageResult_2<KillmailSummary>, void, undefined>;
+    streamCorporationRecentKillmails(corporationId: number): AsyncGenerator<PageResult<KillmailSummary>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -7027,7 +7232,7 @@ interface KillmailsKillmailIdKillmailHashGet {
     war_id?: number;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type KillmailSummary = z.infer<typeof KillmailSummarySchema>;
 
 // @public (undocumented)
@@ -7038,9 +7243,9 @@ const KillmailSummarySchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "locationEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class LocationClient extends BaseEsiClient<typeof locationEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getCharacterLocation(characterId: number): Promise<CharacterLocation>;
     getCharacterOnline(characterId: number): Promise<CharacterOnline>;
     getCharacterShip(characterId: number): Promise<CharacterShip>;
@@ -7078,9 +7283,9 @@ export const logWarn: (message: string, context?: LogContext) => void;
 
 // Warning: (ae-forgotten-export) The symbol "loyaltyEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class LoyaltyClient extends BaseEsiClient<typeof loyaltyEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllLoyaltyPoints(characterId: number, concurrency?: number): Promise<LoyaltyPoints[]>;
     // (undocumented)
@@ -7088,12 +7293,12 @@ export class LoyaltyClient extends BaseEsiClient<typeof loyaltyEndpoints> {
     getLoyaltyPoints(characterId: number): Promise<LoyaltyPoints[]>;
     getLoyaltyStoreOffers(corporationId: number): Promise<LoyaltyStoreOffer[]>;
     // (undocumented)
-    streamLoyaltyPoints(characterId: number): AsyncGenerator<PageResult_2<LoyaltyPoints>, void, undefined>;
+    streamLoyaltyPoints(characterId: number): AsyncGenerator<PageResult<LoyaltyPoints>, void, undefined>;
     // (undocumented)
-    streamLoyaltyStoreOffers(corporationId: number): AsyncGenerator<PageResult_2<LoyaltyStoreOffer>, void, undefined>;
+    streamLoyaltyStoreOffers(corporationId: number): AsyncGenerator<PageResult<LoyaltyStoreOffer>, void, undefined>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type LoyaltyPoints = z.infer<typeof LoyaltyPointsSchema>;
 
 // @public (undocumented)
@@ -7102,7 +7307,7 @@ const LoyaltyPointsSchema: z.ZodObject<{
     loyalty_points: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type LoyaltyStoreOffer = z.infer<typeof LoyaltyStoreOfferSchema>;
 
 // @public (undocumented)
@@ -7142,9 +7347,9 @@ interface LoyaltyStoresCorporationIdOffersGet {
 
 // Warning: (ae-forgotten-export) The symbol "mailEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     createMailLabel(characterId: number, body: object): Promise<number>;
     deleteMail(characterId: number, mailId: number): Promise<void>;
     deleteMailLabel(characterId: number, labelId: number): Promise<void>;
@@ -7167,16 +7372,16 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
     }>;
     sendMail(characterId: number, body: object): Promise<number>;
     // (undocumented)
-    streamMailHeaders(characterId: number): AsyncGenerator<PageResult_2<MailHeader>, void, undefined>;
+    streamMailHeaders(characterId: number): AsyncGenerator<PageResult<MailHeader>, void, undefined>;
     // (undocumented)
-    streamMailingLists(characterId: number): AsyncGenerator<PageResult_2<{
+    streamMailingLists(characterId: number): AsyncGenerator<PageResult<{
         mailing_list_id: number;
         name: string;
     }>, void, undefined>;
     updateMailMetadata(characterId: number, mailId: number, body: object): Promise<void>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MailHeader = z.infer<typeof MailHeaderSchema>;
 
 // @public
@@ -7202,7 +7407,7 @@ const MailingListSchema: z.ZodObject<{
     name: z.ZodString;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MailLabel = z.infer<typeof MailLabelSchema>;
 
 // @public
@@ -7227,7 +7432,7 @@ const MailLabelsResponseSchema: z.ZodObject<{
     total_unread_count: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MailMessage = z.infer<typeof MailMessageSchema>;
 
 // @public
@@ -7244,14 +7449,14 @@ const MailMessageSchema: z.ZodObject<{
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
-// @public @deprecated
-export type ManagedClientConfig = Omit<EsiClientConfig_2, 'accessToken' | 'onTokenRefresh'>;
+// @public
+export type ManagedClientConfig = Omit<EsiClientConfig, 'accessToken' | 'onTokenRefresh'>;
 
 // Warning: (ae-forgotten-export) The symbol "marketEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllCharacterOrderHistory(characterId: number, concurrency?: number): Promise<CharacterMarketOrderHistory[]>;
     // (undocumented)
@@ -7276,20 +7481,20 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
     getMarketPrices(): Promise<MarketPrice[]>;
     getMarketTypes(regionId: number): Promise<number[]>;
     // (undocumented)
-    streamCharacterOrderHistory(characterId: number): AsyncGenerator<PageResult_2<CharacterMarketOrderHistory>, void, undefined>;
+    streamCharacterOrderHistory(characterId: number): AsyncGenerator<PageResult<CharacterMarketOrderHistory>, void, undefined>;
     // (undocumented)
-    streamCorporationOrderHistory(corporationId: number): AsyncGenerator<PageResult_2<CorporationMarketOrderHistory>, void, undefined>;
+    streamCorporationOrderHistory(corporationId: number): AsyncGenerator<PageResult<CorporationMarketOrderHistory>, void, undefined>;
     // (undocumented)
-    streamCorporationOrders(corporationId: number): AsyncGenerator<PageResult_2<CorporationMarketOrder>, void, undefined>;
+    streamCorporationOrders(corporationId: number): AsyncGenerator<PageResult<CorporationMarketOrder>, void, undefined>;
     // (undocumented)
-    streamMarketOrders(regionId: number): AsyncGenerator<PageResult_2<MarketOrder>, void, undefined>;
+    streamMarketOrders(regionId: number): AsyncGenerator<PageResult<MarketOrder>, void, undefined>;
     // (undocumented)
-    streamMarketOrdersInStructure(structureId: number): AsyncGenerator<PageResult_2<StructureMarketOrder>, void, undefined>;
+    streamMarketOrdersInStructure(structureId: number): AsyncGenerator<PageResult<StructureMarketOrder>, void, undefined>;
     // (undocumented)
-    streamMarketTypes(regionId: number): AsyncGenerator<PageResult_2<number>, void, undefined>;
+    streamMarketTypes(regionId: number): AsyncGenerator<PageResult<number>, void, undefined>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MarketGroup = z.infer<typeof MarketGroupSchema>;
 
 // @public (undocumented)
@@ -7301,7 +7506,7 @@ const MarketGroupSchema: z.ZodObject<{
     parent_group_id: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MarketHistory = z.infer<typeof MarketHistorySchema>;
 
 // @public (undocumented)
@@ -7314,7 +7519,7 @@ const MarketHistorySchema: z.ZodObject<{
     lowest: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MarketOrder = z.infer<typeof MarketOrderSchema>;
 
 // @public
@@ -7333,7 +7538,7 @@ const MarketOrderSchema: z.ZodObject<{
     range: z.ZodString;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MarketPrice = z.infer<typeof MarketPriceSchema>;
 
 // @public (undocumented)
@@ -7437,7 +7642,7 @@ interface MarketsStructuresStructureIdGet {
     volume_total: number;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Medal = z.infer<typeof MedalSchema>;
 
 // @public (undocumented)
@@ -7476,19 +7681,19 @@ export class MemoryTokenStorage implements ITokenStorage {
 
 // Warning: (ae-forgotten-export) The symbol "mercenaryEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class MercenaryClient extends BaseEsiClient<typeof mercenaryEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getMercenaryDenDetail(characterId: number, mercenaryDenId: number): Promise<MercenaryDenDetail>;
     getMercenaryDens(characterId: number): Promise<MercenaryDensResponse>;
     getMercenaryTacticalOperationDetail(characterId: number, operationId: string): Promise<MercenaryTacticalOperationDetail>;
     getMercenaryTacticalOperations(characterId: number): Promise<MercenaryTacticalOperationsResponse>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MercenaryDen = z.infer<typeof MercenaryDenSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MercenaryDenDetail = z.infer<typeof MercenaryDenDetailSchema>;
 
 // @public (undocumented)
@@ -7554,7 +7759,7 @@ const MercenaryDenSchema: z.ZodObject<{
     planet_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MercenaryDensResponse = z.infer<typeof MercenaryDensResponseSchema>;
 
 // @public
@@ -7565,10 +7770,10 @@ const MercenaryDensResponseSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MercenaryTacticalOperation = z.infer<typeof MercenaryTacticalOperationSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MercenaryTacticalOperationDetail = z.infer<typeof MercenaryTacticalOperationDetailSchema>;
 
 // @public (undocumented)
@@ -7586,7 +7791,7 @@ const MercenaryTacticalOperationSchema: z.ZodObject<{
     mercenary_den_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MercenaryTacticalOperationsResponse = z.infer<typeof MercenaryTacticalOperationsResponseSchema>;
 
 // @public
@@ -7597,7 +7802,7 @@ const MercenaryTacticalOperationsResponseSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MetaChangelog = z.infer<typeof MetaChangelogSchema>;
 
 // @public (undocumented)
@@ -7606,7 +7811,7 @@ interface MetaChangelog_2 {
     changelog: Record<string, unknown>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MetaChangelogEntry = z.infer<typeof MetaChangelogEntrySchema>;
 
 // @public
@@ -7631,9 +7836,9 @@ const MetaChangelogSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "metaEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getChangelog(): Promise<MetaChangelog>;
     getCompatibilityDates(): Promise<MetaCompatibilityDates>;
     getName(): Promise<MetaName>;
@@ -7642,7 +7847,7 @@ export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
     getStatus(): Promise<MetaStatus>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MetaCompatibilityDates = z.infer<typeof MetaCompatibilityDatesSchema>;
 
 // @public (undocumented)
@@ -7656,7 +7861,7 @@ const MetaCompatibilityDatesSchema: z.ZodObject<{
     compatibility_dates: z.ZodArray<z.ZodString>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MetaName = z.infer<typeof MetaNameSchema>;
 
 // @public (undocumented)
@@ -7679,7 +7884,7 @@ const MetaNameSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MetaRouteStatus = z.infer<typeof MetaRouteStatusSchema>;
 
 // @public
@@ -7689,7 +7894,7 @@ const MetaRouteStatusSchema: z.ZodObject<{
     status: z.ZodType<(string & {}) | "Unknown" | "OK" | "Degraded" | "Down" | "Recovering", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unknown" | "OK" | "Degraded" | "Down" | "Recovering", unknown>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MetaStatus = z.infer<typeof MetaStatusSchema>;
 
 // @public (undocumented)
@@ -7711,10 +7916,10 @@ const MetaStatusSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MilitaryCampaign = z.infer<typeof MilitaryCampaignSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MilitaryCampaignObjective = z.infer<typeof MilitaryCampaignObjectiveSchema>;
 
 // @public (undocumented)
@@ -7732,7 +7937,7 @@ const MilitaryCampaignObjectiveSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MilitaryCampaignObjectivesResponse = z.infer<typeof MilitaryCampaignObjectivesResponseSchema>;
 
 // @public (undocumented)
@@ -7767,9 +7972,9 @@ const MilitaryCampaignSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "militaryCampaignEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class MilitaryCampaignsClient extends BaseEsiClient<typeof militaryCampaignEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getCharacterMilitaryCampaignObjective(characterId: number, objectiveId: string): Promise<CharacterMilitaryCampaignObjective>;
     getCharacterMilitaryCampaignObjectives(characterId: number, after?: string, before?: string, limit?: number): Promise<CharacterMilitaryCampaignObjectivesResponse>;
     getMilitaryCampaign(campaignId: string): Promise<MilitaryCampaign>;
@@ -7849,7 +8054,7 @@ interface MilitaryCampaignsObjectivesListing {
     })[];
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MilitaryCampaignsResponse = z.infer<typeof MilitaryCampaignsResponseSchema>;
 
 // @public (undocumented)
@@ -7863,7 +8068,7 @@ const MilitaryCampaignsResponseSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MiningLedgerEntry = z.infer<typeof MiningLedgerEntrySchema>;
 
 // @public (undocumented)
@@ -7874,10 +8079,10 @@ const MiningLedgerEntrySchema: z.ZodObject<{
     quantity: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MiningObserver = z.infer<typeof MiningObserverSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MiningObserverEntry = z.infer<typeof MiningObserverEntrySchema>;
 
 // @public (undocumented)
@@ -7896,7 +8101,7 @@ const MiningObserverSchema: z.ZodObject<{
     last_updated: z.ZodString;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MoonExtractionTimer = z.infer<typeof MoonExtractionTimerSchema>;
 
 // @public (undocumented)
@@ -7908,7 +8113,7 @@ const MoonExtractionTimerSchema: z.ZodObject<{
     natural_decay_time: z.ZodString;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type MoonInfo = z.infer<typeof MoonInfoSchema>;
 
 // @public (undocumented)
@@ -7923,7 +8128,7 @@ const MoonInfoSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type NameAndCategory = z.infer<typeof NameAndCategorySchema>;
 
 // @public (undocumented)
@@ -7933,7 +8138,7 @@ const NameAndCategorySchema: z.ZodObject<{
     category: z.ZodType<(string & {}) | "faction" | "character" | "corporation" | "alliance" | "constellation" | "inventory_type" | "region" | "solar_system" | "station", unknown, z.core.$ZodTypeInternals<(string & {}) | "faction" | "character" | "corporation" | "alliance" | "constellation" | "inventory_type" | "region" | "solar_system" | "station", unknown>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 type Notification_2 = z.infer<typeof NotificationSchema>;
 export { Notification_2 as Notification }
 
@@ -7948,7 +8153,7 @@ const NotificationSchema: z.ZodObject<{
     is_read: z.ZodOptional<z.ZodBoolean>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type OrbitalSkyhook = z.infer<typeof OrbitalSkyhookSchema>;
 
 // @public
@@ -7957,7 +8162,7 @@ const OrbitalSkyhookSchema: z.ZodObject<{
     planet_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type OrbitalSkyhooksResponse = z.infer<typeof OrbitalSkyhooksResponseSchema>;
 
 // @public
@@ -7971,10 +8176,20 @@ const OrbitalSkyhooksResponseSchema: z.ZodObject<{
 // @public (undocumented)
 export type OrderId = Brand<number, 'OrderId'>;
 
-// @public @deprecated (undocumented)
-export type PageResult<T = unknown> = PageResult_2<T>;
+// @public (undocumented)
+export interface PageResult<T = unknown> {
+    // (undocumented)
+    data: T[];
+    // (undocumented)
+    page: number;
+    // (undocumented)
+    totalPages: number;
+}
 
-// @public @deprecated (undocumented)
+// @public
+export type PaginationStopReason = 'page-cap' | 'empty-page' | 'cursor-cap' | 'fetch-failed';
+
+// @public (undocumented)
 export type ParagonHubCharacterListing = z.infer<typeof ParagonHubCharacterListingSchema>;
 
 // @public (undocumented)
@@ -7999,7 +8214,7 @@ const ParagonHubCharacterListingSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ParagonHubCharacterSkinrResponse = z.infer<typeof ParagonHubCharacterSkinrResponseSchema>;
 
 // @public (undocumented)
@@ -8032,9 +8247,9 @@ const ParagonHubCharacterSkinrResponseSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "paragonHubEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class ParagonHubClient extends BaseEsiClient<typeof paragonHubEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     getAllianceListings(allianceId: number, after?: string, before?: string, limit?: number): Promise<ParagonHubSkinrResponse>;
     // (undocumented)
@@ -8047,7 +8262,7 @@ export class ParagonHubClient extends BaseEsiClient<typeof paragonHubEndpoints> 
     getPublicListings(after?: string, before?: string, limit?: number): Promise<ParagonHubSkinrResponse>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ParagonHubCursor = z.infer<typeof ParagonHubCursorSchema>;
 
 // @public (undocumented)
@@ -8140,7 +8355,7 @@ interface ParagonHubSkinrCorporations {
     })[];
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ParagonHubSkinrListing = z.infer<typeof ParagonHubSkinrListingSchema>;
 
 // @public (undocumented)
@@ -8165,7 +8380,7 @@ const ParagonHubSkinrPriceSchema: z.ZodObject<{
     plex: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ParagonHubSkinrResponse = z.infer<typeof ParagonHubSkinrResponseSchema>;
 
 // @public (undocumented)
@@ -8206,9 +8421,9 @@ export function parseScopes(scp: unknown): string[];
 
 // Warning: (ae-forgotten-export) The symbol "piEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class PiClient extends BaseEsiClient<typeof piEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllColonies(characterId: number, concurrency?: number): Promise<PlanetaryColony[]>;
     // (undocumented)
@@ -8218,9 +8433,9 @@ export class PiClient extends BaseEsiClient<typeof piEndpoints> {
     getCorporationCustomsOffices(corporationId: number): Promise<CustomsOffice[]>;
     getSchematicInformation(schematicId: number): Promise<SchematicInfo>;
     // (undocumented)
-    streamColonies(characterId: number): AsyncGenerator<PageResult_2<PlanetaryColony>, void, undefined>;
+    streamColonies(characterId: number): AsyncGenerator<PageResult<PlanetaryColony>, void, undefined>;
     // (undocumented)
-    streamCorporationCustomsOffices(corporationId: number): AsyncGenerator<PageResult_2<CustomsOffice>, void, undefined>;
+    streamCorporationCustomsOffices(corporationId: number): AsyncGenerator<PageResult<CustomsOffice>, void, undefined>;
 }
 
 // @public
@@ -8230,7 +8445,7 @@ export interface PkcePair {
     codeVerifier: string;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type PlanetaryColony = z.infer<typeof PlanetaryColonySchema>;
 
 // @public (undocumented)
@@ -8247,7 +8462,7 @@ const PlanetaryColonySchema: z.ZodObject<{
 // @public (undocumented)
 export type PlanetId = Brand<number, 'PlanetId'>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type PlanetInfo = z.infer<typeof PlanetInfoSchema>;
 
 // @public (undocumented)
@@ -8263,10 +8478,10 @@ const PlanetInfoSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type PublicContract = z.infer<typeof PublicContractSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type PublicContractBid = z.infer<typeof PublicContractBidSchema>;
 
 // @public
@@ -8276,7 +8491,7 @@ const PublicContractBidSchema: z.ZodObject<{
     amount: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type PublicContractItem = z.infer<typeof PublicContractItemSchema>;
 
 // @public
@@ -8312,7 +8527,7 @@ const PublicContractSchema: z.ZodObject<{
     volume: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Race = z.infer<typeof RaceSchema>;
 
 // @public (undocumented)
@@ -8323,7 +8538,7 @@ const RaceSchema: z.ZodObject<{
     alliance_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type RaidableSkyhook = z.infer<typeof RaidableSkyhookSchema>;
 
 // @public
@@ -8336,7 +8551,7 @@ const RaidableSkyhookSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type RaidableSkyhooksResponse = z.infer<typeof RaidableSkyhooksResponseSchema>;
 
 // @public
@@ -8376,7 +8591,7 @@ export class RateLimiter implements IRateLimiter {
     isBlocked(group?: string): boolean;
     // (undocumented)
     reset(): void;
-    setClient(client: ApiClient_2 | null): void;
+    setClient(client: ApiClient | null): void;
     // (undocumented)
     setTestMode(enabled: boolean): void;
     // (undocumented)
@@ -8443,7 +8658,7 @@ export interface RateLimitInfo {
     used: number;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type RateLimitMeta = z.infer<typeof RateLimitMetaSchema>;
 
 // @public (undocumented)
@@ -8485,7 +8700,7 @@ export type RefreshStatus = 'refreshed' | 'skipped' | 'failed' | 'revoked';
 // @public (undocumented)
 export type RegionId = Brand<number, 'RegionId'>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type RegionInfo = z.infer<typeof RegionInfoSchema>;
 
 // @public (undocumented)
@@ -8525,7 +8740,7 @@ export class RequestDeduplicator implements IDeduplicator {
     // (undocumented)
     get pending(): number;
     // (undocumented)
-    setClient(client: ApiClient_2 | null): void;
+    setClient(client: ApiClient | null): void;
 }
 
 // @public (undocumented)
@@ -8569,7 +8784,7 @@ export interface RetryConfig {
 // @public (undocumented)
 export interface RetryContext {
     // (undocumented)
-    client?: ApiClient_2 | undefined;
+    client?: ApiClient | undefined;
     // (undocumented)
     endpoint: string;
     // (undocumented)
@@ -8597,13 +8812,13 @@ interface Route {
 
 // Warning: (ae-forgotten-export) The symbol "routeEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class RouteClient extends BaseEsiClient<typeof routeEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getRoute(origin: number, destination: number, options?: RouteOptions): Promise<number[]>;
 }
 
-// @public @deprecated
+// @public
 export interface RouteOptions {
     // (undocumented)
     avoid_systems?: number[] | undefined;
@@ -8854,7 +9069,7 @@ declare namespace schemas {
     }
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SchematicInfo = z.infer<typeof SchematicInfoSchema>;
 
 // @public (undocumented)
@@ -8865,13 +9080,13 @@ const SchematicInfoSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "searchEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class SearchClient extends BaseEsiClient<typeof searchEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     characterSearch(characterId: number, searchString: string, categories: string[]): Promise<SearchResult>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SearchResult = z.infer<typeof SearchResultSchema>;
 
 // @public (undocumented)
@@ -8889,7 +9104,7 @@ const SearchResultSchema: z.ZodObject<{
     structure: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type ServerStatus = z.infer<typeof ServerStatusSchema>;
 
 // @public (undocumented)
@@ -8903,7 +9118,7 @@ const ServerStatusSchema: z.ZodObject<{
 // @public (undocumented)
 export const setLogger: (customLogger: ILogger) => void;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SkillQueue = z.infer<typeof SkillQueueSchema>;
 
 // @public (undocumented)
@@ -8918,10 +9133,10 @@ const SkillQueueSchema: z.ZodObject<{
     finish_date: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Skinr = z.infer<typeof SkinrSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SkinrComponentLicense = z.infer<typeof SkinrComponentLicenseSchema>;
 
 // @public (undocumented)
@@ -8955,7 +9170,7 @@ const SkinrLayoutSlotSchema: z.ZodObject<{
     configuration: z.ZodObject<{}, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SkinrLicense = z.infer<typeof SkinrLicenseSchema>;
 
 // @public (undocumented)
@@ -8989,7 +9204,7 @@ const SkinrTierSchema: z.ZodObject<{
     level: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SkyhookDetail = z.infer<typeof SkyhookDetailSchema>;
 
 // @public (undocumented)
@@ -9035,9 +9250,9 @@ const SkyhookDetailTheftVulnerabilitySchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "skyhookEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhooksResponse>;
     getRaidableSkyhooks(): Promise<RaidableSkyhooksResponse>;
     getSkyhookDetail(corporationId: number, skyhookId: number): Promise<SkyhookDetail>;
@@ -9058,7 +9273,7 @@ interface SkyhooksRaidable {
     })[];
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SolarSystemInfo = z.infer<typeof SolarSystemInfoSchema>;
 
 // @public (undocumented)
@@ -9083,7 +9298,7 @@ const SolarSystemInfoSchema: z.ZodObject<{
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SovereigntyCampaign = z.infer<typeof SovereigntyCampaignSchema>;
 
 // @public (undocumented)
@@ -9132,17 +9347,17 @@ interface SovereigntyCampaignsGet {
 
 // Warning: (ae-forgotten-export) The symbol "sovereigntyEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class SovereigntyClient extends BaseEsiClient<typeof sovereigntyEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getSovereigntyCampaigns(): Promise<SovereigntyCampaign[]>;
     getSovereigntySystems(): Promise<SovereigntySystem>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SovereigntyHub = z.infer<typeof SovereigntyHubSchema>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SovereigntyHubDetail = z.infer<typeof SovereigntyHubDetailSchema>;
 
 // @public (undocumented)
@@ -9241,7 +9456,7 @@ const SovereigntyHubSchema: z.ZodObject<{
     solar_system_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SovereigntyHubsResponse = z.infer<typeof SovereigntyHubsResponseSchema>;
 
 // @public
@@ -9252,7 +9467,7 @@ const SovereigntyHubsResponseSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SovereigntySystem = z.infer<typeof SovereigntySystemSchema>;
 
 // @public (undocumented)
@@ -9296,7 +9511,7 @@ const SovereigntySystemSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SovereigntySystemStructure = z.infer<typeof SovereigntySystemStructureSchema>;
 
 // @public (undocumented)
@@ -9348,7 +9563,7 @@ export interface SsoTokenResponse {
     tokenType: string;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type Standing = z.infer<typeof StandingSchema>;
 
 // @public (undocumented)
@@ -9358,7 +9573,7 @@ const StandingSchema: z.ZodObject<{
     standing: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type StargateInfo = z.infer<typeof StargateInfoSchema>;
 
 // @public (undocumented)
@@ -9378,7 +9593,7 @@ const StargateInfoSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type StarInfo = z.infer<typeof StarInfoSchema>;
 
 // @public (undocumented)
@@ -9397,7 +9612,7 @@ const StarInfoSchema: z.ZodObject<{
 // @public (undocumented)
 export type StationId = Brand<number, 'StationId'>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type StationInfo = z.infer<typeof StationInfoSchema>;
 
 // @public (undocumented)
@@ -9434,9 +9649,9 @@ interface Status {
 
 // Warning: (ae-forgotten-export) The symbol "statusEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class StatusClient extends BaseEsiClient<typeof statusEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getStatus(): Promise<ServerStatus>;
 }
 
@@ -9456,7 +9671,7 @@ export interface StoredToken {
 // @public (undocumented)
 export type StructureId = Brand<number, 'StructureId'>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type StructureInfo = z.infer<typeof StructureInfoSchema>;
 
 // @public (undocumented)
@@ -9473,7 +9688,7 @@ const StructureInfoSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type StructureMarketOrder = z.infer<typeof StructureMarketOrderSchema>;
 
 // @public
@@ -9494,7 +9709,7 @@ const StructureMarketOrderSchema: z.ZodObject<{
 // @public (undocumented)
 export type SystemId = Brand<number, 'SystemId'>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SystemJump = z.infer<typeof SystemJumpSchema>;
 
 // @public (undocumented)
@@ -9503,7 +9718,7 @@ const SystemJumpSchema: z.ZodObject<{
     ship_jumps: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type SystemKill = z.infer<typeof SystemKillSchema>;
 
 // @public (undocumented)
@@ -9580,7 +9795,7 @@ export function toPinoLogger(p: {
 // @public (undocumented)
 export type TypeId = Brand<number, 'TypeId'>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type TypeInfo = z.infer<typeof TypeInfoSchema>;
 
 // @public (undocumented)
@@ -9611,9 +9826,9 @@ const TypeInfoSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "uiEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class UiClient extends BaseEsiClient<typeof uiEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     openContractWindow(contractId: number): Promise<void>;
     openInformationWindow(targetId: number): Promise<void>;
     openMarketDetailsWindow(typeId: number): Promise<void>;
@@ -9691,9 +9906,9 @@ interface UniverseCategoriesCategoryIdGet {
 
 // Warning: (ae-forgotten-export) The symbol "universeEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     getAncestries(): Promise<Ancestry[]>;
     getAsteroidBeltInfo(asteroidBeltId: number): Promise<AsteroidBeltInfo>;
     getBloodlines(): Promise<Bloodline[]>;
@@ -10120,10 +10335,8 @@ interface UniverseTypesTypeIdGet {
     volume?: number;
 }
 
-// Warning: (ae-forgotten-export) The symbol "UnwrapArray_2" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated (undocumented)
-export type UnwrapArray<T> = UnwrapArray_2<T>;
+// @public
+export type UnwrapArray<T> = T extends readonly (infer E)[] ? E : T;
 
 // @public (undocumented)
 export type ValidationDirection = 'request' | 'response';
@@ -10142,9 +10355,9 @@ export interface VerifyAccessTokenOptions {
 
 // Warning: (ae-forgotten-export) The symbol "walletEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllCharacterWalletJournal(characterId: number, concurrency?: number): Promise<WalletJournal[]>;
     // (undocumented)
@@ -10163,16 +10376,16 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     }[]>;
     getCorporationWalletTransactions(corporationId: number, division: number): Promise<CorporationWalletTransaction[]>;
     // (undocumented)
-    streamCharacterWalletJournal(characterId: number): AsyncGenerator<PageResult_2<WalletJournal>, void, undefined>;
+    streamCharacterWalletJournal(characterId: number): AsyncGenerator<PageResult<WalletJournal>, void, undefined>;
     // (undocumented)
-    streamCharacterWalletTransactions(characterId: number): AsyncGenerator<PageResult_2<WalletTransaction>, void, undefined>;
+    streamCharacterWalletTransactions(characterId: number): AsyncGenerator<PageResult<WalletTransaction>, void, undefined>;
     // (undocumented)
-    streamCorporationWalletJournal(corporationId: number, division: number): AsyncGenerator<PageResult_2<WalletJournal>, void, undefined>;
+    streamCorporationWalletJournal(corporationId: number, division: number): AsyncGenerator<PageResult<WalletJournal>, void, undefined>;
     // (undocumented)
-    streamCorporationWalletTransactions(corporationId: number, division: number): AsyncGenerator<PageResult_2<CorporationWalletTransaction>, void, undefined>;
+    streamCorporationWalletTransactions(corporationId: number, division: number): AsyncGenerator<PageResult<CorporationWalletTransaction>, void, undefined>;
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type WalletJournal = z.infer<typeof WalletJournalSchema>;
 
 // @public (undocumented)
@@ -10192,7 +10405,7 @@ const WalletJournalSchema: z.ZodObject<{
     tax_receiver_id: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type WalletTransaction = z.infer<typeof WalletTransactionSchema>;
 
 // @public (undocumented)
@@ -10209,7 +10422,7 @@ const WalletTransactionSchema: z.ZodObject<{
     journal_ref_id: z.ZodNumber;
 }, z.core.$loose>;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type War = z.infer<typeof WarSchema>;
 
 // @public (undocumented)
@@ -10244,9 +10457,9 @@ const WarSchema: z.ZodObject<{
 
 // Warning: (ae-forgotten-export) The symbol "warEndpoints" needs to be exported by the entry point index.d.ts
 //
-// @public @deprecated
+// @public (undocumented)
 export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
-    constructor(client: ApiClient_2);
+    constructor(client: ApiClient);
     // (undocumented)
     fetchAllWarKillmails(warId: number, concurrency?: number): Promise<KillmailSummary[]>;
     // (undocumented)
@@ -10255,9 +10468,9 @@ export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
     getWarKillmails(warId: number): Promise<KillmailSummary[]>;
     getWars(): Promise<number[]>;
     // (undocumented)
-    streamWarKillmails(warId: number): AsyncGenerator<PageResult_2<KillmailSummary>, void, undefined>;
+    streamWarKillmails(warId: number): AsyncGenerator<PageResult<KillmailSummary>, void, undefined>;
     // (undocumented)
-    streamWars(): AsyncGenerator<PageResult_2<number>, void, undefined>;
+    streamWars(): AsyncGenerator<PageResult<number>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -10305,11 +10518,15 @@ interface WarsWarIdKillmailsGet {
     killmail_id: number;
 }
 
-// @public @deprecated (undocumented)
-export type WithMetadata<T> = WithMetadata_2<T>;
+// @public (undocumented)
+export type WithMetadata<T> = {
+    [K in keyof T]: T[K] extends (...args: infer A) => Promise<infer R> ? (...args: A) => Promise<EsiResponse<R>> : T[K];
+};
 
-// @public @deprecated (undocumented)
-export type WithSafeMode<T> = WithSafeMode_2<T>;
+// @public (undocumented)
+export type WithSafeMode<T> = {
+    [K in keyof T]: T[K] extends (...args: infer A) => Promise<infer R> ? (...args: A) => Promise<EsiResult<R>> : T[K];
+};
 
 // (No @packageDocumentation comment for this package)
 
