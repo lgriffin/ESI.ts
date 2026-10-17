@@ -8,6 +8,7 @@ import {
   EsiClientBuilder,
   type ApiClientType,
 } from '../../../src/EsiClientBuilder';
+import type { EsiClientConfig } from '../../../src/EsiClient';
 import type { World } from './world';
 import { SEAM_ACCESS_TOKEN, SEAM_RETRY } from './transport';
 
@@ -15,6 +16,7 @@ export function buildCustomClient(
   world: World,
   clients: string[],
   clientId = 'bdd-custom-client',
+  config: EsiClientConfig = {},
 ): CustomEsiClient {
   const custom = new EsiClientBuilder()
     .addClients(clients as ApiClientType[])
@@ -24,6 +26,7 @@ export function buildCustomClient(
       retryConfig: SEAM_RETRY,
       logLevel: 'error',
       rateLimiterConfig: { minDelayMs: 0 },
+      ...config,
     })
     .withClientId(clientId)
     .withAccessToken(SEAM_ACCESS_TOKEN)
