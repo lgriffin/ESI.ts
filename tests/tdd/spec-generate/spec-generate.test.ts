@@ -492,6 +492,56 @@ describe('generateOperations with an overlay', () => {
     );
   });
 
+  it('leaves the flag off a GET whose JSON 200 is an object, even with a 204', () => {
+    const doc: OpenApiDocument = {
+      components: {
+        schemas: {
+          Bids: { type: 'array', items: { type: 'integer' } },
+          Contract: {
+            type: 'object',
+            properties: { id: { type: 'integer' } },
+          },
+        },
+      },
+      paths: {
+        '/contract': {
+          get: {
+            operationId: 'GetContract',
+            responses: {
+              '200': json({ $ref: '#/components/schemas/Contract' }),
+              '204': { description: 'Contract expired' },
+            },
+          },
+        },
+        '/inline': {
+          get: {
+            operationId: 'GetInline',
+            responses: {
+              '200': json({ type: 'object' }),
+              '204': { description: 'Nothing' },
+            },
+          },
+        },
+        '/bids': {
+          get: {
+            operationId: 'GetBids',
+            responses: {
+              '200': json({ $ref: '#/components/schemas/Bids' }),
+              '204': { description: 'Contract expired' },
+            },
+          },
+        },
+      },
+    };
+    const flag = (id: string) =>
+      generateOperations(doc, options).operations.find(
+        (o) => o.operationId === id,
+      )?.emptyWhenNoContent;
+    expect(flag('GetContract')).toBeUndefined();
+    expect(flag('GetInline')).toBeUndefined();
+    expect(flag('GetBids')).toBe(true);
+  });
+
   it.each([
     [
       'an overlay path the spec already lists',

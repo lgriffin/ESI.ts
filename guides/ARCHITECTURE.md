@@ -435,7 +435,7 @@ Phase 2 of the 11.0 plan put seams under the pipeline so a new client can be bui
 
 ### Generated operations and the scope tree
 
-`src/generated/operations.generated.ts` is written by `scripts/spec/spec-generate.ts` from the vendored snapshot at compatibility date <!-- metric:compatibilityDate -->2026-08-18<!-- /metric --> (`COMPATIBILITY_DATE` in `src/core/constants.ts`). For each of the spec's <!-- metric:operations -->235<!-- /metric --> operations it holds a `*Meta` constant and a function that takes an `OperationTransport` and typed parameters. `scripts/spec/spec-scope-tree.ts` appends three more exports:
+`src/generated/operations.generated.ts` is written by `scripts/spec/spec-generate.ts` from the vendored snapshot at compatibility date <!-- metric:compatibilityDate -->2026-08-18<!-- /metric --> (`COMPATIBILITY_DATE` in `src/core/constants.ts`). For each of the spec's <!-- metric:specOperations -->233<!-- /metric --> operations, and the two `scripts/spec/operation-overlay.json` adds (<!-- metric:operations -->235<!-- /metric --> in all), it holds a `*Meta` constant and a function that takes an `OperationTransport` and typed parameters. `scripts/spec/spec-scope-tree.ts` appends three more exports:
 
 - `ScopeTree`: every operation arranged by path prefix, so `GET /characters/{character_id}/wallet/journal` is `tree.character(id).wallet.journal.get()`.
 - `PublicScopeTree`: the same arrangement holding only the operations whose `scopes` are empty. An authenticated operation is absent from the type, so calling one does not compile.

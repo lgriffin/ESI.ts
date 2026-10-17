@@ -6,6 +6,7 @@
   "routes": 235,
   "trailingSlashRoutes": 54,
   "operations": 235,
+  "specOperations": 233,
   "streamMethods": 73,
   "streamClients": 19,
   "schemaModules": 36,

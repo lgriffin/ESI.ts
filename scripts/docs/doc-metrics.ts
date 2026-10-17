@@ -16,6 +16,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { metasOf } from '../spec/spec-coverage-core';
+import { SPEC_PATH, type OpenApiDocument } from '../spec/spec-generate-core';
 import {
   CheckReport,
   ClientMethods,
@@ -112,6 +113,18 @@ function clientMethods(files: readonly string[]): ClientMethods[] {
   return clients;
 }
 
+/** Operations in the vendored OpenAPI document, before the overlay adds any. */
+function specOperationCount(): number {
+  const doc = JSON.parse(read(SPEC_PATH)) as OpenApiDocument;
+  return Object.values(doc.paths).reduce(
+    (n, item) =>
+      n +
+      ['get', 'post', 'put', 'delete'].filter((m) => item[m] !== undefined)
+        .length,
+    0,
+  );
+}
+
 export function gatherMetrics(): Metrics {
   const files = COUNTED_DIRS.flatMap(walk).sort();
   const pkg = JSON.parse(read('package.json')) as { version: string };
@@ -128,6 +141,7 @@ export function gatherMetrics(): Metrics {
     files,
     endpoints: endpointDefs(files),
     operations: metasOf(generated).size,
+    specOperations: specOperationCount(),
     clients: clientMethods(files),
     features,
     charter: read('guides/CHARTER.md'),

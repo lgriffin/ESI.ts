@@ -390,12 +390,17 @@ export function generateOperations(
         (textResponse ? content[textTypes[0]!]!.schema : undefined)) as
         Schema | undefined;
       // ESI answers "nothing left" (an expired public contract) with no
-      // content where the same route otherwise sends a JSON body.
+      // content where the same route otherwise sends a JSON list, which the
+      // transport then reads as an empty one. An object body has no empty
+      // value, so a 204 there stays `undefined`.
+      const jsonSchema = content['application/json']?.schema as
+        Schema | undefined;
       const emptyWhenNoContent =
         upper === 'GET' &&
         success === '200' &&
         codes.includes('204') &&
-        content['application/json'] !== undefined;
+        jsonSchema !== undefined &&
+        resolveSchema(jsonSchema).type === 'array';
       const response = responseSchema
         ? namedType(responseSchema, `${operationId}Response`)
         : 'void';

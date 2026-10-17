@@ -170,7 +170,7 @@ The typed reference for every method is the TypeDoc site (`npm run docs`). The g
 
 ### Coverage of the ESI specification
 
-The client wires <!-- metric:routes -->235<!-- /metric --> routes. That covers every one of the <!-- metric:operations -->235<!-- /metric --> operations in the vendored OpenAPI document (compatibility date <!-- metric:compatibilityDate -->2026-08-18<!-- /metric -->, `tests/contract/snapshots/esi-openapi.snapshot.json`). The two extra routes are `meta/openapi.json` and `meta/openapi.yaml`, which are the specification itself. `npm run spec:coverage` fails a pull request that leaves a spec operation unwired, and the nightly spec-drift workflow opens an issue when CCP adds one.
+The client wires <!-- metric:routes -->235<!-- /metric --> routes. That covers every one of the <!-- metric:specOperations -->233<!-- /metric --> operations in the vendored OpenAPI document (compatibility date <!-- metric:compatibilityDate -->2026-08-18<!-- /metric -->, `tests/contract/snapshots/esi-openapi.snapshot.json`). The two extra routes are `meta/openapi.json` and `meta/openapi.yaml`, which are the specification itself. `npm run spec:coverage` fails a pull request that leaves a spec operation unwired, and the nightly spec-drift workflow opens an issue when CCP adds one.
 
 The ESI specification is upstream, not infallible. Live validation found places where the documented wire format is wrong, and the endpoint definitions follow what ESI actually accepts:
 
