@@ -204,7 +204,7 @@ erDiagram
 
 ### YAML-Native, No SQLite
 
-The original design used better-sqlite3 to import SDE YAML into an SQLite database. This was replaced with direct YAML-to-Map loading because:
+The original design used better-sqlite3 to import SDE YAML into an SQLite database. This was replaced with direct YAML-to-Map loading, and the SQLite builder, its transforms and the `better-sqlite3` optional peer were removed after 12.2.0 (`SdeDatabaseError` stays exported, deprecated, until the next major), because:
 
 - **Simpler dependency tree**: No native binary dependency (better-sqlite3 requires node-gyp)
 - **No build/import step**: No separate database build required before querying
@@ -233,16 +233,9 @@ getByFk("eve_types", "groupId", 18)
 
 This avoids building indexes for FK relationships that are never queried. Many of the 102 entity tables have FK columns that most consumers never filter by.
 
-### `transformRecordNative` vs `transformRecord`
+### `transformRecordNative`
 
-Two transform functions exist:
-
-| Function                | Output types                  | Use case                                                      |
-| ----------------------- | ----------------------------- | ------------------------------------------------------------- |
-| `transformRecord`       | `Record<string, SqliteValue>` | Legacy SQLite path (booleans to 0/1, objects to JSON strings) |
-| `transformRecordNative` | `Record<string, unknown>`     | YAML-native path (preserves JS types as-is)                   |
-
-`transformRecordNative` is used by `SdeDataProvider`. Both share field normalization (`groupID` to `groupId`) and locale extraction (`{en: "Jita"}` to `"Jita"`).
+`transformRecordNative` reshapes each record `SdeDataProvider` loads into a `Record<string, unknown>`, keeping JS types as they are. It applies field normalization (`groupID` to `groupId`) and locale extraction (`{en: "Jita"}` to `"Jita"`).
 
 ### Recursive Nested Normalization
 
@@ -285,12 +278,11 @@ SDE errors extend `Error` directly, not `EsiError`. They are local data access e
 ```
 Error
   +-- SdeError (base)
-        +-- SdeDatabaseError (open/query failures)
         +-- SdeValidationError (Zod validation failures)
         +-- SdeVersionMismatchError (schema incompatibility)
 ```
 
-Each error class has a corresponding type guard function (`isSdeError`, `isSdeDatabaseError`, etc.).
+Each error class has a corresponding type guard function (`isSdeError`, `isSdeValidationError`, `isSdeVersionMismatch`).
 
 ## 7. Testing Architecture
 

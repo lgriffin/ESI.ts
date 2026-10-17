@@ -14,7 +14,7 @@ import path from 'node:path';
 const ROOT = path.resolve(__dirname, '../../..');
 const ENTRY = path.join(ROOT, 'src/sde/memory.ts');
 const FORBIDDEN = ['node:fs', 'js-yaml', 'adm-zip', 'better-sqlite3'];
-const EXTERNAL = ['pino', 'zod', 'better-sqlite3', 'adm-zip', 'js-yaml'];
+const EXTERNAL = ['pino', 'zod', 'adm-zip', 'js-yaml'];
 
 function bundle(format: 'esm' | 'cjs'): string {
   const result = buildSync({

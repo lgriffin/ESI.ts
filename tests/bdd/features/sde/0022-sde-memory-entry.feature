@@ -3,7 +3,7 @@ Feature: The Memory Entry Point
   The package exposes the SDE twice: ./sde carries everything, including the
   file-backed SdeDataProvider and, through it, the optional peers; ./sde/memory
   carries the in-memory provider and the same types, errors and test factory
-  without reaching any file, YAML, ZIP or SQLite code, for consumers who bring
+  without reaching any file, YAML or ZIP code, for consumers who bring
   their own data. The two must stay in step: everything ./sde exports at run
   time is available from ./sde/memory, except the file-backed provider.
 

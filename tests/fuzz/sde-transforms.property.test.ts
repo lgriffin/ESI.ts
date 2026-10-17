@@ -16,9 +16,7 @@
  *   Nesting       `transformRecordNative` renames keys and extracts locale
  *                 maps at any depth, through arrays and objects, and injects
  *                 the ID; a naive recursive model over the same raw record
- *                 predicts the row. `transformRecord` flattens the same
- *                 record to SQLite values: strings, numbers and null only,
- *                 booleans as 0/1, nested values as JSON that parses back.
+ *                 predicts the row.
  *   Metadata      `parseSdeMetadata` reads the build at the top level or
  *                 nested under `sde:`, the nested block winning, and turns a
  *                 missing field into an empty string.
@@ -30,8 +28,6 @@ import { parseSdeMetadata } from '../../src/sde/ingestion/metadata';
 import {
   extractLocale,
   normalizeSdeFieldName,
-  toSqliteValue,
-  transformRecord,
   transformRecordNative,
 } from '../../src/sde/ingestion/transforms';
 import { loadJsYaml } from '../../src/sde/optionalPeers';
@@ -165,10 +161,7 @@ describeProperty<ExtractLocale>({
 
 // ── Nested records ──────────────────────────────────────────────────────
 
-interface RecordTransforms {
-  native: typeof transformRecordNative;
-  sqlite: typeof transformRecord;
-}
+type RecordTransform = typeof transformRecordNative;
 
 const SPEC = { idAttribute: 'entityId', injectId: true } as const;
 
@@ -226,33 +219,16 @@ const entityIdArb = fc.oneof(
   fc.string({ minLength: 1, maxLength: 6 }),
 );
 
-describeProperty<RecordTransforms>({
+describeProperty<RecordTransform>({
   name: 'SDE record transforms rename keys and extract locale maps at any depth',
   file: __filename,
-  subject: () => ({ native: transformRecordNative, sqlite: transformRecord }),
+  subject: () => transformRecordNative,
   mutants: {
-    'renames and extracts at the top level only': () => ({
-      native: shallowNative,
-      sqlite: transformRecord,
-    }),
-    'forgets to inject the ID': () => ({
-      native: (id, raw) =>
-        transformRecordNative(id, raw, { ...SPEC, injectId: false }),
-      sqlite: transformRecord,
-    }),
-    'stores nested values as objects': () => ({
-      native: transformRecordNative,
-      sqlite: (id, raw, spec) => {
-        const row = transformRecordNative(id, raw, spec);
-        for (const [key, value] of Object.entries(row)) {
-          if (typeof value === 'boolean') row[key] = value ? 1 : 0;
-          if (value === undefined) row[key] = null;
-        }
-        return row as Record<string, string | number | null>;
-      },
-    }),
+    'renames and extracts at the top level only': () => shallowNative,
+    'forgets to inject the ID': () => (id, raw) =>
+      transformRecordNative(id, raw, { ...SPEC, injectId: false }),
   },
-  property: ({ native, sqlite }) =>
+  property: (native) =>
     fc.property(entityIdArb, rawRecordArb, (entityId, raw) => {
       const row = native(entityId, raw, SPEC);
       const expected = {
@@ -266,101 +242,6 @@ describeProperty<RecordTransforms>({
           `key "${key}" in the native row still carries an ID boundary`,
         );
       });
-
-      // The SQLite row: one column per raw field, the same names, and a
-      // value SQLite can hold. A nested value is stored as it came, as JSON.
-      const flat = sqlite(entityId, raw, SPEC);
-      invariant(
-        flat[SPEC.idAttribute] === entityId,
-        `the SQLite row carries ${JSON.stringify(flat[SPEC.idAttribute])} as its ID, not ${JSON.stringify(entityId)}`,
-      );
-      invariant(
-        Object.keys(flat).length === Object.keys(row).length,
-        `the SQLite row has ${Object.keys(flat).length} columns, the native row ${Object.keys(row).length} fields`,
-      );
-      for (const [rawKey, source] of Object.entries(raw)) {
-        const key = normalizeSdeFieldName(rawKey);
-        const value = flat[key];
-        invariant(
-          value === null ||
-            typeof value === 'string' ||
-            typeof value === 'number',
-          `the SQLite row holds a ${typeof value} under "${key}"`,
-        );
-        if (isLocaleMap(source)) {
-          invariant(
-            value === extractLocale(source),
-            `locale map under "${key}" became ${JSON.stringify(value)}`,
-          );
-        } else if (typeof source === 'boolean') {
-          invariant(
-            value === (source ? 1 : 0),
-            `boolean ${source} under "${key}" became ${JSON.stringify(value)}`,
-          );
-        } else if (source !== null && typeof source === 'object') {
-          invariant(
-            typeof value === 'string',
-            `nested value under "${key}" was not stored as JSON text`,
-          );
-          expect(JSON.parse(value)).toEqual(JSON.parse(JSON.stringify(source)));
-        } else if (source === null) {
-          invariant(
-            value === null,
-            `null under "${key}" became ${JSON.stringify(value)}`,
-          );
-        } else {
-          invariant(
-            value === (source as string | number),
-            `${typeof source} ${JSON.stringify(source)} under "${key}" became ${JSON.stringify(value)}`,
-          );
-        }
-      }
-    }),
-});
-
-// ── toSqliteValue on anything ───────────────────────────────────────────
-
-type ToSqlite = typeof toSqliteValue;
-
-/** Describe any generated value without calling its own toString. */
-function show(value: unknown): string {
-  try {
-    return JSON.stringify(value) ?? String(value);
-  } catch {
-    return `<${typeof value}>`;
-  }
-}
-
-describeProperty<ToSqlite>({
-  name: 'SDE SQLite values are always a string, a number or null',
-  file: __filename,
-  subject: () => toSqliteValue,
-  mutants: {
-    'passes booleans through': () => (value) =>
-      typeof value === 'boolean'
-        ? (value as unknown as number)
-        : toSqliteValue(value),
-    'passes undefined through': () => (value) =>
-      value === undefined ? (value as unknown as null) : toSqliteValue(value),
-  },
-  property: (toSqlite) =>
-    fc.property(fc.anything(), (value) => {
-      const result: unknown = toSqlite(value);
-      invariant(
-        result === null ||
-          typeof result === 'string' ||
-          typeof result === 'number',
-        `toSqliteValue(${show(value)}) returned a ${typeof result}`,
-      );
-      if (typeof value === 'boolean') {
-        invariant(
-          result === (value ? 1 : 0),
-          `boolean ${value} became ${result}`,
-        );
-      }
-      if (value === null || value === undefined) {
-        invariant(result === null, `${show(value)} became ${result}`);
-      }
     }),
 });
 

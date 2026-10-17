@@ -9,9 +9,9 @@
  * included), as a consumer loading that sub-path would, minified and
  * uncompressed. Node reads the files from disk, so compressed transfer size
  * is not the cost a consumer pays. Runtime and peer dependencies (`pino`,
- * `zod`, `better-sqlite3`, `js-yaml`, `adm-zip`) and Node built-ins are
- * external: the budget is this package's own code. A dependency that tsup
- * inlines, or a new import the dependency lists do not name, is measured.
+ * `zod`, `js-yaml`, `adm-zip`) and Node built-ins are external: the budget
+ * is this package's own code. A dependency that tsup inlines, or a new import
+ * the dependency lists do not name, is measured.
  *
  * The exports map drives the list, so a new sub-path without a budget, or a
  * budget for a sub-path that no longer exists, fails `npm run size` before

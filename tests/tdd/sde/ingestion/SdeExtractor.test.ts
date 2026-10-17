@@ -227,7 +227,7 @@ describe('ARCH-12: SdeExtractor', () => {
     });
   });
 
-  describe('extractAll with entry names from a hostile archive', () => {
+  describe('ARCH-13: extractAll with entry names from a hostile archive', () => {
     /**
      * adm-zip sanitises a name it is asked to add, so each hostile name is
      * added as a same-length placeholder and patched into the bytes.
@@ -286,6 +286,23 @@ describe('ARCH-12: SdeExtractor', () => {
           'inside.yaml',
           'types.yaml',
         ]);
+      } finally {
+        fs.rmSync(outputDir, { recursive: true, force: true });
+      }
+    });
+
+    it.each([
+      ['a folder entry', 'sde/', 'sde'],
+      ['a colon after the first character', 'notes/C:types.yaml', 'notes'],
+      ['a name that resolves to the directory itself', './', null],
+    ])('extracts an archive holding %s', (_label, name, expected) => {
+      const zipPath = hostileZip(name);
+      const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sde-out-'));
+      try {
+        extractor.extractAll(zipPath, outputDir);
+        expect(fs.readdirSync(outputDir).sort()).toEqual(
+          expected === null ? ['types.yaml'] : [expected, 'types.yaml'].sort(),
+        );
       } finally {
         fs.rmSync(outputDir, { recursive: true, force: true });
       }

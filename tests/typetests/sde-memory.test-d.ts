@@ -10,6 +10,7 @@
  */
 import {
   expectAssignable,
+  expectDeprecated,
   expectError,
   expectNotAssignable,
   expectType,
@@ -143,10 +144,11 @@ import {
 
 // --- SdeDataProvider is absent; everything else of ./sde is present ---
 
-type MemoryHasSqliteProvider =
-  'SdeDataProvider' extends keyof typeof memoryEntry ? true : false;
-declare const hasSqliteProvider: MemoryHasSqliteProvider;
-expectType<false>(hasSqliteProvider);
+type MemoryHasFileProvider = 'SdeDataProvider' extends keyof typeof memoryEntry
+  ? true
+  : false;
+declare const hasFileProvider: MemoryHasFileProvider;
+expectType<false>(hasFileProvider);
 expectError(memoryEntry.SdeDataProvider);
 expectAssignable<Omit<typeof sdeEntry, 'SdeDataProvider'>>(memoryEntry);
 expectAssignable<typeof memoryEntry>(sdeEntry);
@@ -700,6 +702,9 @@ if (isSdeVersionMismatch(caught)) {
   expectType<string>(caught.actual);
 }
 expectAssignable<SdeError>(new SdeDatabaseError('db', new Error('cause')));
+// Deprecated since the SQLite builder was removed; kept until the next major.
+expectDeprecated(new SdeDatabaseError('db'));
+expectDeprecated(isSdeDatabaseError(caught));
 expectAssignable<SdeError>(new SdeValidationError('eve_types', {}, 34));
 expectAssignable<SdeError>(new SdeVersionMismatchError('1', '2'));
 expectAssignable<Error>(new SdeError('x'));
