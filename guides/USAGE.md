@@ -49,7 +49,7 @@ const marketClient = EsiApiFactory.createClient('market', {
 const prices = await marketClient.getMarketPrices();
 ```
 
-**Deprecated in 11.0.0:** `EsiApiFactory`'s nine named methods (`createMarketClient`, `createWalletClient` and the rest) and `EsiTokenManager.createClient`. They still work, and 12.0.0 keeps them; removal is 13.0.0 at the earliest. Use `createEsi()` from `@lgriffin/esi.ts/client` and `esi.public` or `esi.as(identity)` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)), or `EsiApiFactory.createClient(type)` to stay on the legacy clients.
+**Deprecated, removed in 13.0.0:** every construction surface on this page. 11.0.0 deprecated `EsiApiFactory`'s nine named methods (`createMarketClient`, `createWalletClient` and the rest) and `EsiTokenManager.createClient`; 12.1.0 deprecates the rest of the legacy tree: `EsiClient`, `getDefaultClient`, `EsiClientBuilder` and `CustomEsiClient`, `EsiApiFactory` with `createClient(type)`, `ApiClientBuilder`, `BaseEsiClient` and the 39 domain clients. They all still work until 13.0.0. Use `createEsi()` from `@lgriffin/esi.ts/client` and `esi.public` or `esi.as(identity)` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)). [LEGACY-REMOVAL.md](LEGACY-REMOVAL.md) lists each surface with its replacement, and the capabilities `createEsi()` does not offer yet.
 
 Call `shutdown()` when you are done with a client. It stops the cache sweep timer and the circuit-breaker cleanup timer, so a script can exit. It is synchronous.
 
@@ -392,4 +392,4 @@ npm run example:sde-basic
 
 - **`getAccessList(characterId, accessListId)`** returns `id`, `name`, `description` and `membership` (`allow_everyone`, plus `alliances`, `corporations` and `characters`, each with an `access` level) instead of `access_list_id` and `entries`. `AccessListEntry`, `AccessListEntrySchema` and `TestDataFactory.createAccessListEntry` are removed; use `AccessList`, `AccessListSchema` and `createAccessList`.
 - **Detail shapes.** Mercenary den evolution levels are `{ amount, level }` with `level` one of `'Level0'` to `'Level4'`, instead of `{ level: number, progress }`. Sovereignty hub resources are `{ available, allocated }` instead of `{ available?, used? }`; reagents carry `burning_per_hour`, and `workforce_transport` carries `configuration` and `state`. SKINR layout slots carry `id` and `configuration`.
-- **Still deprecated, not removed.** `EsiApiFactory`'s nine named methods and `EsiTokenManager.createClient` keep working in 12.0.0; removal is 13.0.0 at the earliest.
+- **Still deprecated, not removed.** `EsiApiFactory`'s nine named methods and `EsiTokenManager.createClient` keep working in 12.0.0. 13.0.0 removes them with the rest of the legacy tree ([LEGACY-REMOVAL.md](LEGACY-REMOVAL.md)).

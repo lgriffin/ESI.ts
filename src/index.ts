@@ -1,5 +1,15 @@
+// Legacy construction tree, deprecated since 12.1.0 and removed in 13.0.0:
+// EsiClient, getDefaultClient, CustomEsiClient, EsiClientBuilder,
+// EsiApiFactory, ApiClientType, ApiClientBuilder, BaseEsiClient, the domain
+// clients below and RouteOptions, plus the pipeline aliases from
+// src/legacyExports.ts, the hand-written response types and the schemas
+// namespace (see src/schemas/index.ts). Each declaration carries the
+// @deprecated tag, so editors and TypeDoc flag these names here too. The
+// replacement is createEsi() from '@lgriffin/esi.ts/client'; the manifest,
+// with the parity gaps still open, is guides/LEGACY-REMOVAL.md.
+
 // Main client
-export { EsiClient, EsiClientConfig, EsiDatasource } from './EsiClient';
+export { EsiClient, EsiDatasource } from './EsiClient';
 export { getDefaultClient } from './EsiClient';
 
 // Builder & factory
@@ -11,17 +21,43 @@ export {
 export { ApiClientType } from './clients/ClientRegistry';
 
 // Core (for direct instantiation)
-export { ApiClient, TokenProvider, FetchLike } from './core/ApiClient';
+export { TokenProvider, FetchLike } from './core/ApiClient';
 export { ApiClientBuilder } from './core/ApiClientBuilder';
+
+// Deprecated root names for pipeline pieces only the legacy tree needs; the
+// aliases carry the @deprecated tags (src/legacyExports.ts).
 export {
+  ApiClient,
+  EsiClientConfig,
   configureApiClient,
   ConfigureApiClientResult,
-} from './core/configureApiClient';
+  buildEndpointPath,
+  DeprecationInfo,
+  CreateClientOptions,
+  CursorOptions,
+  CursorResult,
+  CursorTokens,
+  InferEndpointResult,
+  UnwrapArray,
+  WithMetadata,
+  WithSafeMode,
+  fetchAllCursorPages,
+  fetchAllPages,
+  fetchPages,
+  PageResult,
+  batchFetch,
+  batchPost,
+  BatchOptions,
+  BatchResult,
+  EsiDiagnostics,
+  CacheStats,
+  CircuitBreakerStats,
+} from './legacyExports';
 
 // Base client (for custom domain client implementations)
 export { BaseEsiClient } from './clients/BaseEsiClient';
 
-// Domain clients
+// Domain clients (deprecated since 12.1.0; see the note at the top)
 export { AllianceClient } from './clients/AllianceClient';
 export { AssetsClient } from './clients/AssetsClient';
 export { CalendarClient } from './clients/CalendarClient';
@@ -62,19 +98,6 @@ export { AccessListsClient } from './clients/AccessListsClient';
 export { CosmeticsClient } from './clients/CosmeticsClient';
 export { ParagonHubClient } from './clients/ParagonHubClient';
 
-// Cursor pagination & client utilities
-export {
-  CursorOptions,
-  CursorResult,
-  CreateClientOptions,
-  InferEndpointResult,
-  UnwrapArray,
-  WithMetadata,
-  WithSafeMode,
-  fetchAllCursorPages,
-} from './core/endpoints/createClient';
-export { CursorTokens } from './core/pagination/CursorPaginationHandler';
-
 // Error class & type guards
 export {
   EsiError,
@@ -105,9 +128,6 @@ export {
   sanitizeUrl,
 } from './core/util/error';
 export type { ValidationDirection, EsiFaultCode } from './core/util/error';
-
-// Endpoint definition types
-export { DeprecationInfo } from './core/endpoints/EndpointDefinition';
 
 // Middleware
 export {
@@ -148,29 +168,6 @@ export type { IRetryStrategy } from './core/IRetryStrategy';
 export { RequestDeduplicator } from './core/RequestDeduplicator';
 export type { IDeduplicator } from './core/IDeduplicator';
 
-// Batch operations
-export {
-  batchFetch,
-  batchPost,
-  BatchOptions,
-  BatchResult,
-} from './core/BatchRequestHandler';
-
-// Diagnostics
-export {
-  EsiDiagnostics,
-  CacheStats,
-  CircuitBreakerStats,
-} from './core/EsiDiagnostics';
-
-// Async pagination
-export {
-  fetchAllPages,
-  fetchPages,
-  PageResult,
-} from './core/pagination/AsyncPaginationIterator';
-export { buildEndpointPath } from './core/endpoints/buildEndpointPath';
-
 // Interfaces (for custom implementations / testing)
 export { ICache } from './core/cache/ICache';
 export {
@@ -201,7 +198,10 @@ export type { LogLevel } from './core/logger/DefaultLogger';
 // Types
 export * from './types/api-responses';
 
-// Schemas (Zod runtime validation)
+// Schemas (Zod runtime validation). Deprecated as an entry in 12.1.0 (see
+// src/schemas/index.ts and guides/LEGACY-REMOVAL.md) without a tag on this
+// namespace: an aliased namespace would drop every schema from the API
+// report, and the report is how a tightened schema is caught as a break.
 export * as schemas from './schemas';
 
 // Auth: SSO client, token manager, storage adapters

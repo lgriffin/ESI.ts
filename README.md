@@ -19,7 +19,7 @@ A TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), buil
 
 **Documentation site: [lgriffin.github.io/ESI.ts](https://lgriffin.github.io/ESI.ts/)**, with these guides, a page for every runnable example, and the [API reference](https://lgriffin.github.io/ESI.ts/api/) generated from the TSDoc. The [requirements dashboard](https://lgriffin.github.io/ESI.ts/requirements/) lists every EARS requirement the client is held to, the scenarios that prove it and its verdict, and how to write a new one.
 
-> **Release line.** Version <!-- metric:version -->12.0.0<!-- /metric --> <!-- x-release-please-version -->
+> **Release line.** Version <!-- metric:version -->12.1.0<!-- /metric --> <!-- x-release-please-version -->
 > is current on npm. 12.0 corrects five list methods and their detail schemas to the shapes ESI actually sends, which changes their return types; nothing else breaks. The 10.x line stays available for Node 18 and 20. [What 12.0 changes](guides/USAGE.md#10-what-1200-changes) · [What 11.0 changed](guides/USAGE.md#9-what-1100-changes) · [Changelog](CHANGELOG.md)
 
 ## Install
@@ -209,6 +209,7 @@ The README orients and the guides are canonical. Each guide opens with the chart
 | [Quality gates](guides/QUALITY-GATES.md)               | What runs at commit, push, PR, nightly and release; every workflow              |
 | [Security](guides/SECURITY.md)                         | Runtime defences and supply-chain controls ([policy](SECURITY.md))              |
 | [Semantic versioning](guides/SEMVER.md)                | What is public; major, minor or patch; breaking-change commits                  |
+| [Legacy removal](guides/LEGACY-REMOVAL.md)             | What 13.0.0 removes, each replacement, and the gaps to close first              |
 | [Release](guides/RELEASE.md)                           | Cutting a release, changelog, provenance, signatures, support window            |
 | [Audit](guides/AUDIT.md)                               | The Phase 0 measured baseline for 11.0                                          |
 | [OKF bundle](guides/OKF.md)                            | The generated Open Knowledge Format catalogue of ESI                            |

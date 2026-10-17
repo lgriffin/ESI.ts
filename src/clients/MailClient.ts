@@ -4,6 +4,14 @@ import { mailEndpoints } from '../core/endpoints/mailEndpoints';
 import { MailHeader, MailMessage, MailLabel } from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
+/**
+ * A legacy domain client over the hand-written endpoint map.
+ *
+ * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
+ * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
+ * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
+ * lists every legacy surface, its replacement and the open parity gaps.
+ */
 export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
   constructor(client: ApiClient) {
     super(client, mailEndpoints);
@@ -29,7 +37,7 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
    * @requires Authentication
    */
   sendMail(characterId: number, body: object): Promise<number> {
-    return this.api.sendMail(characterId, body) as Promise<number>;
+    return this.api.sendMail(characterId, body);
   }
 
   /**
@@ -100,7 +108,7 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
    * @requires Authentication
    */
   createMailLabel(characterId: number, body: object): Promise<number> {
-    return this.api.createMailLabel(characterId, body) as Promise<number>;
+    return this.api.createMailLabel(characterId, body);
   }
 
   /**

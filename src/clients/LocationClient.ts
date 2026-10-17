@@ -7,6 +7,14 @@ import {
   CharacterShip,
 } from '../types/api-responses';
 
+/**
+ * A legacy domain client over the hand-written endpoint map.
+ *
+ * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
+ * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
+ * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
+ * lists every legacy surface, its replacement and the open parity gaps.
+ */
 export class LocationClient extends BaseEsiClient<typeof locationEndpoints> {
   constructor(client: ApiClient) {
     super(client, locationEndpoints);
@@ -20,9 +28,7 @@ export class LocationClient extends BaseEsiClient<typeof locationEndpoints> {
    * @requires Authentication
    */
   getCharacterLocation(characterId: number): Promise<CharacterLocation> {
-    return this.api.getCharacterLocation(
-      characterId,
-    ) as Promise<CharacterLocation>;
+    return this.api.getCharacterLocation(characterId);
   }
 
   /**
@@ -33,7 +39,7 @@ export class LocationClient extends BaseEsiClient<typeof locationEndpoints> {
    * @requires Authentication
    */
   getCharacterOnline(characterId: number): Promise<CharacterOnline> {
-    return this.api.getCharacterOnline(characterId) as Promise<CharacterOnline>;
+    return this.api.getCharacterOnline(characterId);
   }
 
   /**
@@ -44,6 +50,6 @@ export class LocationClient extends BaseEsiClient<typeof locationEndpoints> {
    * @requires Authentication
    */
   getCharacterShip(characterId: number): Promise<CharacterShip> {
-    return this.api.getCharacterShip(characterId) as Promise<CharacterShip>;
+    return this.api.getCharacterShip(characterId);
   }
 }

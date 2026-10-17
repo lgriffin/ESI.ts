@@ -4,6 +4,14 @@ import { RateLimiter } from './rateLimiter/RateLimiter';
 import { ICache } from './cache/ICache';
 import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
 
+/**
+ * Assembles a bare `ApiClient` from parts, for the legacy domain clients.
+ *
+ * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
+ * `@lgriffin/esi.ts/client`, which builds and configures the pipeline
+ * itself (`transport` replaces `setFetch`). guides/LEGACY-REMOVAL.md lists
+ * every legacy surface, its replacement and the open parity gaps.
+ */
 export class ApiClientBuilder {
   private clientId!: string;
   private link!: string;
