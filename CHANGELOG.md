@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.3.0](https://github.com/lgriffin/ESI.ts/compare/v12.2.0...v12.3.0) (2026-10-17)
+
+
+### Added
+
+* **client:** deprecation warnings, OpenAPI document routes and empty contract answers on every surface ([#663](https://github.com/lgriffin/ESI.ts/issues/663)) ([d95554d](https://github.com/lgriffin/ESI.ts/commit/d95554dca2e8cb4dabf3178389b5f4277f1f45c2))
+* **client:** response metadata, safe mode, diagnostics and supplied middleware for the custom clients and createEsi ([#665](https://github.com/lgriffin/ESI.ts/issues/665)) ([92f61e5](https://github.com/lgriffin/ESI.ts/commit/92f61e5ecf5e2876e663d7c88f20a2a72e5dca90))
+* **sde:** drop the SQLite builder and the optional better-sqlite3 peer; deprecate SdeDatabaseError ([#658](https://github.com/lgriffin/ESI.ts/issues/658)) ([8d40eb5](https://github.com/lgriffin/ESI.ts/commit/8d40eb566959e70f85f1d3b49e00ec9427feeaf1))
+
 ## [12.2.0](https://github.com/lgriffin/ESI.ts/compare/v12.1.0...v12.2.0) (2026-10-17)
 
 
