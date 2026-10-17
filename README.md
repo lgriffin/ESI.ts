@@ -19,7 +19,7 @@ A TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), buil
 
 **Documentation site: [lgriffin.github.io/ESI.ts](https://lgriffin.github.io/ESI.ts/)**, with these guides, a page for every runnable example, and the [API reference](https://lgriffin.github.io/ESI.ts/api/) generated from the TSDoc. The [requirements dashboard](https://lgriffin.github.io/ESI.ts/requirements/) lists every EARS requirement the client is held to, the scenarios that prove it and its verdict, and how to write a new one.
 
-> **Release line.** Version <!-- metric:version -->12.2.0<!-- /metric --> <!-- x-release-please-version -->
+> **Release line.** Version <!-- metric:version -->12.3.0<!-- /metric --> <!-- x-release-please-version -->
 > is current on npm. 12.0 corrects five list methods and their detail schemas to the shapes ESI actually sends, which changes their return types; nothing else breaks. The 10.x line stays available for Node 18 and 20. [What 12.0 changes](guides/USAGE.md#10-what-1200-changes) · [What 11.0 changed](guides/USAGE.md#9-what-1100-changes) · [Changelog](CHANGELOG.md)
 
 ## Install
