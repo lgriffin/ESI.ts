@@ -100,7 +100,9 @@ A removal should never be the first a consumer hears of it.
 
 When ESI has already removed the endpoint and every call fails, steps 1 and 3 can land in consecutive releases. The method still stays until a major release.
 
-A deprecation that spans many exports gets a manifest: [LEGACY-REMOVAL.md](LEGACY-REMOVAL.md) lists each surface the 13.0.0 removal of the legacy construction tree takes, its replacement and the version it goes in, and a test holds every listed name `@deprecated` in the API report. Adding `@deprecated` changes no signature and no behaviour, but it is a change to the contract consumers read, so it goes in as `feat:` (11.0.0's `feat(client): deprecate EsiApiFactory's named methods …` is the precedent) and reaches a minor release and the changelog. The API report rewrites each declaration's comment line to `// @public @deprecated`, which the `api-semver` gate reads as a changed line, so the commit carries an `API-Compatible:` trailer saying only tags were added.
+Adding `@deprecated` changes no signature and no behaviour, but it is a change to the contract consumers read, so it goes in as `feat:` (11.0.0's `feat(client): deprecate EsiApiFactory's named methods …` is the precedent) and reaches a minor release and the changelog. Lifting a deprecation is the same kind of change, also `feat:` in a minor release (12.2.0 lifted 12.1.0's). The API report rewrites each declaration's comment line to `// @public @deprecated` and back, which the `api-semver` gate reads as a changed line, so the commit carries an `API-Compatible:` trailer saying only tags changed.
+
+**The custom clients are never deprecated.** `EsiClient`, `getDefaultClient`, `EsiClientBuilder`, `CustomEsiClient`, `EsiApiFactory` with `createClient(type)`, `BaseEsiClient`, `ApiClientType` and every domain client are the product (charter posture 1). ARCH-14 fails a change that marks one `@deprecated`, removes it or replaces it with the generated surface (`tests/tdd/scripts/custom-client-identity.test.ts`); changing that starts with a charter amendment, not with this process. [CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md) records the decision.
 
 ---
 
