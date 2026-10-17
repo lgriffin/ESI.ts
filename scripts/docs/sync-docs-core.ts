@@ -62,7 +62,6 @@ export const GUIDE_SECTIONS: ReadonlyArray<{
     text: 'Compatibility and security',
     sources: [
       'guides/SEMVER.md',
-      'guides/LEGACY-REMOVAL.md',
       'guides/SECURITY.md',
       'guides/SECURITY-MODEL.md',
       'guides/RELEASE.md',
@@ -74,6 +73,7 @@ export const GUIDE_SECTIONS: ReadonlyArray<{
       'guides/CHARTER.md',
       'guides/ROADMAP.md',
       'guides/ARCHITECTURE.md',
+      'guides/CLIENT-ARCHITECTURE.md',
       'guides/DESIGN-RULES.md',
       'guides/TESTING.md',
       'guides/QUALITY-GATES.md',

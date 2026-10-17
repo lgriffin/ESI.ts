@@ -8,14 +8,6 @@ import {
   MetaStatus,
 } from '../types/api-responses';
 
-/**
- * A legacy domain client over the hand-written endpoint map.
- *
- * @deprecated Since 12.1.0; removed in 13.0.0. Use `createEsi()` from
- * `@lgriffin/esi.ts/client`: `esi.public` for public routes and
- * `esi.as(identity)` for authenticated ones. guides/LEGACY-REMOVAL.md
- * lists every legacy surface, its replacement and the open parity gaps.
- */
 export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
   constructor(client: ApiClient) {
     super(client, metaEndpoints);
