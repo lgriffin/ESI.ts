@@ -112,6 +112,33 @@ describe('AsyncPaginationIterator', () => {
       expect(pages[2].data).toEqual([{ id: 3 }]);
     });
 
+    it('DES-08: by default a stream empty-page warning reports the count page 1 reported, not the capped one', async () => {
+      const logger = spyLogger();
+      client.setLogger(logger);
+      mockHandleRequest
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '1001' },
+          body: [{ id: 1 }],
+        })
+        .mockResolvedValueOnce({ headers: { 'x-pages': '1001' }, body: [] });
+
+      const pages: PageResult[] = [];
+      for await (const page of fetchPages(client, 'alliances', 'GET')) {
+        pages.push(page);
+      }
+
+      expect(pages).toHaveLength(1);
+      expect(logger.warn.mock.calls).toEqual([
+        [
+          expect.stringContaining('page 2 of 1001 was empty'),
+          expect.objectContaining({
+            reason: 'empty-page',
+            reportedPages: 1001,
+          }),
+        ],
+      ]);
+    });
+
     it('DES-08: by default stops at an empty page after the first, after yielding the pages before it', async () => {
       mockHandleRequest
         .mockResolvedValueOnce({
@@ -392,6 +419,33 @@ describe('AsyncPaginationIterator', () => {
 
       expect(result).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
       expect(mockHandleRequest).toHaveBeenCalledTimes(3);
+    });
+
+    it('DES-08: by default an empty-page warning reports the count page 1 reported, not the capped one', async () => {
+      const logger = spyLogger();
+      client.setLogger(logger);
+      mockHandleRequest.mockImplementation((_c, endpoint: string) => {
+        const page = Number(/page=(\d+)/.exec(endpoint)?.[1] ?? '1');
+        return Promise.resolve({
+          headers: { 'x-pages': '1001' },
+          body: page === 2 ? [] : [page],
+        });
+      });
+
+      const items = await fetchAllPages(client, 'alliances', 'GET');
+
+      expect(items).toHaveLength(999);
+      const warnings = logger.warn.mock.calls;
+      expect(warnings).toHaveLength(2);
+      expect(warnings[0]![0]).toContain('page 2 of 1001 was empty');
+      expect(warnings[0]![1]).toMatchObject({
+        reason: 'empty-page',
+        reportedPages: 1001,
+      });
+      expect(warnings[1]![1]).toMatchObject({
+        reason: 'page-cap',
+        reportedPages: 1001,
+      });
     });
 
     it('DES-08: by default collects past an empty page in a wave and warns once', async () => {

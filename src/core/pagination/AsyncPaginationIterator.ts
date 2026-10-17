@@ -53,7 +53,8 @@ function pageCount(
 }
 
 /**
- * A walk that stopped short of what page 1 reported: throws under
+ * A walk that stopped short of what page 1 reported (`reportedPages` is that
+ * count, uncapped, for either reason): throws under
  * `incompletePages: 'throw'`, otherwise warns and returns.
  */
 function stopShort(
@@ -68,7 +69,11 @@ function stopShort(
   incompleteWalk(client, `${client.getLink()}/${endpoint}`, {
     reason,
     endpoint,
-    reportedPages: reason === 'page-cap' ? count.reported : count.totalPages,
+    // What page 1's X-Pages said, as the eager path reports it; an
+    // unreadable count falls back to the pages walked.
+    reportedPages: Number.isFinite(count.reported)
+      ? count.reported
+      : count.totalPages,
     fetchedPages,
     partial,
     itemCount,
