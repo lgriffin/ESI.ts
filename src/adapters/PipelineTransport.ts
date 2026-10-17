@@ -3,9 +3,9 @@
  * pipeline: rate limiter, circuit breaker, deduplication, retry, ETag cache,
  * and the tenant, user agent and compatibility date headers. It holds no
  * state of its own, so every operation shares the ApiClient's budgets and
- * cache with the hand-written clients. When `validateResponse` is on (the
- * default), a JSON body is checked against the operation's generated Zod
- * schema, as the hand-written clients check theirs.
+ * cache with the hand-written clients. When constructed with
+ * `validateResponse: true`, a JSON body is checked against the operation's
+ * generated Zod schema, as the hand-written clients check theirs.
  */
 import type { ApiClient } from '../core/ApiClient';
 import { handleRequest } from '../core/ApiRequestHandler';
@@ -68,8 +68,25 @@ function build(
   };
 }
 
+export interface PipelineTransportOptions {
+  /**
+   * Check each body against the operation's generated schema. Off unless set:
+   * the ApiClient's own `validateResponse` defaults to `true` for the
+   * hand-written clients, so `createEsi` passes this only when its caller set
+   * `validateResponse: true` explicitly.
+   */
+  readonly validateResponse?: boolean;
+}
+
 export class PipelineTransport implements OperationTransport {
-  constructor(private readonly client: ApiClient) {}
+  private readonly validate: boolean;
+
+  constructor(
+    private readonly client: ApiClient,
+    options: PipelineTransportOptions = {},
+  ) {
+    this.validate = options.validateResponse === true;
+  }
 
   async request<T>(meta: OperationMeta, req: OperationRequest): Promise<T> {
     const { url, template, requiresAuth } = build(
@@ -87,7 +104,7 @@ export class PipelineTransport implements OperationTransport {
       template,
     );
     const schema = responseSchemas[meta.operationId];
-    if (!schema || !this.client.getValidateResponse()) {
+    if (!schema || !this.validate) {
       return response.body as T;
     }
     const result = schema.safeParse(response.body);
@@ -117,7 +134,7 @@ export class PipelineTransport implements OperationTransport {
       requiresAuth,
       req.body,
       template,
-      responseSchemas[meta.operationId],
+      this.validate ? responseSchemas[meta.operationId] : undefined,
     )) {
       yield* page.data;
     }

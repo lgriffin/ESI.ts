@@ -1,7 +1,7 @@
 /**
  * Every recorded ESI response (tests/contract/fixtures/recorded) passes the
- * generated schema of the operation that served it, so turning validation on
- * for the generated operations rejects no body ESI actually sends.
+ * generated schema of the operation that served it, so a runtime created with
+ * `validateResponse: true` rejects no body ESI actually sends.
  */
 import * as fs from 'fs';
 import * as path from 'path';

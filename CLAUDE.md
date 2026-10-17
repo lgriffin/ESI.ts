@@ -85,7 +85,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `src/core/endpoints/` — 39 endpoint maps (`*Endpoints.ts`), `createClient()`, and the generated TTL, rate-limit-group and scope tables
 - `src/core/circuitBreaker/` — Circuit breaker implementation + `ICircuitBreaker` interface
 - `src/core/ports/` — seven type-only ports (`CacheStore`, `Clock`, `HttpTransport`, `Identity`, `Logger`, `OperationTransport`, `TokenProvider`). They import nothing; exported from `./client`
-- `src/adapters/` — `PipelineTransport`, which implements `OperationTransport` over the existing pipeline and validates responses against `responseSchemas.generated.ts` (one Zod schema per operation, generated with the operations). Internal; `./client` wraps it
+- `src/adapters/` — `PipelineTransport`, which implements `OperationTransport` over the existing pipeline and, when `createEsi` is given `validateResponse: true`, validates responses against `responseSchemas.generated.ts` (one Zod schema per operation, generated with the operations). Internal; `./client` wraps it
 - `src/generated/` — `operations.generated.ts`: 233 typed operations, `ScopeTree`, `PublicScopeTree` and `createScopeTree`, generated from the vendored spec. Imports only the ports. `ScopeTree` and `PublicScopeTree` are exported from `./client`
 - `src/auth/` — `EveSsoClient` (OAuth2 + PKCE), `EsiTokenManager` (multi-character tokens and refresh), `MemoryTokenStorage` / `FileTokenStorage`, auth errors
 - `src/errors.ts` — the `./errors` sub-path entry

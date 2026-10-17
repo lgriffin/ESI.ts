@@ -10,7 +10,8 @@ import {
   identityFromToken,
   type Identity,
 } from '../../../src/client';
-import { asset, STATUS } from '../helpers/generatedBodies';
+import { EsiValidationError } from '../../../src/errors';
+import { asset, STATUS, without } from '../helpers/generatedBodies';
 
 fetchMock.enableMocks();
 
@@ -301,5 +302,55 @@ describe('createEsi', () => {
       'no session',
     );
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  describe('validateResponse on the generated operations', () => {
+    const statusWithoutPlayers = without(STATUS, 'players');
+    const assetWithoutType = without(asset(1), 'type_id');
+
+    async function callBoth(validateResponse?: boolean) {
+      const esi = createEsi(
+        validateResponse === undefined
+          ? OPTIONS
+          : { ...OPTIONS, validateResponse },
+      );
+      fetchMock.mockResponses(
+        JSON.stringify(statusWithoutPlayers),
+        JSON.stringify([assetWithoutType]),
+      );
+      const status = await esi.public.status.get().catch((e: unknown) => e);
+      const assets: unknown[] = [];
+      const paged = await (async () => {
+        for await (const item of esi
+          .as(identityFromToken('t'))
+          .character(1)
+          .assets.get()) {
+          assets.push(item);
+        }
+        return assets;
+      })().catch((e: unknown) => e);
+      return { status, paged };
+    }
+
+    it('returns bodies unvalidated when the option is unset, as before validation existed', async () => {
+      const { status, paged } = await callBoth();
+
+      expect(status).toEqual(statusWithoutPlayers);
+      expect(paged).toEqual([assetWithoutType]);
+    });
+
+    it('returns bodies unvalidated when the option is false', async () => {
+      const { status, paged } = await callBoth(false);
+
+      expect(status).toEqual(statusWithoutPlayers);
+      expect(paged).toEqual([assetWithoutType]);
+    });
+
+    it('rejects a request and a page that break their schemas when the option is true', async () => {
+      const { status, paged } = await callBoth(true);
+
+      expect(status).toBeInstanceOf(EsiValidationError);
+      expect(paged).toBeInstanceOf(EsiValidationError);
+    });
   });
 });

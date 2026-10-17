@@ -449,13 +449,16 @@ Phase 2 of the 11.0 plan put seams under the pipeline so a new client can be bui
 
 Two differences from a domain method follow from that route:
 
-- **Generated Zod validation.** `createClient` validates against the hand-written schemas in `src/schemas/`; `PipelineTransport` validates against `src/adapters/responseSchemas.generated.ts`, one schema per operation generated from the same document as the types, when `validateResponse` is on (the default). A body that fails throws `EsiValidationError` and its cache entry is evicted, as in `createClient`. Where ESI's wire responses break the document, `scripts/spec/response-schema-overrides.json` widens the type and the schema together, and `tests/tdd/adapters/responseSchemas.recorded.test.ts` runs every recorded response through its schema.
+- **Generated Zod validation.** `createClient` validates against the hand-written schemas in `src/schemas/`; `PipelineTransport` validates against `src/adapters/responseSchemas.generated.ts`, one schema per operation generated from the same document as the types, when `createEsi` is given `validateResponse: true`. Unset or `false`, the body is returned unvalidated, as before; the default for `createEsi` will become validating in a future major. The runtime passes `validateResponse: true` to `PipelineTransport` only for an explicit `true`, because the shared `ApiClient` default (`true`) is what keeps the hand-written clients validating. A body that fails throws `EsiValidationError` and its cache entry is evicted, as in `createClient`. Where ESI's wire responses break the document, `scripts/spec/response-schema-overrides.json` widens the type and the schema together, and `tests/tdd/adapters/responseSchemas.recorded.test.ts` runs every recorded response through its schema.
 - **Separate cache keys for <!-- metric:trailingSlashRoutes -->54<!-- /metric --> routes.** Generated paths follow the spec and have no trailing slash. The <!-- metric:trailingSlashRoutes -->54<!-- /metric --> hand-written routes whose paths end in `/` therefore cache under a different key from their generated operation.
 
 ```ts
 import { createEsi } from '@lgriffin/esi.ts/client';
 
-const esi = createEsi({ userAgent: 'my-app/1.0 (you@example.com)' });
+const esi = createEsi({
+  userAgent: 'my-app/1.0 (you@example.com)',
+  validateResponse: true,
+});
 const status = await esi.public.status.get(); // typed and validated from the spec
 ```
 

@@ -1,7 +1,8 @@
 /**
  * Response bodies that pass the generated schemas (src/adapters/
  * responseSchemas.generated.ts), for tests of the generated operations that
- * are not about validation but run with it on, as consumers do.
+ * are not about validation, so they hold whether or not a runtime sets
+ * `validateResponse: true`.
  */
 
 export const STATUS = {
@@ -50,3 +51,13 @@ export const killmail = (killmail_id: number) => ({
   solar_system_id: 30000142,
   victim: { damage_taken: 100, ship_type_id: 670 },
 });
+
+/** A copy of `body` without `key`: a body that breaks its generated schema. */
+export function without<T extends object, K extends keyof T>(
+  body: T,
+  key: K,
+): Omit<T, K> {
+  return Object.fromEntries(
+    Object.entries(body).filter(([name]) => name !== key),
+  ) as Omit<T, K>;
+}

@@ -1,14 +1,15 @@
 import fetchMock from 'jest-fetch-mock';
 import { PipelineTransport } from '../../../src/adapters/PipelineTransport';
 import { ApiClient } from '../../../src/core/ApiClient';
+import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
-import { EsiError } from '../../../src/core/util/error';
+import { EsiError, EsiValidationError } from '../../../src/core/util/error';
 import type { OperationMeta } from '../../../src/core/ports/OperationTransport';
 import {
   getMarketsRegionIdOrders,
   getStatus,
 } from '../../../src/generated/operations.generated';
-import { marketOrder, STATUS } from '../helpers/generatedBodies';
+import { marketOrder, STATUS, without } from '../helpers/generatedBodies';
 
 fetchMock.enableMocks();
 
@@ -174,6 +175,75 @@ describe('PipelineTransport', () => {
 
       expect(status.players).toBe(1);
       expect(sent().url.pathname).toBe('/status');
+    });
+  });
+
+  describe('response validation', () => {
+    const statusWithoutPlayers = without(STATUS, 'players');
+
+    it('returns a body that breaks its generated schema unless constructed to validate', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(statusWithoutPlayers));
+      const client = newClient();
+      expect(client.getValidateResponse()).toBe(true);
+
+      const status = await getStatus(new PipelineTransport(client));
+
+      expect(status).toEqual(statusWithoutPlayers);
+    });
+
+    it('returns such a body when constructed with validateResponse: false', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(statusWithoutPlayers));
+      const transport = new PipelineTransport(newClient(), {
+        validateResponse: false,
+      });
+
+      await expect(getStatus(transport)).resolves.toEqual(statusWithoutPlayers);
+    });
+
+    it('rejects such a body with EsiValidationError naming the URL when constructed with validateResponse: true, and evicts it from the cache', async () => {
+      fetchMock.mockResponses(
+        [JSON.stringify(statusWithoutPlayers), { headers: { etag: '"a"' } }],
+        [JSON.stringify(STATUS), { headers: { etag: '"b"' } }],
+      );
+      const client = newClient();
+      client.setCache(new ETagCacheManager({ cleanupInterval: 0 }));
+      const transport = new PipelineTransport(client, {
+        validateResponse: true,
+      });
+
+      const failure = getStatus(transport);
+      await expect(failure).rejects.toBeInstanceOf(EsiValidationError);
+      await expect(failure).rejects.toMatchObject({
+        direction: 'response',
+        message: expect.stringContaining('https://esi.evetech.net/status'),
+      });
+
+      await expect(getStatus(transport)).resolves.toEqual(STATUS);
+      expect(fetchMock.mock.calls).toHaveLength(2);
+      expect(sent(1).headers.get('if-none-match')).toBeNull();
+    });
+
+    it('validates each page only when constructed with validateResponse: true', async () => {
+      const orderWithoutPrice = without(marketOrder(1), 'price');
+      const page = JSON.stringify([orderWithoutPrice]);
+      const query = { region_id: 10000002, order_type: 'sell' as const };
+
+      fetchMock.mockResponseOnce(page);
+      const unvalidated: unknown[] = [];
+      for await (const order of getMarketsRegionIdOrders(
+        new PipelineTransport(newClient()),
+        query,
+      )) {
+        unvalidated.push(order);
+      }
+      expect(unvalidated).toEqual([orderWithoutPrice]);
+
+      fetchMock.mockResponseOnce(page);
+      const validated = getMarketsRegionIdOrders(
+        new PipelineTransport(newClient(), { validateResponse: true }),
+        query,
+      )[Symbol.asyncIterator]();
+      await expect(validated.next()).rejects.toBeInstanceOf(EsiValidationError);
     });
   });
 

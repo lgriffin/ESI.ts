@@ -11,9 +11,10 @@
  * campaign and meta name schemas, and `.` once #419, #422 and #424 had
  * grown it past its budget. `./client` was measured when ROADMAP Phase 2
  * PR 11 added it: the generated operations and the pipeline make it the
- * largest sub-path after the root. `./testing` was re-measured when PR 12
- * added `createMockTransport`, and again when the generated operations gained
- * their Zod response schemas (zod and 213 schemas, about 63 kB minified). `.` was re-measured when #258 added the
+ * largest sub-path after the root. It was re-measured when the generated
+ * operations gained their opt-in Zod response schemas (zod and 213 schemas,
+ * about 66 kB minified). `./testing` was re-measured when PR 12 added
+ * `createMockTransport`. `.` was re-measured when #258 added the
  * `FileTokenStorage` cross-process lock (with room for #256's JWKS
  * verifier), and `./errors` (ESM) when #256 added `TokenVerificationError`.
  *
@@ -48,8 +49,8 @@ const budgets = {
     require: '26.5 kB', // measured 25150 B
   },
   './client': {
-    import: '236.1 kB', // measured 224796 B
-    require: '249.6 kB', // measured 237635 B
+    import: '236.2 kB', // measured 224894 B
+    require: '249.7 kB', // measured 237724 B
   },
   './sde': {
     import: '45.4 kB', // measured 43203 B
