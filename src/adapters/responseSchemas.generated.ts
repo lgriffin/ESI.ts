@@ -3199,6 +3199,7 @@ export const responseSchemas: Readonly<Record<string, z.ZodType>> = {
   GetMetaChangelog: MetaChangelogSchema,
   GetMetaCompatibilityDates: MetaCompatibilityDatesSchema,
   GetMetaName: MetaNameSchema,
+  GetMetaOpenapiJson: z.record(z.string(), z.unknown()),
   GetMetaStatus: MetaStatusSchema,
   GetMilitaryCampaignsListing: MilitaryCampaignsListingSchema,
   GetMilitaryCampaignsDetail: MilitaryCampaignsDetailSchema,

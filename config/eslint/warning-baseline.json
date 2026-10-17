@@ -181,7 +181,7 @@
     "scripts/spec/spec-generate-core.ts": {
       "@typescript-eslint/no-explicit-any": 1,
       "@typescript-eslint/no-unsafe-argument": 16,
-      "@typescript-eslint/no-unsafe-assignment": 10,
+      "@typescript-eslint/no-unsafe-assignment": 9,
       "@typescript-eslint/no-unsafe-call": 1,
       "@typescript-eslint/no-unsafe-member-access": 12,
       "@typescript-eslint/no-unsafe-return": 1,

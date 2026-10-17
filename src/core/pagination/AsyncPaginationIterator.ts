@@ -103,6 +103,7 @@ export async function fetchAllPages<T = unknown>(
   templatePath?: string,
   responseSchema?: ResponseSchema,
   concurrency: number = 8,
+  emptyWhenNoContent: boolean = false,
 ): Promise<T[]> {
   const validate = client.getValidateResponse();
   const firstResponse = await handleSinglePageRequest(
@@ -112,6 +113,8 @@ export async function fetchAllPages<T = unknown>(
     body,
     requiresAuth,
     templatePath,
+    undefined,
+    emptyWhenNoContent,
   );
 
   const firstBody = validatePageBody(
@@ -156,6 +159,8 @@ export async function fetchAllPages<T = unknown>(
           body,
           requiresAuth,
           templatePath,
+          undefined,
+          emptyWhenNoContent,
         );
 
         const pageBody = validatePageBody(
@@ -195,6 +200,7 @@ export async function* fetchPages<T = unknown>(
   body?: unknown,
   templatePath?: string,
   responseSchema?: ResponseSchema,
+  emptyWhenNoContent: boolean = false,
 ): AsyncGenerator<PageResult<T>, void, undefined> {
   const validate = client.getValidateResponse();
   const firstResponse = await handleSinglePageRequest(
@@ -204,6 +210,8 @@ export async function* fetchPages<T = unknown>(
     body,
     requiresAuth,
     templatePath,
+    undefined,
+    emptyWhenNoContent,
   );
 
   const firstBody = validatePageBody(
@@ -243,6 +251,8 @@ export async function* fetchPages<T = unknown>(
       body,
       requiresAuth,
       templatePath,
+      undefined,
+      emptyWhenNoContent,
     );
 
     const pageBody = validatePageBody(

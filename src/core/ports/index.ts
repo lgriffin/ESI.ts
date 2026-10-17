@@ -10,6 +10,7 @@ export type { HttpTransport } from './HttpTransport';
 export type { Identity } from './Identity';
 export type { LogFields, Logger } from './Logger';
 export type {
+  OperationDeprecation,
   OperationMeta,
   OperationPagination,
   OperationRequest,

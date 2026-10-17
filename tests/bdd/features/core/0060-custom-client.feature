@@ -44,3 +44,25 @@ Feature: Custom client built from chosen API clients
       When a custom client built with the "status" client and the client ID "fleet-tool" requests the server status
       Then the request shall carry the header "X-User-Agent" with the value "fleet-tool"
       And the custom client's result shall report the server status
+
+  Rule: When a custom client calls an endpoint whose definition is marked deprecated, the CustomEsiClient shall log one warning through the client's logger naming the endpoint, its replacement and its sunset date.
+    The first step of the deprecation process in guides/SEMVER.md is a
+    warning on every call. An endpoint definition carries it as
+    DeprecationInfo, and the stream and fetchAll page helpers warn the same
+    way. createEsi's generated operations word theirs with
+    the same helper, from the same guidance in
+    scripts/spec/operation-overlay.json; a unit test fails when the two
+    disagree about which routes are deprecated. No endpoint is deprecated
+    today, so the scenario marks the server status endpoint deprecated for
+    its duration.
+
+    Scenario: A deprecated endpoint called through a custom client warns once
+      Given the server status endpoint is marked deprecated in favour of the route status
+      And ESI reports the server status
+      When a custom client built with the "status" client and a recording logger requests the server status
+      Then the custom client's logger shall receive one warning naming the server status endpoint, the route status and the sunset date
+
+    Scenario: An endpoint that is not deprecated logs no warning
+      Given ESI reports the server status
+      When a custom client built with the "status" client and a recording logger requests the server status
+      Then the custom client's logger shall receive no warning

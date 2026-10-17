@@ -375,6 +375,8 @@ describe('AsyncPaginationIterator', () => {
         requestBody,
         true,
         undefined,
+        undefined,
+        false,
       );
     });
   });
@@ -669,6 +671,8 @@ describe('AsyncPaginationIterator', () => {
         undefined,
         false,
         undefined,
+        undefined,
+        false,
       );
     });
 

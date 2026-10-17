@@ -125,6 +125,39 @@ Feature: Contract Management
       When the client requests the bids of the accepted public auction
       Then the client shall return no public bids
 
+  Rule: If ESI answers a public contract's bids or items with no content while the Contracts client streams or collects their pages, then the Contracts client shall yield no entries.
+    The page helpers read the same emptyWhenNoContent flag on the endpoint
+    definition as the direct calls above, and as createEsi's generated
+    operations, so a contract that expired or was accepted between the
+    listing and the read ends the walk with nothing rather than a parse or
+    validation error.
+
+    Scenario: Bids streamed on an auction accepted after the listing
+      Given a public auction that ESI answers with an empty 200 response while its bids are streamed
+      When the client streams the bids of the accepted public auction
+      Then the stream shall yield no bids after one request
+
+    Scenario: Items collected on a contract answered with 204 No Content
+      Given a public contract that ESI answers with 204 No Content while its items are collected
+      When the client collects every page of the items of the contract answered with no content
+      Then the collection shall hold no item lines after one request
+
+  Rule: When the bids or items of a public contract are collected or streamed page by page, the Contracts client shall return every entry from every page in page order.
+    fetchAllPublicContractBids and fetchAllPublicContractItems request the
+    pages after the first concurrently, and streamPublicContractBids and
+    streamPublicContractItems yield one validated page at a time, as the
+    other paged contract routes do.
+
+    Scenario: Bids on a busy auction collected across two pages
+      Given a public auction whose bids ESI splits across two pages
+      When the client collects every page of the bids of the busy public auction
+      Then the client shall return the bids from both pages in page order
+
+    Scenario: Items on a public contract streamed page by page
+      Given a public contract whose items ESI serves on one page
+      When the client streams the items of the public contract
+      Then the stream shall yield the contract's item lines on one page
+
   Rule: When a contract is located in the character list and its bids and items are then requested, the Contracts client shall resolve every call in the sequence.
     This is the ordinary inspection path: find the contract, then open it. The
     contract ID feeding the two detail calls comes from the list response, so

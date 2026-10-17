@@ -5,7 +5,13 @@
  */
 import { EsiTokenManager } from '../../../src/auth/EsiTokenManager';
 import { MemoryTokenStorage } from '../../../src/auth/storage/MemoryTokenStorage';
-import { createEsi, type Esi, type EsiOptions } from '../../../src/client';
+import {
+  createEsi,
+  type Esi,
+  type EsiOptions,
+  type OperationMeta,
+} from '../../../src/client';
+import { getStatusMeta } from '../../../src/generated/operations.generated';
 import {
   makeJwt,
   makeStoredToken,
@@ -90,4 +96,44 @@ export function queueWalletBalance(times = 1): void {
 /** The requests that went to ESI, leaving out the SSO refresh calls. */
 export function esiRequests(): readonly RecordedRequest[] {
   return sentRequests().filter((r) => r.url.host === 'esi.evetech.net');
+}
+
+// ── What the custom endpoint definitions carry too
+
+export const PUBLIC_CONTRACT_ID = 214_400_001;
+export const PUBLIC_CONTRACT_BIDS_PATH = /\/contracts\/public\/bids\/\d+(\?|$)/;
+export const PUBLIC_CONTRACT_ITEMS_PATH =
+  /\/contracts\/public\/items\/\d+(\?|$)/;
+
+/** What the deprecation scenario adds to the server status metadata. */
+export const STATUS_DEPRECATION = {
+  message: 'Read the route status instead.',
+  replacedBy: 'GetMetaStatus',
+  sunsetDate: '2027-01-01',
+} as const;
+
+type Mutable<T> = { -readonly [K in keyof T]: T[K] };
+
+/**
+ * Marks the generated server status metadata deprecated, as the generator
+ * would for an operation the spec deprecates, and returns the undo. The
+ * metadata object is the one the scope tree passes to the transport, so the
+ * real pipeline sees the change.
+ */
+export function markStatusDeprecated(): () => void {
+  const meta = getStatusMeta as Mutable<OperationMeta>;
+  const before = { ...meta };
+  meta.deprecated = true;
+  meta.deprecation = STATUS_DEPRECATION;
+  return () => {
+    delete meta.deprecation;
+    Object.assign(meta, before);
+  };
+}
+
+/** Collects every item an async iterable yields. */
+export async function collect<T>(items: AsyncIterable<T>): Promise<T[]> {
+  const out: T[] = [];
+  for await (const item of items) out.push(item);
+  return out;
 }

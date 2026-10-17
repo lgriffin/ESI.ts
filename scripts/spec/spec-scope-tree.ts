@@ -6,7 +6,8 @@
  * The rules, applied to each path in turn:
  *
  * - A literal segment becomes a property, camelCased (`paragon-hub` is
- *   `paragonHub`, `agents_research` is `agentsResearch`).
+ *   `paragonHub`, `agents_research` is `agentsResearch`, `openapi.json` is
+ *   `openapiJson`).
  * - A literal followed by path parameters becomes a call taking them, in the
  *   order the path names them (`killmails/{id}/{hash}` is `killmail(id, hash)`).
  *   The node stays a namespace too when shorter paths end there, so
@@ -21,7 +22,7 @@
  * `PublicScopeTree` is the same tree with only the operations that need no
  * SSO scope: the type a client without a token hands out.
  */
-import type { GeneratedOperation } from './spec-generate-core';
+import type { Deprecation, GeneratedOperation } from './spec-generate-core';
 
 export class ScopeTreeError extends Error {
   override readonly name = 'ScopeTreeError';
@@ -52,11 +53,26 @@ const FUNCTION_OWN = new Set([
 /** Names the emitted leaves use for their own arguments. */
 const RESERVED_ARGS = new Set(['transport', 'params', 'body']);
 
+/**
+ * The `@deprecated` line for a deprecated operation: the overlay's message,
+ * replacement and sunset date where it names them.
+ */
+export function deprecatedTag(d: Deprecation): string {
+  const parts = ['@deprecated ESI marks this operation deprecated.'];
+  if (d.message) parts.push(d.message);
+  if (d.replacedBy) parts.push(`Use \`${d.replacedBy}\` instead.`);
+  if (d.sunsetDate) parts.push(`Sunset date: ${d.sunsetDate}.`);
+  return parts.join(' ');
+}
+
 const node = (): Node => ({ children: new Map(), leaves: new Map() });
 
-/** `freelance-jobs` becomes `freelanceJobs`; `agents_research`, `agentsResearch`. */
+/**
+ * `freelance-jobs` becomes `freelanceJobs`; `agents_research`,
+ * `agentsResearch`; `openapi.json`, `openapiJson`.
+ */
 export function camelCase(segment: string): string {
-  const [first = '', ...rest] = segment.split(/[-_]/);
+  const [first = '', ...rest] = segment.split(/[-_.]/);
   return (
     first.charAt(0).toLowerCase() +
     first.slice(1) +
@@ -216,9 +232,7 @@ function leafDoc(op: GeneratedOperation): string {
     op.summary ?? op.operationId,
     '',
     `\`${op.method} ${op.path}\`. ${needs} See \`${op.functionName}\`.`,
-    ...(op.deprecated
-      ? ['@deprecated ESI marks this operation deprecated.']
-      : []),
+    ...(op.deprecated ? [deprecatedTag(op.deprecation ?? {})] : []),
   ].flatMap((l) => l.replace(/\*\//g, '*\\/').trim().split(/\r?\n/));
   return `/**\n${lines.map((l) => ` * ${l}`.trimEnd()).join('\n')}\n */\n`;
 }

@@ -440,6 +440,156 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('Bids streamed on an auction accepted after the listing', ({
+    given,
+    when,
+    then,
+  }) => {
+    const contractId = 200000005;
+    const bids: unknown[] = [];
+
+    given(
+      'a public auction that ESI answers with an empty 200 response while its bids are streamed',
+      () => {
+        queueResponse({
+          match: exactPath(`/contracts/public/bids/${contractId}`),
+          headers: { 'content-length': '0' },
+          body: '',
+        });
+      },
+    );
+
+    when(
+      'the client streams the bids of the accepted public auction',
+      async () => {
+        for await (const page of client.contracts.streamPublicContractBids(
+          contractId,
+        )) {
+          bids.push(...page.data);
+        }
+      },
+    );
+
+    then('the stream shall yield no bids after one request', () => {
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().url.pathname).toBe(
+        `/contracts/public/bids/${contractId}`,
+      );
+      expect(bids).toEqual([]);
+    });
+  });
+
+  test('Items collected on a contract answered with 204 No Content', ({
+    given,
+    when,
+    then,
+  }) => {
+    const contractId = 200000006;
+    let result: unknown;
+
+    given(
+      'a public contract that ESI answers with 204 No Content while its items are collected',
+      () => {
+        queueResponse({
+          match: exactPath(`/contracts/public/items/${contractId}`),
+          status: 204,
+        });
+      },
+    );
+
+    when(
+      'the client collects every page of the items of the contract answered with no content',
+      async () => {
+        result = await client.contracts.fetchAllPublicContractItems(contractId);
+      },
+    );
+
+    then('the collection shall hold no item lines after one request', () => {
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().url.pathname).toBe(
+        `/contracts/public/items/${contractId}`,
+      );
+      expect(result).toEqual([]);
+    });
+  });
+
+  test('Bids on a busy auction collected across two pages', ({
+    given,
+    when,
+    then,
+  }) => {
+    const contractId = 200000007;
+    const bid = (bid_id: number) => ({
+      bid_id,
+      amount: 1_000_000 * bid_id,
+      date_bid: '2026-10-01T12:00:00Z',
+    });
+    let result: Array<{ bid_id: number }> = [];
+
+    given('a public auction whose bids ESI splits across two pages', () => {
+      queueResponse({
+        match: exactPath(`/contracts/public/bids/${contractId}`),
+        headers: { 'x-pages': '2' },
+        body: [bid(1), bid(2)],
+      });
+      queueResponse({
+        match: /\/contracts\/public\/bids\/200000007\?page=2$/,
+        headers: { 'x-pages': '2' },
+        body: [bid(3)],
+      });
+    });
+
+    when(
+      'the client collects every page of the bids of the busy public auction',
+      async () => {
+        result = await client.contracts.fetchAllPublicContractBids(contractId);
+      },
+    );
+
+    then(
+      'the client shall return the bids from both pages in page order',
+      () => {
+        expect(sentRequests()).toHaveLength(2);
+        expect(result.map((b) => b.bid_id)).toEqual([1, 2, 3]);
+      },
+    );
+  });
+
+  test('Items on a public contract streamed page by page', ({
+    given,
+    when,
+    then,
+  }) => {
+    const contractId = 200000008;
+    const item = {
+      record_id: 1,
+      type_id: 34,
+      quantity: 1000,
+      is_included: true,
+    };
+    const pages: Array<{ data: unknown[]; page: number }> = [];
+
+    given('a public contract whose items ESI serves on one page', () => {
+      queueResponse({
+        match: exactPath(`/contracts/public/items/${contractId}`),
+        headers: { 'x-pages': '1' },
+        body: [item],
+      });
+    });
+
+    when('the client streams the items of the public contract', async () => {
+      for await (const page of client.contracts.streamPublicContractItems(
+        contractId,
+      )) {
+        pages.push({ data: page.data, page: page.page });
+      }
+    });
+
+    then("the stream shall yield the contract's item lines on one page", () => {
+      expect(pages).toEqual([{ data: [item], page: 1 }]);
+    });
+  });
+
   test('Item lines on an item exchange contract', ({ given, when, then }) => {
     const characterId = 1689391488;
     const contractId = 100000002;

@@ -64,6 +64,10 @@ That is the answer to [#183](https://github.com/lgriffin/ESI.ts/issues/183): the
 
 The public view sends no `Authorization` header, whatever tokens the runtime's other views hold. A public request is never attributed to a character.
 
+Two operations are not in ESI's specification and come from `scripts/spec/operation-overlay.json` instead: `esi.public.meta.openapiJson.get()` resolves with the parsed specification document and `esi.public.meta.openapiYaml.get()` with the YAML text, unparsed, asked for with `Accept: application/yaml, text/yaml, text/plain`, as `MetaClient.getOpenApiJson()` and `getOpenApiYaml()` on the custom clients do.
+
+When an operation the spec marks deprecated is called, through any view, the runtime logs one warning through its logger per call (per iteration for a paginated one): `Operation '<operationId>' is deprecated.`, followed by the message, replacement and sunset date when `scripts/spec/operation-overlay.json` records them. The same guidance is on `OperationMeta.deprecation` and in the operation's `@deprecated` JSDoc. The custom clients log the same warning, worded by the same helper, as `Endpoint '<method>' is deprecated.` from the endpoint definition's `DeprecationInfo`. No operation is deprecated in the current specification.
+
 ## Identities and `as()`
 
 `esi.as(identity)` returns a view over the same runtime that sends as one identity. Its type is `ScopeTree`, the full tree, so every operation is there. The view is immutable: it holds the identity it was built with, and the same `Identity` object gets the same view back, so `esi.as(identity)` in a request handler costs nothing after the first call.
