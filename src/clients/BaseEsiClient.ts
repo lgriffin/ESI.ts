@@ -102,7 +102,10 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
     );
   }
 
+  // The omitted union stays inline: an alias would be a type the API report
+  // cannot name, since `this` keeps the views typed per subclass.
   withMetadata(): WithMetadata<
+    // eslint-disable-next-line sonarjs/use-type-alias
     Omit<this, 'withMetadata' | 'withSafeMode' | 'diagnostics' | 'shutdown'>
   > {
     if (!this._metaApi) {
