@@ -647,6 +647,8 @@ export class EsiClientBuilder {
     // The constructor falls back to ESI_ACCESS_TOKEN; an empty token sends no
     // Authorization header, so an authenticated call fails with NO_AUTH_TOKEN.
     custom['apiClient'].setAccessToken('');
+    // A request interceptor cannot put one back either.
+    custom['apiClient'].getMiddleware().withholdRequestHeaders('Authorization');
     return custom;
   }
 }

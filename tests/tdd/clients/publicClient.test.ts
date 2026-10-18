@@ -61,6 +61,26 @@ describe('public-only custom client (#675)', () => {
     pub.shutdown();
   });
 
+  it('sends no Authorization header even when a request interceptor adds one', async () => {
+    fetchMock.mockResponseOnce('[]');
+    const pub = new EsiClientBuilder({
+      requestInterceptors: [
+        (ctx) => ({
+          ...ctx,
+          headers: { ...ctx.headers, authorization: 'Bearer from-interceptor' },
+        }),
+      ],
+    })
+      .addClients(['market'])
+      .buildPublic();
+
+    await pub.market?.getMarketPrices();
+
+    const headers = new Headers(fetchMock.mock.calls[0]![1]?.headers);
+    expect(headers.has('Authorization')).toBe(false);
+    pub.shutdown();
+  });
+
   it('refuses an authenticated method reached by a cast, before any request', async () => {
     const pub = new EsiClientBuilder()
       .addClients(['wallet'])
