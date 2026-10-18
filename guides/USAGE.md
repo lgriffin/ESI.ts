@@ -465,8 +465,8 @@ npm run example:retry-timeout-metadata
 npm run example                 # full character profile
 npm run example:wallet
 npm run example:token-manager   # SSO login, storage and refresh
-npm run example:multi-character # several characters' wallets through one runtime
-npm run example:public-vs-authenticated # the type split, with a @ts-expect-error line
+npm run example:multi-character # several characters' wallets through one client and as(identity)
+npm run example:public-vs-authenticated # buildPublic() and the type split, with a @ts-expect-error line
 npm run example:write-ops       # contacts, fittings, mail and UI round trips; use a test character
 
 # Static data (needs sde-data/, see the SDE guide)

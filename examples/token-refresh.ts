@@ -13,6 +13,11 @@
  * handle that transparently so long-running applications (market bots,
  * fleet trackers, industry monitors) don't need to manually track expiry.
  *
+ * For many characters, give each one an identity instead and use
+ * `client.as(tokens.identity(id))` (examples/multi-character.ts): a view
+ * refreshes through its identity, and `setAccessToken` / `setTokenProvider`
+ * throw on a view.
+ *
  * Usage: npm run example:token-refresh
  *
  * @nightly auth

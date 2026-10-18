@@ -2,8 +2,8 @@
  * ESI.ts Example: Token Manager
  *
  * Demonstrates EsiTokenManager: the SSO login flow, persistent multi-character
- * token storage, proactive refresh, a view for a character over the shared
- * runtime (`esi.as(tokens.identity(id))`), and bulk refresh with a
+ * token storage, proactive refresh, a view of one EsiClient for a character
+ * (`client.as(tokens.identity(id))`), and bulk refresh with a
  * concurrency cap.
  *
  * REQUIRES an SSO application — set ESI_SSO_CLIENT_ID (and, for a
@@ -22,20 +22,20 @@
 import * as http from 'http';
 import {
   createConsoleLogger,
+  EsiClient,
   EsiTokenManager,
   FileTokenStorage,
   generatePkcePair,
   generateState,
   isTokenRevoked,
 } from '../src';
-import { createEsi } from '../src/client';
 
 // The program's own output. The client logs through the same console sink
 // at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
 const log = createConsoleLogger('info');
 const esiLog = createConsoleLogger();
 
-const esi = createEsi({
+const client = new EsiClient({
   logger: esiLog,
   userAgent: 'esi.ts-examples/1.0 (https://github.com/lgriffin/ESI.ts)',
 });
@@ -135,13 +135,13 @@ async function main() {
   }
   const characterId = active[0]?.characterId ?? (await loginNewCharacter());
 
-  // --- 2. A view for the character over the shared runtime ---
+  // --- 2. A view of the client for the character ---
   // Before each request the view asks the manager for the token, which is
   // refreshed first if it is within 60 s of expiry; a 401 refreshes through
   // SSO and the request is retried once (guides/MULTI-CHARACTER.md).
-  const view = esi.as(tokens.identity(characterId));
+  const pilot = client.as(tokens.identity(characterId));
   try {
-    const location = await view.character(characterId).location.get();
+    const location = await pilot.location.getCharacterLocation(characterId);
     log.info(`\nCurrent system: ${location.solar_system_id}`);
   } catch (err) {
     if (isTokenRevoked(err)) {
@@ -171,7 +171,9 @@ async function main() {
   log.info('\nDone.');
 }
 
-main().catch((err) => {
-  log.error('Unexpected error', { error: err });
-  process.exit(1);
-});
+main()
+  .catch((err) => {
+    log.error('Unexpected error', { error: err });
+    process.exitCode = 1;
+  })
+  .finally(() => client.shutdown());

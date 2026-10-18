@@ -16,6 +16,20 @@ const pilot = client.as(tokens.identity(characterId));
 const balance = await pilot.wallet.getCharacterWallet(characterId);
 ```
 
+```mermaid
+flowchart LR
+  subgraph root["One EsiClient or CustomEsiClient"]
+    direction TB
+    mw["Shared middleware<br/>cache, rate limiter, error budget,<br/>circuit breaker, deduplicator, retry, interceptors"]
+  end
+  a["client.as(identityA)"] --> mw
+  b["client.as(identityB)"] --> mw
+  pub["client.status, client.market, ...<br/>(no identity)"] --> mw
+  tm["EsiTokenManager<br/>tokens.identity(id)"] -. "accessToken() before each call<br/>refreshAccessToken() after a 401" .-> a
+  tm -.-> b
+  mw --> api[("ESI")]
+```
+
 `client.as(identity)` returns the same domain clients, sending as that identity. Every view shares the client's cache, rate limiter, circuit breaker, deduplicator, retry policy, interceptors and settings, and the cache keeps each character's authenticated entries apart. The view asks `identity.accessToken()` before each authenticated request and `identity.refreshAccessToken()` after a 401, the same identity returns the same view, and a view cannot change its identity (`setAccessToken` and `setTokenProvider` throw on it). `Identity`, `identityFromToken` and `identityFromProvider` are exported from the root entry as well as `./client`. Specification: `tests/bdd/features/core/0063-custom-client-identity-views.feature`.
 
 The spec-shaped surface, `createEsi()` from `@lgriffin/esi.ts/client`, has had the same model from the start, and the custom clients' views run on the same code:
@@ -188,4 +202,4 @@ To move to the spec-shaped surface instead:
 
 Its operations are the generated ones. They follow the ESI OpenAPI document exactly: resource-shaped names (`character(id).wallet.get()` rather than `wallet.getCharacterWallet(id)`), spec-typed responses, and every paginated operation returned as an `AsyncIterable` that follows the pages. They are validated against the generated schemas only when `createEsi` is given `validateResponse: true`.
 
-`examples/multi-character.ts` shows several characters' wallets through one runtime, and `examples/public-vs-authenticated.ts` shows the type split with the `@ts-expect-error` line.
+`examples/multi-character.ts` reads several characters' wallets through one `EsiClient` with `client.as(identity)`, and `examples/public-vs-authenticated.ts` shows the type split with `buildPublic()` and its `@ts-expect-error` line, then the same calls through `createEsi()`.

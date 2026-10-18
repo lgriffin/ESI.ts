@@ -15,6 +15,30 @@ ESI.ts is a library of hand-written, curated custom clients. The code that is ge
 - **`createEsi()` from `@lgriffin/esi.ts/client` is the spec-shaped low-level surface.** It stays documented for anyone who wants calls that mirror the URL and the spec's parameters exactly (`esi.public`, `esi.as(identity)`, [MULTI-CHARACTER.md](MULTI-CHARACTER.md)), and it becomes the engine under the custom clients. It needs no feature parity with them.
 - **Changing this is a charter amendment first.** ARCH-14 fails a change that deprecates or removes a custom-client construction surface, or replaces one with the generated surface.
 
+### How the layers fit
+
+Generation feeds the custom clients, and both surfaces end in one pipeline:
+
+```mermaid
+flowchart TB
+  spec["Vendored ESI OpenAPI snapshot"] --> gen["npm run spec:generate"]
+  gen --> routes["esi-operations.generated.ts<br/>route table"]
+  gen --> baselines["src/schemas/generated/<br/>baseline schemas"]
+  gen --> ops["operations.generated.ts<br/>ScopeTree"]
+  gen --> rs["src/adapters/<br/>responseSchemas.generated.ts"]
+  custom["Hand-written: method names, argument order,<br/>bodyBuilder, wire fixes, Zod schemas"] --> fromOp
+  routes --> fromOp["fromOperation(operationId, custom)"]
+  fromOp --> maps["39 endpoint maps<br/>src/core/endpoints/"]
+  baselines -. "explicit import" .-> maps
+  maps --> clients["Custom clients, the product<br/>EsiClient, CustomEsiClient, EsiApiFactory<br/>as(identity), buildPublic()"]
+  ops --> esi["createEsi()<br/>spec-shaped surface"]
+  esi --> pt["PipelineTransport"]
+  rs -. "validateResponse: true" .-> pt
+  clients --> pipeline["One ApiClient pipeline<br/>cache, rate limiter, breaker, dedup, retry"]
+  pt --> pipeline
+  pipeline --> api[("ESI")]
+```
+
 ### What 12.2.0 changes
 
 12.1.0 marked the custom clients `@deprecated` for removal in 13.0.0, following a plan to make `createEsi()` the only surface. 12.2.0 lifts those deprecations. That is a compatible change: no name, signature or behaviour changes.
