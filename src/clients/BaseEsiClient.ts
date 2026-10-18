@@ -8,6 +8,12 @@ import {
 import { EndpointMap } from '../core/endpoints/EndpointDefinition';
 import { buildEndpointPath } from '../core/endpoints/buildEndpointPath';
 import { warnIfDeprecated } from '../core/endpoints/deprecationWarning';
+import type { EsiDiagnostics } from '../core/EsiDiagnostics';
+import { logInfo } from '../core/logger/clientLog';
+import {
+  diagnosticsFor,
+  shutdownOwnedPipeline,
+} from '../core/pipelineOwnership';
 import {
   fetchAllPages,
   fetchPages,
@@ -96,25 +102,52 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
     );
   }
 
-  withMetadata(): WithMetadata<Omit<this, 'withMetadata' | 'withSafeMode'>> {
+  withMetadata(): WithMetadata<
+    Omit<this, 'withMetadata' | 'withSafeMode' | 'diagnostics' | 'shutdown'>
+  > {
     if (!this._metaApi) {
       this._metaApi = createClient(this._client, this._endpoints, {
         returnMetadata: true,
       });
     }
     return this._metaApi as unknown as WithMetadata<
-      Omit<this, 'withMetadata' | 'withSafeMode'>
+      Omit<this, 'withMetadata' | 'withSafeMode' | 'diagnostics' | 'shutdown'>
     >;
   }
 
-  withSafeMode(): WithSafeMode<Omit<this, 'withMetadata' | 'withSafeMode'>> {
+  withSafeMode(): WithSafeMode<
+    Omit<this, 'withMetadata' | 'withSafeMode' | 'diagnostics' | 'shutdown'>
+  > {
     if (!this._safeApi) {
       this._safeApi = createClient(this._client, this._endpoints, {
         safeMode: true,
       });
     }
     return this._safeApi as unknown as WithSafeMode<
-      Omit<this, 'withMetadata' | 'withSafeMode'>
+      Omit<this, 'withMetadata' | 'withSafeMode' | 'diagnostics' | 'shutdown'>
     >;
+  }
+
+  /**
+   * Reads and resets the cache, circuit breaker and deduplicator this client
+   * uses: its own when `EsiApiFactory.createClient` built it, otherwise the
+   * ones it shares with its `EsiClient` or `CustomEsiClient`, through the
+   * same object that client's `diagnostics` returns.
+   */
+  get diagnostics(): EsiDiagnostics {
+    return diagnosticsFor(this._client);
+  }
+
+  /**
+   * Stops the cleanup timers of the cache and circuit breaker a client from
+   * `EsiApiFactory.createClient` built, and drops its in-flight table; a
+   * cache store or circuit breaker supplied in its config is left to its
+   * owner. On a client reached through `EsiClient` or `CustomEsiClient`
+   * this does nothing: shut that client down instead.
+   */
+  shutdown(): void {
+    if (shutdownOwnedPipeline(this._client)) {
+      logInfo(this._client, 'Domain client shutdown completed');
+    }
   }
 }
