@@ -46,9 +46,10 @@ const camelCase = (name: string): string =>
  * The spec's template (`/markets/{region_id}/orders`) in the form the
  * pipeline builds URLs from (`markets/{regionId}/orders`): no leading slash,
  * and each placeholder renamed to the custom client's path parameter. A spec
- * name matches its camelCase form (`region_id` is `regionId`); when the
- * custom names differ (`origin` for `origin_system_id`), they are matched by
- * position, which is also the order the spec's template names them.
+ * name matches its camelCase form (`region_id` is `regionId`) wherever that
+ * appears in the custom names. The placeholders left over then take the
+ * custom names left over (`origin` for `origin_system_id`), in the order the
+ * template and the custom client each list them.
  *
  * @throws Error when the custom client names a different number of path
  * parameters than the template has.
@@ -69,16 +70,15 @@ export function customPath(
       `${operationId}: the spec's path ${template} has ${names.length} parameter(s) but the endpoint names ${pathParams.length} (${pathParams.join(', ') || 'none'})`,
     );
   }
-  const byName = names.every((n) => pathParams.includes(camelCase(n)));
-  let position = 0;
+  const matched = new Set(
+    names.map(camelCase).filter((n) => pathParams.includes(n)),
+  );
+  const leftover = pathParams.filter((p) => !matched.has(p));
   const path = segments
     .map((seg) => {
       if (!isPlaceholder(seg)) return seg;
-      const param = byName
-        ? camelCase(seg.slice(1, -1))
-        : pathParams.at(position);
-      position += 1;
-      return `{${param}}`;
+      const own = camelCase(seg.slice(1, -1));
+      return `{${matched.has(own) ? own : leftover.shift()}}`;
     })
     .join('/');
   return trailingSlash ? `${path}/` : path;
