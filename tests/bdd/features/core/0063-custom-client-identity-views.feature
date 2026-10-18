@@ -44,6 +44,17 @@ Feature: Identity views of the custom clients
       When the custom client's identity view requests the character's wallet balance
       Then the request shall carry the header "Authorization" with the value "Bearer raw-access-token"
 
+  Rule: When an identity view follows the pages of an authenticated method, the EsiClient shall ask the identity for its token before each page.
+    A walk over many pages can outlast a token; asking before each page sends
+    whatever token the identity holds by then, as `createEsi` views do.
+
+    Scenario: A provider's newer token is sent for the second page
+      Given an EsiClient that holds no token
+      And an identity view of the EsiClient whose provider hands out a new token on each call
+      And ESI reports the character's assets on two pages
+      When the identity view follows every page of the character's assets
+      Then the two requests shall carry the provider's first and second tokens
+
   Rule: When ESI answers 401 to an identity view whose identity can refresh, the EsiClient shall retry the request once with the refreshed token.
     A token manager refreshes through SSO; the view installs that refresh as
     the token provider its retry strategy calls after a 401.
@@ -56,6 +67,25 @@ Feature: Identity views of the custom clients
       When the identity view requests the character's wallet balance
       Then the call shall resolve with the wallet balance after two requests
       And the request shall carry the character's fresh access token as the bearer
+
+  Rule: If ESI answers 401 to an identity view whose identity cannot refresh, then the EsiClient shall reject the call with the 401 after a single request.
+    A raw access token has no refresh, and a 401 is not retryable, so the
+    retry strategy has nothing to try again with. The view does not borrow the
+    client's own `onTokenRefresh`: that would refresh some other identity.
+
+    Scenario: A raw token rejected by ESI is not retried
+      Given an EsiClient that holds no token
+      And an identity view of the EsiClient for a character holding an access token
+      And ESI rejects the character's token
+      When the identity view requests the character's wallet balance
+      Then the call shall be rejected with status 401 after a single request
+
+    Scenario: A raw token rejected by ESI is not retried with the client's own refresh
+      Given an EsiClient that holds no token and refreshes through onTokenRefresh
+      And an identity view of the EsiClient for a character holding an access token
+      And ESI rejects the character's token
+      When the identity view requests the character's wallet balance
+      Then the call shall be rejected with status 401 after a single request
 
   # ── What the views share
 
@@ -81,6 +111,19 @@ Feature: Identity views of the custom clients
       And ESI reports the corporation wallets twice
       When each identity view requests the corporation wallets
       Then the runtime shall have sent 2 requests
+
+  Rule: While the circuit for an endpoint is open, the EsiClient shall reject that endpoint from the client and every identity view without sending a request.
+    A view shares the client's circuit breaker, so failures seen through one
+    character's view protect ESI from every other caller of the endpoint.
+
+    Scenario: An endpoint that failed through a view is rejected for the client it came from
+      Given an EsiClient that holds no token with a circuit breaker that opens after 2 failures
+      And an identity view of the EsiClient for a character holding an access token
+      And ESI answers the server status with 500 until the circuit opens
+      When the identity view requests the server status and the circuit opens
+      And the EsiClient requests the server status
+      Then the public request shall be rejected with CircuitOpenError
+      And the runtime shall have sent 2 requests
 
   # ── A view's identity is fixed
 
