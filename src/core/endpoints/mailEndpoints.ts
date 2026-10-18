@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   MailHeaderSchema,
   MailMessageSchema,
@@ -11,18 +12,14 @@ import {
 } from '../../schemas/mail';
 
 export const mailEndpoints = {
-  getCharacterMailHeaders: {
-    path: 'characters/{characterId}/mail/',
-    method: 'GET',
-    requiresAuth: true,
+  getCharacterMailHeaders: fromOperation('GetCharactersCharacterIdMail', {
+    trailingSlash: true,
     pathParams: ['characterId'],
     responseSchema: z.array(MailHeaderSchema),
-  },
-  sendMail: {
-    path: 'characters/{characterId}/mail/',
-    method: 'POST',
+  }),
+  sendMail: fromOperation('PostCharactersCharacterIdMail', {
+    trailingSlash: true,
     responseSchema: MailIdSchema,
-    requiresAuth: true,
     pathParams: ['characterId'],
     hasBody: true,
     requestSchema: z.looseObject({
@@ -40,53 +37,42 @@ export const mailEndpoints = {
       subject: z.string().min(1),
       body: z.string().min(1),
     }),
-  },
-  getMail: {
-    path: 'characters/{characterId}/mail/{mailId}/',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getMail: fromOperation('GetCharactersCharacterIdMailMailId', {
+    trailingSlash: true,
     pathParams: ['characterId', 'mailId'],
     responseSchema: MailMessageSchema,
-  },
-  deleteMail: {
-    path: 'characters/{characterId}/mail/{mailId}/',
-    method: 'DELETE',
-    requiresAuth: true,
+  }),
+  deleteMail: fromOperation('DeleteCharactersCharacterIdMailMailId', {
+    trailingSlash: true,
     pathParams: ['characterId', 'mailId'],
-  },
-  updateMailMetadata: {
-    path: 'characters/{characterId}/mail/{mailId}/',
-    method: 'PUT',
-    requiresAuth: true,
+  }),
+  updateMailMetadata: fromOperation('PutCharactersCharacterIdMailMailId', {
+    trailingSlash: true,
     pathParams: ['characterId', 'mailId'],
     hasBody: true,
-  },
-  getMailLabels: {
-    path: 'characters/{characterId}/mail/labels/',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getMailLabels: fromOperation('GetCharactersCharacterIdMailLabels', {
+    trailingSlash: true,
     pathParams: ['characterId'],
     responseSchema: MailLabelsResponseSchema,
-  },
-  createMailLabel: {
-    path: 'characters/{characterId}/mail/labels/',
-    method: 'POST',
+  }),
+  createMailLabel: fromOperation('PostCharactersCharacterIdMailLabels', {
+    trailingSlash: true,
     responseSchema: MailLabelIdSchema,
-    requiresAuth: true,
     pathParams: ['characterId'],
     hasBody: true,
-  },
-  deleteMailLabel: {
-    path: 'characters/{characterId}/mail/labels/{labelId}/',
-    method: 'DELETE',
-    requiresAuth: true,
-    pathParams: ['characterId', 'labelId'],
-  },
-  getMailingLists: {
-    path: 'characters/{characterId}/mail/lists/',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  deleteMailLabel: fromOperation(
+    'DeleteCharactersCharacterIdMailLabelsLabelId',
+    {
+      trailingSlash: true,
+      pathParams: ['characterId', 'labelId'],
+    },
+  ),
+  getMailingLists: fromOperation('GetCharactersCharacterIdMailLists', {
+    trailingSlash: true,
     pathParams: ['characterId'],
     responseSchema: z.array(MailingListSchema),
-  },
+  }),
 } as const satisfies EndpointMap;

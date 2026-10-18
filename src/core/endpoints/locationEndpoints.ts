@@ -1,4 +1,5 @@
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   CharacterLocationSchema,
   CharacterOnlineSchema,
@@ -6,25 +7,16 @@ import {
 } from '../../schemas/location';
 
 export const locationEndpoints = {
-  getCharacterLocation: {
-    path: 'characters/{characterId}/location',
-    method: 'GET',
-    requiresAuth: true,
+  getCharacterLocation: fromOperation('GetCharactersCharacterIdLocation', {
     pathParams: ['characterId'],
     responseSchema: CharacterLocationSchema,
-  },
-  getCharacterOnline: {
-    path: 'characters/{characterId}/online',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getCharacterOnline: fromOperation('GetCharactersCharacterIdOnline', {
     pathParams: ['characterId'],
     responseSchema: CharacterOnlineSchema,
-  },
-  getCharacterShip: {
-    path: 'characters/{characterId}/ship',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getCharacterShip: fromOperation('GetCharactersCharacterIdShip', {
     pathParams: ['characterId'],
     responseSchema: CharacterShipSchema,
-  },
+  }),
 } as const satisfies EndpointMap;

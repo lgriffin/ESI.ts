@@ -1,47 +1,33 @@
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   ParagonHubSkinrResponseSchema,
   ParagonHubCharacterSkinrResponseSchema,
 } from '../../schemas/paragon-hub';
 
 export const paragonHubEndpoints = {
-  getPublicListings: {
-    path: 'paragon-hub/skinr',
-    method: 'GET',
-    requiresAuth: false,
+  getPublicListings: fromOperation('GetParagonHubSkinr', {
     queryParams: { after: 'after', before: 'before', limit: 'limit' },
     responseSchema: ParagonHubSkinrResponseSchema,
-  },
-  getCharacterListings: {
-    path: 'characters/{characterId}/paragon-hub/skinr',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getCharacterListings: fromOperation('GetCharactersParagonHubSkinr', {
     pathParams: ['characterId'],
     queryParams: { after: 'after', before: 'before', limit: 'limit' },
     responseSchema: ParagonHubCharacterSkinrResponseSchema,
-  },
-  getAllianceListings: {
-    path: 'paragon-hub/skinr/alliances/{allianceId}',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getAllianceListings: fromOperation('GetParagonHubSkinrAlliances', {
     pathParams: ['allianceId'],
     queryParams: { after: 'after', before: 'before', limit: 'limit' },
     responseSchema: ParagonHubSkinrResponseSchema,
-  },
-  getCharacterTargetedListings: {
-    path: 'paragon-hub/skinr/characters/{characterId}',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getCharacterTargetedListings: fromOperation('GetParagonHubSkinrCharacters', {
     pathParams: ['characterId'],
     queryParams: { after: 'after', before: 'before', limit: 'limit' },
     responseSchema: ParagonHubSkinrResponseSchema,
-  },
-  getCorporationListings: {
-    path: 'paragon-hub/skinr/corporations/{corporationId}',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getCorporationListings: fromOperation('GetParagonHubSkinrCorporations', {
     pathParams: ['corporationId'],
     queryParams: { after: 'after', before: 'before', limit: 'limit' },
     responseSchema: ParagonHubSkinrResponseSchema,
-  },
+  }),
 } as const satisfies EndpointMap;

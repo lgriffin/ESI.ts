@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   MetaChangelogSchema,
   MetaCompatibilityDatesSchema,
@@ -8,41 +9,23 @@ import {
 } from '../../schemas/meta';
 
 export const metaEndpoints = {
-  getOpenApiJson: {
-    path: 'meta/openapi.json',
-    method: 'GET',
-    requiresAuth: false,
+  getOpenApiJson: fromOperation('GetMetaOpenapiJson', {
     responseSchema: z.record(z.string(), z.unknown()),
-  },
-  getOpenApiYaml: {
-    path: 'meta/openapi.yaml',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getOpenApiYaml: fromOperation('GetMetaOpenapiYaml', {
     responseSchema: z.string(),
     textResponse: { accept: 'application/yaml, text/yaml, text/plain' },
-  },
-  getChangelog: {
-    path: 'meta/changelog',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getChangelog: fromOperation('GetMetaChangelog', {
     responseSchema: MetaChangelogSchema,
-  },
-  getCompatibilityDates: {
-    path: 'meta/compatibility-dates',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getCompatibilityDates: fromOperation('GetMetaCompatibilityDates', {
     responseSchema: MetaCompatibilityDatesSchema,
-  },
-  getName: {
-    path: 'meta/name',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getName: fromOperation('GetMetaName', {
     responseSchema: MetaNameSchema,
-  },
-  getStatus: {
-    path: 'meta/status',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getStatus: fromOperation('GetMetaStatus', {
     responseSchema: MetaStatusSchema,
-  },
+  }),
 } as const satisfies EndpointMap;

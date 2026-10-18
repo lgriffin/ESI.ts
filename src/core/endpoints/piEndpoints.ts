@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   PlanetaryColonySchema,
   CustomsOfficeSchema,
@@ -8,32 +9,23 @@ import {
 import { SchematicInfoSchema } from '../../schemas/universe';
 
 export const piEndpoints = {
-  getColonies: {
-    path: 'characters/{characterId}/planets',
-    method: 'GET',
-    requiresAuth: true,
+  getColonies: fromOperation('GetCharactersCharacterIdPlanets', {
     pathParams: ['characterId'],
     responseSchema: z.array(PlanetaryColonySchema),
-  },
-  getColonyLayout: {
-    path: 'characters/{characterId}/planets/{planetId}',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getColonyLayout: fromOperation('GetCharactersCharacterIdPlanetsPlanetId', {
     pathParams: ['characterId', 'planetId'],
     responseSchema: ColonyLayoutSchema,
-  },
-  getCorporationCustomsOffices: {
-    path: 'corporations/{corporationId}/customs_offices',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CustomsOfficeSchema),
-  },
-  getSchematicInformation: {
-    path: 'universe/schematics/{schematicId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getCorporationCustomsOffices: fromOperation(
+    'GetCorporationsCorporationIdCustomsOffices',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CustomsOfficeSchema),
+    },
+  ),
+  getSchematicInformation: fromOperation('GetUniverseSchematicsSchematicId', {
     pathParams: ['schematicId'],
     responseSchema: SchematicInfoSchema,
-  },
+  }),
 } as const satisfies EndpointMap;

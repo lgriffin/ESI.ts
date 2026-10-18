@@ -38,9 +38,11 @@ const budgets = {
     // every-domain metadata and safe-mode views (#665), then when the endpoint
     // maps began deriving their definitions from the generated route table
     // (src/core/endpoints/esi-operations.generated.ts, 235 rows, about 22 kB
-    // minified; #671): measurement + 5%.
-    import: '283 kB', // measured 269472 B
-    require: '308.4 kB', // measured 293652 B
+    // minified; #671), and lowered once all 39 maps used it, since the
+    // definitions no longer spell out path, method and auth (#672):
+    // measurement + 5%.
+    import: '275.8 kB', // measured 262582 B
+    require: '301.1 kB', // measured 286760 B
   },
   './schemas': {
     import: '61 kB', // measured 58083 B

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   DogmaAttributeSchema,
   DogmaEffectSchema,
@@ -7,37 +8,22 @@ import {
 } from '../../schemas/dogma';
 
 export const dogmaEndpoints = {
-  getAttributes: {
-    path: 'dogma/attributes',
-    method: 'GET',
-    requiresAuth: false,
+  getAttributes: fromOperation('GetDogmaAttributes', {
     responseSchema: z.array(z.number()),
-  },
-  getAttributeById: {
-    path: 'dogma/attributes/{attributeId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getAttributeById: fromOperation('GetDogmaAttributesAttributeId', {
     pathParams: ['attributeId'],
     responseSchema: DogmaAttributeSchema,
-  },
-  getEffects: {
-    path: 'dogma/effects',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getEffects: fromOperation('GetDogmaEffects', {
     responseSchema: z.array(z.number()),
-  },
-  getEffectById: {
-    path: 'dogma/effects/{effectId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getEffectById: fromOperation('GetDogmaEffectsEffectId', {
     pathParams: ['effectId'],
     responseSchema: DogmaEffectSchema,
-  },
-  getDynamicItemInfo: {
-    path: 'dogma/dynamic/items/{typeId}/{itemId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getDynamicItemInfo: fromOperation('GetDogmaDynamicItemsTypeIdItemId', {
     pathParams: ['typeId', 'itemId'],
     responseSchema: DogmaDynamicItemSchema,
-  },
+  }),
 } as const satisfies EndpointMap;

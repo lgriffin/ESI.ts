@@ -1,21 +1,16 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   SovereigntyCampaignSchema,
   SovereigntySystemSchema,
 } from '../../schemas/sovereignty';
 
 export const sovereigntyEndpoints = {
-  getSovereigntyCampaigns: {
-    path: 'sovereignty/campaigns',
-    method: 'GET',
-    requiresAuth: false,
+  getSovereigntyCampaigns: fromOperation('GetSovereigntyCampaigns', {
     responseSchema: z.array(SovereigntyCampaignSchema),
-  },
-  getSovereigntySystems: {
-    path: 'sovereignty/systems',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getSovereigntySystems: fromOperation('GetSovereigntySystems', {
     responseSchema: SovereigntySystemSchema,
-  },
+  }),
 } as const satisfies EndpointMap;

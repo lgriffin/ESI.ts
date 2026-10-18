@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   AncestrySchema,
   AsteroidBeltInfoSchema,
@@ -27,209 +28,119 @@ import {
 } from '../../schemas/universe';
 
 export const universeEndpoints = {
-  getAncestries: {
-    path: 'universe/ancestries',
-    method: 'GET',
-    requiresAuth: false,
+  getAncestries: fromOperation('GetUniverseAncestries', {
     responseSchema: z.array(AncestrySchema),
-  },
-  getAsteroidBeltInfo: {
-    path: 'universe/asteroid_belts/{asteroidBeltId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getAsteroidBeltInfo: fromOperation('GetUniverseAsteroidBeltsAsteroidBeltId', {
     pathParams: ['asteroidBeltId'],
     responseSchema: AsteroidBeltInfoSchema,
-  },
-  getBloodlines: {
-    path: 'universe/bloodlines',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getBloodlines: fromOperation('GetUniverseBloodlines', {
     responseSchema: z.array(BloodlineSchema),
-  },
-  getCategories: {
-    path: 'universe/categories',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getCategories: fromOperation('GetUniverseCategories', {
     responseSchema: z.array(z.number()),
-  },
-  getCategoryById: {
-    path: 'universe/categories/{categoryId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getCategoryById: fromOperation('GetUniverseCategoriesCategoryId', {
     pathParams: ['categoryId'],
     responseSchema: ItemCategorySchema,
-  },
-  getConstellations: {
-    path: 'universe/constellations',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getConstellations: fromOperation('GetUniverseConstellations', {
     responseSchema: z.array(z.number()),
-  },
-  getConstellationById: {
-    path: 'universe/constellations/{constellationId}',
-    method: 'GET',
-    requiresAuth: false,
-    pathParams: ['constellationId'],
-    responseSchema: ConstellationInfoSchema,
-  },
-  getFactions: {
-    path: 'universe/factions',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getConstellationById: fromOperation(
+    'GetUniverseConstellationsConstellationId',
+    {
+      pathParams: ['constellationId'],
+      responseSchema: ConstellationInfoSchema,
+    },
+  ),
+  getFactions: fromOperation('GetUniverseFactions', {
     responseSchema: z.array(FactionSchema),
-  },
-  getGraphics: {
-    path: 'universe/graphics',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getGraphics: fromOperation('GetUniverseGraphics', {
     responseSchema: z.array(z.number()),
-  },
-  getGraphicById: {
-    path: 'universe/graphics/{graphicId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getGraphicById: fromOperation('GetUniverseGraphicsGraphicId', {
     pathParams: ['graphicId'],
     responseSchema: GraphicInfoSchema,
-  },
-  getItemGroups: {
-    path: 'universe/groups',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getItemGroups: fromOperation('GetUniverseGroups', {
     responseSchema: z.array(z.number()),
-  },
-  getItemGroupById: {
-    path: 'universe/groups/{groupId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getItemGroupById: fromOperation('GetUniverseGroupsGroupId', {
     pathParams: ['groupId'],
     responseSchema: ItemGroupSchema,
-  },
-  postBulkNamesToIds: {
-    path: 'universe/ids',
-    method: 'POST',
-    requiresAuth: false,
+  }),
+  postBulkNamesToIds: fromOperation('PostUniverseIds', {
     bodyBuilder: (names: string[]) => names,
     responseSchema: BulkIdResultSchema,
     requestSchema: z.array(z.string().min(1)),
-  },
-  getMoonById: {
-    path: 'universe/moons/{moonId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getMoonById: fromOperation('GetUniverseMoonsMoonId', {
     pathParams: ['moonId'],
     responseSchema: MoonInfoSchema,
-  },
-  postNamesAndCategories: {
-    path: 'universe/names',
-    method: 'POST',
-    requiresAuth: false,
+  }),
+  postNamesAndCategories: fromOperation('PostUniverseNames', {
     bodyBuilder: (ids: number[]) => ids,
     responseSchema: z.array(NameAndCategorySchema),
     requestSchema: z.array(z.number().int()),
-  },
-  getPlanetById: {
-    path: 'universe/planets/{planetId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getPlanetById: fromOperation('GetUniversePlanetsPlanetId', {
     pathParams: ['planetId'],
     responseSchema: PlanetInfoSchema,
-  },
-  getRaces: {
-    path: 'universe/races',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getRaces: fromOperation('GetUniverseRaces', {
     responseSchema: z.array(RaceSchema),
-  },
-  getRegions: {
-    path: 'universe/regions',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getRegions: fromOperation('GetUniverseRegions', {
     responseSchema: z.array(z.number()),
-  },
-  getRegionById: {
-    path: 'universe/regions/{regionId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getRegionById: fromOperation('GetUniverseRegionsRegionId', {
     pathParams: ['regionId'],
     responseSchema: RegionInfoSchema,
-  },
-  getSchematicById: {
-    path: 'universe/schematics/{schematicId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getSchematicById: fromOperation('GetUniverseSchematicsSchematicId', {
     pathParams: ['schematicId'],
     responseSchema: SchematicInfoSchema,
-  },
-  getStargateById: {
-    path: 'universe/stargates/{stargateId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getStargateById: fromOperation('GetUniverseStargatesStargateId', {
     pathParams: ['stargateId'],
     responseSchema: StargateInfoSchema,
-  },
-  getStarById: {
-    path: 'universe/stars/{starId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getStarById: fromOperation('GetUniverseStarsStarId', {
     pathParams: ['starId'],
     responseSchema: StarInfoSchema,
-  },
-  getStationById: {
-    path: 'universe/stations/{stationId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getStationById: fromOperation('GetUniverseStationsStationId', {
     pathParams: ['stationId'],
     responseSchema: StationInfoSchema,
-  },
-  getStructures: {
-    path: 'universe/structures',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getStructures: fromOperation('GetUniverseStructures', {
     responseSchema: z.array(z.number()),
-  },
-  getStructureById: {
-    path: 'universe/structures/{structureId}',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getStructureById: fromOperation('GetUniverseStructuresStructureId', {
     pathParams: ['structureId'],
     responseSchema: StructureInfoSchema,
-  },
-  getSystemJumps: {
-    path: 'universe/system_jumps',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getSystemJumps: fromOperation('GetUniverseSystemJumps', {
     responseSchema: z.array(SystemJumpSchema),
-  },
-  getSystemKills: {
-    path: 'universe/system_kills',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getSystemKills: fromOperation('GetUniverseSystemKills', {
     responseSchema: z.array(SystemKillSchema),
-  },
-  getSystems: {
-    path: 'universe/systems',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getSystems: fromOperation('GetUniverseSystems', {
     responseSchema: z.array(z.number()),
-  },
-  getSystemById: {
-    path: 'universe/systems/{systemId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getSystemById: fromOperation('GetUniverseSystemsSystemId', {
     pathParams: ['systemId'],
     responseSchema: SolarSystemInfoSchema,
-  },
-  getTypes: {
-    path: 'universe/types',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getTypes: fromOperation('GetUniverseTypes', {
     responseSchema: z.array(z.number()),
-  },
-  getTypeById: {
-    path: 'universe/types/{typeId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getTypeById: fromOperation('GetUniverseTypesTypeId', {
     pathParams: ['typeId'],
     responseSchema: TypeInfoSchema,
-  },
+  }),
 } as const satisfies EndpointMap;

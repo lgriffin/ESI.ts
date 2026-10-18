@@ -1,4 +1,5 @@
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   SovereigntyHubsResponseSchema,
   OrbitalSkyhooksResponseSchema,
@@ -8,38 +9,32 @@ import {
 } from '../../schemas/skyhooks';
 
 export const skyhookEndpoints = {
-  getSovereigntyHubs: {
-    path: 'corporations/{corporationId}/structures/sovereignty-hubs',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: SovereigntyHubsResponseSchema,
-  },
-  getOrbitalSkyhooks: {
-    path: 'corporations/{corporationId}/structures/skyhooks',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: OrbitalSkyhooksResponseSchema,
-  },
-  getRaidableSkyhooks: {
-    path: 'skyhooks/raidable',
-    method: 'GET',
-    requiresAuth: false,
+  getSovereigntyHubs: fromOperation(
+    'GetCorporationsStructuresSovereigntyHubsListing',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: SovereigntyHubsResponseSchema,
+    },
+  ),
+  getOrbitalSkyhooks: fromOperation(
+    'GetCorporationsStructuresSkyhooksListing',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: OrbitalSkyhooksResponseSchema,
+    },
+  ),
+  getRaidableSkyhooks: fromOperation('GetSkyhooksRaidable', {
     responseSchema: RaidableSkyhooksResponseSchema,
-  },
-  getSkyhookDetail: {
-    path: 'corporations/{corporationId}/structures/skyhooks/{skyhookId}',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getSkyhookDetail: fromOperation('GetCorporationsStructuresSkyhooksDetail', {
     pathParams: ['corporationId', 'skyhookId'],
     responseSchema: SkyhookDetailSchema,
-  },
-  getSovereigntyHubDetail: {
-    path: 'corporations/{corporationId}/structures/sovereignty-hubs/{sovereigntyHubId}',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId', 'sovereigntyHubId'],
-    responseSchema: SovereigntyHubDetailSchema,
-  },
+  }),
+  getSovereigntyHubDetail: fromOperation(
+    'GetCorporationsStructuresSovereigntyHubsDetail',
+    {
+      pathParams: ['corporationId', 'sovereigntyHubId'],
+      responseSchema: SovereigntyHubDetailSchema,
+    },
+  ),
 } as const satisfies EndpointMap;

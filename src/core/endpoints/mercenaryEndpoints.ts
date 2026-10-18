@@ -1,4 +1,5 @@
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   MercenaryDensResponseSchema,
   MercenaryTacticalOperationsResponseSchema,
@@ -7,32 +8,32 @@ import {
 } from '../../schemas/mercenary';
 
 export const mercenaryEndpoints = {
-  getMercenaryDens: {
-    path: 'characters/{characterId}/structures/mercenary-dens',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['characterId'],
-    responseSchema: MercenaryDensResponseSchema,
-  },
-  getMercenaryTacticalOperations: {
-    path: 'characters/{characterId}/mercenary-tactical-operations',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['characterId'],
-    responseSchema: MercenaryTacticalOperationsResponseSchema,
-  },
-  getMercenaryDenDetail: {
-    path: 'characters/{characterId}/structures/mercenary-dens/{mercenaryDenId}',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['characterId', 'mercenaryDenId'],
-    responseSchema: MercenaryDenDetailSchema,
-  },
-  getMercenaryTacticalOperationDetail: {
-    path: 'characters/{characterId}/mercenary-tactical-operations/{operationId}',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['characterId', 'operationId'],
-    responseSchema: MercenaryTacticalOperationDetailSchema,
-  },
+  getMercenaryDens: fromOperation(
+    'GetCharactersStructuresMercenaryDensListing',
+    {
+      pathParams: ['characterId'],
+      responseSchema: MercenaryDensResponseSchema,
+    },
+  ),
+  getMercenaryTacticalOperations: fromOperation(
+    'GetCharactersMercenaryTacticalOperationsListing',
+    {
+      pathParams: ['characterId'],
+      responseSchema: MercenaryTacticalOperationsResponseSchema,
+    },
+  ),
+  getMercenaryDenDetail: fromOperation(
+    'GetCharactersStructuresMercenaryDensDetail',
+    {
+      pathParams: ['characterId', 'mercenaryDenId'],
+      responseSchema: MercenaryDenDetailSchema,
+    },
+  ),
+  getMercenaryTacticalOperationDetail: fromOperation(
+    'GetCharactersMercenaryTacticalOperationsDetail',
+    {
+      pathParams: ['characterId', 'operationId'],
+      responseSchema: MercenaryTacticalOperationDetailSchema,
+    },
+  ),
 } as const satisfies EndpointMap;

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   CharacterInfoSchema,
   CharacterPortraitSchema,
@@ -18,103 +19,77 @@ import {
 import { StandingSchema } from '../../schemas/common';
 
 export const characterEndpoints = {
-  getCharacterPublicInfo: {
-    path: 'characters/{characterId}/',
-    method: 'GET',
-    requiresAuth: false,
+  getCharacterPublicInfo: fromOperation('GetCharactersDetail', {
+    trailingSlash: true,
     pathParams: ['characterId'],
     responseSchema: CharacterInfoSchema,
-  },
-  getAgentsResearch: {
-    path: 'characters/{characterId}/agents_research/',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getAgentsResearch: fromOperation('GetCharactersCharacterIdAgentsResearch', {
+    trailingSlash: true,
     pathParams: ['characterId'],
     responseSchema: z.array(AgentResearchSchema),
-  },
-  getBlueprints: {
-    path: 'characters/{characterId}/blueprints/',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getBlueprints: fromOperation('GetCharactersCharacterIdBlueprints', {
+    trailingSlash: true,
     pathParams: ['characterId'],
     responseSchema: z.array(BlueprintSchema),
-  },
-  getRoles: {
-    path: 'characters/{characterId}/roles',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getRoles: fromOperation('GetCharactersCharacterIdRoles', {
     pathParams: ['characterId'],
     responseSchema: CharacterRoleSchema,
-  },
-  getStandings: {
-    path: 'characters/{characterId}/standings',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getStandings: fromOperation('GetCharactersCharacterIdStandings', {
     pathParams: ['characterId'],
     responseSchema: z.array(StandingSchema),
-  },
-  getTitles: {
-    path: 'characters/{characterId}/titles',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getTitles: fromOperation('GetCharactersCharacterIdTitles', {
     pathParams: ['characterId'],
     responseSchema: z.array(CharacterTitleSchema),
-  },
-  getContactNotifications: {
-    path: 'characters/{characterId}/notifications/contacts/',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['characterId'],
-    responseSchema: z.array(ContactNotificationSchema),
-  },
-  getCorporationHistory: {
-    path: 'characters/{characterId}/corporationhistory/',
-    method: 'GET',
-    requiresAuth: false,
-    pathParams: ['characterId'],
-    responseSchema: z.array(CorporationHistorySchema),
-  },
-  getJumpFatigue: {
-    path: 'characters/{characterId}/fatigue/',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getContactNotifications: fromOperation(
+    'GetCharactersCharacterIdNotificationsContacts',
+    {
+      trailingSlash: true,
+      pathParams: ['characterId'],
+      responseSchema: z.array(ContactNotificationSchema),
+    },
+  ),
+  getCorporationHistory: fromOperation(
+    'GetCharactersCharacterIdCorporationhistory',
+    {
+      trailingSlash: true,
+      pathParams: ['characterId'],
+      responseSchema: z.array(CorporationHistorySchema),
+    },
+  ),
+  getJumpFatigue: fromOperation('GetCharactersCharacterIdFatigue', {
+    trailingSlash: true,
     pathParams: ['characterId'],
     responseSchema: JumpFatigueSchema,
-  },
-  getMedals: {
-    path: 'characters/{characterId}/medals/',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getMedals: fromOperation('GetCharactersCharacterIdMedals', {
+    trailingSlash: true,
     pathParams: ['characterId'],
     responseSchema: z.array(MedalSchema),
-  },
-  getNotifications: {
-    path: 'characters/{characterId}/notifications/',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getNotifications: fromOperation('GetCharactersCharacterIdNotifications', {
+    trailingSlash: true,
     pathParams: ['characterId'],
     responseSchema: z.array(NotificationSchema),
-  },
-  getPortrait: {
-    path: 'characters/{characterId}/portrait/',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getPortrait: fromOperation('GetCharactersCharacterIdPortrait', {
+    trailingSlash: true,
     pathParams: ['characterId'],
     responseSchema: CharacterPortraitSchema,
-  },
-  postCharacterAffiliation: {
-    path: 'characters/affiliation',
-    method: 'POST',
+  }),
+  postCharacterAffiliation: fromOperation('PostCharactersAffiliation', {
     responseSchema: z.array(CharacterAffiliationSchema),
-    requiresAuth: false,
     hasBody: true,
-  },
-  calculateCspaChargeCost: {
-    path: 'characters/{characterId}/cspa/',
-    method: 'POST',
+  }),
+  calculateCspaChargeCost: fromOperation('PostCharactersCharacterIdCspa', {
+    trailingSlash: true,
     responseSchema: CspaChargeCostSchema,
-    requiresAuth: true,
     pathParams: ['characterId'],
     hasBody: true,
-  },
+  }),
 } as const satisfies EndpointMap;
