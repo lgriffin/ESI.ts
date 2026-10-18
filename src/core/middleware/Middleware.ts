@@ -28,6 +28,16 @@ export type ResponseInterceptor = (
 export class MiddlewareManager {
   private requestInterceptors: RequestInterceptor[] = [];
   private responseInterceptors: ResponseInterceptor[] = [];
+  private withheld = new Set<string>();
+
+  /**
+   * Removes the named request headers after every request interceptor has
+   * run, whatever an interceptor added. Kept by `clear()`. A public-only
+   * client withholds `Authorization` this way.
+   */
+  withholdRequestHeaders(...names: string[]): void {
+    for (const name of names) this.withheld.add(name.toLowerCase());
+  }
 
   addRequestInterceptor(fn: RequestInterceptor): () => void {
     this.requestInterceptors.push(fn);
@@ -54,7 +64,13 @@ export class MiddlewareManager {
     for (const interceptor of this.requestInterceptors) {
       ctx = await interceptor(ctx);
     }
-    return ctx;
+    if (this.withheld.size === 0) return ctx;
+    const headers = Object.fromEntries(
+      Object.entries(ctx.headers).filter(
+        ([name]) => !this.withheld.has(name.toLowerCase()),
+      ),
+    );
+    return { ...ctx, headers };
   }
 
   async applyResponseInterceptors(
