@@ -284,10 +284,6 @@
     "tests/bdd/support/transport.ts": {
       "sonarjs/no-nested-template-literals": 2
     },
-    "tests/contract/helpers.ts": {
-      "sonarjs/cognitive-complexity": 1,
-      "sonarjs/prefer-regexp-exec": 10
-    },
     "tests/contract/record.ts": {
       "no-console": 4,
       "sonarjs/cognitive-complexity": 2,
