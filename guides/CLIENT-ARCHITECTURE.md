@@ -46,6 +46,7 @@ Each step is additive or internal, so each can ship in a 12.x minor release. A f
    - **Response metadata and safe mode** (12.x): one reader, `buildResponseMeta` in `src/core/responseMeta.ts`, serves each domain client's `withMetadata()`, the new `EsiClient.withMetadata()` / `withSafeMode()` and `CustomEsiClient.withMetadata()` / `withSafeMode()` (every domain from one call), and `esi.withMetadata()` / `esi.withSafeMode()`.
    - **Diagnostics** (12.x): `EsiDiagnostics` backs `EsiClient.diagnostics`, the new `CustomEsiClient.diagnostics` and its shortcuts, and `esi.diagnostics`.
    - **Swappable middleware** (12.x): `cache`, `rateLimiter`, `circuitBreaker`, `deduplicator` and `clock` are `EsiClientConfig` fields that `configureApiClient` installs, so `EsiClient`, the builder, `EsiApiFactory.createClient` and `createEsi` (whose `EsiOptions` carry the same five) take them the same way.
+   - **Invalidation across processes** (12.x): a supplied `CacheStore` may add `publishInvalidation` and `onInvalidate`. `CacheStoreCache` publishes each path a write invalidates and each `clear()`, and on another holder's event drops its own keys under the path and records the write in `src/core/cache/writeLog.ts`, so an in-flight read does not cache the pre-write body. Every surface gets it, since all of them adapt a store the same way.
 
 ### Shared already
 

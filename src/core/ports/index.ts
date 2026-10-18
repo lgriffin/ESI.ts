@@ -4,7 +4,11 @@
  * import nothing (the layer rule enforces it). The `./client` entry exports
  * them.
  */
-export type { CacheStore, CachedResponse } from './CacheStore';
+export type {
+  CacheInvalidation,
+  CacheStore,
+  CachedResponse,
+} from './CacheStore';
 export type { Clock } from './Clock';
 export type { HttpTransport } from './HttpTransport';
 export type { Identity } from './Identity';

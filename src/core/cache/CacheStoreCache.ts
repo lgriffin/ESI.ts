@@ -9,14 +9,19 @@
  * client given one store shares one adapter, see `cacheFromStore`), and it
  * remembers at most `MAX_TRACKED_KEYS` of them: a store shared between
  * processes holds keys another process wrote, and those expire by their
- * retention instead. The `CacheStore` port has no way to list keys, so
- * cross-process invalidation is the store's job. Its statistics count this
- * process's reads and writes, not the store's contents.
+ * retention instead. The `CacheStore` port has no way to list keys, so a
+ * store that other processes share carries invalidations between them with
+ * its optional `publishInvalidation` and `onInvalidate`: this adapter
+ * publishes each path a write invalidates and each `clear()`, and on an event
+ * from another holder drops the keys it wrote under that path and records the
+ * write, so a read in flight here does not cache the pre-write body. Its
+ * statistics count this process's reads and writes, not the store's contents.
  */
-import type { CacheStore } from '../ports/CacheStore';
+import type { CacheInvalidation, CacheStore } from '../ports/CacheStore';
 import type { Clock } from '../ports/Clock';
 import { nowOn } from '../clock';
 import type { CacheEntry, ICache } from './ICache';
+import { recordWrite } from './writeLog';
 
 /** How many written keys the adapter remembers; the oldest is forgotten first. */
 export const MAX_TRACKED_KEYS = 10_000;
@@ -26,11 +31,38 @@ export class CacheStoreCache implements ICache {
   private readonly keys = new Map<string, number>();
   private hits = 0;
   private misses = 0;
+  private readonly unsubscribe: (() => void) | undefined;
 
   constructor(
     private readonly store: CacheStore,
     private readonly clock: Clock | null = null,
-  ) {}
+  ) {
+    this.unsubscribe = store.onInvalidate?.((event) => {
+      this.applyRemote(event);
+    });
+  }
+
+  /** An invalidation another holder of the store published. */
+  private applyRemote(event: CacheInvalidation): void {
+    if (event.kind === 'clear') {
+      this.keys.clear();
+      recordWrite(this, '');
+      return;
+    }
+    this.dropLocal(event.path);
+    recordWrite(this, event.path);
+  }
+
+  /** Deletes the keys this adapter wrote under `pathSegment`. */
+  private dropLocal(pathSegment: string): number {
+    let count = 0;
+    for (const key of [...this.keys.keys()]) {
+      if (!key.includes(pathSegment)) continue;
+      this.keys.delete(key);
+      if (this.store.delete(key)) count += 1;
+    }
+    return count;
+  }
 
   get(url: string): CacheEntry | null {
     const entry = this.store.get(url);
@@ -83,12 +115,8 @@ export class CacheStoreCache implements ICache {
   }
 
   deleteByPath(pathSegment: string): number {
-    let count = 0;
-    for (const key of [...this.keys.keys()]) {
-      if (!key.includes(pathSegment)) continue;
-      this.keys.delete(key);
-      if (this.store.delete(key)) count += 1;
-    }
+    const count = this.dropLocal(pathSegment);
+    this.store.publishInvalidation?.({ kind: 'path', path: pathSegment });
     return count;
   }
 
@@ -97,6 +125,7 @@ export class CacheStoreCache implements ICache {
     this.keys.clear();
     this.hits = 0;
     this.misses = 0;
+    this.store.publishInvalidation?.({ kind: 'clear' });
   }
 
   /**
@@ -118,6 +147,7 @@ export class CacheStoreCache implements ICache {
   }
 
   shutdown(): void {
+    this.unsubscribe?.();
     this.store.shutdown();
   }
 }

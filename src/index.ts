@@ -186,7 +186,11 @@ export { buildEndpointPath } from './core/endpoints/buildEndpointPath';
 
 // Interfaces (for custom implementations / testing)
 export { ICache } from './core/cache/ICache';
-export type { CacheStore, CachedResponse } from './core/ports/CacheStore';
+export type {
+  CacheInvalidation,
+  CacheStore,
+  CachedResponse,
+} from './core/ports/CacheStore';
 export type { Clock } from './core/ports/Clock';
 export {
   IRateLimiter,
