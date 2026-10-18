@@ -1,5 +1,6 @@
 import { ApiClient } from './core/ApiClient';
 import { validateBaseUrl } from './core/util/validation';
+import type { Identity } from './core/ports/Identity';
 import {
   ApiClientType,
   ClientInstance,
@@ -46,6 +47,7 @@ import {
 } from './clients/ClientRegistry';
 import { EsiClientConfig } from './EsiClient';
 import { configureApiClient } from './core/configureApiClient';
+import type { PublicDomainClients } from './clients/publicClients';
 import { claimPipeline, diagnosticsFor } from './core/pipelineOwnership';
 import {
   ETagCacheManager,
@@ -65,6 +67,31 @@ import {
 } from './clients/domainViews';
 
 export { ApiClientType, ClientInstance };
+export type {
+  PublicClient,
+  PublicDomainClients,
+} from './clients/publicClients';
+
+/**
+ * A {@link CustomEsiClient} that holds no token, typed so that a method
+ * needing one does not compile: each domain accessor returns a
+ * `PublicClient`, the domain client with its authenticated methods left out.
+ * Built by {@link EsiClientBuilder.buildPublic}. A cast that reaches an
+ * authenticated method anyway fails with NO_AUTH_TOKEN before any request.
+ */
+export type PublicCustomEsiClient = PublicDomainClients &
+  Pick<
+    CustomEsiClient,
+    | 'getEnabledClients'
+    | 'hasClient'
+    | 'diagnostics'
+    | 'getCacheStats'
+    | 'clearCache'
+    | 'updateCacheConfig'
+    | 'getCircuitBreakerStats'
+    | 'resetCircuitBreaker'
+    | 'shutdown'
+  >;
 
 /**
  * The custom domain clients chosen with {@link EsiClientBuilder}, sharing one
@@ -82,6 +109,8 @@ export class CustomEsiClient {
   private _diagnostics: EsiDiagnostics | null = null;
   private metadataView: unknown;
   private safeModeView: unknown;
+  private parent: CustomEsiClient | null = null;
+  private identityViews: WeakMap<Identity, CustomEsiClient> | null = null;
 
   constructor(config: EsiClientConfig & { clients: ApiClientType[] }) {
     this.enabledClients = new Set(config.clients);
@@ -133,6 +162,47 @@ export class CustomEsiClient {
     return this.clients.get(clientType);
   }
 
+  /**
+   * The same enabled domain clients, sending as `identity`, over this
+   * client's cache, rate limiter, circuit breaker, deduplicator, retry
+   * policy, interceptors and settings. The same identity returns the same
+   * view, and a view cannot change its identity. See `EsiClient.as` and
+   * guides/MULTI-CHARACTER.md.
+   */
+  as(identity: Identity): CustomEsiClient {
+    const root = this.parent ?? this;
+    root.identityViews ??= new WeakMap();
+    let view = root.identityViews.get(identity);
+    if (!view) {
+      view = CustomEsiClient.viewOf(root, identity);
+      root.identityViews.set(identity, view);
+    }
+    return view;
+  }
+
+  /** A view of `root` that sends as `identity`; see {@link CustomEsiClient.as}. */
+  private static viewOf(
+    root: CustomEsiClient,
+    identity: Identity,
+  ): CustomEsiClient {
+    const view = Object.create(CustomEsiClient.prototype) as CustomEsiClient;
+    view.apiClient = root.apiClient.forIdentity(identity);
+    view.enabledClients = root.enabledClients;
+    view.clients = new Map();
+    for (const name of root.enabledClients) {
+      view.clients.set(name, createClientInstance(name, view.apiClient));
+    }
+    view.etagCacheEnabled = root.etagCacheEnabled;
+    view._diagnostics = null;
+    view.deduplicator = null;
+    // The shared middleware belongs to the root: a view's shutdown leaves it.
+    view.suppliedCache = true;
+    view.suppliedCircuitBreaker = true;
+    view.parent = root;
+    view.identityViews = null;
+    return view;
+  }
+
   hasClient(clientType: ApiClientType): boolean {
     return this.clients.has(clientType);
   }
@@ -172,6 +242,8 @@ export class CustomEsiClient {
    * clients share, as `EsiClient.diagnostics` does for its own.
    */
   get diagnostics(): EsiDiagnostics {
+    // A view shares the root's middleware, so it reports through the root's.
+    if (this.parent) return this.parent.diagnostics;
     this._diagnostics ??= diagnosticsFor(this.apiClient, this.etagCacheEnabled);
     return this._diagnostics;
   }
@@ -593,5 +665,38 @@ export class EsiClientBuilder {
       throw new Error('At least one client type must be specified');
     }
     return new CustomEsiClient({ ...this.config, clients: this.clients });
+  }
+
+  /**
+   * Builds the chosen domains as a public-only client: it holds no token,
+   * whatever `withAccessToken`, `onTokenRefresh` or `ESI_ACCESS_TOKEN` say,
+   * and its type leaves out every method that needs one, so calling one does
+   * not compile. The counterpart of `createEsi()`'s `esi.public`.
+   *
+   * @example
+   * ```ts
+   * const pub = new EsiClientBuilder()
+   *   .addClients(['market', 'universe'])
+   *   .withClientId('price-checker/1.0 (ops@example.com)')
+   *   .buildPublic();
+   * const prices = await pub.market?.getMarketPrices();
+   * ```
+   */
+  buildPublic(): PublicCustomEsiClient {
+    if (this.clients.length === 0) {
+      throw new Error('At least one client type must be specified');
+    }
+    const custom = new CustomEsiClient({
+      ...this.config,
+      accessToken: undefined,
+      onTokenRefresh: undefined,
+      clients: this.clients,
+    });
+    // The constructor falls back to ESI_ACCESS_TOKEN; an empty token sends no
+    // Authorization header, so an authenticated call fails with NO_AUTH_TOKEN.
+    custom['apiClient'].setAccessToken('');
+    // A request interceptor cannot put one back either.
+    custom['apiClient'].getMiddleware().withholdRequestHeaders('Authorization');
+    return custom;
   }
 }
