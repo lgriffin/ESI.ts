@@ -72,6 +72,7 @@ import {
   BatchResult,
 } from './core/BatchRequestHandler';
 import { configureApiClient } from './core/configureApiClient';
+import { diagnosticsFor } from './core/pipelineOwnership';
 import { logInfo } from './core/logger/clientLog';
 import {
   domainClientViews,
@@ -371,11 +372,7 @@ export class EsiClient {
     // A view shares the root's middleware, so it reports through the root's.
     if (this.parent) return this.parent.diagnostics;
     if (!this._diagnostics) {
-      this._diagnostics = new EsiDiagnostics(
-        this.apiClient,
-        this.etagCacheEnabled,
-        this.apiClient.getDeduplicator(),
-      );
+      this._diagnostics = diagnosticsFor(this.apiClient, this.etagCacheEnabled);
     }
     return this._diagnostics;
   }
