@@ -26,6 +26,7 @@ import {
 import { generateRouteTable, ROUTES_OUT_PATH } from './spec-routes';
 import {
   generateResponseSchemas,
+  BASELINE_OUT_PATH,
   ZOD_OUT_PATH,
   type SchemaOverrides,
 } from './spec-zod';
@@ -106,9 +107,17 @@ async function render(): Promise<Rendered[]> {
       summary: `${operations.operations.length} operations, ${operations.typeCount} types`,
     },
     {
+      outPath: BASELINE_OUT_PATH,
+      source: await format(
+        zod.baselineSource,
+        path.join(ROOT, BASELINE_OUT_PATH),
+      ),
+      summary: `${zod.operations} response schemas, ${zod.components} components`,
+    },
+    {
       outPath: ZOD_OUT_PATH,
       source: await format(zod.source, path.join(ROOT, ZOD_OUT_PATH)),
-      summary: `${zod.operations} response schemas, ${zod.components} components`,
+      summary: `${zod.operations} response schemas by operationId`,
     },
     {
       outPath: ROUTES_OUT_PATH,
