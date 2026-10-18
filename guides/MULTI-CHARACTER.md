@@ -185,7 +185,7 @@ The shortest move keeps the custom clients and their method names, and builds on
 | `const client = await tokens.createClient(id, { userAgent })` | `const client = new EsiClient({ userAgent })`, once            |
 | `client.wallet.getCharacterWallet(id)`                        | `client.as(tokens.identity(id)).wallet.getCharacterWallet(id)` |
 | `client.status.getStatus()`                                   | `client.status.getStatus()`                                    |
-| `client.market.streamRegionOrders(regionId)`                  | `client.market.streamRegionOrders(regionId)`                   |
+| `client.market.streamMarketOrders(regionId)`                  | `client.market.streamMarketOrders(regionId)`                   |
 | `client.shutdown()` per character                             | `client.shutdown()`, once                                      |
 
 A view is an `EsiClient`, so `withMetadata()`, `withSafeMode()` and `diagnostics` work on it. The shared cache and circuit breaker belong to the client the view came from, so call `shutdown()` on that client; a view's `shutdown()` leaves them running.
@@ -197,7 +197,7 @@ To move to the spec-shaped surface instead:
 | `const client = await tokens.createClient(id, { userAgent })` | `const esi = createEsi({ userAgent })`, once                      |
 | `client.wallet.getCharacterWallet(id)`                        | `esi.as(tokens.identity(id)).character(id).wallet.get()`          |
 | `client.status.getStatus()`                                   | `esi.public.status.get()`                                         |
-| `client.market.streamRegionOrders(regionId)`                  | `for await (const o of esi.public.market(regionId).orders.get())` |
+| `client.market.streamMarketOrders(regionId)`                  | `for await (const o of esi.public.market(regionId).orders.get())` |
 | `client.shutdown()` per character                             | `esi.shutdown()`, once                                            |
 
 Its operations are the generated ones. They follow the ESI OpenAPI document exactly: resource-shaped names (`character(id).wallet.get()` rather than `wallet.getCharacterWallet(id)`), spec-typed responses, and every paginated operation returned as an `AsyncIterable` that follows the pages. They are validated against the generated schemas only when `createEsi` is given `validateResponse: true`.
