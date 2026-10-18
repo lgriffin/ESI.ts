@@ -24,18 +24,23 @@ const SPEC = path.join(
 );
 
 /**
- * The deliberate differences, by `<map>.<method>`. Remove an entry when the
- * definition and the spec agree again.
+ * The deliberate differences, by `<map>.<method>`: every difference found
+ * for that definition, and why it stays. Remove an entry when the
+ * definition and the spec agree again; a new difference on a listed
+ * definition fails until it is added here too.
  */
-const DEVIATIONS: Record<string, string> = {
-  'fleetEndpoints.createFleetWing':
-    'body: the spec defines none, and the method passes a caller-supplied body through; kept so 12.x call sites keep compiling',
-  'freelanceJobsEndpoints.getCharacterFreelanceJobs':
-    'query before/after: the spec at the vendored compatibility date does not page this route; the method keeps its cursor arguments so 12.x call sites keep compiling',
+const DEVIATIONS: Record<string, { found: string[]; reason: string }> = {
+  'fleetEndpoints.createFleetWing': {
+    found: ['body the spec does not define'],
+    reason:
+      'the spec defines no body, and the method passes a caller-supplied body through; kept so 12.x call sites keep compiling',
+  },
+  'freelanceJobsEndpoints.getCharacterFreelanceJobs': {
+    found: ['query after', 'query before'],
+    reason:
+      'the spec at the vendored compatibility date does not page this route; the method keeps its cursor arguments so 12.x call sites keep compiling',
+  },
 };
-
-/** Query parameters the pipeline supplies itself, not the method's arguments. */
-const PIPELINE_QUERY = new Set(['datasource', 'language', 'page', 'token']);
 
 type Parameter = { $ref?: string; in?: string; name?: string };
 type Operation = {
@@ -94,23 +99,17 @@ function differences(
   def: EndpointDefinition,
   spec: { query: string[]; body: boolean },
 ): string[] {
-  const cursor =
-    def.operation !== undefined &&
-    (esiOperations as Record<string, { pagination: string }>)[def.operation]
-      ?.pagination === 'cursor';
   const found: string[] = [];
   for (const key of Object.values(def.queryParams ?? {})) {
-    // A cursor route's before/after tokens are the caller's to pass.
-    if (cursor && (key === 'before' || key === 'after')) continue;
-    if (!PIPELINE_QUERY.has(key) && !spec.query.includes(key)) {
-      found.push(`query ${key}`);
-    }
+    // Every key here comes from the caller's arguments, so none is exempt,
+    // not even one (such as page) the pipeline also sends on its own.
+    if (!spec.query.includes(key)) found.push(`query ${key}`);
   }
   const sendsBody = def.hasBody === true || def.bodyBuilder !== undefined;
   if (sendsBody !== spec.body) {
     found.push(sendsBody ? 'body the spec does not define' : 'no body');
   }
-  return found;
+  return found.sort();
 }
 
 describe('custom endpoint definitions on the wire (option D step 2)', () => {
@@ -134,9 +133,15 @@ describe('custom endpoint definitions on the wire (option D step 2)', () => {
         // The overlay's routes (meta/openapi.*) are not in the vendored document.
         if (!op) return [];
         const diff = differences(def, op);
-        return diff.length > 0 ? [[name, diff.join(', ')]] : [];
+        return diff.length > 0 ? [[name, diff]] : [];
       }),
     );
-    expect(Object.keys(found).sort()).toEqual(Object.keys(DEVIATIONS).sort());
+    const expected = Object.fromEntries(
+      Object.entries(DEVIATIONS).map(([name, d]) => [
+        name,
+        [...d.found].sort(),
+      ]),
+    );
+    expect(found).toEqual(expected);
   });
 });
