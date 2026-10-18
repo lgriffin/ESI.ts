@@ -10,9 +10,12 @@ import assert = require('node:assert/strict');
 
 import {
   EsiClient,
+  EsiClientBuilder,
   EsiError as RootEsiError,
+  identityFromToken as rootIdentityFromToken,
   isValidationError,
   schemas,
+  type PublicCustomEsiClient,
   type ServerStatus,
 } from '@lgriffin/esi.ts';
 import {
@@ -52,6 +55,18 @@ function stubFetch(body: unknown, status = 200): void {
       status,
       headers: { 'content-type': 'application/json' },
     });
+}
+
+/** Stubs fetch with `body` and returns a reader of the Authorization header last sent. */
+function recordAuthorization(body: unknown): () => string | null | undefined {
+  let sent: string | null | undefined;
+  globalThis.fetch = async (_input, init) => {
+    sent = new Headers(init?.headers).get('authorization');
+    return new Response(JSON.stringify(body), {
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+  return () => sent;
 }
 
 async function main(): Promise<void> {
@@ -100,6 +115,35 @@ async function main(): Promise<void> {
     assert.ok(!isRetryable(notFound), './errors isRetryable on a client 404');
   } finally {
     client.shutdown();
+  }
+
+  // The root entry's identity views and public-only builder: a view sends its
+  // identity's token, and a public custom client sends none.
+  const viewed = new EsiClient({
+    clientId: 'consumer-contract',
+    logLevel: 'error',
+  });
+  try {
+    const viewAuthorization = recordAuthorization(42.5);
+    const pilot: EsiClient = viewed.as(rootIdentityFromToken('consumer-token'));
+    const viewBalance: number = await pilot.wallet.getCharacterWallet(90000001);
+    assert.equal(viewBalance, 42.5);
+    assert.equal(viewAuthorization(), 'Bearer consumer-token');
+  } finally {
+    viewed.shutdown();
+  }
+  const pub: PublicCustomEsiClient = new EsiClientBuilder()
+    .addClients(['status'])
+    .withClientId('consumer-contract')
+    .withAccessToken('consumer-token')
+    .buildPublic();
+  try {
+    const publicAuthorization = recordAuthorization(STATUS);
+    const pubStatus = await pub.status!.getStatus();
+    assert.equal(pubStatus.players, STATUS.players);
+    assert.equal(publicAuthorization(), null, 'a public client sends no token');
+  } finally {
+    pub.shutdown();
   }
 
   // ./client: one runtime, a public view and a view for an identity, through
