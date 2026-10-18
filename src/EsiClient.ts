@@ -49,6 +49,8 @@ import { MercenaryClient } from './clients/MercenaryClient';
 import { AccessListsClient } from './clients/AccessListsClient';
 import { MilitaryCampaignsClient } from './clients/MilitaryCampaignsClient';
 import { validateBaseUrl } from './core/util/validation';
+import type { Identity } from './core/ports/Identity';
+import { EsiConfigurationError } from './core/util/error';
 import {
   ETagCacheManager,
   ETagCacheConfig,
@@ -70,6 +72,7 @@ import {
   BatchResult,
 } from './core/BatchRequestHandler';
 import { configureApiClient } from './core/configureApiClient';
+import { diagnosticsFor } from './core/pipelineOwnership';
 import { logInfo } from './core/logger/clientLog';
 import {
   domainClientViews,
@@ -93,6 +96,8 @@ export class EsiClient {
   private suppliedCircuitBreaker: boolean;
   private metadataView: unknown;
   private safeModeView: unknown;
+  private parent: EsiClient | null = null;
+  private identityViews: WeakMap<Identity, EsiClient> | null = null;
 
   constructor(config?: EsiClientConfig) {
     const token = config?.accessToken || process.env.ESI_ACCESS_TOKEN;
@@ -263,20 +268,73 @@ export class EsiClient {
     return this.getClient('accessLists');
   }
 
+  /** Adds a request interceptor for this client and every view of it; a view made by `as()` refuses. */
   addRequestInterceptor(fn: RequestInterceptor): () => void {
+    if (this.parent) refuseInterceptorOnView('addRequestInterceptor');
     return this.apiClient.addRequestInterceptor(fn);
   }
 
+  /** Adds a response interceptor for this client and every view of it; a view made by `as()` refuses. */
   addResponseInterceptor(fn: ResponseInterceptor): () => void {
+    if (this.parent) refuseInterceptorOnView('addResponseInterceptor');
     return this.apiClient.addResponseInterceptor(fn);
   }
 
+  /**
+   * The same domain clients, sending as `identity`. The view shares this
+   * client's cache, rate limiter, circuit breaker, deduplicator, retry
+   * policy, interceptors and settings, so several characters draw on one
+   * error budget and one cache, whose authenticated entries stay apart by the
+   * character each token names. Before each authenticated request the view
+   * asks `identity.accessToken()`, and after a 401 `refreshAccessToken()`.
+   *
+   * The same identity returns the same view, and `as` on a view answers from
+   * the client it came from. A view cannot change its identity:
+   * `setAccessToken` and `setTokenProvider` throw on it. See
+   * guides/MULTI-CHARACTER.md.
+   *
+   * @example
+   * ```ts
+   * const esi = new EsiClient({ clientId: 'fleet-tool/2.1 (ops@example.com)' });
+   * const pilot = esi.as(tokens.identity(characterId));
+   * const wallet = await pilot.wallet.getCharacterWallet(characterId);
+   * ```
+   */
+  as(identity: Identity): EsiClient {
+    const root = this.parent ?? this;
+    root.identityViews ??= new WeakMap();
+    let view = root.identityViews.get(identity);
+    if (!view) {
+      view = EsiClient.viewOf(root, identity);
+      root.identityViews.set(identity, view);
+    }
+    return view;
+  }
+
+  /** A view of `root` that sends as `identity`; see {@link EsiClient.as}. */
+  private static viewOf(root: EsiClient, identity: Identity): EsiClient {
+    const view = Object.create(EsiClient.prototype) as EsiClient;
+    view.apiClient = root.apiClient.forIdentity(identity);
+    view.clients = new Map();
+    view.etagCacheEnabled = root.etagCacheEnabled;
+    view._diagnostics = null;
+    view.deduplicator = null;
+    // The shared middleware belongs to the root: a view's shutdown leaves it.
+    view.suppliedCache = true;
+    view.suppliedCircuitBreaker = true;
+    view.parent = root;
+    view.identityViews = null;
+    return view;
+  }
+
   setAccessToken(token: string): void {
+    if (this.parent) refuseOnIdentityView('setAccessToken');
     this.apiClient.setAccessToken(token);
     logInfo(this.apiClient, 'Access token updated');
   }
 
   setTokenProvider(provider: TokenProvider | undefined): void {
+    if (this.parent) refuseOnIdentityView('setTokenProvider');
     this.apiClient.setTokenProvider(provider);
     logInfo(
       this.apiClient,
@@ -311,12 +369,10 @@ export class EsiClient {
   }
 
   get diagnostics(): EsiDiagnostics {
+    // A view shares the root's middleware, so it reports through the root's.
+    if (this.parent) return this.parent.diagnostics;
     if (!this._diagnostics) {
-      this._diagnostics = new EsiDiagnostics(
-        this.apiClient,
-        this.etagCacheEnabled,
-        this.apiClient.getDeduplicator(),
-      );
+      this._diagnostics = diagnosticsFor(this.apiClient, this.etagCacheEnabled);
     }
     return this._diagnostics;
   }
@@ -377,6 +433,21 @@ export class EsiClient {
     this.clients.clear();
     logInfo(this.apiClient, 'EsiClient shutdown completed');
   }
+}
+
+/** A view's identity is fixed when it is made. */
+function refuseOnIdentityView(method: string): never {
+  throw new EsiConfigurationError(
+    'CONFIGURATION_ERROR',
+    `${method} cannot change the identity of a view made by as(identity). Fix: call as() with another identity, or set the token on the client the view came from`,
+  );
+}
+
+function refuseInterceptorOnView(method: string): never {
+  throw new EsiConfigurationError(
+    'CONFIGURATION_ERROR',
+    `${method} on a view made by as(identity) would run for every identity, since views share the client's middleware. Fix: add the interceptor on the client the view came from`,
+  );
 }
 
 let _defaultClient: EsiClient | null = null;

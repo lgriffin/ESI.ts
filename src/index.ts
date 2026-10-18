@@ -8,7 +8,12 @@ export {
   EsiClientBuilder,
   EsiApiFactory,
 } from './EsiClientBuilder';
-export { ApiClientType } from './clients/ClientRegistry';
+export type {
+  PublicCustomEsiClient,
+  PublicClient,
+  PublicDomainClients,
+} from './EsiClientBuilder';
+export { ApiClientType, ClientTypeMap } from './clients/ClientRegistry';
 
 // Core (for direct instantiation)
 export { ApiClient, TokenProvider, FetchLike } from './core/ApiClient';
@@ -218,6 +223,14 @@ export * from './types/api-responses';
 
 // Schemas (Zod runtime validation)
 export * as schemas from './schemas';
+
+// Identities: who an identity view (EsiClient.as, CustomEsiClient.as) sends as
+export {
+  identityFromToken,
+  identityFromProvider,
+  type ProviderIdentityOptions,
+} from './core/identity';
+export type { Identity } from './core/ports/Identity';
 
 // Auth: SSO client, token manager, storage adapters
 export {

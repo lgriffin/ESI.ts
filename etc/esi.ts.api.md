@@ -265,6 +265,7 @@ export class ApiClient {
     addRequestInterceptor(fn: RequestInterceptor): () => void;
     // (undocumented)
     addResponseInterceptor(fn: ResponseInterceptor): () => void;
+    forIdentity(identity: Identity): ApiClient;
     // (undocumented)
     getAuthorizationHeader(): string | undefined;
     // (undocumented)
@@ -284,6 +285,7 @@ export class ApiClient {
     getDeduplicator(): IDeduplicator | null;
     // (undocumented)
     getFetch(): FetchLike;
+    getIdentity(): Identity | null;
     getIncompletePages(): IncompletePagesMode;
     // (undocumented)
     getLanguage(): string | undefined;
@@ -311,6 +313,7 @@ export class ApiClient {
     getValidateResponse(): boolean;
     // (undocumented)
     hasTokenProvider(): boolean;
+    prepareToken(requiresAuth: boolean): Promise<void>;
     // (undocumented)
     refreshToken(): Promise<string>;
     // (undocumented)
@@ -463,16 +466,18 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
     protected api: ClientMethods<T>;
     // (undocumented)
     protected _client: ApiClient;
+    get diagnostics(): EsiDiagnostics;
     // (undocumented)
     protected _endpoints: T;
     // (undocumented)
     fetchAllEndpoint<R>(endpointName: string & keyof T, args: unknown[], concurrency?: number): Promise<R[]>;
+    shutdown(): void;
     // (undocumented)
     streamEndpoint<R>(endpointName: string & keyof T, ...args: unknown[]): AsyncGenerator<PageResult<R>, void, undefined>;
     // (undocumented)
-    withMetadata(): WithMetadata<Omit<this, 'withMetadata' | 'withSafeMode'>>;
+    withMetadata(): WithMetadata<Omit<this, 'withMetadata' | 'withSafeMode' | 'diagnostics' | 'shutdown'>>;
     // (undocumented)
-    withSafeMode(): WithSafeMode<Omit<this, 'withMetadata' | 'withSafeMode'>>;
+    withSafeMode(): WithSafeMode<Omit<this, 'withMetadata' | 'withSafeMode' | 'diagnostics' | 'shutdown'>>;
 }
 
 // @public (undocumented)
@@ -2258,6 +2263,88 @@ export class CircuitOpenError extends EsiError {
 
 // @public (undocumented)
 export type CircuitState = 'closed' | 'open' | 'half-open';
+
+// @public
+export interface ClientTypeMap {
+    // (undocumented)
+    accessLists: AccessListsClient;
+    // (undocumented)
+    alliance: AllianceClient;
+    // (undocumented)
+    assets: AssetsClient;
+    // (undocumented)
+    calendar: CalendarClient;
+    // (undocumented)
+    characters: CharacterClient;
+    // (undocumented)
+    clones: ClonesClient;
+    // (undocumented)
+    contacts: ContactsClient;
+    // (undocumented)
+    contracts: ContractsClient;
+    // (undocumented)
+    corporationProjects: CorporationProjectsClient;
+    // (undocumented)
+    corporations: CorporationsClient;
+    // (undocumented)
+    cosmetics: CosmeticsClient;
+    // (undocumented)
+    dogma: DogmaClient;
+    // (undocumented)
+    factions: FactionClient;
+    // (undocumented)
+    fittings: FittingsClient;
+    // (undocumented)
+    fleets: FleetClient;
+    // (undocumented)
+    freelanceJobs: FreelanceJobsClient;
+    // (undocumented)
+    incursions: IncursionsClient;
+    // (undocumented)
+    industry: IndustryClient;
+    // (undocumented)
+    insurance: InsuranceClient;
+    // (undocumented)
+    killmails: KillmailsClient;
+    // (undocumented)
+    location: LocationClient;
+    // (undocumented)
+    loyalty: LoyaltyClient;
+    // (undocumented)
+    mail: MailClient;
+    // (undocumented)
+    market: MarketClient;
+    // (undocumented)
+    mercenary: MercenaryClient;
+    // (undocumented)
+    meta: MetaClient;
+    // (undocumented)
+    militaryCampaigns: MilitaryCampaignsClient;
+    // (undocumented)
+    paragonHub: ParagonHubClient;
+    // (undocumented)
+    pi: PiClient;
+    // (undocumented)
+    route: RouteClient;
+    // (undocumented)
+    search: SearchClient;
+    // (undocumented)
+    skills: CharacterSkillsClient;
+    // (undocumented)
+    skyhooks: SkyhooksClient;
+    // (undocumented)
+    sovereignty: SovereigntyClient;
+    // (undocumented)
+    status: StatusClient;
+    // (undocumented)
+    ui: UiClient;
+    // (undocumented)
+    universe: UniverseClient;
+    // (undocumented)
+    wallet: WalletClient;
+    // (undocumented)
+    wars: WarsClient;
+}
 
 // @public
 export interface Clock {
@@ -4347,6 +4434,7 @@ export class CustomEsiClient {
     get accessLists(): AccessListsClient | undefined;
     // (undocumented)
     get alliance(): AllianceClient | undefined;
+    as(identity: Identity): CustomEsiClient;
     // (undocumented)
     get assets(): AssetsClient | undefined;
     // (undocumented)
@@ -4714,12 +4802,11 @@ export class EsiClient {
     constructor(config?: EsiClientConfig);
     // (undocumented)
     get accessLists(): AccessListsClient;
-    // (undocumented)
     addRequestInterceptor(fn: RequestInterceptor): () => void;
-    // (undocumented)
     addResponseInterceptor(fn: ResponseInterceptor): () => void;
     // (undocumented)
     get alliance(): AllianceClient;
+    as(identity: Identity): EsiClient;
     // (undocumented)
     get assets(): AssetsClient;
     // (undocumented)
@@ -4827,6 +4914,7 @@ export class EsiClientBuilder {
     addClients(clientTypes: ApiClientType[]): this;
     // (undocumented)
     build(): CustomEsiClient;
+    buildPublic(): PublicCustomEsiClient;
     // (undocumented)
     withAccessToken(accessToken: string): this;
     // (undocumented)
@@ -5682,7 +5770,6 @@ export class EsiTokenManager {
     getStoredToken(characterId: number): Promise<StoredToken | null>;
     getToken(characterId: number): Promise<string>;
     hasScopes(characterId: number, scopes: readonly string[]): Promise<boolean>;
-    // Warning: (ae-forgotten-export) The symbol "Identity" needs to be exported by the entry point index.d.ts
     identity(characterId: number): Identity;
     importToken(token: {
         accessToken: string;
@@ -6802,6 +6889,19 @@ export interface IDeduplicator {
     // (undocumented)
     readonly pending: number;
 }
+
+// @public
+export interface Identity {
+    accessToken(): Promise<string>;
+    readonly characterId?: number;
+    refreshAccessToken?(): Promise<string>;
+}
+
+// @public
+export function identityFromProvider(provider: TokenProvider, options?: ProviderIdentityOptions): Identity;
+
+// @public
+export function identityFromToken(accessToken: string): Identity;
 
 // @public (undocumented)
 export interface ILogger {
@@ -8543,6 +8643,16 @@ const PlanetInfoSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
+// Warning: (ae-forgotten-export) The symbol "AuthenticatedMethods" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type PublicClient<K extends ApiClientType> = Omit<ClientTypeMap[K], AuthenticatedMethods[K] | 'withMetadata' | 'withSafeMode' | 'streamEndpoint' | 'fetchAllEndpoint'>;
+
+// @public (undocumented)
+export interface ProviderIdentityOptions {
+    readonly characterId?: number;
+}
+
 // @public (undocumented)
 export type PublicContract = z.infer<typeof PublicContractSchema>;
 
@@ -8591,6 +8701,14 @@ const PublicContractSchema: z.ZodObject<{
     buyout: z.ZodOptional<z.ZodNumber>;
     volume: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
+
+// @public
+export type PublicCustomEsiClient = PublicDomainClients & Pick<CustomEsiClient, 'getEnabledClients' | 'hasClient' | 'diagnostics' | 'getCacheStats' | 'clearCache' | 'updateCacheConfig' | 'getCircuitBreakerStats' | 'resetCircuitBreaker' | 'shutdown'>;
+
+// @public
+export type PublicDomainClients = {
+    readonly [K in ApiClientType]: PublicClient<K> | undefined;
+};
 
 // @public (undocumented)
 export type Race = z.infer<typeof RaceSchema>;
@@ -9813,7 +9931,7 @@ export class TokenDecodeError extends AuthError {
     constructor(message: string);
 }
 
-// @public (undocumented)
+// @public
 export type TokenProvider = () => Promise<string>;
 
 // @public

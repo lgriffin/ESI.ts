@@ -127,6 +127,14 @@ async function render(): Promise<Rendered[]> {
       ),
       summary: `${operations.operations.length} routes`,
     },
+    {
+      outPath: ROUTES_OUT_PATH,
+      source: await format(
+        generateRouteTable(operations.operations, SPEC_PATH),
+        path.join(ROOT, ROUTES_OUT_PATH),
+      ),
+      summary: `${operations.operations.length} routes`,
+    },
   ];
 }
 

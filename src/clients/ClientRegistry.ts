@@ -123,10 +123,52 @@ export type ClientInstance =
   | MilitaryCampaignsClient
   | AccessListsClient;
 
-const clientFactories: Record<
-  ApiClientType,
-  new (apiClient: ApiClient) => ClientInstance
-> = {
+/** Each domain name and the custom client class it builds. */
+export interface ClientTypeMap {
+  alliance: AllianceClient;
+  assets: AssetsClient;
+  calendar: CalendarClient;
+  characters: CharacterClient;
+  clones: ClonesClient;
+  contacts: ContactsClient;
+  contracts: ContractsClient;
+  corporations: CorporationsClient;
+  corporationProjects: CorporationProjectsClient;
+  dogma: DogmaClient;
+  factions: FactionClient;
+  fittings: FittingsClient;
+  fleets: FleetClient;
+  incursions: IncursionsClient;
+  industry: IndustryClient;
+  insurance: InsuranceClient;
+  killmails: KillmailsClient;
+  location: LocationClient;
+  loyalty: LoyaltyClient;
+  mail: MailClient;
+  market: MarketClient;
+  pi: PiClient;
+  route: RouteClient;
+  search: SearchClient;
+  skills: CharacterSkillsClient;
+  sovereignty: SovereigntyClient;
+  status: StatusClient;
+  ui: UiClient;
+  universe: UniverseClient;
+  wallet: WalletClient;
+  wars: WarsClient;
+  meta: MetaClient;
+  freelanceJobs: FreelanceJobsClient;
+  skyhooks: SkyhooksClient;
+  cosmetics: CosmeticsClient;
+  paragonHub: ParagonHubClient;
+  mercenary: MercenaryClient;
+  militaryCampaigns: MilitaryCampaignsClient;
+  accessLists: AccessListsClient;
+}
+
+const clientFactories: {
+  [K in ApiClientType]: new (apiClient: ApiClient) => ClientTypeMap[K];
+} = {
   alliance: AllianceClient,
   assets: AssetsClient,
   calendar: CalendarClient,

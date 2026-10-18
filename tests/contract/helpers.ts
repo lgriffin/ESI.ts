@@ -60,109 +60,25 @@ export async function fetchSpec(): Promise<OpenApiSpec> {
   return cachedSpec;
 }
 
+/**
+ * Every definition in the endpoint maps, loaded as the modules build them:
+ * definitions made with `fromOperation` carry no `path:` text to parse.
+ */
 export function loadAllEndpoints(): EndpointEntry[] {
   const entries: EndpointEntry[] = [];
-  const files = fs
-    .readdirSync(ENDPOINTS_DIR)
-    .filter((f) => f.endsWith('Endpoints.ts'));
-
-  for (const file of files) {
-    const content = fs.readFileSync(path.join(ENDPOINTS_DIR, file), 'utf-8');
-    const blocks = extractEndpointBlocks(content);
-
-    for (const { name, body } of blocks) {
-      const def = parseEndpointBody(body);
-      if (def) {
-        entries.push({ name, definition: def, file });
+  for (const file of fs.readdirSync(ENDPOINTS_DIR).sort()) {
+    if (!file.endsWith('Endpoints.ts')) continue;
+    const mod = require(path.join(ENDPOINTS_DIR, file)) as Record<
+      string,
+      Record<string, EndpointDefinition>
+    >;
+    for (const map of Object.values(mod)) {
+      for (const [name, definition] of Object.entries(map)) {
+        entries.push({ name, definition, file });
       }
     }
   }
-
   return entries;
-}
-
-function extractEndpointBlocks(
-  content: string,
-): { name: string; body: string }[] {
-  const results: { name: string; body: string }[] = [];
-  const namePattern = /(\w+):\s*\{/g;
-  let nameMatch;
-
-  while ((nameMatch = namePattern.exec(content)) !== null) {
-    const name = nameMatch[1]!;
-    const startBrace = nameMatch.index + nameMatch[0].length - 1;
-
-    let depth = 1;
-    let i = startBrace + 1;
-    while (i < content.length && depth > 0) {
-      const ch = content[i];
-      if (ch === '{') depth++;
-      else if (ch === '}') depth--;
-      else if (ch === "'" || ch === '"' || ch === '`') {
-        i++;
-        while (i < content.length && content[i] !== ch) {
-          if (content[i] === '\\') i++;
-          i++;
-        }
-      }
-      i++;
-    }
-
-    if (depth === 0) {
-      const body = content.slice(startBrace + 1, i - 1);
-      results.push({ name, body });
-    }
-  }
-
-  return results;
-}
-
-function parseEndpointBody(body: string): EndpointDefinition | null {
-  const pathMatch = body.match(/path:\s*'([^']+)'/);
-  const methodMatch = body.match(/method:\s*'(GET|POST|PUT|DELETE)'/);
-  const authMatch = body.match(/requiresAuth:\s*(true|false)/);
-
-  if (!pathMatch || !methodMatch || !authMatch) return null;
-
-  const pathParamsMatch = body.match(/pathParams:\s*\[([^\]]*)\]/);
-  const queryParamsMatch = body.match(/queryParams:\s*\{([^}]*)\}/);
-  const hasBodyMatch = body.match(/hasBody:\s*(true|false)/);
-  const bodyBuilderMatch = body.match(/bodyBuilder:/);
-  const cursorPaginationMatch = body.match(/cursorPagination:\s*(true|false)/);
-  const deprecatedMatch = body.match(/deprecated:\s*\{/);
-  const responseSchemaMatch = body.match(/responseSchema:/);
-
-  const pathParams = pathParamsMatch
-    ? pathParamsMatch[1]!
-        .split(',')
-        .map((s) => s.trim().replace(/['"]/g, ''))
-        .filter((s) => s.length > 0)
-    : undefined;
-
-  const queryParams: Record<string, string> = {};
-  if (queryParamsMatch) {
-    const qpBody = queryParamsMatch[1]!;
-    const qpRegex = /(\w+):\s*'([^']+)'/g;
-    let qpMatch;
-    while ((qpMatch = qpRegex.exec(qpBody)) !== null) {
-      queryParams[qpMatch[1]!] = qpMatch[2]!;
-    }
-  }
-
-  return {
-    path: pathMatch[1]!,
-    method: methodMatch[1]! as 'GET' | 'POST' | 'PUT' | 'DELETE',
-    requiresAuth: authMatch[1] === 'true',
-    pathParams: pathParams && pathParams.length > 0 ? pathParams : undefined,
-    queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
-    hasBody: hasBodyMatch ? hasBodyMatch[1] === 'true' : undefined,
-    bodyBuilder: bodyBuilderMatch ? () => ({}) : undefined,
-    cursorPagination: cursorPaginationMatch
-      ? cursorPaginationMatch[1] === 'true'
-      : undefined,
-    deprecated: deprecatedMatch ? { message: 'deprecated' } : undefined,
-    responseSchema: responseSchemaMatch ? ({} as any) : undefined,
-  };
 }
 
 export function findSpecOperation(
