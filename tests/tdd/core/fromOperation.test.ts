@@ -39,6 +39,22 @@ describe('customPath', () => {
     ).toBe('route/{origin}/{destination}');
   });
 
+  it('matches what it can by name and gives the rest the leftover names in order', () => {
+    expect(
+      customPath(
+        'GetX',
+        '/characters/{character_id}/route/{origin_system_id}/{destination_system_id}',
+        ['origin', 'destination', 'characterId'],
+      ),
+    ).toBe('characters/{characterId}/route/{origin}/{destination}');
+    expect(
+      customPath('GetX', '/characters/{character_id}/mail/{mail_id}', [
+        'mail',
+        'characterId',
+      ]),
+    ).toBe('characters/{characterId}/mail/{mail}');
+  });
+
   it('keeps a trailing slash only when asked', () => {
     expect(customPath('GetStatus', '/status')).toBe('status');
     expect(customPath('GetStatus', '/status', [], true)).toBe('status/');
