@@ -46,6 +46,7 @@ import {
 } from './clients/ClientRegistry';
 import { EsiClientConfig } from './EsiClient';
 import { configureApiClient } from './core/configureApiClient';
+import type { PublicDomainClients } from './clients/publicClients';
 import {
   ETagCacheManager,
   type ETagCacheConfig,
@@ -64,6 +65,31 @@ import {
 } from './clients/domainViews';
 
 export { ApiClientType, ClientInstance };
+export type {
+  PublicClient,
+  PublicDomainClients,
+} from './clients/publicClients';
+
+/**
+ * A {@link CustomEsiClient} that holds no token, typed so that a method
+ * needing one does not compile: each domain accessor returns a
+ * `PublicClient`, the domain client with its authenticated methods left out.
+ * Built by {@link EsiClientBuilder.buildPublic}. A cast that reaches an
+ * authenticated method anyway fails with NO_AUTH_TOKEN before any request.
+ */
+export type PublicCustomEsiClient = PublicDomainClients &
+  Pick<
+    CustomEsiClient,
+    | 'getEnabledClients'
+    | 'hasClient'
+    | 'diagnostics'
+    | 'getCacheStats'
+    | 'clearCache'
+    | 'updateCacheConfig'
+    | 'getCircuitBreakerStats'
+    | 'resetCircuitBreaker'
+    | 'shutdown'
+  >;
 
 /**
  * The custom domain clients chosen with {@link EsiClientBuilder}, sharing one
@@ -591,5 +617,36 @@ export class EsiClientBuilder {
       throw new Error('At least one client type must be specified');
     }
     return new CustomEsiClient({ ...this.config, clients: this.clients });
+  }
+
+  /**
+   * Builds the chosen domains as a public-only client: it holds no token,
+   * whatever `withAccessToken`, `onTokenRefresh` or `ESI_ACCESS_TOKEN` say,
+   * and its type leaves out every method that needs one, so calling one does
+   * not compile. The counterpart of `createEsi()`'s `esi.public`.
+   *
+   * @example
+   * ```ts
+   * const pub = new EsiClientBuilder()
+   *   .addClients(['market', 'universe'])
+   *   .withClientId('price-checker/1.0 (ops@example.com)')
+   *   .buildPublic();
+   * const prices = await pub.market?.getMarketPrices();
+   * ```
+   */
+  buildPublic(): PublicCustomEsiClient {
+    if (this.clients.length === 0) {
+      throw new Error('At least one client type must be specified');
+    }
+    const custom = new CustomEsiClient({
+      ...this.config,
+      accessToken: undefined,
+      onTokenRefresh: undefined,
+      clients: this.clients,
+    });
+    // The constructor falls back to ESI_ACCESS_TOKEN; an empty token sends no
+    // Authorization header, so an authenticated call fails with NO_AUTH_TOKEN.
+    custom['apiClient'].setAccessToken('');
+    return custom;
   }
 }

@@ -256,6 +256,7 @@
     "generate:types": "ts-node scripts/spec/generate-esi-types.ts",
     "generate:okf": "ts-node scripts/docs/generate-okf.ts",
     "generate:endpoints": "ts-node scripts/spec/generate-endpoint-scaffold.ts",
+    "generate:public-clients": "ts-node scripts/spec/generate-public-clients.ts",
     "generate:all": "npm run generate:types && npm run generate:okf && npm run contract:snapshot && npm run schema:drift && npm run validate:esi",
     "knip": "knip",
     "validate:esi": "ts-node scripts/spec/validate-esi-endpoints.ts",
