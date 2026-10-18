@@ -50,7 +50,7 @@ features:
     link: /guide/pagination
     linkText: Pagination
   - title: SSO and many characters
-    details: EVE SSO with PKCE, a token manager for storage, proactive refresh and revocation, and createEsi() — one shared runtime with a typed public view and a view per character.
+    details: EVE SSO with PKCE, a token manager for storage, proactive refresh and revocation, and client.as(identity), which gives one shared runtime a view per character, plus buildPublic() for clients that never send a token.
     link: /guide/multi-character
     linkText: Many characters
   - title: Offline static data
@@ -81,22 +81,21 @@ try {
 }
 ```
 
-For many characters over one runtime, `@lgriffin/esi.ts/client` gives a public view in which an authenticated call does not compile, and a view per identity:
+For many characters, `client.as(identity)` returns the same domain clients sending as one character, over the client's one cache, rate limiter and error budget:
 
 ```ts
-import { createEsi, identityFromToken } from '@lgriffin/esi.ts/client';
+import { EsiClient, identityFromToken } from '@lgriffin/esi.ts';
 
-const esi = createEsi({ userAgent: 'my-app/1.0 (you@example.com)' });
-const status = await esi.public.status.get();
+const client = new EsiClient({ userAgent: 'my-app/1.0 (you@example.com)' });
 
 // An access token from your SSO flow. An EsiTokenManager's
 // tokens.identity(characterId) gives a refreshing identity instead.
 const characterId = 2114794365;
-const wallet = await esi
-  .as(identityFromToken(process.env.ESI_ACCESS_TOKEN ?? ''))
-  .character(characterId)
-  .wallet.get();
+const pilot = client.as(identityFromToken(process.env.ESI_ACCESS_TOKEN ?? ''));
+const wallet = await pilot.wallet.getCharacterWallet(characterId);
 ```
+
+`new EsiClientBuilder().addClients([...]).buildPublic()` gives domain clients in which an authenticated call does not compile. `createEsi()` from `@lgriffin/esi.ts/client` is the spec-shaped low-level surface on the same engine, for calls that mirror the URL.
 
 <div class="feature-grid">
   <div class="feature-card">
