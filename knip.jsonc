@@ -22,6 +22,9 @@
     // The ingestion pipeline's barrel re-exports each module's option and
     // result types alongside its classes.
     "src/sde/ingestion/index.ts": ["types"],
+    // One baseline schema per operation, for the endpoint maps to import as
+    // they adopt them (#673); unused until a map takes one.
+    "src/schemas/generated/responseSchemas.generated.ts": ["exports"],
   },
   "ignoreExportsUsedInFile": true,
   // Test fixtures import paths that exist only in their fixture trees, and

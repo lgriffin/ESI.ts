@@ -113,7 +113,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - **Dual CJS/ESM build** via tsup (esbuild) for JS bundles + tsc for declaration files.
 - **Logging** via pino behind the `ILogger` interface. Level controlled by `ESI_LOG_LEVEL` env var (default: `warn`).
 - **Conventional commits** enforced by commitlint + husky. Types: feat, fix, chore, docs, test, refactor, perf. The type and `!` decide the released version; see Semantic Versioning below.
-- **Generated files** (`*.generated.ts`) are auto-generated from the ESI OpenAPI spec. Re-generate with `npm run generate:types` (types, TTLs, rate-limit groups, scopes) or `npm run spec:generate` (`src/generated/operations.generated.ts` and `src/adapters/responseSchemas.generated.ts`, from the vendored snapshot); do not edit manually.
+- **Generated files** (`*.generated.ts`) are auto-generated from the ESI OpenAPI spec. Re-generate with `npm run generate:types` (types, TTLs, rate-limit groups, scopes) or `npm run spec:generate` (`src/generated/operations.generated.ts`, `src/adapters/responseSchemas.generated.ts` and the baseline copy in `src/schemas/generated/`, from the vendored snapshot); do not edit manually.
 - **Layers** point inward: `npm run lint:layers` (`config/eslint/layers.rules.cjs`) forbids core importing the layers above it, ports importing anything, and generated code importing anything but the ports. Its `BASELINE` only shrinks. See `guides/DESIGN-RULES.md` §7.
 
 ## Architecture
@@ -182,6 +182,7 @@ Review against the checklist and severities in `AGENTS.md` (Reviewer Checklist).
 - `src/core/endpoints/esi-*.generated.ts` — auto-generated cache TTLs, rate limits, scopes
 - `src/generated/operations.generated.ts` — generated operations and scope tree (`npm run spec:generate`)
 - `src/adapters/responseSchemas.generated.ts` — generated response schemas (`npm run spec:generate`)
+- `src/schemas/generated/` — the same schemas as tree-shakable baselines for the endpoint maps (`npm run spec:generate`)
 - `dist/` — build output
 - `etc/esi.ts.api.md` — auto-generated API surface report
 - `okf/` — auto-generated OKF knowledge bundle from OpenAPI spec
