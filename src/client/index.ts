@@ -27,6 +27,7 @@ export type { IncompletePagesMode } from '../core/pagination/pageLimit';
 export { identityFromProvider, identityFromToken } from './identity';
 export type { ProviderIdentityOptions } from './identity';
 export type {
+  CacheInvalidation,
   CacheStore,
   CachedResponse,
   Clock,

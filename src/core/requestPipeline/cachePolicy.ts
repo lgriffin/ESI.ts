@@ -3,6 +3,11 @@ import { nowOn } from '../clock';
 import { logDebug } from '../logger/clientLog';
 import { ICache } from '../cache/ICache';
 import { buildCacheKey } from '../cache/cacheKey';
+import {
+  invalidatedSince,
+  recordWrite,
+  writeGenerationOf,
+} from '../cache/writeLog';
 import { ParsedHeaders } from '../util/headersUtil';
 import { camelToSnake } from '../util/stringUtil';
 import { esiCacheTtls } from '../endpoints/esi-cache-ttls.generated';
@@ -137,29 +142,6 @@ export function tryStaleCacheResponse(
 }
 
 /**
- * Successful writes seen by a cache, so a read that was in flight when one of
- * them invalidated its path does not store the pre-write body afterwards.
- * `recent` keeps the last RECENT_WRITES paths; a read that outlived more
- * writes than that is treated as overtaken.
- */
-interface WriteLog {
-  generation: number;
-  recent: { generation: number; path: string }[];
-}
-
-const RECENT_WRITES = 64;
-const writeLogs = new WeakMap<ICache, WriteLog>();
-
-function writeLogFor(cache: ICache): WriteLog {
-  let log = writeLogs.get(cache);
-  if (!log) {
-    log = { generation: 0, recent: [] };
-    writeLogs.set(cache, log);
-  }
-  return log;
-}
-
-/**
  * The client's write generation. Take it before sending a GET and pass it to
  * cacheResponse, which then declines to store the response if a write has
  * invalidated the same path since.
@@ -169,20 +151,7 @@ export function currentWriteGeneration(
   resolveCache: (client: ApiClient) => ICache | null,
 ): number {
   const cache = resolveCache(client);
-  return cache ? writeLogFor(cache).generation : 0;
-}
-
-function invalidatedSince(
-  cache: ICache,
-  generation: number,
-  key: string,
-): boolean {
-  const log = writeLogFor(cache);
-  if (log.generation === generation) return false;
-  if (log.generation - generation > log.recent.length) return true;
-  return log.recent.some(
-    (write) => write.generation > generation && key.includes(write.path),
-  );
+  return cache ? writeGenerationOf(cache) : 0;
 }
 
 /**
@@ -291,9 +260,6 @@ export function invalidateAfterWrite(
   const cache = resolveCache(client);
   if (cache) {
     cache.deleteByPath(path);
-    const log = writeLogFor(cache);
-    log.generation += 1;
-    log.recent.push({ generation: log.generation, path });
-    if (log.recent.length > RECENT_WRITES) log.recent.shift();
+    recordWrite(cache, path);
   }
 }
