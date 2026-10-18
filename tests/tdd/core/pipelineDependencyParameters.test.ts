@@ -1,7 +1,7 @@
 /**
  * CHARTER ARCH-03: the request-pipeline modules take the cache, rate limiter
  * and circuit breaker as parameters. They may import the interfaces and the
- * pure cache-key helpers, never an implementation; `dependencies.ts` is the
+ * pure cache-key and write-log helpers, never an implementation; `dependencies.ts` is the
  * one module that resolves them.
  */
 import { readFileSync, readdirSync } from 'fs';
@@ -14,9 +14,14 @@ const RESOLVER = 'dependencies.ts';
 /** Folders holding a strategy implementation next to its interface. */
 const STRATEGY_DIRS = ['cache', 'rateLimiter', 'circuitBreaker'];
 
-/** Modules in those folders a stage may import: interfaces and pure helpers. */
+/**
+ * Modules in those folders a stage may import: interfaces and pure helpers
+ * (cache keys, and the per-cache write log keyed by the `ICache` it is given).
+ */
+const PURE_HELPERS = new Set(['cacheKey', 'writeLog']);
+
 function allowed(module: string): boolean {
-  return /^I[A-Z]/.test(module) || module === 'cacheKey';
+  return /^I[A-Z]/.test(module) || PURE_HELPERS.has(module);
 }
 
 /**
