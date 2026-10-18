@@ -47,6 +47,7 @@ import {
 import { EsiClientConfig } from './EsiClient';
 import { configureApiClient } from './core/configureApiClient';
 import type { PublicDomainClients } from './clients/publicClients';
+import { claimPipeline, diagnosticsFor } from './core/pipelineOwnership';
 import {
   ETagCacheManager,
   type ETagCacheConfig,
@@ -197,11 +198,7 @@ export class CustomEsiClient {
    * clients share, as `EsiClient.diagnostics` does for its own.
    */
   get diagnostics(): EsiDiagnostics {
-    this._diagnostics ??= new EsiDiagnostics(
-      this.apiClient,
-      this.etagCacheEnabled,
-      this.apiClient.getDeduplicator(),
-    );
+    this._diagnostics ??= diagnosticsFor(this.apiClient, this.etagCacheEnabled);
     return this._diagnostics;
   }
 
@@ -573,6 +570,11 @@ export class EsiApiFactory {
     }
 
     configureApiClient(client, config);
+    claimPipeline(client, {
+      suppliedCache: config?.cache !== undefined,
+      suppliedCircuitBreaker: config?.circuitBreaker !== undefined,
+      suppliedDeduplicator: config?.deduplicator !== undefined,
+    });
     return client;
   }
 }

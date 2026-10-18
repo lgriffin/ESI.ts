@@ -202,3 +202,26 @@ Feature: Custom client built from chosen API clients
       Given ESI reports the server status
       When a custom client built with the "status" client and a recording logger requests the server status
       Then the custom client's logger shall receive no warning
+
+  # ── A single domain client from EsiApiFactory
+
+  Rule: When a domain client built by EsiApiFactory.createClient reads its diagnostics, the EsiApiFactory client shall report the entries and hits of the cache it owns.
+    A client built by name owns its pipeline, so its diagnostics read that
+    pipeline, as EsiClient's and CustomEsiClient's read theirs.
+
+    Scenario: A factory-built status client reports its own cache
+      Given ESI reports the server status with an ETag
+      And a "status" client built by EsiApiFactory.createClient
+      When the factory client requests the server status twice
+      Then the factory client's cache statistics shall report 1 entry and 1 hit
+
+  Rule: When a domain client built by EsiApiFactory.createClient is shut down, the EsiApiFactory client shall keep answering requests.
+    Shutting down stops the cleanup timers of the cache and circuit breaker the
+    factory built; requests still go through the pipeline.
+
+    Scenario: A factory-built status client still answers after it is shut down
+      Given ESI reports the server status
+      And a "status" client built by EsiApiFactory.createClient
+      When the factory client is shut down and then requests the server status
+      Then the call shall resolve with the server status
+      And the runtime shall have sent 1 request
