@@ -184,6 +184,9 @@ describe('parseShards', () => {
     expect(byName.get('core-root-1')?.concurrency).toBe(3);
     expect(byName.get('core-request-pipeline')?.concurrency).toBe(3);
     expect(byName.get('core-rate-limiter')?.concurrency).toBe(3);
+    expect(byName.get('core-status-handling')?.concurrency).toBe(3);
+    expect(byName.get('core-middleware')?.concurrency).toBe(3);
+    expect(byName.get('core-etag-cache')?.concurrency).toBe(3);
   });
 });
 
