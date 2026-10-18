@@ -224,6 +224,14 @@ export * from './types/api-responses';
 // Schemas (Zod runtime validation)
 export * as schemas from './schemas';
 
+// Identities: who an identity view (EsiClient.as, CustomEsiClient.as) sends as
+export {
+  identityFromToken,
+  identityFromProvider,
+  type ProviderIdentityOptions,
+} from './core/identity';
+export type { Identity } from './core/ports/Identity';
+
 // Auth: SSO client, token manager, storage adapters
 export {
   EveSsoClient,

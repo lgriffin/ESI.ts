@@ -265,6 +265,7 @@ export class ApiClient {
     addRequestInterceptor(fn: RequestInterceptor): () => void;
     // (undocumented)
     addResponseInterceptor(fn: ResponseInterceptor): () => void;
+    forIdentity(identity: Identity): ApiClient;
     // (undocumented)
     getAuthorizationHeader(): string | undefined;
     // (undocumented)
@@ -284,6 +285,7 @@ export class ApiClient {
     getDeduplicator(): IDeduplicator | null;
     // (undocumented)
     getFetch(): FetchLike;
+    getIdentity(): Identity | null;
     getIncompletePages(): IncompletePagesMode;
     // (undocumented)
     getLanguage(): string | undefined;
@@ -311,6 +313,7 @@ export class ApiClient {
     getValidateResponse(): boolean;
     // (undocumented)
     hasTokenProvider(): boolean;
+    prepareToken(requiresAuth: boolean): Promise<void>;
     // (undocumented)
     refreshToken(): Promise<string>;
     // (undocumented)
@@ -4431,6 +4434,7 @@ export class CustomEsiClient {
     get accessLists(): AccessListsClient | undefined;
     // (undocumented)
     get alliance(): AllianceClient | undefined;
+    as(identity: Identity): CustomEsiClient;
     // (undocumented)
     get assets(): AssetsClient | undefined;
     // (undocumented)
@@ -4798,12 +4802,11 @@ export class EsiClient {
     constructor(config?: EsiClientConfig);
     // (undocumented)
     get accessLists(): AccessListsClient;
-    // (undocumented)
     addRequestInterceptor(fn: RequestInterceptor): () => void;
-    // (undocumented)
     addResponseInterceptor(fn: ResponseInterceptor): () => void;
     // (undocumented)
     get alliance(): AllianceClient;
+    as(identity: Identity): EsiClient;
     // (undocumented)
     get assets(): AssetsClient;
     // (undocumented)
@@ -5767,7 +5770,6 @@ export class EsiTokenManager {
     getStoredToken(characterId: number): Promise<StoredToken | null>;
     getToken(characterId: number): Promise<string>;
     hasScopes(characterId: number, scopes: readonly string[]): Promise<boolean>;
-    // Warning: (ae-forgotten-export) The symbol "Identity" needs to be exported by the entry point index.d.ts
     identity(characterId: number): Identity;
     importToken(token: {
         accessToken: string;
@@ -6887,6 +6889,19 @@ export interface IDeduplicator {
     // (undocumented)
     readonly pending: number;
 }
+
+// @public
+export interface Identity {
+    accessToken(): Promise<string>;
+    readonly characterId?: number;
+    refreshAccessToken?(): Promise<string>;
+}
+
+// @public
+export function identityFromProvider(provider: TokenProvider, options?: ProviderIdentityOptions): Identity;
+
+// @public
+export function identityFromToken(accessToken: string): Identity;
 
 // @public (undocumented)
 export interface ILogger {
@@ -8634,6 +8649,11 @@ const PlanetInfoSchema: z.ZodObject<{
 export type PublicClient<K extends ApiClientType> = Omit<ClientTypeMap[K], AuthenticatedMethods[K] | 'withMetadata' | 'withSafeMode' | 'streamEndpoint' | 'fetchAllEndpoint'>;
 
 // @public (undocumented)
+export interface ProviderIdentityOptions {
+    readonly characterId?: number;
+}
+
+// @public (undocumented)
 export type PublicContract = z.infer<typeof PublicContractSchema>;
 
 // @public (undocumented)
@@ -9911,7 +9931,7 @@ export class TokenDecodeError extends AuthError {
     constructor(message: string);
 }
 
-// @public (undocumented)
+// @public
 export type TokenProvider = () => Promise<string>;
 
 // @public

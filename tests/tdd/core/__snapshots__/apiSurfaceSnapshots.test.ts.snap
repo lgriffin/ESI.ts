@@ -141,6 +141,8 @@ exports[`API surface snapshots public API exports should match snapshot 1`] = `
   "generateState",
   "getDefaultClient",
   "getLogger",
+  "identityFromProvider",
+  "identityFromToken",
   "isAuthError",
   "isCharacterNotFound",
   "isCircuitOpen",
