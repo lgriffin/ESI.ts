@@ -29,8 +29,7 @@ export interface CachedResponse {
  * own `delete` already removes it for every holder.
  */
 export type CacheInvalidation =
-  | { readonly kind: 'path'; readonly path: string }
-  | { readonly kind: 'clear' };
+  { readonly kind: 'path'; readonly path: string } | { readonly kind: 'clear' };
 
 export interface CacheStore {
   /** The entry for `key`, or null when there is none or it has expired. */

@@ -14,12 +14,17 @@
  * its optional `publishInvalidation` and `onInvalidate`: this adapter
  * publishes each path a write invalidates and each `clear()`, and on an event
  * from another holder drops the keys it wrote under that path and records the
- * write, so a read in flight here does not cache the pre-write body. Its
- * statistics count this process's reads and writes, not the store's contents.
+ * write, so a read in flight here does not cache the pre-write body, and
+ * detaches the matching in-flight reads from every deduplicator attached to
+ * it, so a read that starts afterwards is not handed one. Publishing is best
+ * effort: a publisher that throws does not fail the write that triggered it.
+ * Its statistics count this process's reads and writes, not the store's
+ * contents.
  */
 import type { CacheInvalidation, CacheStore } from '../ports/CacheStore';
 import type { Clock } from '../ports/Clock';
 import { nowOn } from '../clock';
+import type { IDeduplicator } from '../IDeduplicator';
 import type { CacheEntry, ICache } from './ICache';
 import { recordWrite } from './writeLog';
 
@@ -32,25 +37,53 @@ export class CacheStoreCache implements ICache {
   private hits = 0;
   private misses = 0;
   private readonly unsubscribe: (() => void) | undefined;
+  private readonly deduplicators = new Set<IDeduplicator>();
 
   constructor(
     private readonly store: CacheStore,
     private readonly clock: Clock | null = null,
   ) {
     this.unsubscribe = store.onInvalidate?.((event) => {
-      this.applyRemote(event);
+      // An event this adapter cannot apply must not break the store's
+      // dispatch to its other listeners.
+      try {
+        this.applyRemote(event);
+      } catch {
+        // Nothing else to do: the entries expire by their retention.
+      }
     });
+  }
+
+  /**
+   * Detaches matching in-flight reads from `deduplicator` whenever another
+   * holder invalidates a path, as a local write does. Each client that uses
+   * this adapter attaches its own; one attached twice is held once.
+   */
+  attachDeduplicator(deduplicator: IDeduplicator): void {
+    this.deduplicators.add(deduplicator);
   }
 
   /** An invalidation another holder of the store published. */
   private applyRemote(event: CacheInvalidation): void {
-    if (event.kind === 'clear') {
-      this.keys.clear();
-      recordWrite(this, '');
-      return;
+    // A clear keeps the tracked keys: one written here after the store was
+    // cleared but before this event arrived must stay deletable, and a
+    // key whose entry is gone deletes as a no-op.
+    const path = event.kind === 'clear' ? '' : event.path;
+    for (const deduplicator of this.deduplicators) {
+      deduplicator.detachByPath?.(path);
     }
-    this.dropLocal(event.path);
-    recordWrite(this, event.path);
+    if (event.kind === 'path') this.dropLocal(path);
+    recordWrite(this, path);
+  }
+
+  /** Publishes `event` when the store can; a failure does not fail the caller. */
+  private publish(event: CacheInvalidation): void {
+    try {
+      this.store.publishInvalidation?.(event);
+    } catch {
+      // The write already succeeded and this process is invalidated; other
+      // processes fall back to their entries' retention.
+    }
   }
 
   /** Deletes the keys this adapter wrote under `pathSegment`. */
@@ -116,7 +149,7 @@ export class CacheStoreCache implements ICache {
 
   deleteByPath(pathSegment: string): number {
     const count = this.dropLocal(pathSegment);
-    this.store.publishInvalidation?.({ kind: 'path', path: pathSegment });
+    this.publish({ kind: 'path', path: pathSegment });
     return count;
   }
 
@@ -125,7 +158,7 @@ export class CacheStoreCache implements ICache {
     this.keys.clear();
     this.hits = 0;
     this.misses = 0;
-    this.store.publishInvalidation?.({ kind: 'clear' });
+    this.publish({ kind: 'clear' });
   }
 
   /**
@@ -157,7 +190,10 @@ const adapters = new WeakMap<CacheStore, CacheStoreCache>();
 /**
  * The cache the pipeline uses for a supplied store: the store itself when it
  * already implements the pipeline's wider `ICache` (an `ETagCacheManager`, or
- * any `ICache` written for `ApiClient.setCache`), otherwise the adapter.
+ * any `ICache` written for `ApiClient.setCache`), otherwise the adapter. A
+ * store used as itself does its own `deleteByPath` and `clear`, so it
+ * carries invalidations to other processes itself; the adapter's
+ * `publishInvalidation`/`onInvalidate` wiring applies only to the adapter.
  * Every client given one store in this process shares one adapter, so a write
  * through one client invalidates the entries the others cached, and an
  * in-flight read in one does not re-cache what another's write invalidated.

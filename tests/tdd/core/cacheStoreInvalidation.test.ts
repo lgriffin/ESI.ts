@@ -6,6 +6,7 @@
 import fetchMock from 'jest-fetch-mock';
 import { EsiClient } from '../../../src/EsiClient';
 import { CacheStoreCache } from '../../../src/core/cache/CacheStoreCache';
+import { RequestDeduplicator } from '../../../src/core/RequestDeduplicator';
 import {
   invalidatedSince,
   writeGenerationOf,
@@ -74,19 +75,63 @@ describe('CacheStoreCache over a store that carries invalidations', () => {
     ).toBe(false);
   });
 
-  it('forgets every key and stops every in-flight read when another holder clears', () => {
+  it('stops every in-flight read when another holder clears, and keeps keys it can still delete', () => {
     const shared = new SharedMemoryCacheStore();
     const here = new CacheStoreCache(shared.connect());
-    const there = new CacheStoreCache(shared.connect());
-    here.set('https://esi.evetech.net/status/', '"s1"', {}, {});
+    const other = shared.connect();
     const sentAt = writeGenerationOf(here);
+    // Written after the store was cleared, before the clear event arrived.
+    here.set('https://esi.evetech.net/status/', '"s1"', {}, {});
 
-    there.clear();
+    other.publishInvalidation!({ kind: 'clear' });
 
-    expect(here.getStats().totalEntries).toBe(0);
     expect(
       invalidatedSince(here, sentAt, 'https://esi.evetech.net/status/'),
     ).toBe(true);
+    expect(here.deleteByPath('status')).toBe(1);
+    expect(shared.entries.size).toBe(0);
+  });
+
+  it('detaches matching in-flight reads from an attached deduplicator on a remote write', async () => {
+    const shared = new SharedMemoryCacheStore();
+    const here = new CacheStoreCache(shared.connect());
+    const there = new CacheStoreCache(shared.connect());
+    const deduplicator = new RequestDeduplicator();
+    here.attachDeduplicator(deduplicator);
+    const answers: ((value: string) => void)[] = [];
+    const before = deduplicator.dedupe(
+      'characters/1/contacts',
+      () =>
+        new Promise<string>((resolve) => {
+          answers.push(resolve);
+        }),
+    );
+    const status = deduplicator.dedupe('status', () => Promise.resolve('ok'));
+
+    there.deleteByPath('characters/1/contacts');
+    const after = deduplicator.dedupe('characters/1/contacts', () =>
+      Promise.resolve('post-write'),
+    );
+    answers[0]!('pre-write');
+
+    expect(await before).toBe('pre-write');
+    expect(await after).toBe('post-write');
+    expect(await status).toBe('ok');
+  });
+
+  it('keeps the write and its local invalidation when publishing throws', () => {
+    const shared = new SharedMemoryCacheStore();
+    const store: CacheStore = {
+      ...shared.connect(),
+      publishInvalidation: () => {
+        throw new Error('bus down');
+      },
+    };
+    const cache = new CacheStoreCache(store);
+    cache.set('https://esi.evetech.net/a/1', '"e"', {}, {});
+
+    expect(cache.deleteByPath('a/1')).toBe(1);
+    expect(() => cache.clear()).not.toThrow();
   });
 
   it('stops listening when it shuts down', () => {
@@ -138,6 +183,23 @@ describe('two clients sharing one store across "processes"', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
     reader.shutdown();
     writer.shutdown();
+  });
+
+  it("a write through one client detaches the other client's matching in-flight reads", () => {
+    const shared = new SharedMemoryCacheStore();
+    const reader = new EsiClient({ ...SEAM, cache: shared.connect() });
+    const writerCache = new CacheStoreCache(shared.connect());
+    const inflight = (
+      reader as unknown as {
+        apiClient: { getDeduplicator(): RequestDeduplicator };
+      }
+    ).apiClient.getDeduplicator();
+    const detach = jest.spyOn(inflight, 'detachByPath');
+
+    writerCache.deleteByPath('characters/1/contacts');
+
+    expect(detach).toHaveBeenCalledWith('characters/1/contacts');
+    reader.shutdown();
   });
 
   it('without the pair, the other client keeps serving its entry', async () => {
