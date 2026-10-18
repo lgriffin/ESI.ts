@@ -127,13 +127,13 @@ const configured = new EsiClient({
 
 The config also takes middleware instances, in place of the ones the client would build. `EsiClient`, `EsiClientBuilder.withConfig()` and `EsiApiFactory.createClient(type, config)` all accept them, and `createEsi()` takes the same five options, because every surface hands its config to `configureApiClient`.
 
-| Option           | Type                           | Effect                                                                                                                                                                                   |
-| ---------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cache`          | `CacheStore` (or an `ICache`)  | Bodies and ETags live in your store (Redis, a file) instead of memory. Ignored when `enableETagCache` is `false`. A plain `CacheStore` invalidates only the keys written in this process |
-| `rateLimiter`    | `IRateLimiter`                 | Every request draws on it, so two clients can share one budget                                                                                                                           |
-| `circuitBreaker` | `ICircuitBreaker`              | Supplying one turns the breaker on                                                                                                                                                       |
-| `deduplicator`   | `IDeduplicator`                | Supplying one turns deduplication on                                                                                                                                                     |
-| `clock`          | `Clock` (`now()`, `sleep(ms)`) | Cache age, retry back-off, rate-limit waits and the circuit reset timeout read it. The cleanup timers and the request timeout stay on real time                                          |
+| Option           | Type                           | Effect                                                                                                                                                                                                                                                                           |
+| ---------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cache`          | `CacheStore` (or an `ICache`)  | Bodies and ETags live in your store (Redis, a file) instead of memory. Ignored when `enableETagCache` is `false`. A plain `CacheStore` invalidates only the keys written in this process; one with `publishInvalidation` and `onInvalidate` invalidates across processes (below) |
+| `rateLimiter`    | `IRateLimiter`                 | Every request draws on it, so two clients can share one budget                                                                                                                                                                                                                   |
+| `circuitBreaker` | `ICircuitBreaker`              | Supplying one turns the breaker on                                                                                                                                                                                                                                               |
+| `deduplicator`   | `IDeduplicator`                | Supplying one turns deduplication on                                                                                                                                                                                                                                             |
+| `clock`          | `Clock` (`now()`, `sleep(ms)`) | Cache age, retry back-off, rate-limit waits and the circuit reset timeout read it. The cleanup timers and the request timeout stay on real time                                                                                                                                  |
 
 `shutdown()` leaves a supplied cache, circuit breaker or deduplicator to its owner. Clients that share a cache or deduplicator but differ in host, tenant, language or compatibility date keep their entries and in-flight requests apart: the keys carry every setting that is not the default.
 
@@ -153,6 +153,64 @@ const market = new EsiClientBuilder()
   .addClient('market')
   .withConfig({ cache: sharedStore, circuitBreaker: breaker })
   .build();
+```
+
+#### Invalidation across processes
+
+A store that several processes share holds keys each of them wrote, and the port cannot list keys. So when one process writes (a `POST`, `PUT` or `DELETE`), it can delete only the cached reads under that path that it wrote itself, and the other processes keep serving theirs until they expire. A store closes that gap with two optional members, which it implements together:
+
+- `publishInvalidation(event)` tells every other holder about an invalidation. The client calls it after a write invalidates a path (`{ kind: 'path', path }`) and after `clearCache()` (`{ kind: 'clear' }`).
+- `onInvalidate(listener)` calls `listener` for each event another holder published and returns the call that stops it. The client then drops the entries it wrote under that path and keeps its in-flight reads of the path from caching what they fetched. `shutdown()` stops the listener.
+
+Deleting a single key needs no event, because the store's own `delete` already removes it for every holder. A store may deliver a holder's own event back to it; that is harmless. Over Redis, `publishInvalidation` is a `PUBLISH` on a channel and `onInvalidate` a `SUBSCRIBE` on a second connection. The in-memory reference below, with one handle per process, is the one the unit tests use:
+
+```typescript
+import type {
+  CachedResponse,
+  CacheInvalidation,
+  CacheStore,
+} from '@lgriffin/esi.ts';
+
+export class SharedMemoryCacheStore {
+  readonly entries = new Map<string, CachedResponse>();
+  private readonly listeners = new Map<
+    object,
+    Set<(event: CacheInvalidation) => void>
+  >();
+
+  connect(): CacheStore {
+    const handle = {};
+    const mine = new Set<(event: CacheInvalidation) => void>();
+    this.listeners.set(handle, mine);
+    return {
+      get: (key) => this.entries.get(key) ?? null,
+      set: (key, etag, data, headers, ttlMs) => {
+        this.entries.set(key, {
+          etag,
+          data,
+          headers,
+          timestamp: Date.now(),
+          ...(ttlMs === undefined ? {} : { ttl: ttlMs }),
+        });
+      },
+      delete: (key) => this.entries.delete(key),
+      clear: () => this.entries.clear(),
+      shutdown: () => {
+        this.listeners.delete(handle);
+      },
+      publishInvalidation: (event) => {
+        for (const [other, set] of this.listeners) {
+          if (other === handle) continue;
+          for (const listener of set) listener(event);
+        }
+      },
+      onInvalidate: (listener) => {
+        mine.add(listener);
+        return () => mine.delete(listener);
+      },
+    };
+  }
+}
 ```
 
 ### Environment variables

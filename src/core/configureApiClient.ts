@@ -5,7 +5,7 @@ import { RateLimiter } from './rateLimiter/RateLimiter';
 import { RequestDeduplicator } from './RequestDeduplicator';
 import { createDefaultLogger } from './logger/DefaultLogger';
 import type { EsiClientConfig } from './EsiClientConfig';
-import { cacheFromStore } from './cache/CacheStoreCache';
+import { CacheStoreCache, cacheFromStore } from './cache/CacheStoreCache';
 
 export interface ConfigureApiClientResult {
   deduplicator: RequestDeduplicator | null;
@@ -154,6 +154,11 @@ function installMiddleware(
       ? cacheFromStore(config.cache, clock)
       : new ETagCacheManager(config?.etagCacheConfig, client, clock);
     client.setCache(cache);
+    // Another process's write detaches this client's in-flight reads too.
+    const inflight = client.getDeduplicator();
+    if (cache instanceof CacheStoreCache && inflight) {
+      cache.attachDeduplicator(inflight);
+    }
   }
 
   // Circuit breaker (off by default, opt-in)

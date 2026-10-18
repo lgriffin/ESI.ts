@@ -603,6 +603,14 @@ export interface CachedResponse {
     readonly ttl?: number;
 }
 
+// @public
+export type CacheInvalidation = {
+    readonly kind: 'path';
+    readonly path: string;
+} | {
+    readonly kind: 'clear';
+};
+
 // @public (undocumented)
 export interface CacheStats {
     // (undocumented)
@@ -628,6 +636,8 @@ export interface CacheStore {
     // (undocumented)
     delete(key: string): boolean;
     get(key: string): CachedResponse | null;
+    onInvalidate?(listener: (event: CacheInvalidation) => void): () => void;
+    publishInvalidation?(event: CacheInvalidation): void;
     // (undocumented)
     set(key: string, etag: string, data: unknown, headers: Record<string, string>,
     ttlMs?: number): void;
