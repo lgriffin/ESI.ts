@@ -238,6 +238,7 @@ export const handleSinglePageRequest = async (
   requestTimeout?: number,
   emptyWhenNoContent: boolean = false,
 ): Promise<EsiHandlerResponse> => {
+  if (requiresAuth && client.getIdentity()) await client.prepareToken(true);
   // No If-None-Match: this path keeps no cache of its own, so a 304 would
   // leave it with no body to return (#292).
   const doExecute = () =>
@@ -284,6 +285,9 @@ export const handleRequest = async (
   textResponse?: TextResponse,
   emptyWhenNoContent: boolean = false,
 ): Promise<EsiHandlerResponse> => {
+  // Before the cache lookup: an identity view's cache key names its token.
+  // Guarded, so a client with no identity starts its lookup on this tick.
+  if (requiresAuth && client.getIdentity()) await client.prepareToken(true);
   const rawUrl = `${client.getLink()}/${endpoint}`;
   const startTime = nowOn(client.getClock());
   const specCacheHit = (): Promise<EsiHandlerResponse> | null => {

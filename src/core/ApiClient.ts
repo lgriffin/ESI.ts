@@ -11,12 +11,15 @@ import { IRetryStrategy } from './IRetryStrategy';
 import { RetryConfig } from './util/retry';
 import type { ILogger } from './logger/ILogger';
 import type { Clock } from './ports/Clock';
+import type { Identity } from './ports/Identity';
 import { validateHeaderOption } from './util/validation';
 import type { IncompletePagesMode } from './pagination/pageLimit';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
 
-export type TokenProvider = () => Promise<string>;
+// One type for the setter and the identity helpers: the port's.
+import type { TokenProvider } from './ports/TokenProvider';
+export type { TokenProvider };
 
 export type FetchLike = (
   input: RequestInfo | URL,
@@ -45,6 +48,7 @@ export class ApiClient {
   private fetchFn: FetchLike | null = null;
   private logger: ILogger | null = null;
   private clock: Clock | null = null;
+  private identity: Identity | null = null;
 
   constructor(
     private clientId: string,
@@ -241,6 +245,63 @@ export class ApiClient {
 
   setClock(clock: Clock | null): void {
     this.clock = clock;
+  }
+
+  /**
+   * A client that sends as `identity` and shares everything else with this
+   * one: the cache, rate limiter, circuit breaker, deduplicator, retry
+   * policy, interceptors, transport, logger, clock and settings. The
+   * middleware objects carry a client back-reference for logging only, so
+   * sharing them is sound; the cache and deduplicator scope their keys by
+   * the token each client sends. Settings changed on this client afterwards
+   * do not reach the view; interceptors added afterwards do, since the two
+   * share one middleware chain.
+   *
+   * Before each authenticated request the view asks the identity for its
+   * token, and after a 401 it asks `refreshAccessToken` when the identity can
+   * refresh. Backs `esi.as(identity)` and the custom clients' `as(identity)`.
+   */
+  forIdentity(identity: Identity): ApiClient {
+    const view = new ApiClient(this.clientId, this.link);
+    view.datasource = this.datasource;
+    view.middleware = this.middleware;
+    view.cache = this.cache;
+    view.rateLimiter = this.rateLimiter;
+    view.circuitBreaker = this.circuitBreaker;
+    view.timeout = this.timeout;
+    view.deduplicator = this.deduplicator;
+    view.retryConfig = this.retryConfig;
+    view.retryStrategy = this.retryStrategy;
+    view.validateResponse = this.validateResponse;
+    view.validateRequest = this.validateRequest;
+    view.incompletePages = this.incompletePages;
+    view.language = this.language;
+    view.tenant = this.tenant;
+    view.userAgent = this.userAgent;
+    view.compatibilityDate = this.compatibilityDate;
+    view.fetchFn = this.fetchFn;
+    view.logger = this.logger;
+    view.clock = this.clock;
+    view.identity = identity;
+    if (identity.refreshAccessToken) {
+      view.tokenProvider = () => identity.refreshAccessToken!();
+    }
+    return view;
+  }
+
+  /** The identity this client sends as, when it was made by `forIdentity`. */
+  getIdentity(): Identity | null {
+    return this.identity;
+  }
+
+  /**
+   * Asks the identity for the token to send now, before an authenticated
+   * request, so a holder that refreshes ahead of expiry is honoured. Does
+   * nothing for a public request or a client with no identity.
+   */
+  async prepareToken(requiresAuth: boolean): Promise<void> {
+    if (!requiresAuth || this.identity === null) return;
+    this.accessToken = await this.identity.accessToken();
   }
 
   hasTokenProvider(): boolean {

@@ -1,8 +1,24 @@
 # Many characters, one runtime
 
-**Implements:** `ARCH-08` · `SEC-02` · `DES-01`. See [CHARTER.md](CHARTER.md) Part 2 and Part 6. **Specification:** `tests/bdd/features/core/0056-shared-runtime.feature`.
+**Implements:** `ARCH-08` · `SEC-02` · `DES-01`. See [CHARTER.md](CHARTER.md) Part 2 and Part 6. **Specification:** `tests/bdd/features/core/0056-shared-runtime.feature`, `tests/bdd/features/core/0063-custom-client-identity-views.feature`.
 
-An application that acts for more than one character (a corporation tool, a market bot, an alliance auth service) has one relationship with ESI, not one per character. ESI meters every request by the calling IP, and the error budget that a 420 exhausts is the application's, not a character's. `@lgriffin/esi.ts/client` is built around that fact: one runtime, and a view over it for each identity.
+An application that acts for more than one character (a corporation tool, a market bot, an alliance auth service) has one relationship with ESI, not one per character. ESI meters every request by the calling IP, and the error budget that a 420 exhausts is the application's, not a character's. So ESI.ts builds one pipeline and hands out a view of it for each identity.
+
+With the custom clients, the product (see [CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)), that is `as(identity)` on an `EsiClient` or a `CustomEsiClient`:
+
+```ts
+import { EsiClient } from '@lgriffin/esi.ts';
+
+const client = new EsiClient({ clientId: 'fleet-tool/2.1 (ops@example.com)' });
+
+const status = await client.status.getStatus();
+const pilot = client.as(tokens.identity(characterId));
+const balance = await pilot.wallet.getCharacterWallet(characterId);
+```
+
+`client.as(identity)` returns the same domain clients, sending as that identity. Every view shares the client's cache, rate limiter, circuit breaker, deduplicator, retry policy, interceptors and settings, and the cache keeps each character's authenticated entries apart. The view asks `identity.accessToken()` before each authenticated request and `identity.refreshAccessToken()` after a 401, the same identity returns the same view, and a view cannot change its identity (`setAccessToken` and `setTokenProvider` throw on it). `Identity`, `identityFromToken` and `identityFromProvider` are exported from the root entry as well as `./client`. Specification: `tests/bdd/features/core/0063-custom-client-identity-views.feature`.
+
+The spec-shaped surface, `createEsi()` from `@lgriffin/esi.ts/client`, has had the same model from the start, and the custom clients' views run on the same code:
 
 ```ts
 import { createEsi } from '@lgriffin/esi.ts/client';
@@ -16,7 +32,7 @@ const wallet = await esi
   .wallet.get();
 ```
 
-The rest of this guide explains each part of that, how it relates to `EsiClient` and `EsiTokenManager.createClient`, and how to move over.
+The rest of this guide explains each part of the `createEsi` runtime, how it relates to `EsiClient` and `EsiTokenManager.createClient`, and how to move over.
 
 ## The runtime
 
