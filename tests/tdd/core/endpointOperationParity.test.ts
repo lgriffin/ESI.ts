@@ -39,6 +39,14 @@ function routeKey(method: string, template: string): string {
 
 function generatedMetas(): Map<string, OperationMeta> {
   const metas = new Map<string, OperationMeta>();
+  for (const meta of metasById().values()) {
+    metas.set(routeKey(meta.method, meta.path), meta);
+  }
+  return metas;
+}
+
+function metasById(): Map<string, OperationMeta> {
+  const metas = new Map<string, OperationMeta>();
   for (const value of Object.values(operations) as unknown[]) {
     if (
       value !== null &&
@@ -47,10 +55,24 @@ function generatedMetas(): Map<string, OperationMeta> {
       'path' in value
     ) {
       const meta = value as OperationMeta;
-      metas.set(routeKey(meta.method, meta.path), meta);
+      metas.set(meta.operationId, meta);
     }
   }
   return metas;
+}
+
+/**
+ * The operation a definition calls: the one it names (built with
+ * `fromOperation`), else the one on its route.
+ */
+function operationFor(
+  def: EndpointDefinition,
+  byId: Map<string, OperationMeta>,
+  byRoute: Map<string, OperationMeta>,
+): OperationMeta | undefined {
+  return def.operation !== undefined
+    ? byId.get(def.operation)
+    : byRoute.get(routeKey(def.method, def.path));
 }
 
 function customDefinitions(): Array<[string, EndpointDefinition]> {
@@ -84,7 +106,7 @@ function operationIdOf(
   return (method) => {
     const found = customDefinitions().find(([n]) => n === `${file}.${method}`);
     if (!found) return undefined;
-    return metas.get(routeKey(found[1].method, found[1].path))?.operationId;
+    return operationFor(found[1], metasById(), metas)?.operationId;
   };
 }
 
@@ -111,9 +133,10 @@ function deprecationsDisagree(
 
 describe('custom endpoint definitions agree with the generated operations (ARCH-08)', () => {
   const metas = generatedMetas();
+  const byId = metasById();
   const definitions = customDefinitions();
   const paired = definitions.flatMap(([name, def]) => {
-    const meta = metas.get(routeKey(def.method, def.path));
+    const meta = operationFor(def, byId, metas);
     return meta ? [{ name, def, meta }] : [];
   });
 
@@ -121,7 +144,7 @@ describe('custom endpoint definitions agree with the generated operations (ARCH-
     // An unpaired definition would escape every check below, so a route the
     // generator does not know (a typo, or one ESI dropped) fails here.
     const unpaired = definitions
-      .filter(([, def]) => !metas.has(routeKey(def.method, def.path)))
+      .filter(([, def]) => operationFor(def, byId, metas) === undefined)
       .map(([name, def]) => `${name} (${def.method} ${def.path})`);
     expect(unpaired).toEqual([]);
     const names = paired.map((p) => p.name);
@@ -133,6 +156,24 @@ describe('custom endpoint definitions agree with the generated operations (ARCH-
         'contractEndpoints.getPublicContractItems',
       ]),
     );
+  });
+
+  it('call the route of the operation they name (fromOperation)', () => {
+    const named = paired.filter(({ def }) => def.operation !== undefined);
+    expect(named.map((p) => p.name)).toEqual(
+      expect.arrayContaining([
+        'statusEndpoints.getStatus',
+        'marketEndpoints.getMarketOrders',
+      ]),
+    );
+    const disagree = named
+      .filter(
+        ({ def, meta }) =>
+          routeKey(def.method, def.path) !== routeKey(meta.method, meta.path) ||
+          def.requiresAuth !== meta.scopes.length > 0,
+      )
+      .map(({ name, meta }) => `${name} / ${meta.operationId}`);
+    expect(disagree).toEqual([]);
   });
 
   it('read no content as an empty list on the same routes', () => {

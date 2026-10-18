@@ -1,11 +1,9 @@
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import { ServerStatusSchema } from '../../schemas/status';
 
 export const statusEndpoints = {
-  getStatus: {
-    path: 'status',
-    method: 'GET',
-    requiresAuth: false,
+  getStatus: fromOperation('GetStatus', {
     responseSchema: ServerStatusSchema,
-  },
+  }),
 } as const satisfies EndpointMap;

@@ -1,8 +1,9 @@
 /**
- * Generates src/generated/operations.generated.ts and
- * src/adapters/responseSchemas.generated.ts from the vendored ESI OpenAPI
- * document. The emitters live in scripts/spec/spec-generate-core.ts and
- * scripts/spec/spec-zod.ts.
+ * Generates src/generated/operations.generated.ts,
+ * src/adapters/responseSchemas.generated.ts and
+ * src/core/endpoints/esi-operations.generated.ts from the vendored ESI
+ * OpenAPI document. The emitters live in scripts/spec/spec-generate-core.ts,
+ * scripts/spec/spec-zod.ts and scripts/spec/spec-routes.ts.
  *
  * Usage: npm run spec:generate          # write the file
  *        npm run spec:generate:check    # exit 1 when the file is stale
@@ -22,6 +23,7 @@ import {
   type OpenApiDocument,
   type OperationOverlay,
 } from './spec-generate-core';
+import { generateRouteTable, ROUTES_OUT_PATH } from './spec-routes';
 import {
   generateResponseSchemas,
   ZOD_OUT_PATH,
@@ -107,6 +109,14 @@ async function render(): Promise<Rendered[]> {
       outPath: ZOD_OUT_PATH,
       source: await format(zod.source, path.join(ROOT, ZOD_OUT_PATH)),
       summary: `${zod.operations} response schemas, ${zod.components} components`,
+    },
+    {
+      outPath: ROUTES_OUT_PATH,
+      source: await format(
+        generateRouteTable(operations.operations, SPEC_PATH),
+        path.join(ROOT, ROUTES_OUT_PATH),
+      ),
+      summary: `${operations.operations.length} routes`,
     },
   ];
 }
