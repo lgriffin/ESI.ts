@@ -49,7 +49,7 @@ export class ApiClient {
   private logger: ILogger | null = null;
   private clock: Clock | null = null;
   private identity: Identity | null = null;
-  /** Bumped by every token write, so a lookup that returns late cannot undo a newer one. */
+  /** Bumped by a refresh or `setAccessToken`, so a lookup that returns late cannot undo either. */
   private tokenWrites = 0;
 
   constructor(
@@ -304,9 +304,9 @@ export class ApiClient {
    */
   async prepareToken(requiresAuth: boolean): Promise<void> {
     if (!requiresAuth || this.identity === null) return;
-    const started = ++this.tokenWrites;
+    const started = this.tokenWrites;
     const token = await this.identity.accessToken();
-    // A refresh, or a lookup started later, has written since: keep its token.
+    // A refresh has written since this lookup started: keep its token.
     if (this.tokenWrites === started) this.accessToken = token;
   }
 
