@@ -3,6 +3,7 @@ import * as path from 'path';
 import fetchMock from 'jest-fetch-mock';
 
 import { EsiClientBuilder } from '../../../src/EsiClientBuilder';
+import type { RequestInterceptor } from '../../../src/core/middleware/Middleware';
 import {
   AUTHENTICATED_METHODS_PATH,
   classifyMethods,
@@ -63,15 +64,13 @@ describe('public-only custom client (#675)', () => {
 
   it('sends no Authorization header even when a request interceptor adds one', async () => {
     fetchMock.mockResponseOnce('[]');
-    const pub = new EsiClientBuilder({
-      requestInterceptors: [
-        (ctx) => ({
-          ...ctx,
-          headers: { ...ctx.headers, authorization: 'Bearer from-interceptor' },
-        }),
-      ],
-    })
+    const interceptor: RequestInterceptor = (ctx) => ({
+      ...ctx,
+      headers: { ...ctx.headers, authorization: 'Bearer from-interceptor' },
+    });
+    const pub = new EsiClientBuilder()
       .addClients(['market'])
+      .withConfig({ requestInterceptors: [interceptor] })
       .buildPublic();
 
     await pub.market?.getMarketPrices();
