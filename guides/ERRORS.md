@@ -15,7 +15,7 @@ Error
 │   ├── EsiNetworkError           + cause
 │   ├── EsiValidationError        + validationError · direction
 │   ├── CircuitOpenError          + endpoint · failures · retryAfterMs
-│   └── EsiFaultError             + code · cause                            (raised by the library, not ESI)
+│   └── EsiFaultError             + code · cause                            (raised by the library, not ESI; ESIJS_ERROR on the base)
 │       ├── EsiConfigurationError   VALIDATION_ERROR · NO_AUTH_TOKEN · CONFIGURATION_ERROR
 │       ├── EsiParseError           JSON_PARSE_ERROR
 │       ├── EsiPaginationError      PAGINATION_INCOMPLETE
@@ -24,12 +24,15 @@ Error
 │   ├── SsoError                  statusCode · errorCode · errorDescription
 │   ├── TokenRevokedError         characterId?
 │   ├── TokenDecodeError
+│   ├── TokenVerificationError    reason
 │   └── CharacterNotFoundError    characterId
-├── SdeError                                                                (offline SDE module)
-│   ├── SdeDatabaseError          cause   (deprecated)
-│   ├── SdeValidationError        validationError · entityType · entityId?
-│   └── SdeVersionMismatchError   expected · actual
+└── SdeError                                                                (offline SDE module)
+    ├── SdeDatabaseError          cause   (deprecated, never thrown)
+    ├── SdeValidationError        validationError · entityType · entityId?
+    └── SdeVersionMismatchError   expected · actual
 ```
+
+`retryable` is `true` for status `0`, `420`, `429`, `502`, `503` and `504` on `EsiError` itself; `EsiValidationError`, `CircuitOpenError` and `EsiFaultError` (with its subclasses) override it to `false`, so among the status-`0` classes only `TimeoutError` and `EsiNetworkError` are retryable. `SsoError` has an `isRetryable()` method instead: true for `429`, `5xx` and a timeout. See [Retryability](#retryability).
 
 Every failure the request pipeline raises is an `EsiError`, so `isEsiError(err)` is true for all of them and safe mode keeps each one's class. The auth and SDE families are raised outside the pipeline and keep their own bases.
 
@@ -148,19 +151,20 @@ async function forgeOrders(): Promise<{
 
 Raised by `EveSsoClient` and `EsiTokenManager`, not by the request pipeline directly. Source: `src/auth/errors.ts`.
 
-| Class                    | Fields                                         | Raised when                                                                                                                                              |
-| ------------------------ | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AuthError`              | —                                              | Base class; not thrown on its own.                                                                                                                       |
-| `SsoError`               | `statusCode`, `errorCode`, `errorDescription?` | EVE SSO answered a token or revoke call with non-2xx. `errorCode` is the OAuth2 `error` field or `unknown`. `isRetryable()` is true for `429` and `5xx`. |
-| `TokenRevokedError`      | `characterId?`                                 | SSO returned `invalid_grant`, or the manager already recorded the revocation. Re-login is the only fix.                                                  |
-| `TokenDecodeError`       | —                                              | An access token could not be decoded into the JWT claims the manager needs.                                                                              |
-| `CharacterNotFoundError` | `characterId`                                  | No token is stored for the character.                                                                                                                    |
+| Class                    | Fields                                         | Raised when                                                                                                                                                                                                                                   |
+| ------------------------ | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AuthError`              | —                                              | Base class; not thrown on its own.                                                                                                                                                                                                            |
+| `SsoError`               | `statusCode`, `errorCode`, `errorDescription?` | EVE SSO answered a token or revoke call with non-2xx, or timed out (status `0`, `errorCode` `timeout`, when no status arrived). `errorCode` is the OAuth2 `error` field or `unknown`. `isRetryable()` is true for `429`, `5xx` and a timeout. |
+| `TokenRevokedError`      | `characterId?`                                 | SSO returned `invalid_grant`, or the manager already recorded the revocation. Re-login is the only fix.                                                                                                                                       |
+| `TokenDecodeError`       | —                                              | An access token could not be decoded into the JWT claims the manager needs.                                                                                                                                                                   |
+| `TokenVerificationError` | `reason`                                       | An access token failed JWKS signature verification or claim validation; `reason` (`TokenVerificationFailure`) names the check. Its claims must not be trusted.                                                                                |
+| `CharacterNotFoundError` | `characterId`                                  | No token is stored for the character.                                                                                                                                                                                                         |
 
 `SsoError.isRetryable()` is a method; `EsiError.retryable` is a getter. The two families were written at different times and have not been aligned.
 
 ### SDE family
 
-Raised by the offline Static Data Export module, which shares no code with the HTTP pipeline. Exported from `@lgriffin/esi.ts/sde` only. Source: `src/sde/errors.ts`.
+Raised by the offline Static Data Export module, which shares no code with the HTTP pipeline. Exported from `@lgriffin/esi.ts/sde` and `@lgriffin/esi.ts/sde/memory` only. Source: `src/sde/errors.ts`.
 
 | Class                     | Fields                                       | Raised when                                               |
 | ------------------------- | -------------------------------------------- | --------------------------------------------------------- |
@@ -179,32 +183,33 @@ Raised by the offline Static Data Export module, which shares no code with the H
 
 Every guard takes `unknown` and narrows. They are `instanceof` checks, so a guard only matches errors created by the same copy of the package; a duplicated dependency in `node_modules` breaks them. The root entry and `./errors` export the same classes and guards, so an error thrown by the client matches a guard or class imported from either. The CommonJS and ES module builds are separate copies, though: a guard loaded with `require` does not match an error thrown by a client loaded with `import`, or the other way round.
 
-| Guard                  | Narrows to                | True when                                  | `.` (root) | `./errors` | `./sde` |
-| ---------------------- | ------------------------- | ------------------------------------------ | :--------: | :--------: | :-----: |
-| `isEsiError`           | `EsiError`                | any `EsiError` or subclass                 |     ●      |     ●      |    ·    |
-| `isNotFound`           | `EsiError`                | status `404`                               |     ●      |     ●      |    ·    |
-| `isUnauthorized`       | `EsiError`                | status `401`                               |     ●      |     ●      |    ·    |
-| `isForbidden`          | `EsiError`                | status `403`                               |     ●      |     ●      |    ·    |
-| `isRateLimited`        | `EsiError`                | status `420` or `429`                      |     ●      |     ●      |    ·    |
-| `isServerError`        | `EsiError`                | status `>= 500`                            |     ●      |     ●      |    ·    |
-| `isTimeout`            | `TimeoutError`            | `instanceof TimeoutError`                  |     ●      |     ●      |    ·    |
-| `isRetryable`          | `EsiError`                | `.retryable` is `true`                     |     ●      |     ●      |    ·    |
-| `isValidationError`    | `EsiValidationError`      | `instanceof EsiValidationError`            |     ●      |     ●      |    ·    |
-| `isCircuitOpen`        | `CircuitOpenError`        | `instanceof CircuitOpenError`              |     ●      |     ●      |    ·    |
-| `isNetworkError`       | `EsiNetworkError`         | `instanceof EsiNetworkError`               |     ●      |     ●      |    ·    |
-| `isFaultError`         | `EsiFaultError`           | any library fault                          |     ●      |     ●      |    ·    |
-| `isConfigurationError` | `EsiConfigurationError`   | `instanceof EsiConfigurationError`         |     ●      |     ●      |    ·    |
-| `isParseError`         | `EsiParseError`           | `instanceof EsiParseError`                 |     ●      |     ●      |    ·    |
-| `isPaginationError`    | `EsiPaginationError`      | `instanceof EsiPaginationError`            |     ●      |     ●      |    ·    |
-| `isTokenRefreshError`  | `EsiTokenRefreshError`    | `instanceof EsiTokenRefreshError`          |     ●      |     ●      |    ·    |
-| `isAuthError`          | `AuthError`               | any auth-family error                      |     ●      |     ●      |    ·    |
-| `isSsoError`           | `SsoError`                | `instanceof SsoError`                      |     ●      |     ●      |    ·    |
-| `isTokenRevoked`       | `TokenRevokedError`       | `instanceof TokenRevokedError`             |     ●      |     ●      |    ·    |
-| `isCharacterNotFound`  | `CharacterNotFoundError`  | `instanceof CharacterNotFoundError`        |     ●      |     ●      |    ·    |
-| `isSdeError`           | `SdeError`                | any SDE-family error                       |     ·      |     ·      |    ●    |
-| `isSdeDatabaseError`   | `SdeDatabaseError`        | `instanceof SdeDatabaseError` (deprecated) |     ·      |     ·      |    ●    |
-| `isSdeValidationError` | `SdeValidationError`      | `instanceof SdeValidationError`            |     ·      |     ·      |    ●    |
-| `isSdeVersionMismatch` | `SdeVersionMismatchError` | `instanceof SdeVersionMismatchError`       |     ·      |     ·      |    ●    |
+| Guard                      | Narrows to                | True when                                  | `.` (root) | `./errors` | `./sde` |
+| -------------------------- | ------------------------- | ------------------------------------------ | :--------: | :--------: | :-----: |
+| `isEsiError`               | `EsiError`                | any `EsiError` or subclass                 |     ●      |     ●      |    ·    |
+| `isNotFound`               | `EsiError`                | status `404`                               |     ●      |     ●      |    ·    |
+| `isUnauthorized`           | `EsiError`                | status `401`                               |     ●      |     ●      |    ·    |
+| `isForbidden`              | `EsiError`                | status `403`                               |     ●      |     ●      |    ·    |
+| `isRateLimited`            | `EsiError`                | status `420` or `429`                      |     ●      |     ●      |    ·    |
+| `isServerError`            | `EsiError`                | status `>= 500`                            |     ●      |     ●      |    ·    |
+| `isTimeout`                | `TimeoutError`            | `instanceof TimeoutError`                  |     ●      |     ●      |    ·    |
+| `isRetryable`              | `EsiError`                | `.retryable` is `true`                     |     ●      |     ●      |    ·    |
+| `isValidationError`        | `EsiValidationError`      | `instanceof EsiValidationError`            |     ●      |     ●      |    ·    |
+| `isCircuitOpen`            | `CircuitOpenError`        | `instanceof CircuitOpenError`              |     ●      |     ●      |    ·    |
+| `isNetworkError`           | `EsiNetworkError`         | `instanceof EsiNetworkError`               |     ●      |     ●      |    ·    |
+| `isFaultError`             | `EsiFaultError`           | any library fault                          |     ●      |     ●      |    ·    |
+| `isConfigurationError`     | `EsiConfigurationError`   | `instanceof EsiConfigurationError`         |     ●      |     ●      |    ·    |
+| `isParseError`             | `EsiParseError`           | `instanceof EsiParseError`                 |     ●      |     ●      |    ·    |
+| `isPaginationError`        | `EsiPaginationError`      | `instanceof EsiPaginationError`            |     ●      |     ●      |    ·    |
+| `isTokenRefreshError`      | `EsiTokenRefreshError`    | `instanceof EsiTokenRefreshError`          |     ●      |     ●      |    ·    |
+| `isAuthError`              | `AuthError`               | any auth-family error                      |     ●      |     ●      |    ·    |
+| `isSsoError`               | `SsoError`                | `instanceof SsoError`                      |     ●      |     ●      |    ·    |
+| `isTokenRevoked`           | `TokenRevokedError`       | `instanceof TokenRevokedError`             |     ●      |     ●      |    ·    |
+| `isTokenVerificationError` | `TokenVerificationError`  | `instanceof TokenVerificationError`        |     ●      |     ●      |    ·    |
+| `isCharacterNotFound`      | `CharacterNotFoundError`  | `instanceof CharacterNotFoundError`        |     ●      |     ●      |    ·    |
+| `isSdeError`               | `SdeError`                | any SDE-family error                       |     ·      |     ·      |    ●    |
+| `isSdeDatabaseError`       | `SdeDatabaseError`        | `instanceof SdeDatabaseError` (deprecated) |     ·      |     ·      |    ●    |
+| `isSdeValidationError`     | `SdeValidationError`      | `instanceof SdeValidationError`            |     ·      |     ·      |    ●    |
+| `isSdeVersionMismatch`     | `SdeVersionMismatchError` | `instanceof SdeVersionMismatchError`       |     ·      |     ·      |    ●    |
 
 All the classes follow the same pattern as their guards. `sanitizeUrl` and the `ValidationDirection` and `EsiFaultCode` types are exported from both `.` and `./errors`. A test (`tests/tdd/core/errorsEntryParity.test.ts`) fails if the root exports an error class or guard that `./errors` does not.
 

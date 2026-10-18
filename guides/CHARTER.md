@@ -208,23 +208,23 @@ Every domain method takes this route. Order is the information: a stage cannot s
 
 ```
 Error
-├── EsiError (statusCode, sanitised url, requestId)      .retryable ⇐ {0, 420, 429, 502, 503, 504}
-│   ├── TimeoutError (+ timeoutMs)
-│   ├── EsiNetworkError (+ cause)
-│   ├── EsiValidationError (+ ZodError, direction: request | response)
-│   ├── CircuitOpenError (endpoint, failures, retryAfterMs)   statusCode 0, never retryable
-│   └── EsiFaultError (+ code, cause)                     raised by the library, not ESI
+├── EsiError (statusCode, sanitised url, requestId)      .retryable ⇐ {420, 429, 502, 503, 504}, or status 0 on this class
+│   ├── TimeoutError (+ timeoutMs)                        status 0, retryable
+│   ├── EsiNetworkError (+ cause)                         status 0, retryable
+│   ├── EsiValidationError (+ ZodError, direction: request | response)   status 0, never retryable
+│   ├── CircuitOpenError (endpoint, failures, retryAfterMs)   status 0, never retryable
+│   └── EsiFaultError (+ code, cause)                     raised by the library, not ESI; status 0, never retryable
 │       ├── EsiConfigurationError                         VALIDATION_ERROR, NO_AUTH_TOKEN, CONFIGURATION_ERROR
 │       ├── EsiParseError                                 JSON_PARSE_ERROR
 │       ├── EsiPaginationError                            PAGINATION_INCOMPLETE
 │       └── EsiTokenRefreshError                          TOKEN_REFRESH_FAILED
 ├── AuthError
-│   ├── SsoError (+ statusCode)                           .retryable ⇐ 429 or ≥ 500
+│   ├── SsoError (+ statusCode, errorCode)                isRetryable() ⇐ 429, ≥ 500, or a timeout
 │   ├── TokenRevokedError
 │   ├── TokenDecodeError                                  no type guard yet
-│   ├── TokenVerificationError
+│   ├── TokenVerificationError (+ reason)
 │   └── CharacterNotFoundError
-└── SdeError → SdeValidationError | SdeVersionMismatchError
+└── SdeError → SdeValidationError | SdeVersionMismatchError | SdeDatabaseError (deprecated, never thrown)
 ```
 
 Every failure the request pipeline raises is an `EsiError`, `CircuitOpenError` included, so `isEsiError(err)` is true for all of them ([ERRORS.md](ERRORS.md#hierarchy)). The auth subtree is exported from the root and from `./errors`, with guards `isAuthError`, `isSsoError`, `isTokenRevoked`, `isTokenVerificationError` and `isCharacterNotFound`.
