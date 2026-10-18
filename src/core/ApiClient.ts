@@ -49,6 +49,8 @@ export class ApiClient {
   private logger: ILogger | null = null;
   private clock: Clock | null = null;
   private identity: Identity | null = null;
+  /** Bumped by every token write, so a lookup that returns late cannot undo a newer one. */
+  private tokenWrites = 0;
 
   constructor(
     private clientId: string,
@@ -220,6 +222,7 @@ export class ApiClient {
   }
 
   setAccessToken(token: string): void {
+    this.tokenWrites++;
     this.accessToken = token;
   }
 
@@ -255,7 +258,7 @@ export class ApiClient {
    * sharing them is sound; the cache and deduplicator scope their keys by
    * the token each client sends. Settings changed on this client afterwards
    * do not reach the view; interceptors added afterwards do, since the two
-   * share one middleware chain.
+   * share one middleware chain (so `EsiClient.as` views refuse to add one).
    *
    * Before each authenticated request the view asks the identity for its
    * token, and after a 401 it asks `refreshAccessToken` when the identity can
@@ -301,7 +304,10 @@ export class ApiClient {
    */
   async prepareToken(requiresAuth: boolean): Promise<void> {
     if (!requiresAuth || this.identity === null) return;
-    this.accessToken = await this.identity.accessToken();
+    const started = ++this.tokenWrites;
+    const token = await this.identity.accessToken();
+    // A refresh, or a lookup started later, has written since: keep its token.
+    if (this.tokenWrites === started) this.accessToken = token;
   }
 
   hasTokenProvider(): boolean {
@@ -336,6 +342,7 @@ export class ApiClient {
 
     this.refreshInFlight = this.tokenProvider().then(
       (token) => {
+        this.tokenWrites++;
         this.accessToken = token;
         this.refreshInFlight = undefined;
         return token;

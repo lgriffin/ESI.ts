@@ -4718,9 +4718,7 @@ export class EsiClient {
     constructor(config?: EsiClientConfig);
     // (undocumented)
     get accessLists(): AccessListsClient;
-    // (undocumented)
     addRequestInterceptor(fn: RequestInterceptor): () => void;
-    // (undocumented)
     addResponseInterceptor(fn: ResponseInterceptor): () => void;
     // (undocumented)
     get alliance(): AllianceClient;

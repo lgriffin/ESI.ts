@@ -187,6 +187,8 @@ const executeRequest = async (
     if (cursorResult) return finish(cursorResult);
 
     const pageFetch = async (paginatedEndpoint: string): Promise<unknown[]> => {
+      // Each page asks again, so a token the identity rotated mid-walk is sent.
+      if (requiresAuth && client.getIdentity()) await client.prepareToken(true);
       const result = await fetchOnePage(
         client,
         paginatedEndpoint,

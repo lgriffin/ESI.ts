@@ -267,11 +267,15 @@ export class EsiClient {
     return this.getClient('accessLists');
   }
 
+  /** Adds a request interceptor for this client and every view of it; a view made by `as()` refuses. */
   addRequestInterceptor(fn: RequestInterceptor): () => void {
+    if (this.parent) refuseInterceptorOnView('addRequestInterceptor');
     return this.apiClient.addRequestInterceptor(fn);
   }
 
+  /** Adds a response interceptor for this client and every view of it; a view made by `as()` refuses. */
   addResponseInterceptor(fn: ResponseInterceptor): () => void {
+    if (this.parent) refuseInterceptorOnView('addResponseInterceptor');
     return this.apiClient.addResponseInterceptor(fn);
   }
 
@@ -439,6 +443,13 @@ function refuseOnIdentityView(method: string): never {
   throw new EsiConfigurationError(
     'CONFIGURATION_ERROR',
     `${method} cannot change the identity of a view made by as(identity). Fix: call as() with another identity, or set the token on the client the view came from`,
+  );
+}
+
+function refuseInterceptorOnView(method: string): never {
+  throw new EsiConfigurationError(
+    'CONFIGURATION_ERROR',
+    `${method} on a view made by as(identity) would run for every identity, since views share the client's middleware. Fix: add the interceptor on the client the view came from`,
   );
 }
 

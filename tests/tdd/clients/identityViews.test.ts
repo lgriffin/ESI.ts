@@ -10,6 +10,9 @@ import { EsiClientBuilder } from '../../../src/EsiClientBuilder';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { identityFromProvider, identityFromToken } from '../../../src';
 import { EsiConfigurationError } from '../../../src/core/util/error';
+import fetchMock from 'jest-fetch-mock';
+
+fetchMock.enableMocks();
 
 const apiClientOf = (client: unknown): ApiClient =>
   (client as { apiClient: ApiClient }).apiClient;
@@ -62,6 +65,36 @@ describe('EsiClient.as', () => {
     expect(() => view.setTokenProvider(() => Promise.resolve('x'))).toThrow(
       /setTokenProvider cannot change the identity of a view/,
     );
+  });
+
+  it('refuses to add an interceptor, which would run for every identity', () => {
+    const view = client.as(identityFromToken('alice-token'));
+    expect(() => view.addRequestInterceptor((ctx) => ctx)).toThrow(
+      /addRequestInterceptor on a view made by as\(identity\)/,
+    );
+    expect(() => view.addResponseInterceptor((ctx) => ctx)).toThrow(
+      EsiConfigurationError,
+    );
+  });
+
+  it('asks the identity again for each later page of an offset walk', async () => {
+    fetchMock.resetMocks();
+    fetchMock.mockResponse(() =>
+      Promise.resolve({
+        body: '[]',
+        headers: { 'content-type': 'application/json', 'x-pages': '2' },
+      }),
+    );
+    let calls = 0;
+    const view = client.as({
+      accessToken: () => Promise.resolve(`rotated-${++calls}`),
+    });
+    await view.assets.getCharacterAssets(123);
+    const sent = fetchMock.mock.calls.map((call) =>
+      new Headers(call[1]?.headers).get('Authorization'),
+    );
+    expect(sent).toEqual(['Bearer rotated-1', 'Bearer rotated-2']);
+    fetchMock.resetMocks();
   });
 
   it('leaves the shared cache running when the view is shut down', () => {
@@ -127,5 +160,22 @@ describe('ApiClient.forIdentity', () => {
     expect(view.getAuthorizationHeader()).toBe('Bearer t1');
     await root.prepareToken(true);
     expect(root.getAuthorizationHeader()).toBeUndefined();
+  });
+
+  it('keeps a refreshed token when a lookup started before the refresh returns late', async () => {
+    const root = new ApiClient('id', 'https://esi.evetech.net/');
+    const lookups: ((token: string) => void)[] = [];
+    const view = root.forIdentity({
+      accessToken: () =>
+        new Promise<string>((resolve) => {
+          lookups.push(resolve);
+        }),
+      refreshAccessToken: () => Promise.resolve('refreshed'),
+    });
+    const lookup = view.prepareToken(true);
+    await view.refreshToken();
+    lookups[0]!('stale');
+    await lookup;
+    expect(view.getAuthorizationHeader()).toBe('Bearer refreshed');
   });
 });
