@@ -32,7 +32,7 @@ const wallet = await esi
   .wallet.get();
 ```
 
-The rest of this guide explains each part of the `createEsi` runtime, how it relates to `EsiClient` and `EsiTokenManager.createClient`, and how to move over.
+Most of what follows holds for both surfaces, because the views are built by the same code. The sections below walk through the `createEsi` runtime, since it is the one with options of its own, then how to move over from `EsiTokenManager.createClient`.
 
 ## The runtime
 
@@ -162,7 +162,21 @@ A test hands the runtime a mock transport instead of the network: `createMockTra
 
 ## Moving from `EsiTokenManager.createClient`
 
-`tokens.createClient(id)` builds a complete `EsiClient` per character, each with its own rate limiter, error budget and cache. It still works and behaves as before, but 11.0.0 marks it `@deprecated`, as it does `EsiApiFactory`'s nine named `create*Client` methods (use `EsiApiFactory.createClient(type)` or `EsiClientBuilder` for those). Removing them needs a future major release, and none is scheduled. The rest of the custom clients are supported and stay the product ([CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)); identity views for them are on that plan. To move an application to one runtime today:
+`tokens.createClient(id)` builds a complete `EsiClient` per character, each with its own rate limiter, error budget and cache. It still works and behaves as before, but 11.0.0 marks it `@deprecated`, as it does `EsiApiFactory`'s nine named `create*Client` methods (use `EsiApiFactory.createClient(type)` or `EsiClientBuilder` for those). Removing them needs a future major release, and none is scheduled. The rest of the custom clients are supported and stay the product ([CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)).
+
+The shortest move keeps the custom clients and their method names, and builds one client with a view per character:
+
+| Before                                                        | After                                                          |
+| ------------------------------------------------------------- | -------------------------------------------------------------- |
+| `const client = await tokens.createClient(id, { userAgent })` | `const client = new EsiClient({ userAgent })`, once            |
+| `client.wallet.getCharacterWallet(id)`                        | `client.as(tokens.identity(id)).wallet.getCharacterWallet(id)` |
+| `client.status.getStatus()`                                   | `client.status.getStatus()`                                    |
+| `client.market.streamRegionOrders(regionId)`                  | `client.market.streamRegionOrders(regionId)`                   |
+| `client.shutdown()` per character                             | `client.shutdown()`, once                                      |
+
+A view is an `EsiClient`, so `withMetadata()`, `withSafeMode()` and `diagnostics` work on it. The shared cache and circuit breaker belong to the client the view came from, so call `shutdown()` on that client; a view's `shutdown()` leaves them running.
+
+To move to the spec-shaped surface instead:
 
 | Before                                                        | After                                                             |
 | ------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -172,9 +186,6 @@ A test hands the runtime a mock transport instead of the network: `createMockTra
 | `client.market.streamRegionOrders(regionId)`                  | `for await (const o of esi.public.market(regionId).orders.get())` |
 | `client.shutdown()` per character                             | `esi.shutdown()`, once                                            |
 
-Two differences to know before switching:
-
-- **The operations are the generated ones.** They follow the ESI OpenAPI document exactly: resource-shaped names (`character(id).wallet.get()` rather than `wallet.getCharacterWallet(id)`), spec-typed responses, and every paginated operation returned as an `AsyncIterable` that follows the pages. They are not validated by the hand-written Zod schemas; `PipelineTransport` returns the body typed from the spec. Runtime validation for the generated operations is Phase 3 of [ROADMAP.md](ROADMAP.md).
-- **A view is not an `EsiClient`.** It has no `withMetadata()`, `withSafeMode()` or `getCacheStats()`, and `shutdown()` is on the runtime, not the view. Diagnostics for the runtime are on the roadmap with the rest of Phase 4.
+Its operations are the generated ones. They follow the ESI OpenAPI document exactly: resource-shaped names (`character(id).wallet.get()` rather than `wallet.getCharacterWallet(id)`), spec-typed responses, and every paginated operation returned as an `AsyncIterable` that follows the pages. They are validated against the generated schemas only when `createEsi` is given `validateResponse: true`.
 
 `examples/multi-character.ts` shows several characters' wallets through one runtime, and `examples/public-vs-authenticated.ts` shows the type split with the `@ts-expect-error` line.
