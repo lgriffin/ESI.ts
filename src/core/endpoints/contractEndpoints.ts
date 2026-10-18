@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   ContractSchema,
   PublicContractSchema,
@@ -10,71 +11,59 @@ import {
 } from '../../schemas/contracts';
 
 export const contractEndpoints = {
-  getCharacterContracts: {
-    path: 'characters/{characterId}/contracts',
-    method: 'GET',
-    requiresAuth: true,
+  getCharacterContracts: fromOperation('GetCharactersCharacterIdContracts', {
     pathParams: ['characterId'],
     responseSchema: z.array(ContractSchema),
-  },
-  getCharacterContractBids: {
-    path: 'characters/{characterId}/contracts/{contractId}/bids',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['characterId', 'contractId'],
-    responseSchema: z.array(ContractBidSchema),
-  },
-  getCharacterContractItems: {
-    path: 'characters/{characterId}/contracts/{contractId}/items',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['characterId', 'contractId'],
-    responseSchema: z.array(ContractItemSchema),
-  },
-  getCorporationContracts: {
-    path: 'corporations/{corporationId}/contracts',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(ContractSchema),
-  },
-  getCorporationContractBids: {
-    path: 'corporations/{corporationId}/contracts/{contractId}/bids',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId', 'contractId'],
-    responseSchema: z.array(ContractBidSchema),
-  },
-  getCorporationContractItems: {
-    path: 'corporations/{corporationId}/contracts/{contractId}/items',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId', 'contractId'],
-    responseSchema: z.array(ContractItemSchema),
-  },
-  getPublicContracts: {
-    path: 'contracts/public/{regionId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getCharacterContractBids: fromOperation(
+    'GetCharactersCharacterIdContractsContractIdBids',
+    {
+      pathParams: ['characterId', 'contractId'],
+      responseSchema: z.array(ContractBidSchema),
+    },
+  ),
+  getCharacterContractItems: fromOperation(
+    'GetCharactersCharacterIdContractsContractIdItems',
+    {
+      pathParams: ['characterId', 'contractId'],
+      responseSchema: z.array(ContractItemSchema),
+    },
+  ),
+  getCorporationContracts: fromOperation(
+    'GetCorporationsCorporationIdContracts',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(ContractSchema),
+    },
+  ),
+  getCorporationContractBids: fromOperation(
+    'GetCorporationsCorporationIdContractsContractIdBids',
+    {
+      pathParams: ['corporationId', 'contractId'],
+      responseSchema: z.array(ContractBidSchema),
+    },
+  ),
+  getCorporationContractItems: fromOperation(
+    'GetCorporationsCorporationIdContractsContractIdItems',
+    {
+      pathParams: ['corporationId', 'contractId'],
+      responseSchema: z.array(ContractItemSchema),
+    },
+  ),
+  getPublicContracts: fromOperation('GetContractsPublicRegionId', {
     pathParams: ['regionId'],
     responseSchema: z.array(PublicContractSchema),
-  },
-  getPublicContractBids: {
-    path: 'contracts/public/bids/{contractId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getPublicContractBids: fromOperation('GetContractsPublicBidsContractId', {
     pathParams: ['contractId'],
     responseSchema: z.array(PublicContractBidSchema),
     // ESI answers an expired or accepted contract with no content.
     emptyWhenNoContent: true,
-  },
-  getPublicContractItems: {
-    path: 'contracts/public/items/{contractId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getPublicContractItems: fromOperation('GetContractsPublicItemsContractId', {
     pathParams: ['contractId'],
     responseSchema: z.array(PublicContractItemSchema),
     // ESI answers an expired or accepted contract with no content.
     emptyWhenNoContent: true,
-  },
+  }),
 } as const satisfies EndpointMap;

@@ -1,4 +1,5 @@
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   CharacterSkinrSchema,
   CharacterSkinrComponentsSchema,
@@ -6,25 +7,19 @@ import {
 } from '../../schemas/cosmetics';
 
 export const cosmeticsEndpoints = {
-  getCharacterSkinr: {
-    path: 'characters/{characterId}/cosmetics/skinr',
-    method: 'GET',
-    requiresAuth: true,
+  getCharacterSkinr: fromOperation('GetCharactersCosmeticsSkinr', {
     pathParams: ['characterId'],
     responseSchema: CharacterSkinrSchema,
-  },
-  getCharacterSkinrComponents: {
-    path: 'characters/{characterId}/cosmetics/skinr/components',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['characterId'],
-    responseSchema: CharacterSkinrComponentsSchema,
-  },
-  getSkinr: {
-    path: 'cosmetics/skinr/{skinrId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getCharacterSkinrComponents: fromOperation(
+    'GetCharactersCosmeticsSkinrComponents',
+    {
+      pathParams: ['characterId'],
+      responseSchema: CharacterSkinrComponentsSchema,
+    },
+  ),
+  getSkinr: fromOperation('GetCosmeticsSkinr', {
     pathParams: ['skinrId'],
     responseSchema: SkinrSchema,
-  },
+  }),
 } as const satisfies EndpointMap;

@@ -1,27 +1,19 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import { WarSchema } from '../../schemas/wars';
 import { KillmailSummarySchema } from '../../schemas/killmails';
 
 export const warEndpoints = {
-  getWars: {
-    path: 'wars',
-    method: 'GET',
-    requiresAuth: false,
+  getWars: fromOperation('GetWars', {
     responseSchema: z.array(z.number()),
-  },
-  getWarById: {
-    path: 'wars/{warId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getWarById: fromOperation('GetWarsWarId', {
     pathParams: ['warId'],
     responseSchema: WarSchema,
-  },
-  getWarKillmails: {
-    path: 'wars/{warId}/killmails',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getWarKillmails: fromOperation('GetWarsWarIdKillmails', {
     pathParams: ['warId'],
     responseSchema: z.array(KillmailSummarySchema),
-  },
+  }),
 } as const satisfies EndpointMap;

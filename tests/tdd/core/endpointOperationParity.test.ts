@@ -12,9 +12,10 @@
  * - a text response, and the Accept header that asks for it;
  * - no content read as an empty list (emptyWhenNoContent).
  *
- * The custom maps stay hand-written (posture 1, guides/CLIENT-ARCHITECTURE.md)
- * and src/core may not import the generated layer (lint:layers), so this test
- * is what keeps the two in step. A spec refresh that deprecates an operation
+ * Every custom definition is built with `fromOperation` and names the
+ * operation it calls, so the two are paired by operationId; path, method and
+ * token requirement are derived, and this test holds the facts that stay
+ * hand-written (posture 1, guides/CLIENT-ARCHITECTURE.md) in step. A spec refresh that deprecates an operation
  * fails here until its custom endpoint carries the same guidance.
  */
 import * as fs from 'fs';
@@ -37,14 +38,6 @@ function routeKey(method: string, template: string): string {
   return `${method} ${route}`;
 }
 
-function generatedMetas(): Map<string, OperationMeta> {
-  const metas = new Map<string, OperationMeta>();
-  for (const meta of metasById().values()) {
-    metas.set(routeKey(meta.method, meta.path), meta);
-  }
-  return metas;
-}
-
 function metasById(): Map<string, OperationMeta> {
   const metas = new Map<string, OperationMeta>();
   for (const value of Object.values(operations) as unknown[]) {
@@ -62,17 +55,15 @@ function metasById(): Map<string, OperationMeta> {
 }
 
 /**
- * The operation a definition calls: the one it names (built with
- * `fromOperation`), else the one on its route.
+ * The operation a definition calls: the one it names. Every definition is
+ * built with `fromOperation` (#672), so none is paired by guessing from its
+ * path.
  */
 function operationFor(
   def: EndpointDefinition,
   byId: Map<string, OperationMeta>,
-  byRoute: Map<string, OperationMeta>,
 ): OperationMeta | undefined {
-  return def.operation !== undefined
-    ? byId.get(def.operation)
-    : byRoute.get(routeKey(def.method, def.path));
+  return def.operation === undefined ? undefined : byId.get(def.operation);
 }
 
 function customDefinitions(): Array<[string, EndpointDefinition]> {
@@ -100,13 +91,13 @@ function customDefinitions(): Array<[string, EndpointDefinition]> {
  */
 function operationIdOf(
   name: string,
-  metas: Map<string, OperationMeta>,
+  byId: Map<string, OperationMeta>,
 ): (method: string) => string | undefined {
   const file = name.slice(0, name.indexOf('.'));
   return (method) => {
     const found = customDefinitions().find(([n]) => n === `${file}.${method}`);
     if (!found) return undefined;
-    return operationFor(found[1], metasById(), metas)?.operationId;
+    return operationFor(found[1], byId)?.operationId;
   };
 }
 
@@ -132,11 +123,10 @@ function deprecationsDisagree(
 }
 
 describe('custom endpoint definitions agree with the generated operations (ARCH-08)', () => {
-  const metas = generatedMetas();
   const byId = metasById();
   const definitions = customDefinitions();
   const paired = definitions.flatMap(([name, def]) => {
-    const meta = operationFor(def, byId, metas);
+    const meta = operationFor(def, byId);
     return meta ? [{ name, def, meta }] : [];
   });
 
@@ -144,7 +134,7 @@ describe('custom endpoint definitions agree with the generated operations (ARCH-
     // An unpaired definition would escape every check below, so a route the
     // generator does not know (a typo, or one ESI dropped) fails here.
     const unpaired = definitions
-      .filter(([, def]) => operationFor(def, byId, metas) === undefined)
+      .filter(([, def]) => operationFor(def, byId) === undefined)
       .map(([name, def]) => `${name} (${def.method} ${def.path})`);
     expect(unpaired).toEqual([]);
     const names = paired.map((p) => p.name);
@@ -159,14 +149,11 @@ describe('custom endpoint definitions agree with the generated operations (ARCH-
   });
 
   it('call the route of the operation they name (fromOperation)', () => {
-    const named = paired.filter(({ def }) => def.operation !== undefined);
-    expect(named.map((p) => p.name)).toEqual(
-      expect.arrayContaining([
-        'statusEndpoints.getStatus',
-        'marketEndpoints.getMarketOrders',
-      ]),
-    );
-    const disagree = named
+    const unnamed = definitions
+      .filter(([, def]) => def.operation === undefined)
+      .map(([name]) => name);
+    expect(unnamed).toEqual([]);
+    const disagree = paired
       .filter(
         ({ def, meta }) =>
           routeKey(def.method, def.path) !== routeKey(meta.method, meta.path) ||
@@ -209,7 +196,7 @@ describe('custom endpoint definitions agree with the generated operations (ARCH-
   it('deprecate the same routes, with the same message, replacement and sunset date', () => {
     const disagree = paired
       .filter(({ name, def, meta }) =>
-        deprecationsDisagree(def, meta, operationIdOf(name, metas)),
+        deprecationsDisagree(def, meta, operationIdOf(name, byId)),
       )
       .map(({ name, meta }) => `${name} / ${meta.operationId}`);
     expect(disagree).toEqual([]);

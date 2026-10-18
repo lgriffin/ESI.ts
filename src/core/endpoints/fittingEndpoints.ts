@@ -1,27 +1,19 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import { FittingSchema, FittingCreatedSchema } from '../../schemas/fittings';
 
 export const fittingEndpoints = {
-  getFittings: {
-    path: 'characters/{characterId}/fittings',
-    method: 'GET',
-    requiresAuth: true,
+  getFittings: fromOperation('GetCharactersCharacterIdFittings', {
     pathParams: ['characterId'],
     responseSchema: z.array(FittingSchema),
-  },
-  createFitting: {
-    path: 'characters/{characterId}/fittings',
-    method: 'POST',
+  }),
+  createFitting: fromOperation('PostCharactersCharacterIdFittings', {
     responseSchema: FittingCreatedSchema,
-    requiresAuth: true,
     pathParams: ['characterId'],
     hasBody: true,
-  },
-  deleteFitting: {
-    path: 'characters/{characterId}/fittings/{fittingId}',
-    method: 'DELETE',
-    requiresAuth: true,
+  }),
+  deleteFitting: fromOperation('DeleteCharactersCharacterIdFittingsFittingId', {
     pathParams: ['characterId', 'fittingId'],
-  },
+  }),
 } as const satisfies EndpointMap;

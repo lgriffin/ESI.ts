@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   FactionWarfareStatsSchema,
   FactionWarfareCharacterStatsSchema,
@@ -12,54 +13,30 @@ import {
 } from '../../schemas/faction-warfare';
 
 export const factionEndpoints = {
-  getCharacterStats: {
-    path: 'characters/{characterId}/fw/stats',
-    method: 'GET',
-    requiresAuth: true,
+  getCharacterStats: fromOperation('GetCharactersCharacterIdFwStats', {
     pathParams: ['characterId'],
     responseSchema: FactionWarfareCharacterStatsSchema,
-  },
-  getCorporationStats: {
-    path: 'corporations/{corporationId}/fw/stats',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getCorporationStats: fromOperation('GetCorporationsCorporationIdFwStats', {
     pathParams: ['corporationId'],
     responseSchema: FactionWarfareCorporationStatsSchema,
-  },
-  getOverall: {
-    path: 'fw/leaderboards',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getOverall: fromOperation('GetFwLeaderboards', {
     responseSchema: FactionWarfareFactionLeaderboardSchema,
-  },
-  getCharacters: {
-    path: 'fw/leaderboards/characters',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getCharacters: fromOperation('GetFwLeaderboardsCharacters', {
     responseSchema: FactionWarfareCharacterLeaderboardSchema,
-  },
-  getCorporations: {
-    path: 'fw/leaderboards/corporations',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getCorporations: fromOperation('GetFwLeaderboardsCorporations', {
     responseSchema: FactionWarfareCorporationLeaderboardSchema,
-  },
-  getStats: {
-    path: 'fw/stats',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getStats: fromOperation('GetFwStats', {
     responseSchema: z.array(FactionWarfareStatsSchema),
-  },
-  getSystems: {
-    path: 'fw/systems',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getSystems: fromOperation('GetFwSystems', {
     responseSchema: z.array(FactionWarfareSystemSchema),
-  },
-  getWars: {
-    path: 'fw/wars',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getWars: fromOperation('GetFwWars', {
     responseSchema: z.array(FactionWarfareWarSchema),
-  },
+  }),
 } as const satisfies EndpointMap;

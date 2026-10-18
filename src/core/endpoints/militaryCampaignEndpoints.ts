@@ -1,4 +1,5 @@
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   MilitaryCampaignSchema,
   MilitaryCampaignsResponseSchema,
@@ -9,47 +10,41 @@ import {
 } from '../../schemas/military-campaigns';
 
 export const militaryCampaignEndpoints = {
-  getMilitaryCampaigns: {
-    path: 'military-campaigns',
-    method: 'GET',
-    requiresAuth: false,
+  getMilitaryCampaigns: fromOperation('GetMilitaryCampaignsListing', {
     responseSchema: MilitaryCampaignsResponseSchema,
-  },
-  getMilitaryCampaign: {
-    path: 'military-campaigns/{campaignId}',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getMilitaryCampaign: fromOperation('GetMilitaryCampaignsDetail', {
     pathParams: ['campaignId'],
     responseSchema: MilitaryCampaignSchema,
-  },
-  getMilitaryCampaignObjectives: {
-    path: 'military-campaigns/{campaignId}/objectives',
-    method: 'GET',
-    requiresAuth: false,
-    pathParams: ['campaignId'],
-    queryParams: { after: 'after', before: 'before', limit: 'limit' },
-    responseSchema: MilitaryCampaignObjectivesResponseSchema,
-  },
-  getMilitaryCampaignObjective: {
-    path: 'military-campaigns/{campaignId}/objectives/{objectiveId}',
-    method: 'GET',
-    requiresAuth: false,
-    pathParams: ['campaignId', 'objectiveId'],
-    responseSchema: MilitaryCampaignObjectiveSchema,
-  },
-  getCharacterMilitaryCampaignObjectives: {
-    path: 'characters/{characterId}/military-campaigns/objectives',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['characterId'],
-    queryParams: { after: 'after', before: 'before', limit: 'limit' },
-    responseSchema: CharacterMilitaryCampaignObjectivesResponseSchema,
-  },
-  getCharacterMilitaryCampaignObjective: {
-    path: 'characters/{characterId}/military-campaigns/objectives/{objectiveId}',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['characterId', 'objectiveId'],
-    responseSchema: CharacterMilitaryCampaignObjectiveSchema,
-  },
+  }),
+  getMilitaryCampaignObjectives: fromOperation(
+    'GetMilitaryCampaignsObjectivesListing',
+    {
+      pathParams: ['campaignId'],
+      queryParams: { after: 'after', before: 'before', limit: 'limit' },
+      responseSchema: MilitaryCampaignObjectivesResponseSchema,
+    },
+  ),
+  getMilitaryCampaignObjective: fromOperation(
+    'GetMilitaryCampaignsObjectivesDetail',
+    {
+      pathParams: ['campaignId', 'objectiveId'],
+      responseSchema: MilitaryCampaignObjectiveSchema,
+    },
+  ),
+  getCharacterMilitaryCampaignObjectives: fromOperation(
+    'GetCharactersMilitaryCampaignsObjectivesListing',
+    {
+      pathParams: ['characterId'],
+      queryParams: { after: 'after', before: 'before', limit: 'limit' },
+      responseSchema: CharacterMilitaryCampaignObjectivesResponseSchema,
+    },
+  ),
+  getCharacterMilitaryCampaignObjective: fromOperation(
+    'GetCharactersMilitaryCampaignsObjectivesParticipation',
+    {
+      pathParams: ['characterId', 'objectiveId'],
+      responseSchema: CharacterMilitaryCampaignObjectiveSchema,
+    },
+  ),
 } as const satisfies EndpointMap;

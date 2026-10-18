@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   CorporationInfoSchema,
   CorporationAllianceHistorySchema,
@@ -24,157 +25,139 @@ import {
 import { BlueprintSchema } from '../../schemas/character';
 
 export const corporationEndpoints = {
-  getCorporationInfo: {
-    path: 'corporations/{corporationId}',
-    method: 'GET',
-    requiresAuth: false,
+  getCorporationInfo: fromOperation('GetCorporationsCorporationId', {
     pathParams: ['corporationId'],
     responseSchema: CorporationInfoSchema,
-  },
-  getCorporationAllianceHistory: {
-    path: 'corporations/{corporationId}/alliancehistory',
-    method: 'GET',
-    requiresAuth: false,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationAllianceHistorySchema),
-  },
-  getCorporationBlueprints: {
-    path: 'corporations/{corporationId}/blueprints',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(BlueprintSchema),
-  },
-  getCorporationAlscLogs: {
-    path: 'corporations/{corporationId}/containers/logs',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(ContainerLogSchema),
-  },
-  getCorporationDivisions: {
-    path: 'corporations/{corporationId}/divisions',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: CorporationDivisionsSchema,
-  },
-  getCorporationFacilities: {
-    path: 'corporations/{corporationId}/facilities',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationFacilitySchema),
-  },
-  getCorporationIcon: {
-    path: 'corporations/{corporationId}/icons',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getCorporationAllianceHistory: fromOperation(
+    'GetCorporationsCorporationIdAlliancehistory',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CorporationAllianceHistorySchema),
+    },
+  ),
+  getCorporationBlueprints: fromOperation(
+    'GetCorporationsCorporationIdBlueprints',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(BlueprintSchema),
+    },
+  ),
+  getCorporationAlscLogs: fromOperation(
+    'GetCorporationsCorporationIdContainersLogs',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(ContainerLogSchema),
+    },
+  ),
+  getCorporationDivisions: fromOperation(
+    'GetCorporationsCorporationIdDivisions',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: CorporationDivisionsSchema,
+    },
+  ),
+  getCorporationFacilities: fromOperation(
+    'GetCorporationsCorporationIdFacilities',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CorporationFacilitySchema),
+    },
+  ),
+  getCorporationIcon: fromOperation('GetCorporationsCorporationIdIcons', {
     pathParams: ['corporationId'],
     responseSchema: CorporationIconSchema,
-  },
-  getCorporationMedals: {
-    path: 'corporations/{corporationId}/medals',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getCorporationMedals: fromOperation('GetCorporationsCorporationIdMedals', {
     pathParams: ['corporationId'],
     responseSchema: z.array(CorporationMedalSchema),
-  },
-  getCorporationIssuedMedals: {
-    path: 'corporations/{corporationId}/medals/issued',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationIssuedMedalSchema),
-  },
-  getCorporationMembers: {
-    path: 'corporations/{corporationId}/members',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getCorporationIssuedMedals: fromOperation(
+    'GetCorporationsCorporationIdMedalsIssued',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CorporationIssuedMedalSchema),
+    },
+  ),
+  getCorporationMembers: fromOperation('GetCorporationsCorporationIdMembers', {
     pathParams: ['corporationId'],
     responseSchema: z.array(z.number()),
-  },
-  getCorporationMemberLimit: {
-    path: 'corporations/{corporationId}/members/limit',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.number(),
-  },
-  getCorporationMembersTitles: {
-    path: 'corporations/{corporationId}/members/titles',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationMemberTitleSchema),
-  },
-  getCorporationMemberTracking: {
-    path: 'corporations/{corporationId}/membertracking',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationMemberTrackingSchema),
-  },
-  getCorporationMemberRoles: {
-    path: 'corporations/{corporationId}/roles',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationMemberRoleSchema),
-  },
-  getCorporationMemberRolesHistory: {
-    path: 'corporations/{corporationId}/roles/history',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationRoleHistorySchema),
-  },
-  getCorporationShareholders: {
-    path: 'corporations/{corporationId}/shareholders',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationShareholderSchema),
-  },
-  getCorporationStandings: {
-    path: 'corporations/{corporationId}/standings',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationStandingSchema),
-  },
-  getCorporationStarbases: {
-    path: 'corporations/{corporationId}/starbases',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationStarbaseSchema),
-  },
-  getCorporationStarbaseDetail: {
-    path: 'corporations/{corporationId}/starbases/{starbaseId}',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId', 'starbaseId'],
-    responseSchema: CorporationStarbaseDetailSchema,
-  },
-  getCorporationStructures: {
-    path: 'corporations/{corporationId}/structures',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationStructureSchema),
-  },
-  getCorporationTitles: {
-    path: 'corporations/{corporationId}/titles',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getCorporationMemberLimit: fromOperation(
+    'GetCorporationsCorporationIdMembersLimit',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.number(),
+    },
+  ),
+  getCorporationMembersTitles: fromOperation(
+    'GetCorporationsCorporationIdMembersTitles',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CorporationMemberTitleSchema),
+    },
+  ),
+  getCorporationMemberTracking: fromOperation(
+    'GetCorporationsCorporationIdMembertracking',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CorporationMemberTrackingSchema),
+    },
+  ),
+  getCorporationMemberRoles: fromOperation(
+    'GetCorporationsCorporationIdRoles',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CorporationMemberRoleSchema),
+    },
+  ),
+  getCorporationMemberRolesHistory: fromOperation(
+    'GetCorporationsCorporationIdRolesHistory',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CorporationRoleHistorySchema),
+    },
+  ),
+  getCorporationShareholders: fromOperation(
+    'GetCorporationsCorporationIdShareholders',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CorporationShareholderSchema),
+    },
+  ),
+  getCorporationStandings: fromOperation(
+    'GetCorporationsCorporationIdStandings',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CorporationStandingSchema),
+    },
+  ),
+  getCorporationStarbases: fromOperation(
+    'GetCorporationsCorporationIdStarbases',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CorporationStarbaseSchema),
+    },
+  ),
+  getCorporationStarbaseDetail: fromOperation(
+    'GetCorporationsCorporationIdStarbasesStarbaseId',
+    {
+      pathParams: ['corporationId', 'starbaseId'],
+      responseSchema: CorporationStarbaseDetailSchema,
+    },
+  ),
+  getCorporationStructures: fromOperation(
+    'GetCorporationsCorporationIdStructures',
+    {
+      pathParams: ['corporationId'],
+      responseSchema: z.array(CorporationStructureSchema),
+    },
+  ),
+  getCorporationTitles: fromOperation('GetCorporationsCorporationIdTitles', {
     pathParams: ['corporationId'],
     responseSchema: z.array(CorporationTitleSchema),
-  },
-  getNpcCorporations: {
-    path: 'corporations/npccorps',
-    method: 'GET',
-    requiresAuth: false,
+  }),
+  getNpcCorporations: fromOperation('GetCorporationsNpccorps', {
     responseSchema: z.array(z.number()),
-  },
+  }),
 } as const satisfies EndpointMap;

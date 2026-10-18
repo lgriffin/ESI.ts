@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import {
   FleetInfoSchema,
   FleetMemberSchema,
@@ -10,104 +11,72 @@ import {
 } from '../../schemas/fleet';
 
 export const fleetEndpoints = {
-  getCharacterFleetInfo: {
-    path: 'characters/{characterId}/fleet',
-    method: 'GET',
-    requiresAuth: true,
+  getCharacterFleetInfo: fromOperation('GetCharactersCharacterIdFleet', {
     pathParams: ['characterId'],
     responseSchema: CharacterFleetInfoSchema,
-  },
-  getFleetInfo: {
-    path: 'fleets/{fleetId}',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getFleetInfo: fromOperation('GetFleetsFleetId', {
     pathParams: ['fleetId'],
     responseSchema: FleetInfoSchema,
-  },
-  updateFleet: {
-    path: 'fleets/{fleetId}',
-    method: 'PUT',
-    requiresAuth: true,
+  }),
+  updateFleet: fromOperation('PutFleetsFleetId', {
     pathParams: ['fleetId'],
     hasBody: true,
     requestSchema: z.looseObject({
       is_free_move: z.boolean().optional(),
       motd: z.string().optional(),
     }),
-  },
-  getFleetMembers: {
-    path: 'fleets/{fleetId}/members',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getFleetMembers: fromOperation('GetFleetsFleetIdMembers', {
     pathParams: ['fleetId'],
     responseSchema: z.array(FleetMemberSchema),
-  },
-  createFleetInvitation: {
-    path: 'fleets/{fleetId}/members/',
-    method: 'POST',
-    requiresAuth: true,
+  }),
+  createFleetInvitation: fromOperation('PostFleetsFleetIdMembers', {
+    trailingSlash: true,
     pathParams: ['fleetId'],
     hasBody: true,
-  },
-  kickFleetMember: {
-    path: 'fleets/{fleetId}/members/{memberId}/',
-    method: 'DELETE',
-    requiresAuth: true,
+  }),
+  kickFleetMember: fromOperation('DeleteFleetsFleetIdMembersMemberId', {
+    trailingSlash: true,
     pathParams: ['fleetId', 'memberId'],
-  },
-  moveFleetMember: {
-    path: 'fleets/{fleetId}/members/{memberId}/',
-    method: 'PUT',
-    requiresAuth: true,
+  }),
+  moveFleetMember: fromOperation('PutFleetsFleetIdMembersMemberId', {
+    trailingSlash: true,
     pathParams: ['fleetId', 'memberId'],
     hasBody: true,
-  },
-  deleteFleetSquad: {
-    path: 'fleets/{fleetId}/squads/{squadId}/',
-    method: 'DELETE',
-    requiresAuth: true,
+  }),
+  deleteFleetSquad: fromOperation('DeleteFleetsFleetIdSquadsSquadId', {
+    trailingSlash: true,
     pathParams: ['fleetId', 'squadId'],
-  },
-  renameFleetSquad: {
-    path: 'fleets/{fleetId}/squads/{squadId}/',
-    method: 'PUT',
-    requiresAuth: true,
+  }),
+  renameFleetSquad: fromOperation('PutFleetsFleetIdSquadsSquadId', {
+    trailingSlash: true,
     pathParams: ['fleetId', 'squadId'],
     bodyBuilder: (name: string) => ({ name }),
-  },
-  getFleetWings: {
-    path: 'fleets/{fleetId}/wings/',
-    method: 'GET',
-    requiresAuth: true,
+  }),
+  getFleetWings: fromOperation('GetFleetsFleetIdWings', {
+    trailingSlash: true,
     pathParams: ['fleetId'],
     responseSchema: z.array(FleetWingSchema),
-  },
-  createFleetWing: {
-    path: 'fleets/{fleetId}/wings/',
-    method: 'POST',
+  }),
+  createFleetWing: fromOperation('PostFleetsFleetIdWings', {
+    trailingSlash: true,
     responseSchema: FleetWingCreatedSchema,
-    requiresAuth: true,
     pathParams: ['fleetId'],
     hasBody: true,
-  },
-  deleteFleetWing: {
-    path: 'fleets/{fleetId}/wings/{wingId}/',
-    method: 'DELETE',
-    requiresAuth: true,
+  }),
+  deleteFleetWing: fromOperation('DeleteFleetsFleetIdWingsWingId', {
+    trailingSlash: true,
     pathParams: ['fleetId', 'wingId'],
-  },
-  renameFleetWing: {
-    path: 'fleets/{fleetId}/wings/{wingId}/',
-    method: 'PUT',
-    requiresAuth: true,
+  }),
+  renameFleetWing: fromOperation('PutFleetsFleetIdWingsWingId', {
+    trailingSlash: true,
     pathParams: ['fleetId', 'wingId'],
     bodyBuilder: (name: string) => ({ name }),
-  },
-  createFleetSquad: {
-    path: 'fleets/{fleetId}/wings/{wingId}/squads/',
-    method: 'POST',
+  }),
+  createFleetSquad: fromOperation('PostFleetsFleetIdWingsWingIdSquads', {
+    trailingSlash: true,
     responseSchema: FleetSquadCreatedSchema,
-    requiresAuth: true,
     pathParams: ['fleetId', 'wingId'],
-  },
+  }),
 } as const satisfies EndpointMap;
