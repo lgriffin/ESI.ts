@@ -6,8 +6,10 @@
  */
 import { EsiClient } from '../../../src/EsiClient';
 import { EsiApiFactory, EsiClientBuilder } from '../../../src/EsiClientBuilder';
+import type { MarketClient } from '../../../src/clients/MarketClient';
 import type { StatusClient } from '../../../src/clients/StatusClient';
 import type { ApiClient } from '../../../src/core/ApiClient';
+import type { IDeduplicator } from '../../../src/core/IDeduplicator';
 import type { CacheStore } from '../../../src/core/ports/CacheStore';
 
 const pipelineOf = (client: unknown): ApiClient =>
@@ -63,9 +65,34 @@ describe('a domain client from EsiApiFactory.createClient', () => {
     ).not.toHaveBeenCalled();
   });
 
+  it('clears the deduplicator it built when shut down', () => {
+    const status = EsiApiFactory.createClient('status', { logLevel: 'error' });
+    const clear = jest.spyOn(pipelineOf(status).getDeduplicator()!, 'clear');
+    status.shutdown();
+    expect(clear).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves a supplied deduplicator to its owner', () => {
+    const deduplicator: IDeduplicator = {
+      dedupe: jest.fn(),
+      pending: 0,
+      clear: jest.fn(),
+      detach: () => 0,
+    } as unknown as IDeduplicator;
+    const status = EsiApiFactory.createClient('status', {
+      logLevel: 'error',
+      deduplicator,
+    });
+    status.shutdown();
+    expect(deduplicator.clear).not.toHaveBeenCalled();
+  });
+
   it('is what the deprecated named factories build too', () => {
-    // eslint-disable-next-line sonarjs/deprecation -- the named factories route through the same pipeline
-    const market = EsiApiFactory.createMarketClient({ logLevel: 'error' });
+    // Called through a plain object type: the deprecated call is the subject here.
+    const named: {
+      createMarketClient: (config: { logLevel: 'error' }) => MarketClient;
+    } = EsiApiFactory;
+    const market = named.createMarketClient({ logLevel: 'error' });
     const cache = jest.spyOn(
       pipelineOf(market).getCache() as unknown as { shutdown: () => void },
       'shutdown',

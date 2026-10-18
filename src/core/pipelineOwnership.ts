@@ -6,6 +6,7 @@ import { EsiDiagnostics } from './EsiDiagnostics';
 export interface PipelineOwnership {
   readonly suppliedCache: boolean;
   readonly suppliedCircuitBreaker: boolean;
+  readonly suppliedDeduplicator: boolean;
 }
 
 const owners = new WeakMap<ApiClient, PipelineOwnership>();
@@ -48,7 +49,8 @@ export function diagnosticsFor(
 /**
  * Stops the cleanup timers of the cache and circuit breaker an owned
  * pipeline built and drops its in-flight table; a supplied cache or circuit
- * breaker is left to its owner. Returns false, doing nothing, for a pipeline
+ * breaker, or a supplied deduplicator's in-flight table, is left to its
+ * owner. Returns false, doing nothing, for a pipeline
  * nothing claimed.
  */
 export function shutdownOwnedPipeline(client: ApiClient): boolean {
@@ -60,6 +62,8 @@ export function shutdownOwnedPipeline(client: ApiClient): boolean {
   }
   const breaker = client.getCircuitBreaker();
   if (breaker && !ownership.suppliedCircuitBreaker) breaker.shutdown();
-  (client.getDeduplicator() as { clear?: () => void } | null)?.clear?.();
+  if (!ownership.suppliedDeduplicator) {
+    (client.getDeduplicator() as { clear?: () => void } | null)?.clear?.();
+  }
   return true;
 }

@@ -547,6 +547,7 @@ export class EsiApiFactory {
     claimPipeline(client, {
       suppliedCache: config?.cache !== undefined,
       suppliedCircuitBreaker: config?.circuitBreaker !== undefined,
+      suppliedDeduplicator: config?.deduplicator !== undefined,
     });
     return client;
   }
