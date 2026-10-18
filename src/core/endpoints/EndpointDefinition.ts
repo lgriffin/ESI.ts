@@ -9,6 +9,12 @@ export interface DeprecationInfo {
 }
 
 export interface EndpointDefinition {
+  /**
+   * The operationId of the ESI operation this endpoint calls, when the
+   * definition is built with `fromOperation` from the generated route table
+   * (`esi-operations.generated.ts`). See guides/CLIENT-ARCHITECTURE.md.
+   */
+  operation?: string;
   /** URL template with placeholders, e.g. 'alliances/{allianceId}/' */
   path: string;
   /** HTTP method */
