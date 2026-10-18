@@ -30,7 +30,7 @@ export type OperationEndpoint<
   readonly operation: Id;
   readonly path: string;
   readonly method: Row<Id>['method'];
-  readonly requiresAuth: Row<Id>['scopes'] extends readonly [] ? false : true;
+  readonly requiresAuth: Row<Id> extends { readonly auth: true } ? true : false;
 } & (Row<Id> extends { readonly textResponse: infer T }
   ? { readonly textResponse: T }
   : unknown) &
@@ -101,7 +101,7 @@ export function fromOperation<
   const row: {
     readonly method: HttpMethod;
     readonly path: string;
-    readonly scopes: readonly string[];
+    readonly auth?: true;
     readonly textResponse?: { readonly accept: string };
     readonly emptyWhenNoContent?: boolean;
     // eslint-disable-next-line security/detect-object-injection -- a key of the generated table, checked by the type
@@ -111,7 +111,7 @@ export function fromOperation<
     operation: operationId,
     path: customPath(operationId, row.path, part.pathParams, trailingSlash),
     method: row.method,
-    requiresAuth: row.scopes.length > 0,
+    requiresAuth: row.auth === true,
     ...(row.textResponse ? { textResponse: { ...row.textResponse } } : {}),
     ...(row.emptyWhenNoContent ? { emptyWhenNoContent: true } : {}),
     ...part,
