@@ -80,6 +80,11 @@ export interface ZodResult {
   readonly components: number;
 }
 
+/** The export name of an operation's baseline schema: `GetStatus` is `GetStatusSchema`. */
+export function baselineName(operationId: string): string {
+  return `${operationId}Schema`;
+}
+
 export function generateResponseSchemas(
   doc: OpenApiDocument,
   specPath: string,
@@ -262,11 +267,19 @@ export function generateResponseSchemas(
         `const ${constName(name)}: z.ZodType = ${lazy(emitted.get(name)!)};\n`,
     )
     .join('');
+  // Named `<operationId>Schema`, like every schema in src/schemas, which
+  // also keeps a reserved-word operationId a legal declaration.
+  const taken = new Set(order.map(constName));
   const exported = entries
-    .map(
-      ({ id, body }) =>
-        `/** The success body of \`${id}\`. */\nexport const ${id}: z.ZodType = ${lazy(body)};\n`,
-    )
+    .map(({ id, body }) => {
+      const name = baselineName(id);
+      if (taken.has(name)) {
+        throw new SpecGenerateError(
+          `baseline ${name} for operationId "${id}" collides with a component schema`,
+        );
+      }
+      return `/** The success body of \`${id}\`. */\nexport const ${name}: z.ZodType = ${lazy(body)};\n`;
+    })
     .join('');
   const baselineSource = `${banner}${lazyComponents}\n${exported}`;
 

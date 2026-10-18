@@ -41,7 +41,14 @@ function definitions(): Map<string, EndpointDefinition> {
   return out;
 }
 
-const schemas = baseline as unknown as Record<string, z.ZodType>;
+const exportsByName = baseline as unknown as Record<string, z.ZodType>;
+/** The baselines by operationId: each is exported as `<operationId>Schema`. */
+const schemas: Record<string, z.ZodType> = Object.fromEntries(
+  Object.entries(exportsByName).map(([name, schema]) => [
+    name.replace(/Schema$/, ''),
+    schema,
+  ]),
+);
 
 /**
  * Recorded payloads the generated baseline rejects, by fixture, with what

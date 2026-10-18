@@ -3830,965 +3830,921 @@ const WarsWarIdKillmailsGetSchema: z.ZodType = /* @__PURE__ */ z.lazy(
 );
 
 /** The success body of `GetAlliances`. */
-export const GetAlliances: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetAlliancesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => AlliancesGetSchema,
 );
 /** The success body of `GetAlliancesAllianceId`. */
-export const GetAlliancesAllianceId: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetAlliancesAllianceIdSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => AlliancesDetailSchema,
 );
 /** The success body of `GetAlliancesAllianceIdContacts`. */
-export const GetAlliancesAllianceIdContacts: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => AlliancesAllianceIdContactsGetSchema,
-);
+export const GetAlliancesAllianceIdContactsSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => AlliancesAllianceIdContactsGetSchema);
 /** The success body of `GetAlliancesAllianceIdContactsLabels`. */
-export const GetAlliancesAllianceIdContactsLabels: z.ZodType =
+export const GetAlliancesAllianceIdContactsLabelsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => AlliancesAllianceIdContactsLabelsGetSchema,
   );
 /** The success body of `GetAlliancesAllianceIdCorporations`. */
-export const GetAlliancesAllianceIdCorporations: z.ZodType =
+export const GetAlliancesAllianceIdCorporationsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => AlliancesAllianceIdCorporationsGetSchema,
   );
 /** The success body of `GetAlliancesAllianceIdIcons`. */
-export const GetAlliancesAllianceIdIcons: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => AlliancesAllianceIdIconsGetSchema,
-);
+export const GetAlliancesAllianceIdIconsSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => AlliancesAllianceIdIconsGetSchema);
 /** The success body of `PostCharactersAffiliation`. */
-export const PostCharactersAffiliation: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersAffiliationPostSchema,
-);
+export const PostCharactersAffiliationSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersAffiliationPostSchema);
 /** The success body of `GetCharactersDetail`. */
-export const GetCharactersDetail: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetCharactersDetailSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => CharactersDetailSchema,
 );
 /** The success body of `GetCharactersAccessListsListing`. */
-export const GetCharactersAccessListsListing: z.ZodType =
+export const GetCharactersAccessListsListingSchema: z.ZodType =
   /* @__PURE__ */ z.lazy((): z.ZodType => CharactersAccessListsListingSchema);
 /** The success body of `GetCharactersAccessListsDetail`. */
-export const GetCharactersAccessListsDetail: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersAccessListsDetailSchema,
-);
+export const GetCharactersAccessListsDetailSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersAccessListsDetailSchema);
 /** The success body of `GetCharactersCharacterIdAgentsResearch`. */
-export const GetCharactersCharacterIdAgentsResearch: z.ZodType =
+export const GetCharactersCharacterIdAgentsResearchSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdAgentsResearchGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdAssets`. */
-export const GetCharactersCharacterIdAssets: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdAssetsGetSchema,
-);
+export const GetCharactersCharacterIdAssetsSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdAssetsGetSchema);
 /** The success body of `PostCharactersCharacterIdAssetsLocations`. */
-export const PostCharactersCharacterIdAssetsLocations: z.ZodType =
+export const PostCharactersCharacterIdAssetsLocationsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdAssetsLocationsPostSchema,
   );
 /** The success body of `PostCharactersCharacterIdAssetsNames`. */
-export const PostCharactersCharacterIdAssetsNames: z.ZodType =
+export const PostCharactersCharacterIdAssetsNamesSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdAssetsNamesPostSchema,
   );
 /** The success body of `GetCharactersCharacterIdAttributes`. */
-export const GetCharactersCharacterIdAttributes: z.ZodType =
+export const GetCharactersCharacterIdAttributesSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdAttributesGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdBlueprints`. */
-export const GetCharactersCharacterIdBlueprints: z.ZodType =
+export const GetCharactersCharacterIdBlueprintsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdBlueprintsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdCalendar`. */
-export const GetCharactersCharacterIdCalendar: z.ZodType =
+export const GetCharactersCharacterIdCalendarSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdCalendarGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdCalendarEventId`. */
-export const GetCharactersCharacterIdCalendarEventId: z.ZodType =
+export const GetCharactersCharacterIdCalendarEventIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdCalendarEventIdGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdCalendarEventIdAttendees`. */
-export const GetCharactersCharacterIdCalendarEventIdAttendees: z.ZodType =
+export const GetCharactersCharacterIdCalendarEventIdAttendeesSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdCalendarEventIdAttendeesGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdClones`. */
-export const GetCharactersCharacterIdClones: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdClonesGetSchema,
-);
+export const GetCharactersCharacterIdClonesSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdClonesGetSchema);
 /** The success body of `GetCharactersCharacterIdContacts`. */
-export const GetCharactersCharacterIdContacts: z.ZodType =
+export const GetCharactersCharacterIdContactsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdContactsGetSchema,
   );
 /** The success body of `PostCharactersCharacterIdContacts`. */
-export const PostCharactersCharacterIdContacts: z.ZodType =
+export const PostCharactersCharacterIdContactsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdContactsPostSchema,
   );
 /** The success body of `GetCharactersCharacterIdContactsLabels`. */
-export const GetCharactersCharacterIdContactsLabels: z.ZodType =
+export const GetCharactersCharacterIdContactsLabelsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdContactsLabelsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdContracts`. */
-export const GetCharactersCharacterIdContracts: z.ZodType =
+export const GetCharactersCharacterIdContractsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdContractsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdContractsContractIdBids`. */
-export const GetCharactersCharacterIdContractsContractIdBids: z.ZodType =
+export const GetCharactersCharacterIdContractsContractIdBidsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdContractsContractIdBidsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdContractsContractIdItems`. */
-export const GetCharactersCharacterIdContractsContractIdItems: z.ZodType =
+export const GetCharactersCharacterIdContractsContractIdItemsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdContractsContractIdItemsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdCorporationhistory`. */
-export const GetCharactersCharacterIdCorporationhistory: z.ZodType =
+export const GetCharactersCharacterIdCorporationhistorySchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdCorporationhistoryGetSchema,
   );
 /** The success body of `GetCharactersCosmeticsSkinr`. */
-export const GetCharactersCosmeticsSkinr: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCosmeticsSkinrSchema,
-);
+export const GetCharactersCosmeticsSkinrSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCosmeticsSkinrSchema);
 /** The success body of `GetCharactersCosmeticsSkinrComponents`. */
-export const GetCharactersCosmeticsSkinrComponents: z.ZodType =
+export const GetCharactersCosmeticsSkinrComponentsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCosmeticsSkinrComponentsSchema,
   );
 /** The success body of `PostCharactersCharacterIdCspa`. */
-export const PostCharactersCharacterIdCspa: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdCspaPostSchema,
-);
+export const PostCharactersCharacterIdCspaSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdCspaPostSchema);
 /** The success body of `GetCharactersCharacterIdFatigue`. */
-export const GetCharactersCharacterIdFatigue: z.ZodType =
+export const GetCharactersCharacterIdFatigueSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdFatigueGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdFittings`. */
-export const GetCharactersCharacterIdFittings: z.ZodType =
+export const GetCharactersCharacterIdFittingsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdFittingsGetSchema,
   );
 /** The success body of `PostCharactersCharacterIdFittings`. */
-export const PostCharactersCharacterIdFittings: z.ZodType =
+export const PostCharactersCharacterIdFittingsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdFittingsPostSchema,
   );
 /** The success body of `GetCharactersCharacterIdFleet`. */
-export const GetCharactersCharacterIdFleet: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdFleetGetSchema,
-);
+export const GetCharactersCharacterIdFleetSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdFleetGetSchema);
 /** The success body of `GetCharactersFreelanceJobsListing`. */
-export const GetCharactersFreelanceJobsListing: z.ZodType =
+export const GetCharactersFreelanceJobsListingSchema: z.ZodType =
   /* @__PURE__ */ z.lazy((): z.ZodType => CharactersFreelanceJobsListingSchema);
 /** The success body of `GetCharactersFreelanceJobsParticipation`. */
-export const GetCharactersFreelanceJobsParticipation: z.ZodType =
+export const GetCharactersFreelanceJobsParticipationSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersFreelanceJobsParticipationSchema,
   );
 /** The success body of `GetCharactersCharacterIdFwStats`. */
-export const GetCharactersCharacterIdFwStats: z.ZodType =
+export const GetCharactersCharacterIdFwStatsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdFwStatsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdImplants`. */
-export const GetCharactersCharacterIdImplants: z.ZodType =
+export const GetCharactersCharacterIdImplantsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdImplantsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdIndustryJobs`. */
-export const GetCharactersCharacterIdIndustryJobs: z.ZodType =
+export const GetCharactersCharacterIdIndustryJobsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdIndustryJobsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdKillmailsRecent`. */
-export const GetCharactersCharacterIdKillmailsRecent: z.ZodType =
+export const GetCharactersCharacterIdKillmailsRecentSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdKillmailsRecentGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdLocation`. */
-export const GetCharactersCharacterIdLocation: z.ZodType =
+export const GetCharactersCharacterIdLocationSchema: z.ZodType =
   /* @__PURE__ */ z.lazy((): z.ZodType => CharactersLocationSchema);
 /** The success body of `GetCharactersCharacterIdLoyaltyPoints`. */
-export const GetCharactersCharacterIdLoyaltyPoints: z.ZodType =
+export const GetCharactersCharacterIdLoyaltyPointsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdLoyaltyPointsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdMail`. */
-export const GetCharactersCharacterIdMail: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdMailGetSchema,
-);
+export const GetCharactersCharacterIdMailSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdMailGetSchema);
 /** The success body of `PostCharactersCharacterIdMail`. */
-export const PostCharactersCharacterIdMail: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdMailPostSchema,
-);
+export const PostCharactersCharacterIdMailSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdMailPostSchema);
 /** The success body of `GetCharactersCharacterIdMailLabels`. */
-export const GetCharactersCharacterIdMailLabels: z.ZodType =
+export const GetCharactersCharacterIdMailLabelsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdMailLabelsGetSchema,
   );
 /** The success body of `PostCharactersCharacterIdMailLabels`. */
-export const PostCharactersCharacterIdMailLabels: z.ZodType =
+export const PostCharactersCharacterIdMailLabelsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdMailLabelsPostSchema,
   );
 /** The success body of `GetCharactersCharacterIdMailLists`. */
-export const GetCharactersCharacterIdMailLists: z.ZodType =
+export const GetCharactersCharacterIdMailListsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdMailListsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdMailMailId`. */
-export const GetCharactersCharacterIdMailMailId: z.ZodType =
+export const GetCharactersCharacterIdMailMailIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdMailMailIdGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdMedals`. */
-export const GetCharactersCharacterIdMedals: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdMedalsGetSchema,
-);
+export const GetCharactersCharacterIdMedalsSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdMedalsGetSchema);
 /** The success body of `GetCharactersMercenaryTacticalOperationsListing`. */
-export const GetCharactersMercenaryTacticalOperationsListing: z.ZodType =
+export const GetCharactersMercenaryTacticalOperationsListingSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersMercenaryTacticalOperationsListingSchema,
   );
 /** The success body of `GetCharactersMercenaryTacticalOperationsDetail`. */
-export const GetCharactersMercenaryTacticalOperationsDetail: z.ZodType =
+export const GetCharactersMercenaryTacticalOperationsDetailSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersMercenaryTacticalOperationsDetailSchema,
   );
 /** The success body of `GetCharactersMilitaryCampaignsObjectivesListing`. */
-export const GetCharactersMilitaryCampaignsObjectivesListing: z.ZodType =
+export const GetCharactersMilitaryCampaignsObjectivesListingSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersMilitaryCampaignsObjectivesListingSchema,
   );
 /** The success body of `GetCharactersMilitaryCampaignsObjectivesParticipation`. */
-export const GetCharactersMilitaryCampaignsObjectivesParticipation: z.ZodType =
+export const GetCharactersMilitaryCampaignsObjectivesParticipationSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersMilitaryCampaignsObjectivesParticipationSchema,
   );
 /** The success body of `GetCharactersCharacterIdMining`. */
-export const GetCharactersCharacterIdMining: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdMiningGetSchema,
-);
+export const GetCharactersCharacterIdMiningSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdMiningGetSchema);
 /** The success body of `GetCharactersCharacterIdNotifications`. */
-export const GetCharactersCharacterIdNotifications: z.ZodType =
+export const GetCharactersCharacterIdNotificationsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdNotificationsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdNotificationsContacts`. */
-export const GetCharactersCharacterIdNotificationsContacts: z.ZodType =
+export const GetCharactersCharacterIdNotificationsContactsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdNotificationsContactsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdOnline`. */
-export const GetCharactersCharacterIdOnline: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersOnlineSchema,
-);
+export const GetCharactersCharacterIdOnlineSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersOnlineSchema);
 /** The success body of `GetCharactersCharacterIdOrders`. */
-export const GetCharactersCharacterIdOrders: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdOrdersGetSchema,
-);
+export const GetCharactersCharacterIdOrdersSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdOrdersGetSchema);
 /** The success body of `GetCharactersCharacterIdOrdersHistory`. */
-export const GetCharactersCharacterIdOrdersHistory: z.ZodType =
+export const GetCharactersCharacterIdOrdersHistorySchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdOrdersHistoryGetSchema,
   );
 /** The success body of `GetCharactersParagonHubSkinr`. */
-export const GetCharactersParagonHubSkinr: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersParagonHubSkinrSchema,
-);
+export const GetCharactersParagonHubSkinrSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersParagonHubSkinrSchema);
 /** The success body of `GetCharactersCharacterIdPlanets`. */
-export const GetCharactersCharacterIdPlanets: z.ZodType =
+export const GetCharactersCharacterIdPlanetsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdPlanetsGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdPlanetsPlanetId`. */
-export const GetCharactersCharacterIdPlanetsPlanetId: z.ZodType =
+export const GetCharactersCharacterIdPlanetsPlanetIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdPlanetsPlanetIdGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdPortrait`. */
-export const GetCharactersCharacterIdPortrait: z.ZodType =
+export const GetCharactersCharacterIdPortraitSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdPortraitGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdRoles`. */
-export const GetCharactersCharacterIdRoles: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdRolesGetSchema,
-);
+export const GetCharactersCharacterIdRolesSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdRolesGetSchema);
 /** The success body of `GetCharactersCharacterIdSearch`. */
-export const GetCharactersCharacterIdSearch: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdSearchGetSchema,
-);
+export const GetCharactersCharacterIdSearchSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdSearchGetSchema);
 /** The success body of `GetCharactersCharacterIdShip`. */
-export const GetCharactersCharacterIdShip: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersShipSchema,
-);
+export const GetCharactersCharacterIdShipSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersShipSchema);
 /** The success body of `GetCharactersCharacterIdSkillqueue`. */
-export const GetCharactersCharacterIdSkillqueue: z.ZodType =
+export const GetCharactersCharacterIdSkillqueueSchema: z.ZodType =
   /* @__PURE__ */ z.lazy((): z.ZodType =>
     z.array(CharactersSkillqueueSkillSchema),
   );
 /** The success body of `GetCharactersCharacterIdSkills`. */
-export const GetCharactersCharacterIdSkills: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersSkillsSchema,
-);
+export const GetCharactersCharacterIdSkillsSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersSkillsSchema);
 /** The success body of `GetCharactersCharacterIdStandings`. */
-export const GetCharactersCharacterIdStandings: z.ZodType =
+export const GetCharactersCharacterIdStandingsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdStandingsGetSchema,
   );
 /** The success body of `GetCharactersStructuresMercenaryDensListing`. */
-export const GetCharactersStructuresMercenaryDensListing: z.ZodType =
+export const GetCharactersStructuresMercenaryDensListingSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersStructuresMercenaryDensListingSchema,
   );
 /** The success body of `GetCharactersStructuresMercenaryDensDetail`. */
-export const GetCharactersStructuresMercenaryDensDetail: z.ZodType =
+export const GetCharactersStructuresMercenaryDensDetailSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersStructuresMercenaryDensDetailSchema,
   );
 /** The success body of `GetCharactersCharacterIdTitles`. */
-export const GetCharactersCharacterIdTitles: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdTitlesGetSchema,
-);
+export const GetCharactersCharacterIdTitlesSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdTitlesGetSchema);
 /** The success body of `GetCharactersCharacterIdWallet`. */
-export const GetCharactersCharacterIdWallet: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CharactersCharacterIdWalletGetSchema,
-);
+export const GetCharactersCharacterIdWalletSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CharactersCharacterIdWalletGetSchema);
 /** The success body of `GetCharactersCharacterIdWalletJournal`. */
-export const GetCharactersCharacterIdWalletJournal: z.ZodType =
+export const GetCharactersCharacterIdWalletJournalSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdWalletJournalGetSchema,
   );
 /** The success body of `GetCharactersCharacterIdWalletTransactions`. */
-export const GetCharactersCharacterIdWalletTransactions: z.ZodType =
+export const GetCharactersCharacterIdWalletTransactionsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CharactersCharacterIdWalletTransactionsGetSchema,
   );
 /** The success body of `GetContractsPublicBidsContractId`. */
-export const GetContractsPublicBidsContractId: z.ZodType =
+export const GetContractsPublicBidsContractIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => ContractsPublicBidsContractIdGetSchema,
   );
 /** The success body of `GetContractsPublicItemsContractId`. */
-export const GetContractsPublicItemsContractId: z.ZodType =
+export const GetContractsPublicItemsContractIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => ContractsPublicItemsContractIdGetSchema,
   );
 /** The success body of `GetContractsPublicRegionId`. */
-export const GetContractsPublicRegionId: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => ContractsPublicRegionIdGetSchema,
-);
+export const GetContractsPublicRegionIdSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => ContractsPublicRegionIdGetSchema);
 /** The success body of `GetCorporationCorporationIdMiningExtractions`. */
-export const GetCorporationCorporationIdMiningExtractions: z.ZodType =
+export const GetCorporationCorporationIdMiningExtractionsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationCorporationIdMiningExtractionsGetSchema,
   );
 /** The success body of `GetCorporationCorporationIdMiningObservers`. */
-export const GetCorporationCorporationIdMiningObservers: z.ZodType =
+export const GetCorporationCorporationIdMiningObserversSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationCorporationIdMiningObserversGetSchema,
   );
 /** The success body of `GetCorporationCorporationIdMiningObserversObserverId`. */
-export const GetCorporationCorporationIdMiningObserversObserverId: z.ZodType =
+export const GetCorporationCorporationIdMiningObserversObserverIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationCorporationIdMiningObserversObserverIdGetSchema,
   );
 /** The success body of `GetCorporationsNpccorps`. */
-export const GetCorporationsNpccorps: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetCorporationsNpccorpsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => CorporationsNpccorpsGetSchema,
 );
 /** The success body of `GetCorporationsCorporationId`. */
-export const GetCorporationsCorporationId: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CorporationsDetailSchema,
-);
+export const GetCorporationsCorporationIdSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CorporationsDetailSchema);
 /** The success body of `GetCorporationsCorporationIdAlliancehistory`. */
-export const GetCorporationsCorporationIdAlliancehistory: z.ZodType =
+export const GetCorporationsCorporationIdAlliancehistorySchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdAlliancehistoryGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdAssets`. */
-export const GetCorporationsCorporationIdAssets: z.ZodType =
+export const GetCorporationsCorporationIdAssetsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdAssetsGetSchema,
   );
 /** The success body of `PostCorporationsCorporationIdAssetsLocations`. */
-export const PostCorporationsCorporationIdAssetsLocations: z.ZodType =
+export const PostCorporationsCorporationIdAssetsLocationsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdAssetsLocationsPostSchema,
   );
 /** The success body of `PostCorporationsCorporationIdAssetsNames`. */
-export const PostCorporationsCorporationIdAssetsNames: z.ZodType =
+export const PostCorporationsCorporationIdAssetsNamesSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdAssetsNamesPostSchema,
   );
 /** The success body of `GetCorporationsCorporationIdBlueprints`. */
-export const GetCorporationsCorporationIdBlueprints: z.ZodType =
+export const GetCorporationsCorporationIdBlueprintsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdBlueprintsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdContacts`. */
-export const GetCorporationsCorporationIdContacts: z.ZodType =
+export const GetCorporationsCorporationIdContactsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdContactsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdContactsLabels`. */
-export const GetCorporationsCorporationIdContactsLabels: z.ZodType =
+export const GetCorporationsCorporationIdContactsLabelsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdContactsLabelsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdContainersLogs`. */
-export const GetCorporationsCorporationIdContainersLogs: z.ZodType =
+export const GetCorporationsCorporationIdContainersLogsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdContainersLogsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdContracts`. */
-export const GetCorporationsCorporationIdContracts: z.ZodType =
+export const GetCorporationsCorporationIdContractsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdContractsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdContractsContractIdBids`. */
-export const GetCorporationsCorporationIdContractsContractIdBids: z.ZodType =
+export const GetCorporationsCorporationIdContractsContractIdBidsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdContractsContractIdBidsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdContractsContractIdItems`. */
-export const GetCorporationsCorporationIdContractsContractIdItems: z.ZodType =
+export const GetCorporationsCorporationIdContractsContractIdItemsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdContractsContractIdItemsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdCustomsOffices`. */
-export const GetCorporationsCorporationIdCustomsOffices: z.ZodType =
+export const GetCorporationsCorporationIdCustomsOfficesSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdCustomsOfficesGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdDivisions`. */
-export const GetCorporationsCorporationIdDivisions: z.ZodType =
+export const GetCorporationsCorporationIdDivisionsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdDivisionsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdFacilities`. */
-export const GetCorporationsCorporationIdFacilities: z.ZodType =
+export const GetCorporationsCorporationIdFacilitiesSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdFacilitiesGetSchema,
   );
 /** The success body of `GetCorporationsFreelanceJobsListing`. */
-export const GetCorporationsFreelanceJobsListing: z.ZodType =
+export const GetCorporationsFreelanceJobsListingSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsFreelanceJobsListingSchema,
   );
 /** The success body of `GetCorporationsFreelanceJobsParticipants`. */
-export const GetCorporationsFreelanceJobsParticipants: z.ZodType =
+export const GetCorporationsFreelanceJobsParticipantsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsFreelanceJobsParticipantsSchema,
   );
 /** The success body of `GetCorporationsCorporationIdFwStats`. */
-export const GetCorporationsCorporationIdFwStats: z.ZodType =
+export const GetCorporationsCorporationIdFwStatsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdFwStatsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdIcons`. */
-export const GetCorporationsCorporationIdIcons: z.ZodType =
+export const GetCorporationsCorporationIdIconsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdIconsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdIndustryJobs`. */
-export const GetCorporationsCorporationIdIndustryJobs: z.ZodType =
+export const GetCorporationsCorporationIdIndustryJobsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdIndustryJobsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdKillmailsRecent`. */
-export const GetCorporationsCorporationIdKillmailsRecent: z.ZodType =
+export const GetCorporationsCorporationIdKillmailsRecentSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdKillmailsRecentGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdMedals`. */
-export const GetCorporationsCorporationIdMedals: z.ZodType =
+export const GetCorporationsCorporationIdMedalsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdMedalsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdMedalsIssued`. */
-export const GetCorporationsCorporationIdMedalsIssued: z.ZodType =
+export const GetCorporationsCorporationIdMedalsIssuedSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdMedalsIssuedGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdMembers`. */
-export const GetCorporationsCorporationIdMembers: z.ZodType =
+export const GetCorporationsCorporationIdMembersSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdMembersGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdMembersLimit`. */
-export const GetCorporationsCorporationIdMembersLimit: z.ZodType =
+export const GetCorporationsCorporationIdMembersLimitSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdMembersLimitGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdMembersTitles`. */
-export const GetCorporationsCorporationIdMembersTitles: z.ZodType =
+export const GetCorporationsCorporationIdMembersTitlesSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdMembersTitlesGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdMembertracking`. */
-export const GetCorporationsCorporationIdMembertracking: z.ZodType =
+export const GetCorporationsCorporationIdMembertrackingSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdMembertrackingGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdOrders`. */
-export const GetCorporationsCorporationIdOrders: z.ZodType =
+export const GetCorporationsCorporationIdOrdersSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdOrdersGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdOrdersHistory`. */
-export const GetCorporationsCorporationIdOrdersHistory: z.ZodType =
+export const GetCorporationsCorporationIdOrdersHistorySchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdOrdersHistoryGetSchema,
   );
 /** The success body of `GetCorporationsProjectsListing`. */
-export const GetCorporationsProjectsListing: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CorporationsProjectsListingSchema,
-);
+export const GetCorporationsProjectsListingSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CorporationsProjectsListingSchema);
 /** The success body of `GetCorporationsProjectsDetail`. */
-export const GetCorporationsProjectsDetail: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => CorporationsProjectsDetailSchema,
-);
+export const GetCorporationsProjectsDetailSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => CorporationsProjectsDetailSchema);
 /** The success body of `GetCorporationsProjectsContribution`. */
-export const GetCorporationsProjectsContribution: z.ZodType =
+export const GetCorporationsProjectsContributionSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsProjectsContributionSchema,
   );
 /** The success body of `GetCorporationsProjectsContributors`. */
-export const GetCorporationsProjectsContributors: z.ZodType =
+export const GetCorporationsProjectsContributorsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsProjectsContributorsSchema,
   );
 /** The success body of `GetCorporationsCorporationIdRoles`. */
-export const GetCorporationsCorporationIdRoles: z.ZodType =
+export const GetCorporationsCorporationIdRolesSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdRolesGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdRolesHistory`. */
-export const GetCorporationsCorporationIdRolesHistory: z.ZodType =
+export const GetCorporationsCorporationIdRolesHistorySchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdRolesHistoryGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdShareholders`. */
-export const GetCorporationsCorporationIdShareholders: z.ZodType =
+export const GetCorporationsCorporationIdShareholdersSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdShareholdersGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdStandings`. */
-export const GetCorporationsCorporationIdStandings: z.ZodType =
+export const GetCorporationsCorporationIdStandingsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdStandingsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdStarbases`. */
-export const GetCorporationsCorporationIdStarbases: z.ZodType =
+export const GetCorporationsCorporationIdStarbasesSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdStarbasesGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdStarbasesStarbaseId`. */
-export const GetCorporationsCorporationIdStarbasesStarbaseId: z.ZodType =
+export const GetCorporationsCorporationIdStarbasesStarbaseIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdStarbasesStarbaseIdGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdStructures`. */
-export const GetCorporationsCorporationIdStructures: z.ZodType =
+export const GetCorporationsCorporationIdStructuresSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdStructuresGetSchema,
   );
 /** The success body of `GetCorporationsStructuresSkyhooksListing`. */
-export const GetCorporationsStructuresSkyhooksListing: z.ZodType =
+export const GetCorporationsStructuresSkyhooksListingSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsStructuresSkyhooksListingSchema,
   );
 /** The success body of `GetCorporationsStructuresSkyhooksDetail`. */
-export const GetCorporationsStructuresSkyhooksDetail: z.ZodType =
+export const GetCorporationsStructuresSkyhooksDetailSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsStructuresSkyhooksDetailSchema,
   );
 /** The success body of `GetCorporationsStructuresSovereigntyHubsListing`. */
-export const GetCorporationsStructuresSovereigntyHubsListing: z.ZodType =
+export const GetCorporationsStructuresSovereigntyHubsListingSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsStructuresSovereigntyHubsListingSchema,
   );
 /** The success body of `GetCorporationsStructuresSovereigntyHubsDetail`. */
-export const GetCorporationsStructuresSovereigntyHubsDetail: z.ZodType =
+export const GetCorporationsStructuresSovereigntyHubsDetailSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsStructuresSovereigntyHubsDetailSchema,
   );
 /** The success body of `GetCorporationsCorporationIdTitles`. */
-export const GetCorporationsCorporationIdTitles: z.ZodType =
+export const GetCorporationsCorporationIdTitlesSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdTitlesGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdWallets`. */
-export const GetCorporationsCorporationIdWallets: z.ZodType =
+export const GetCorporationsCorporationIdWalletsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdWalletsGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdWalletsDivisionJournal`. */
-export const GetCorporationsCorporationIdWalletsDivisionJournal: z.ZodType =
+export const GetCorporationsCorporationIdWalletsDivisionJournalSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => CorporationsCorporationIdWalletsDivisionJournalGetSchema,
   );
 /** The success body of `GetCorporationsCorporationIdWalletsDivisionTransactions`. */
-export const GetCorporationsCorporationIdWalletsDivisionTransactions: z.ZodType =
+export const GetCorporationsCorporationIdWalletsDivisionTransactionsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType =>
       CorporationsCorporationIdWalletsDivisionTransactionsGetSchema,
   );
 /** The success body of `GetCosmeticsSkinr`. */
-export const GetCosmeticsSkinr: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetCosmeticsSkinrSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => CosmeticsSkinrSchema,
 );
 /** The success body of `GetDogmaAttributes`. */
-export const GetDogmaAttributes: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetDogmaAttributesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => DogmaAttributesGetSchema,
 );
 /** The success body of `GetDogmaAttributesAttributeId`. */
-export const GetDogmaAttributesAttributeId: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => DogmaAttributesAttributeIdGetSchema,
-);
+export const GetDogmaAttributesAttributeIdSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => DogmaAttributesAttributeIdGetSchema);
 /** The success body of `GetDogmaDynamicItemsTypeIdItemId`. */
-export const GetDogmaDynamicItemsTypeIdItemId: z.ZodType =
+export const GetDogmaDynamicItemsTypeIdItemIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => DogmaDynamicItemsTypeIdItemIdGetSchema,
   );
 /** The success body of `GetDogmaEffects`. */
-export const GetDogmaEffects: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetDogmaEffectsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => DogmaEffectsGetSchema,
 );
 /** The success body of `GetDogmaEffectsEffectId`. */
-export const GetDogmaEffectsEffectId: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetDogmaEffectsEffectIdSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => DogmaEffectsEffectIdGetSchema,
 );
 /** The success body of `GetFleetsFleetId`. */
-export const GetFleetsFleetId: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetFleetsFleetIdSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => FleetsFleetIdGetSchema,
 );
 /** The success body of `GetFleetsFleetIdMembers`. */
-export const GetFleetsFleetIdMembers: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetFleetsFleetIdMembersSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => FleetsFleetIdMembersGetSchema,
 );
 /** The success body of `GetFleetsFleetIdWings`. */
-export const GetFleetsFleetIdWings: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetFleetsFleetIdWingsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => FleetsFleetIdWingsGetSchema,
 );
 /** The success body of `PostFleetsFleetIdWings`. */
-export const PostFleetsFleetIdWings: z.ZodType = /* @__PURE__ */ z.lazy(
+export const PostFleetsFleetIdWingsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => FleetsFleetIdWingsPostSchema,
 );
 /** The success body of `PostFleetsFleetIdWingsWingIdSquads`. */
-export const PostFleetsFleetIdWingsWingIdSquads: z.ZodType =
+export const PostFleetsFleetIdWingsWingIdSquadsSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => FleetsFleetIdWingsWingIdSquadsPostSchema,
   );
 /** The success body of `GetFreelanceJobsListing`. */
-export const GetFreelanceJobsListing: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetFreelanceJobsListingSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => FreelanceJobsListingSchema,
 );
 /** The success body of `GetFreelanceJobsDetail`. */
-export const GetFreelanceJobsDetail: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetFreelanceJobsDetailSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => FreelanceJobsDetailSchema,
 );
 /** The success body of `GetFwLeaderboards`. */
-export const GetFwLeaderboards: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetFwLeaderboardsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => FwLeaderboardsGetSchema,
 );
 /** The success body of `GetFwLeaderboardsCharacters`. */
-export const GetFwLeaderboardsCharacters: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => FwLeaderboardsCharactersGetSchema,
-);
+export const GetFwLeaderboardsCharactersSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => FwLeaderboardsCharactersGetSchema);
 /** The success body of `GetFwLeaderboardsCorporations`. */
-export const GetFwLeaderboardsCorporations: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => FwLeaderboardsCorporationsGetSchema,
-);
+export const GetFwLeaderboardsCorporationsSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => FwLeaderboardsCorporationsGetSchema);
 /** The success body of `GetFwStats`. */
-export const GetFwStats: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetFwStatsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => FwStatsGetSchema,
 );
 /** The success body of `GetFwSystems`. */
-export const GetFwSystems: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetFwSystemsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => FwSystemsGetSchema,
 );
 /** The success body of `GetFwWars`. */
-export const GetFwWars: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetFwWarsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => FwWarsGetSchema,
 );
 /** The success body of `GetIncursions`. */
-export const GetIncursions: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetIncursionsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => IncursionsGetSchema,
 );
 /** The success body of `GetIndustryFacilities`. */
-export const GetIndustryFacilities: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetIndustryFacilitiesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => IndustryFacilitiesGetSchema,
 );
 /** The success body of `GetIndustrySystems`. */
-export const GetIndustrySystems: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetIndustrySystemsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => IndustrySystemsGetSchema,
 );
 /** The success body of `GetInsurancePrices`. */
-export const GetInsurancePrices: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetInsurancePricesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => InsurancePricesGetSchema,
 );
 /** The success body of `GetKillmailsKillmailIdKillmailHash`. */
-export const GetKillmailsKillmailIdKillmailHash: z.ZodType =
+export const GetKillmailsKillmailIdKillmailHashSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => KillmailsKillmailIdKillmailHashGetSchema,
   );
 /** The success body of `GetLoyaltyStoresCorporationIdOffers`. */
-export const GetLoyaltyStoresCorporationIdOffers: z.ZodType =
+export const GetLoyaltyStoresCorporationIdOffersSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => LoyaltyStoresCorporationIdOffersGetSchema,
   );
 /** The success body of `GetMarketsGroups`. */
-export const GetMarketsGroups: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetMarketsGroupsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => MarketsGroupsGetSchema,
 );
 /** The success body of `GetMarketsGroupsMarketGroupId`. */
-export const GetMarketsGroupsMarketGroupId: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => MarketsGroupsMarketGroupIdGetSchema,
-);
+export const GetMarketsGroupsMarketGroupIdSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => MarketsGroupsMarketGroupIdGetSchema);
 /** The success body of `GetMarketsPrices`. */
-export const GetMarketsPrices: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetMarketsPricesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => MarketsPricesGetSchema,
 );
 /** The success body of `GetMarketsStructuresStructureId`. */
-export const GetMarketsStructuresStructureId: z.ZodType =
+export const GetMarketsStructuresStructureIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => MarketsStructuresStructureIdGetSchema,
   );
 /** The success body of `GetMarketsRegionIdHistory`. */
-export const GetMarketsRegionIdHistory: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => MarketsRegionIdHistoryGetSchema,
-);
+export const GetMarketsRegionIdHistorySchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => MarketsRegionIdHistoryGetSchema);
 /** The success body of `GetMarketsRegionIdOrders`. */
-export const GetMarketsRegionIdOrders: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetMarketsRegionIdOrdersSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => MarketsRegionIdOrdersGetSchema,
 );
 /** The success body of `GetMarketsRegionIdTypes`. */
-export const GetMarketsRegionIdTypes: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetMarketsRegionIdTypesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => MarketsRegionIdTypesGetSchema,
 );
 /** The success body of `GetMetaChangelog`. */
-export const GetMetaChangelog: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetMetaChangelogSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => MetaChangelogSchema,
 );
 /** The success body of `GetMetaCompatibilityDates`. */
-export const GetMetaCompatibilityDates: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => MetaCompatibilityDatesSchema,
-);
+export const GetMetaCompatibilityDatesSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => MetaCompatibilityDatesSchema);
 /** The success body of `GetMetaName`. */
-export const GetMetaName: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetMetaNameSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => MetaNameSchema,
 );
 /** The success body of `GetMetaOpenapiJson`. */
-export const GetMetaOpenapiJson: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetMetaOpenapiJsonSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => z.record(z.string(), z.unknown()),
 );
 /** The success body of `GetMetaStatus`. */
-export const GetMetaStatus: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetMetaStatusSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => MetaStatusSchema,
 );
 /** The success body of `GetMilitaryCampaignsListing`. */
-export const GetMilitaryCampaignsListing: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => MilitaryCampaignsListingSchema,
-);
+export const GetMilitaryCampaignsListingSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => MilitaryCampaignsListingSchema);
 /** The success body of `GetMilitaryCampaignsDetail`. */
-export const GetMilitaryCampaignsDetail: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => MilitaryCampaignsDetailSchema,
-);
+export const GetMilitaryCampaignsDetailSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => MilitaryCampaignsDetailSchema);
 /** The success body of `GetMilitaryCampaignsObjectivesListing`. */
-export const GetMilitaryCampaignsObjectivesListing: z.ZodType =
+export const GetMilitaryCampaignsObjectivesListingSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => MilitaryCampaignsObjectivesListingSchema,
   );
 /** The success body of `GetMilitaryCampaignsObjectivesDetail`. */
-export const GetMilitaryCampaignsObjectivesDetail: z.ZodType =
+export const GetMilitaryCampaignsObjectivesDetailSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => MilitaryCampaignsObjectivesDetailSchema,
   );
 /** The success body of `GetParagonHubSkinr`. */
-export const GetParagonHubSkinr: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetParagonHubSkinrSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => ParagonHubSkinrSchema,
 );
 /** The success body of `GetParagonHubSkinrAlliances`. */
-export const GetParagonHubSkinrAlliances: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => ParagonHubSkinrAlliancesSchema,
-);
+export const GetParagonHubSkinrAlliancesSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => ParagonHubSkinrAlliancesSchema);
 /** The success body of `GetParagonHubSkinrCharacters`. */
-export const GetParagonHubSkinrCharacters: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => ParagonHubSkinrCharactersSchema,
-);
+export const GetParagonHubSkinrCharactersSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => ParagonHubSkinrCharactersSchema);
 /** The success body of `GetParagonHubSkinrCorporations`. */
-export const GetParagonHubSkinrCorporations: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => ParagonHubSkinrCorporationsSchema,
-);
+export const GetParagonHubSkinrCorporationsSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => ParagonHubSkinrCorporationsSchema);
 /** The success body of `PostRoute`. */
-export const PostRoute: z.ZodType = /* @__PURE__ */ z.lazy(
+export const PostRouteSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => RouteSchema,
 );
 /** The success body of `GetSkyhooksRaidable`. */
-export const GetSkyhooksRaidable: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetSkyhooksRaidableSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => SkyhooksRaidableSchema,
 );
 /** The success body of `GetSovereigntyCampaigns`. */
-export const GetSovereigntyCampaigns: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetSovereigntyCampaignsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => SovereigntyCampaignsGetSchema,
 );
 /** The success body of `GetSovereigntySystems`. */
-export const GetSovereigntySystems: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetSovereigntySystemsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => SovereigntySystemsSchema,
 );
 /** The success body of `GetStatus`. */
-export const GetStatus: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetStatusSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => StatusSchema,
 );
 /** The success body of `GetUniverseAncestries`. */
-export const GetUniverseAncestries: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseAncestriesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseAncestriesGetSchema,
 );
 /** The success body of `GetUniverseAsteroidBeltsAsteroidBeltId`. */
-export const GetUniverseAsteroidBeltsAsteroidBeltId: z.ZodType =
+export const GetUniverseAsteroidBeltsAsteroidBeltIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => UniverseAsteroidBeltsAsteroidBeltIdGetSchema,
   );
 /** The success body of `GetUniverseBloodlines`. */
-export const GetUniverseBloodlines: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseBloodlinesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseBloodlinesGetSchema,
 );
 /** The success body of `GetUniverseCategories`. */
-export const GetUniverseCategories: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseCategoriesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseCategoriesGetSchema,
 );
 /** The success body of `GetUniverseCategoriesCategoryId`. */
-export const GetUniverseCategoriesCategoryId: z.ZodType =
+export const GetUniverseCategoriesCategoryIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => UniverseCategoriesCategoryIdGetSchema,
   );
 /** The success body of `GetUniverseConstellations`. */
-export const GetUniverseConstellations: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => UniverseConstellationsGetSchema,
-);
+export const GetUniverseConstellationsSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => UniverseConstellationsGetSchema);
 /** The success body of `GetUniverseConstellationsConstellationId`. */
-export const GetUniverseConstellationsConstellationId: z.ZodType =
+export const GetUniverseConstellationsConstellationIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => UniverseConstellationsConstellationIdGetSchema,
   );
 /** The success body of `GetUniverseFactions`. */
-export const GetUniverseFactions: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseFactionsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseFactionsGetSchema,
 );
 /** The success body of `GetUniverseGraphics`. */
-export const GetUniverseGraphics: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseGraphicsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseGraphicsGetSchema,
 );
 /** The success body of `GetUniverseGraphicsGraphicId`. */
-export const GetUniverseGraphicsGraphicId: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => UniverseGraphicsGraphicIdGetSchema,
-);
+export const GetUniverseGraphicsGraphicIdSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => UniverseGraphicsGraphicIdGetSchema);
 /** The success body of `GetUniverseGroups`. */
-export const GetUniverseGroups: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseGroupsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseGroupsGetSchema,
 );
 /** The success body of `GetUniverseGroupsGroupId`. */
-export const GetUniverseGroupsGroupId: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseGroupsGroupIdSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseGroupsGroupIdGetSchema,
 );
 /** The success body of `PostUniverseIds`. */
-export const PostUniverseIds: z.ZodType = /* @__PURE__ */ z.lazy(
+export const PostUniverseIdsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseIdsPostSchema,
 );
 /** The success body of `GetUniverseMoonsMoonId`. */
-export const GetUniverseMoonsMoonId: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseMoonsMoonIdSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseMoonsMoonIdGetSchema,
 );
 /** The success body of `PostUniverseNames`. */
-export const PostUniverseNames: z.ZodType = /* @__PURE__ */ z.lazy(
+export const PostUniverseNamesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseNamesPostSchema,
 );
 /** The success body of `GetUniversePlanetsPlanetId`. */
-export const GetUniversePlanetsPlanetId: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => UniversePlanetsPlanetIdGetSchema,
-);
+export const GetUniversePlanetsPlanetIdSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => UniversePlanetsPlanetIdGetSchema);
 /** The success body of `GetUniverseRaces`. */
-export const GetUniverseRaces: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseRacesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseRacesGetSchema,
 );
 /** The success body of `GetUniverseRegions`. */
-export const GetUniverseRegions: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseRegionsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseRegionsGetSchema,
 );
 /** The success body of `GetUniverseRegionsRegionId`. */
-export const GetUniverseRegionsRegionId: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => UniverseRegionsRegionIdGetSchema,
-);
+export const GetUniverseRegionsRegionIdSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => UniverseRegionsRegionIdGetSchema);
 /** The success body of `GetUniverseSchematicsSchematicId`. */
-export const GetUniverseSchematicsSchematicId: z.ZodType =
+export const GetUniverseSchematicsSchematicIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => UniverseSchematicsSchematicIdGetSchema,
   );
 /** The success body of `GetUniverseStargatesStargateId`. */
-export const GetUniverseStargatesStargateId: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => UniverseStargatesStargateIdGetSchema,
-);
+export const GetUniverseStargatesStargateIdSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => UniverseStargatesStargateIdGetSchema);
 /** The success body of `GetUniverseStarsStarId`. */
-export const GetUniverseStarsStarId: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseStarsStarIdSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseStarsStarIdGetSchema,
 );
 /** The success body of `GetUniverseStationsStationId`. */
-export const GetUniverseStationsStationId: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => UniverseStationsStationIdGetSchema,
-);
+export const GetUniverseStationsStationIdSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => UniverseStationsStationIdGetSchema);
 /** The success body of `GetUniverseStructures`. */
-export const GetUniverseStructures: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseStructuresSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseStructuresGetSchema,
 );
 /** The success body of `GetUniverseStructuresStructureId`. */
-export const GetUniverseStructuresStructureId: z.ZodType =
+export const GetUniverseStructuresStructureIdSchema: z.ZodType =
   /* @__PURE__ */ z.lazy(
     (): z.ZodType => UniverseStructuresStructureIdGetSchema,
   );
 /** The success body of `GetUniverseSystemJumps`. */
-export const GetUniverseSystemJumps: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseSystemJumpsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseSystemJumpsGetSchema,
 );
 /** The success body of `GetUniverseSystemKills`. */
-export const GetUniverseSystemKills: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseSystemKillsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseSystemKillsGetSchema,
 );
 /** The success body of `GetUniverseSystems`. */
-export const GetUniverseSystems: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseSystemsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseSystemsGetSchema,
 );
 /** The success body of `GetUniverseSystemsSystemId`. */
-export const GetUniverseSystemsSystemId: z.ZodType = /* @__PURE__ */ z.lazy(
-  (): z.ZodType => UniverseSystemsSystemIdGetSchema,
-);
+export const GetUniverseSystemsSystemIdSchema: z.ZodType =
+  /* @__PURE__ */ z.lazy((): z.ZodType => UniverseSystemsSystemIdGetSchema);
 /** The success body of `GetUniverseTypes`. */
-export const GetUniverseTypes: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseTypesSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseTypesGetSchema,
 );
 /** The success body of `GetUniverseTypesTypeId`. */
-export const GetUniverseTypesTypeId: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetUniverseTypesTypeIdSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => UniverseTypesTypeIdGetSchema,
 );
 /** The success body of `GetWars`. */
-export const GetWars: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetWarsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => WarsGetSchema,
 );
 /** The success body of `GetWarsWarId`. */
-export const GetWarsWarId: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetWarsWarIdSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => WarsWarIdGetSchema,
 );
 /** The success body of `GetWarsWarIdKillmails`. */
-export const GetWarsWarIdKillmails: z.ZodType = /* @__PURE__ */ z.lazy(
+export const GetWarsWarIdKillmailsSchema: z.ZodType = /* @__PURE__ */ z.lazy(
   (): z.ZodType => WarsWarIdKillmailsGetSchema,
 );

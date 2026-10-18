@@ -207,4 +207,36 @@ describe('generateResponseSchemas', () => {
       }),
     ).toThrow(/override names missing schema "Missing"/);
   });
+
+  it('exports each baseline as <operationId>Schema, so a reserved-word operationId still declares', () => {
+    const doc: OpenApiDocument = {
+      info: { version: '2026-01-01' },
+      paths: {
+        '/default': {
+          get: { operationId: 'default', responses: ok({ type: 'integer' }) },
+        },
+      },
+    };
+    const { baselineSource } = generateResponseSchemas(doc, 'fixture.json');
+    expect(baselineSource).toContain('export const defaultSchema: z.ZodType');
+    expect(baselineSource).not.toMatch(/export const default\b/);
+  });
+
+  it('fails when a baseline name collides with a component schema', () => {
+    const doc: OpenApiDocument = {
+      info: { version: '2026-01-01' },
+      components: { schemas: { GetThing: { type: 'integer' } } },
+      paths: {
+        '/thing': {
+          get: {
+            operationId: 'GetThing',
+            responses: ok({ $ref: '#/components/schemas/GetThing' }),
+          },
+        },
+      },
+    };
+    expect(() => generateResponseSchemas(doc, 'fixture.json')).toThrow(
+      /baseline GetThingSchema for operationId "GetThing" collides/,
+    );
+  });
 });
