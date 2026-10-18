@@ -63,7 +63,17 @@ const prices = await pub.market?.getMarketPrices();
 // pub.market?.getCharacterOrders(id) does not compile: it needs a token.
 ```
 
-These three surfaces and the domain clients are supported, and the charter keeps them so (ARCH-14). Two narrower things are deprecated since 11.0.0 and still work: `EsiApiFactory`'s nine named methods (`createMarketClient`, `createWalletClient` and the rest), in favour of `EsiApiFactory.createClient(type)` or `EsiClientBuilder`, and `EsiTokenManager.createClient`, in favour of `esi.as(tokens.identity(id))` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)). Removing either needs a future major release, and none is scheduled. 12.1.0 deprecated the rest of the custom-client tree for a 13.0.0 removal; 12.2.0 lifted that, and no 13.0 is planned (section 11). `createEsi()` from `@lgriffin/esi.ts/client` is the spec-shaped low-level alternative for calls that mirror the URL and the spec's parameters.
+For an application that acts for many characters, build one client and take a view per character with `as(identity)` on an `EsiClient` or a `CustomEsiClient`. A view is the same domain clients sending as that identity over the client's one cache, rate limiter, error budget and breaker; [MULTI-CHARACTER.md](MULTI-CHARACTER.md) has the identities and what the views share.
+
+```typescript
+import { EsiClient } from '@lgriffin/esi.ts';
+
+const client = new EsiClient({ userAgent: 'fleet-tool/2.1 (ops@example.com)' });
+const pilot = client.as(tokens.identity(characterId));
+const wallet = await pilot.wallet.getCharacterWallet(characterId);
+```
+
+These three surfaces and the domain clients are supported, and the charter keeps them so (ARCH-14). Two narrower things are deprecated since 11.0.0 and still work: `EsiApiFactory`'s nine named methods (`createMarketClient`, `createWalletClient` and the rest), in favour of `EsiApiFactory.createClient(type)` or `EsiClientBuilder`, and `EsiTokenManager.createClient`, in favour of `client.as(tokens.identity(id))` on one `EsiClient` or `CustomEsiClient` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)). Removing either needs a future major release, and none is scheduled. 12.1.0 deprecated the rest of the custom-client tree for a 13.0.0 removal; 12.2.0 lifted that, and no 13.0 is planned (section 11). `createEsi()` from `@lgriffin/esi.ts/client` stays documented for direct use: it is the spec-shaped low-level surface, for calls that mirror the URL and the spec's parameters, and the engine the custom clients run on.
 
 Call `shutdown()` when you are done with a client. It stops the cache sweep timer and the circuit-breaker cleanup timer, so a script can exit. It is synchronous.
 
@@ -455,8 +465,8 @@ npm run example:retry-timeout-metadata
 npm run example                 # full character profile
 npm run example:wallet
 npm run example:token-manager   # SSO login, storage and refresh
-npm run example:multi-character # several characters' wallets through one runtime
-npm run example:public-vs-authenticated # the type split, with a @ts-expect-error line
+npm run example:multi-character # several characters' wallets through one client and as(identity)
+npm run example:public-vs-authenticated # buildPublic() and the type split, with a @ts-expect-error line
 npm run example:write-ops       # contacts, fittings, mail and UI round trips; use a test character
 
 # Static data (needs sde-data/, see the SDE guide)

@@ -82,13 +82,13 @@ The callback above is a hook. `EsiTokenManager` is the whole lifecycle for appli
 
 ```typescript
 import {
+  EsiClient,
   EsiTokenManager,
   FileTokenStorage,
   generateState,
 } from '@lgriffin/esi.ts';
-import { createEsi } from '@lgriffin/esi.ts/client';
 
-const esi = createEsi({ userAgent: 'my-app/1.0 (ops@my-app.example)' });
+const client = new EsiClient({ userAgent: 'my-app/1.0 (ops@my-app.example)' });
 const tokens = new EsiTokenManager({
   clientId: process.env.ESI_SSO_CLIENT_ID!,
   clientSecret: process.env.ESI_SSO_CLIENT_SECRET, // omit for a public (PKCE) client
@@ -116,11 +116,10 @@ async function onSsoCallback(requestUrl: string, savedState: string) {
   const stored = await tokens.addCharacter(code);
   log.info(`Added ${stored.characterName} (${stored.characterId})`);
 
-  // 3. A view of the shared runtime as that character, refreshed through the manager
-  await esi
+  // 3. A view of the client as that character, refreshed through the manager
+  await client
     .as(tokens.identity(stored.characterId))
-    .character(stored.characterId)
-    .wallet.get();
+    .wallet.getCharacterWallet(stored.characterId);
 
   // Or a fresh access token, or a TokenProvider for a client you build yourself
   const accessToken = await tokens.getToken(stored.characterId);
@@ -256,5 +255,6 @@ async function characterFromBearer(token: string): Promise<number | null> {
 
 - **Phase 2 PR 10b (done)** keys the cache and the deduplicator by the character the token names instead of the token, so ETags survive a refresh.
 - **Phase 2 PR 11 (done)** adds `@lgriffin/esi.ts/client`: `esi.as(identity)` is an immutable per-character view over one shared runtime, built from `tokens.identity(characterId)`, a raw token (`identityFromToken`) or a `TokenProvider` (`identityFromProvider`). [MULTI-CHARACTER.md](MULTI-CHARACTER.md) is the guide. **Deprecated in 11.0.0:** `tokens.createClient(id)` still works, and is `@deprecated` in favour of `esi.as(tokens.identity(id))`. Removing it needs a future major release, and none is scheduled; the rest of the custom clients stay ([CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)).
+- **Since 12.x** the custom clients have the same views: `client.as(tokens.identity(id))` on one `EsiClient` or `CustomEsiClient` returns the same domain clients sending as that character, and is the shortest move off `tokens.createClient(id)` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md#moving-from-esitokenmanagercreateclient)).
 
 The design is in [ROADMAP.md](ROADMAP.md), Phase 2.

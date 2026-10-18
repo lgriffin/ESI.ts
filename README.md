@@ -64,24 +64,34 @@ Next: [Using the client](guides/USAGE.md) for configuration and every domain cli
 
 ### Multiple characters
 
-An application that acts for many characters has one relationship with ESI, so `@lgriffin/esi.ts/client` builds one runtime and a view per identity. The views share the rate limiter, the error budget and the ETag cache; each identity's authenticated entries stay apart. `esi.public` is typed so that an authenticated call does not compile.
+An application that acts for many characters has one relationship with ESI, so `client.as(identity)` returns the same domain clients sending as one identity. Every view shares the client's cache, rate limiter, error budget and circuit breaker, and each identity's authenticated cache entries stay apart.
 
 ```typescript
-import { createEsi } from '@lgriffin/esi.ts/client';
+import { EsiClient } from '@lgriffin/esi.ts';
 
-const esi = createEsi({ userAgent: 'my-app/1.0 (you@example.com)' });
-const status = await esi.public.status.get();
-const wallet = await esi
-  .as(tokens.identity(characterId))
-  .character(characterId)
-  .wallet.get();
+const client = new EsiClient({ userAgent: 'my-app/1.0 (you@example.com)' });
+const status = await client.status.getStatus();
+const pilot = client.as(tokens.identity(characterId));
+const wallet = await pilot.wallet.getCharacterWallet(characterId);
 ```
 
-[Many characters](guides/MULTI-CHARACTER.md) has the identities (`EsiTokenManager`, a raw token, a `TokenProvider`), what the views share, and the move from `tokens.createClient`.
+For a client that must never send a token, `buildPublic()` on the builder returns domain clients typed without their authenticated methods, so such a call does not compile:
+
+```typescript
+import { EsiClientBuilder } from '@lgriffin/esi.ts';
+
+const pub = new EsiClientBuilder()
+  .addClients(['market', 'universe'])
+  .withConfig({ userAgent: 'my-app/1.0 (you@example.com)' })
+  .buildPublic();
+const prices = await pub.market?.getMarketPrices();
+```
+
+[Many characters](guides/MULTI-CHARACTER.md) has the identities (`EsiTokenManager`, a raw token, a `TokenProvider`), what the views share, and the move from `tokens.createClient`. The same engine also serves `createEsi()` from `@lgriffin/esi.ts/client`, a spec-shaped low-level surface whose calls mirror the URL (`esi.as(identity).character(id).wallet.get()`).
 
 ### Testing your application without ESI
 
-`createMockTransport()` from `@lgriffin/esi.ts/testing` answers requests from a table of routes and records what your code sent. Everything between your call and the transport is the real pipeline, so this runs as written:
+`createMockTransport()` from `@lgriffin/esi.ts/testing` is a transport for `createEsi()`. It answers requests from a table of routes and records what your code sent. Everything between your call and the transport is the real pipeline, so this runs as written:
 
 ```typescript runnable
 import { createEsi, identityFromToken } from '@lgriffin/esi.ts/client';
