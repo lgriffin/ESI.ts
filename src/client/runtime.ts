@@ -233,92 +233,6 @@ function refusePublic(meta: OperationMeta): void {
   );
 }
 
-/**
- * Asks the identity for its token before each request, so a holder that
- * refreshes ahead of expiry is honoured, and installs the refresh as the
- * client's token provider, so the 401 path in the retry strategy reaches it.
- */
-class IdentityTransport implements OperationTransport {
-  constructor(
-    private readonly client: ApiClient,
-    private readonly identity: Identity,
-    private readonly inner: OperationTransport,
-  ) {}
-
-  async request<T>(meta: OperationMeta, req: OperationRequest): Promise<T> {
-    await this.prepare(meta);
-    return this.inner.request<T>(meta, req);
-  }
-
-  /**
-   * Each page is its own request, and a consumer may hold the iterator across
-   * a token rotation, so the identity is asked again before every page.
-   */
-  async *paginate<T>(
-    meta: OperationMeta,
-    req: OperationRequest,
-  ): AsyncIterable<T> {
-    const pages = this.inner.paginate<T>(meta, req)[Symbol.asyncIterator]();
-    try {
-      for (;;) {
-        await this.prepare(meta);
-        const next = await pages.next();
-        if (next.done) return;
-        yield next.value;
-      }
-    } finally {
-      await pages.return?.();
-    }
-  }
-
-  private async prepare(meta: OperationMeta): Promise<void> {
-    if (meta.scopes.length === 0) return;
-    this.client.setAccessToken(await this.identity.accessToken());
-  }
-}
-
-/**
- * A client that sends as `identity` and shares everything else with the
- * runtime. The middleware objects carry a client back-reference for logging
- * only, so sharing them is sound; the cache and deduplicator scope their keys
- * by the token each client sends.
- */
-function viewClient(
-  runtime: ApiClient,
-  options: EsiOptions,
-  identity: Identity,
-): ApiClient {
-  const client = new ApiClient(CLIENT_ID, runtime.getLink());
-  client.setCache(runtime.getCache());
-  client.setRateLimiter(runtime.getRateLimiter());
-  client.setCircuitBreaker(runtime.getCircuitBreaker());
-  client.setDeduplicator(runtime.getDeduplicator());
-  client.setRetryConfig(runtime.getRetryConfig());
-  client.setRetryStrategy(runtime.getRetryStrategy());
-  client.setValidateResponse(runtime.getValidateResponse());
-  client.setValidateRequest(runtime.getValidateRequest());
-  client.setIncompletePages(runtime.getIncompletePages());
-  client.setTimeout(runtime.getTimeout());
-  client.setLogger(runtime.getLogger());
-  client.setTenant(runtime.getTenant());
-  client.setUserAgent(runtime.getUserAgent());
-  client.setCompatibilityDate(runtime.getCompatibilityDate());
-  client.setDatasource(runtime.getDatasource());
-  client.setLanguage(runtime.getLanguage());
-  client.setClock(runtime.getClock());
-  if (options.transport) client.setFetch(options.transport);
-  for (const fn of options.requestInterceptors ?? []) {
-    client.addRequestInterceptor(fn);
-  }
-  for (const fn of options.responseInterceptors ?? []) {
-    client.addResponseInterceptor(fn);
-  }
-  if (identity.refreshAccessToken) {
-    client.setTokenProvider(() => identity.refreshAccessToken!());
-  }
-  return client;
-}
-
 export function createEsi(options: EsiOptions): Esi {
   if (typeof options.userAgent !== 'string' || options.userAgent === '') {
     throw new EsiConfigurationError(
@@ -364,7 +278,7 @@ export function createEsi(options: EsiOptions): Esi {
   const clientFor = (identity: Identity): ApiClient => {
     let client = clients.get(identity);
     if (!client) {
-      client = viewClient(runtime, options, identity);
+      client = runtime.forIdentity(identity);
       clients.set(identity, client);
     }
     return client;
@@ -380,10 +294,7 @@ export function createEsi(options: EsiOptions): Esi {
         if (known) return known;
         const client = clientFor(identity);
         const view = createScopeTree(
-          inMode(
-            mode,
-            new IdentityTransport(client, identity, base(mode, client)),
-          ),
+          inMode(mode, base(mode, client)),
         ) as unknown as TScoped;
         byIdentity.set(identity, view);
         return view;
