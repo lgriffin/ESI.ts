@@ -70,6 +70,7 @@ import {
   BatchResult,
 } from './core/BatchRequestHandler';
 import { configureApiClient } from './core/configureApiClient';
+import { diagnosticsFor } from './core/pipelineOwnership';
 import { logInfo } from './core/logger/clientLog';
 import {
   domainClientViews,
@@ -312,11 +313,7 @@ export class EsiClient {
 
   get diagnostics(): EsiDiagnostics {
     if (!this._diagnostics) {
-      this._diagnostics = new EsiDiagnostics(
-        this.apiClient,
-        this.etagCacheEnabled,
-        this.apiClient.getDeduplicator(),
-      );
+      this._diagnostics = diagnosticsFor(this.apiClient, this.etagCacheEnabled);
     }
     return this._diagnostics;
   }

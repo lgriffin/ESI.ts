@@ -463,16 +463,18 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
     protected api: ClientMethods<T>;
     // (undocumented)
     protected _client: ApiClient;
+    get diagnostics(): EsiDiagnostics;
     // (undocumented)
     protected _endpoints: T;
     // (undocumented)
     fetchAllEndpoint<R>(endpointName: string & keyof T, args: unknown[], concurrency?: number): Promise<R[]>;
+    shutdown(): void;
     // (undocumented)
     streamEndpoint<R>(endpointName: string & keyof T, ...args: unknown[]): AsyncGenerator<PageResult<R>, void, undefined>;
     // (undocumented)
-    withMetadata(): WithMetadata<Omit<this, 'withMetadata' | 'withSafeMode'>>;
+    withMetadata(): WithMetadata<Omit<this, 'withMetadata' | 'withSafeMode' | 'diagnostics' | 'shutdown'>>;
     // (undocumented)
-    withSafeMode(): WithSafeMode<Omit<this, 'withMetadata' | 'withSafeMode'>>;
+    withSafeMode(): WithSafeMode<Omit<this, 'withMetadata' | 'withSafeMode' | 'diagnostics' | 'shutdown'>>;
 }
 
 // @public (undocumented)
