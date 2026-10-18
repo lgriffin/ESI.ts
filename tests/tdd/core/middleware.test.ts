@@ -180,6 +180,115 @@ describe('Middleware', () => {
       manager.clear();
       expect(manager.hasInterceptors()).toBe(false);
     });
+
+    describe('withholdRequestHeaders', () => {
+      const request = (headers: Record<string, string>): RequestContext => ({
+        url: 'http://test',
+        endpoint: 'test',
+        method: 'GET',
+        headers,
+      });
+
+      it('removes a withheld header whatever its case', async () => {
+        const manager = new MiddlewareManager();
+        manager.withholdRequestHeaders('Authorization');
+
+        const lower = await manager.applyRequestInterceptors(
+          request({ authorization: 'Bearer a', Accept: 'application/json' }),
+        );
+        const upper = await manager.applyRequestInterceptors(
+          request({ AUTHORIZATION: 'Bearer b' }),
+        );
+
+        expect(lower.headers).toEqual({ Accept: 'application/json' });
+        expect(upper.headers).toEqual({});
+      });
+
+      it('matches a name given in any case', async () => {
+        const manager = new MiddlewareManager();
+        manager.withholdRequestHeaders('X-TENANT');
+
+        const result = await manager.applyRequestInterceptors(
+          request({ 'x-tenant': 'tranquility', Accept: '*/*' }),
+        );
+
+        expect(result.headers).toEqual({ Accept: '*/*' });
+      });
+
+      it('withholds several names, given in one call or across calls', async () => {
+        const manager = new MiddlewareManager();
+        manager.withholdRequestHeaders('Authorization', 'Cookie');
+        manager.withholdRequestHeaders('X-Tenant');
+
+        const result = await manager.applyRequestInterceptors(
+          request({
+            Authorization: 'Bearer a',
+            Cookie: 'session=1',
+            'X-Tenant': 'tranquility',
+            'X-User-Agent': 'app/1.0',
+          }),
+        );
+
+        expect(result.headers).toEqual({ 'X-User-Agent': 'app/1.0' });
+      });
+
+      it('removes a header after every interceptor has run, including one an interceptor added', async () => {
+        const manager = new MiddlewareManager();
+        manager.withholdRequestHeaders('Authorization');
+        const seen: (string | undefined)[] = [];
+        manager.addRequestInterceptor((ctx) => ({
+          ...ctx,
+          headers: { ...ctx.headers, Authorization: 'Bearer added' },
+        }));
+        manager.addRequestInterceptor((ctx) => {
+          seen.push(ctx.headers.Authorization);
+          return ctx;
+        });
+
+        const result = await manager.applyRequestInterceptors(request({}));
+
+        expect(seen).toEqual(['Bearer added']);
+        expect(result.headers).toEqual({});
+      });
+
+      it('leaves the context it was given unchanged', async () => {
+        const manager = new MiddlewareManager();
+        manager.withholdRequestHeaders('Authorization');
+        const original = request({ Authorization: 'Bearer a', Accept: '*/*' });
+
+        const result = await manager.applyRequestInterceptors(original);
+
+        expect(original.headers).toEqual({
+          Authorization: 'Bearer a',
+          Accept: '*/*',
+        });
+        expect(result.headers).toEqual({ Accept: '*/*' });
+        expect(result.url).toBe(original.url);
+      });
+
+      it('survives clear() and adds no interceptor of its own', async () => {
+        const manager = new MiddlewareManager();
+        manager.withholdRequestHeaders('Authorization');
+        expect(manager.hasInterceptors()).toBe(false);
+
+        manager.addRequestInterceptor((ctx) => ctx);
+        manager.clear();
+        const result = await manager.applyRequestInterceptors(
+          request({ Authorization: 'Bearer a' }),
+        );
+
+        expect(result.headers).toEqual({});
+      });
+
+      it('keeps every header when nothing is withheld', async () => {
+        const manager = new MiddlewareManager();
+        const original = request({ Authorization: 'Bearer a' });
+
+        const result = await manager.applyRequestInterceptors(original);
+
+        expect(result.headers).toEqual({ Authorization: 'Bearer a' });
+      });
+    });
   });
 
   describe('Integration with handleRequest', () => {
