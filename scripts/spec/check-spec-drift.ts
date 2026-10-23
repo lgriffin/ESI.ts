@@ -60,7 +60,7 @@ async function resolveCompatibilityDate(
   return dates[0]!;
 }
 
-function normalizePath(p: string): string {
+export function normalizePath(p: string): string {
   return p
     .replace(/^\//, '')
     .replace(/\/$/, '')
@@ -68,35 +68,53 @@ function normalizePath(p: string): string {
     .toLowerCase();
 }
 
-function parseEndpointFiles(): {
+export interface CodebaseEndpoint {
   path: string;
   method: string;
   name: string;
   file: string;
-}[] {
-  const entries: {
-    path: string;
-    method: string;
-    name: string;
-    file: string;
-  }[] = [];
+}
+
+/**
+ * Every endpoint definition the custom clients call, read from the endpoint
+ * maps themselves. Since #679 and #681 most definitions are built by
+ * `fromOperation` from the generated route table, so their paths no longer
+ * appear as literals in the source, and the regex this replaced found none of
+ * them: the nightly reported all 233 spec operations missing (#692).
+ *
+ * @throws Error when no map yields a definition, so a broken reader fails the
+ *   run (exit 2) instead of filing every endpoint as missing.
+ */
+export function codebaseEndpoints(
+  endpointsDir: string = ENDPOINTS_DIR,
+): CodebaseEndpoint[] {
+  const entries: CodebaseEndpoint[] = [];
   const files = fs
-    .readdirSync(ENDPOINTS_DIR)
-    .filter((f) => f.endsWith('Endpoints.ts'));
+    .readdirSync(endpointsDir)
+    .filter((f) => f.endsWith('Endpoints.ts'))
+    .sort();
 
   for (const file of files) {
-    const content = fs.readFileSync(path.join(ENDPOINTS_DIR, file), 'utf-8');
-    const pathRegex =
-      /(\w+):\s*\{[^}]*?path:\s*'([^']+)'[^}]*?method:\s*'(GET|POST|PUT|DELETE)'/gs;
-    let match;
-    while ((match = pathRegex.exec(content)) !== null) {
-      entries.push({
-        name: match[1]!,
-        path: match[2]!,
-        method: match[3]!,
-        file,
-      });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const exported = require(path.join(endpointsDir, file)) as Record<
+      string,
+      unknown
+    >;
+    for (const map of Object.values(exported)) {
+      if (typeof map !== 'object' || map === null) continue;
+      for (const [name, definition] of Object.entries(map)) {
+        const { path: route, method } = (definition ?? {}) as {
+          path?: unknown;
+          method?: unknown;
+        };
+        if (typeof route === 'string' && typeof method === 'string') {
+          entries.push({ name, path: route, method, file });
+        }
+      }
     }
+  }
+  if (entries.length === 0) {
+    throw new Error(`No endpoint definitions found in ${endpointsDir}`);
   }
   return entries;
 }
@@ -114,7 +132,7 @@ async function checkDrift(): Promise<DriftReport> {
     paths: Record<string, Record<string, { tags?: string[] }>>;
   };
 
-  const codebaseEntries = parseEndpointFiles();
+  const codebaseEntries = codebaseEndpoints();
 
   const specEntries: { method: string; path: string; tag: string }[] = [];
   for (const [routePath, methods] of Object.entries(spec.paths)) {
@@ -168,7 +186,9 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err: unknown) => {
-  console.error(err);
-  process.exit(2);
-});
+if (require.main === module) {
+  main().catch((err: unknown) => {
+    console.error(err);
+    process.exit(2);
+  });
+}
