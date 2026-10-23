@@ -4,13 +4,16 @@ import {
 } from '../../support/insurance';
 import { sentRequests } from '../../support/transport';
 import { Then } from '../../support/steps';
+import { timeBudgetMs } from '../../support/time-budget';
 
 Then(
   'the client shall handle the large insurance response efficiently',
   function () {
     expect(sentRequests()).toHaveLength(1);
     expect(this.result).toHaveLength(LARGE_SHIP_TYPE_COUNT);
-    expect(this.values.elapsedMs).toBeLessThan(LARGE_RESPONSE_BUDGET_MS);
+    expect(this.values.elapsedMs).toBeLessThan(
+      timeBudgetMs(LARGE_RESPONSE_BUDGET_MS),
+    );
     expect(this.result[0].type_id).toBe(1000);
     expect(this.result[499].type_id).toBe(1499);
     expect(this.result[499].levels[5]).toEqual({

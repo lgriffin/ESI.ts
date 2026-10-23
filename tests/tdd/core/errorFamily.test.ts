@@ -177,6 +177,30 @@ describe('error family (ARCH-07)', () => {
     },
   );
 
+  it.each([
+    [
+      'a relative path whose only query starts the string',
+      '?token=secret&page=2',
+      '?token=[REDACTED]&page=2',
+    ],
+    [
+      'a relative path with an absolute URL inside its query',
+      'corps/1/projects?next=http://esi.test/a&token=secret',
+      'corps/1/projects?next=http://esi.test/a&token=[REDACTED]',
+    ],
+    [
+      'an absolute http URL',
+      'http://esi.test/a?token=secret&page=2',
+      'http://esi.test/a?token=%5BREDACTED%5D&page=2',
+    ],
+  ])(
+    'DES-08: EsiPaginationError redacts the endpoint of %s',
+    (_case, endpoint, redacted) => {
+      const err = new EsiPaginationError('alliances', undefined, { endpoint });
+      expect(err.endpoint).toBe(redacted);
+    },
+  );
+
   it('DES-08: itemCount can count items a stream yielded without carrying them', () => {
     const err = new EsiPaginationError('alliances', undefined, {
       reason: 'empty-page',
