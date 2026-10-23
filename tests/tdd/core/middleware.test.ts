@@ -288,6 +288,22 @@ describe('Middleware', () => {
 
         expect(result.headers).toEqual({ Authorization: 'Bearer a' });
       });
+
+      // Every request goes through here, so a client that withholds nothing
+      // must not pay for a filtered copy of the headers.
+      it('hands back the context the interceptors produced when nothing is withheld', async () => {
+        const manager = new MiddlewareManager();
+        const original = request({ Authorization: 'Bearer a' });
+        const rewritten = request({ Accept: '*/*' });
+        manager.addRequestInterceptor(() => rewritten);
+
+        expect(
+          await new MiddlewareManager().applyRequestInterceptors(original),
+        ).toBe(original);
+        expect(await manager.applyRequestInterceptors(original)).toBe(
+          rewritten,
+        );
+      });
     });
   });
 

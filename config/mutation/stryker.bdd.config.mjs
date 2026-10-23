@@ -88,6 +88,12 @@ function mutateFor(definition) {
   ];
 }
 
+// Wall-clock budgets in a few Rules (tests/bdd/support/time-budget.ts) measure
+// the instrumentation here, not the client: the 5000-order book scenario took
+// 1015 ms against 1000 ms and failed a shard's initial test run (#670). Set
+// before Stryker forks its test runners, which inherit the environment.
+process.env.BDD_TIME_BUDGET_FACTOR ??= '10';
+
 const reportDir = shard
   ? `reports/mutation-bdd/shards/${shard.name}`
   : 'reports/mutation-bdd';
@@ -133,6 +139,11 @@ export default {
   // ran the runner out of memory at 6 (#587).
   concurrency: shard?.concurrency ?? 6,
   timeoutMS: 30000,
+  // The initial test run executes every BDD spec with per-test coverage,
+  // whatever the shard. It took 4m52s on a green shard on 2026-10-23 and
+  // overran Stryker's 5-minute default on at least one shard most nights from
+  // 2026-10-20 (#670), failing the shard before it mutated anything.
+  dryRunTimeoutMinutes: 20,
   tempDirName: shard ? `.stryker-tmp-bdd-${shard.name}` : '.stryker-tmp-bdd',
   cleanTempDir: true,
 };

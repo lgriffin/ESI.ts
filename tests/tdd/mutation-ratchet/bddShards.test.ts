@@ -187,6 +187,7 @@ describe('parseShards', () => {
     expect(byName.get('core-status-handling')?.concurrency).toBe(3);
     expect(byName.get('core-middleware')?.concurrency).toBe(3);
     expect(byName.get('core-etag-cache')?.concurrency).toBe(3);
+    expect(byName.get('core-pagination')?.concurrency).toBe(3);
   });
 });
 

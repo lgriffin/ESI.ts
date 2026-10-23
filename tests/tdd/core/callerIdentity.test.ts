@@ -37,6 +37,10 @@ describe('characterIdOfToken', () => {
     ['an opaque token', 'opaque-token'],
     ['two segments', 'a.b'],
     ['four segments', 'a.b.c.d'],
+    [
+      'four segments around a character payload',
+      `${jwtWith({ sub: 'CHARACTER:EVE:1' })}.extra`,
+    ],
     ['an empty payload segment', 'a..c'],
     ['a payload that is not base64url JSON', 'a.!!!.c'],
     ['a payload that is a JSON string', jwtWith('"CHARACTER:EVE:1"')],

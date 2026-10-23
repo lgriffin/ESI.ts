@@ -10,6 +10,7 @@ import {
   sentRequests,
   useHttpTransport,
 } from '../../support/transport';
+import { timeBudgetMs } from '../../support/time-budget';
 
 const feature = loadFeature('tests/bdd/features/core/0003-corporation.feature');
 
@@ -690,7 +691,7 @@ defineFeature(feature, (test) => {
     then('the client shall handle large data sets efficiently', () => {
       expect(result).toHaveLength(10000);
       expect(result).toEqual(largeMemberList);
-      expect(responseTime).toBeLessThan(1000);
+      expect(responseTime).toBeLessThan(timeBudgetMs(1000));
     });
   });
 

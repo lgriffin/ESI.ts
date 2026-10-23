@@ -10,6 +10,7 @@ import {
   sentRequests,
   useHttpTransport,
 } from '../../support/transport';
+import { timeBudgetMs } from '../../support/time-budget';
 
 const feature = loadFeature('tests/bdd/features/core/0002-character.feature');
 
@@ -409,7 +410,7 @@ defineFeature(feature, (test) => {
 
     then('the response shall be within acceptable limits', () => {
       expect(result.name).toBe('Test Character');
-      expect(responseTime).toBeLessThan(5000);
+      expect(responseTime).toBeLessThan(timeBudgetMs(5000));
       expect(responseTime).toBeGreaterThanOrEqual(140);
     });
   });

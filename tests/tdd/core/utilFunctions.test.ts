@@ -3,6 +3,7 @@ import { sleep } from '../../../src/core/util/sleep';
 import { retryDelay } from '../../../src/core/util/retry';
 import {
   EsiValidationError,
+  isSensitiveQueryParam,
   isValidationError,
 } from '../../../src/core/util/error';
 
@@ -114,6 +115,10 @@ describe('retryDelay', () => {
     jest.spyOn(Math, 'random').mockRestore();
   });
 
+  it('is 0 with a zero base at an attempt where 2^attempt overflows', () => {
+    expect(retryDelay(1024, 0, 30000)).toBe(0);
+  });
+
   it('jitter stays within [0.75, 1.25] band', () => {
     const randomSpy = jest.spyOn(Math, 'random');
     for (let i = 0; i < 100; i++) {
@@ -150,5 +155,17 @@ describe('EsiValidationError', () => {
     expect(isValidationError(null)).toBe(false);
     expect(isValidationError('string')).toBe(false);
     expect(isValidationError(undefined)).toBe(false);
+  });
+});
+
+describe('isSensitiveQueryParam', () => {
+  it('matches a redacted name as written or percent-encoded', () => {
+    expect(isSensitiveQueryParam('token')).toBe(true);
+    expect(isSensitiveQueryParam('%74oken')).toBe(true);
+    expect(isSensitiveQueryParam('page')).toBe(false);
+  });
+
+  it('is false for a name whose percent-encoding does not decode', () => {
+    expect(isSensitiveQueryParam('%E0%A4%A')).toBe(false);
   });
 });
