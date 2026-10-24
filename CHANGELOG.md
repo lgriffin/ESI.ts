@@ -29,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-* **ci:** bump the github-actions group with 3 updates ([76871f5](https://github.com/lgriffin/ESI.ts/commit/76871f514b5ae37ef0763df32fdad6e174884608))
 * **ci:** bump the github-actions group with 3 updates ([edccff2](https://github.com/lgriffin/ESI.ts/commit/edccff298c976b0198f0be9e49211cb0283c98ad))
 * **deps:** raise the fast-uri override to ^3.1.9 ([#701](https://github.com/lgriffin/ESI.ts/issues/701)) ([7c2eff8](https://github.com/lgriffin/ESI.ts/commit/7c2eff82d3daae0f3172f5e0f2d5a061f1fd0ded)), closes [#700](https://github.com/lgriffin/ESI.ts/issues/700)
 
