@@ -41,6 +41,10 @@ const COMMON_EXCLUSIONS = [
   '!src/core/IDeduplicator.ts',
   '!src/core/requestPipeline/index.ts',
   '!src/core/requestPipeline/dependencies.ts',
+  // Barrels and type-only modules: re-exports and declarations, no behaviour.
+  '!src/auth/index.ts',
+  '!src/auth/types.ts',
+  '!src/client/index.ts',
   // A test fixture shipped for consumers' tests, not behaviour a test of the
   // SDE protects: mutating it would score the fixture, not the module.
   '!src/sde/testing/**',
@@ -65,13 +69,27 @@ if (shardName && !shard) {
   );
 }
 
-/** A shard's directories as Stryker globs, most specific exclusion last. */
+/**
+ * A shard's directories and files as Stryker globs, most specific exclusion
+ * last. An entry ending in `.ts` is one file (the construction surfaces at
+ * the root of src/); any other is a directory.
+ */
 function mutateFor(definition) {
   if (!definition) {
-    return ['src/core/**/*.ts', 'src/sde/**/*.ts', ...COMMON_EXCLUSIONS];
+    return [
+      'src/core/**/*.ts',
+      'src/sde/**/*.ts',
+      'src/auth/**/*.ts',
+      'src/client/**/*.ts',
+      'src/EsiClient.ts',
+      'src/EsiClientBuilder.ts',
+      ...COMMON_EXCLUSIONS,
+    ];
   }
   return [
-    ...definition.include.map((dir) => `${dir}/**/*.ts`),
+    ...definition.include.map((entry) =>
+      entry.endsWith('.ts') ? entry : `${entry}/**/*.ts`,
+    ),
     ...(definition.exclude ?? []).map((dir) => `!${dir}/**`),
     ...COMMON_EXCLUSIONS,
   ];

@@ -388,3 +388,217 @@ describe('verifyAccessToken without a jwks option', () => {
     expect(jwksCallCount() - before).toBe(1);
   });
 });
+
+/** A JWK for the test key's modulus and exponent, edited by `overrides`. */
+function rsaJwk(overrides: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...signingKey().publicKey.export({ format: 'jwk' }),
+    kid: 'JWT-Signature-Key',
+    use: 'sig',
+    ...overrides,
+  };
+}
+
+/** A key set holding a valid key under `other` and `entry` beside it. */
+function keySetWith(...entries: unknown[]): FetchLike {
+  const body = JSON.stringify({
+    keys: [rsaJwk({ kid: 'other' }), ...entries],
+  });
+  return () => Promise.resolve(jsonResponse(body));
+}
+
+async function errorOf(
+  promise: Promise<unknown>,
+): Promise<TokenVerificationError> {
+  const error: unknown = await promise.then(
+    () => {
+      throw new Error('expected a rejection');
+    },
+    (e: unknown) => e,
+  );
+  expect(error).toBeInstanceOf(TokenVerificationError);
+  return error as TokenVerificationError;
+}
+
+describe('SsoJwks key filtering', () => {
+  it('imports an unmarked RSA key and one marked RS256', async () => {
+    const jwks = new SsoJwks({
+      fetch: keySetWith(
+        rsaJwk({ alg: undefined }),
+        rsaJwk({ kid: 'marked', alg: 'RS256' }),
+      ),
+    });
+    await expect(jwks.getKey('JWT-Signature-Key')).resolves.toBeDefined();
+    await expect(jwks.getKey('marked')).resolves.toBeDefined();
+  });
+
+  it.each([
+    ['a kty other than RSA', { kty: 'EC' }],
+    ['an alg other than RS256', { alg: 'RS512' }],
+    ['an empty exponent', { e: '' }],
+    ['an empty modulus', { n: '' }],
+    ['a modulus that is not a string', { n: 7 }],
+    ['an exponent that is not a string', { e: 7 }],
+  ])('skips a key with %s', async (_label, overrides) => {
+    const jwks = new SsoJwks({ fetch: keySetWith(rsaJwk(overrides)) });
+    const error = await errorOf(jwks.getKey('JWT-Signature-Key'));
+    expect(error.reason).toBe('unknown-key');
+    expect(error.message).toBe(
+      "EVE SSO's key set has no RS256 key with kid JWT-Signature-Key",
+    );
+  });
+
+  it('skips a key whose kid is not a string', async () => {
+    const jwks = new SsoJwks({ fetch: keySetWith(rsaJwk({ kid: 42 })) });
+    expect((await errorOf(jwks.getKey('42'))).reason).toBe('unknown-key');
+  });
+
+  it('skips a null entry and keeps the keys beside it', async () => {
+    const jwks = new SsoJwks({ fetch: keySetWith(null, rsaJwk({})) });
+    await expect(jwks.getKey('JWT-Signature-Key')).resolves.toBeDefined();
+  });
+});
+
+describe('SsoJwks fetching', () => {
+  const URL = 'https://sso.example/jwks';
+
+  it('asks for JSON and names the library', async () => {
+    const fetch = jwksFetch(signingKey());
+    await new SsoJwks({ fetch }).getKey('JWT-Signature-Key');
+    const headers = fetch.mock.calls[0]![1]?.headers as Record<string, string>;
+    expect(headers['Accept']).toBe('application/json');
+    expect(headers['User-Agent']).toMatch(/esi\.ts/i);
+  });
+
+  it('rejects a non-2xx response even when its body is a valid key set', async () => {
+    const jwks = new SsoJwks({
+      jwksUrl: URL,
+      fetch: () => Promise.resolve(jsonResponse(jwksBody([signingKey()]), 500)),
+    });
+    const error = await errorOf(jwks.getKey('JWT-Signature-Key'));
+    expect(error.reason).toBe('jwks-unavailable');
+    expect(error.message).toBe(
+      `Could not fetch EVE SSO's key set from ${URL}: HTTP 500`,
+    );
+  });
+
+  it.each([
+    [
+      'only keys it cannot use',
+      JSON.stringify({ keys: [rsaJwk({ kty: 'EC' })] }),
+    ],
+    ['a null body', 'null'],
+    ['a string body', '"keys"'],
+    ['keys that are not a list', '{"keys":{}}'],
+  ])('reports a key set with %s as holding no keys', async (_label, body) => {
+    const jwks = new SsoJwks({
+      jwksUrl: URL,
+      fetch: () => Promise.resolve(jsonResponse(body)),
+    });
+    const error = await errorOf(jwks.getKey('JWT-Signature-Key'));
+    expect(error.reason).toBe('jwks-unavailable');
+    expect(error.message).toBe(
+      `EVE SSO's key set at ${URL} holds no RS256 keys`,
+    );
+  });
+
+  it('measures the cache lifetime from the fetch time, not from zero', async () => {
+    const fetch = jwksFetch(signingKey());
+    let now = 1_700_000_000_000;
+    const jwks = new SsoJwks({
+      fetch,
+      now: () => now,
+      cacheTtlMs: 1_000,
+      refetchCooldownMs: 0,
+    });
+    await jwks.getKey('JWT-Signature-Key');
+    now += 999;
+    await jwks.getKey('JWT-Signature-Key');
+    expect(fetch).toHaveBeenCalledTimes(1);
+    now += 1;
+    await jwks.getKey('JWT-Signature-Key');
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('verifyAccessToken messages', () => {
+  const verify = (token: string, extra: Record<string, unknown> = {}) =>
+    errorOf(
+      verifyAccessToken(token, {
+        clientId: CLIENT_ID,
+        fetch: jwksFetch(signingKey()),
+        ...extra,
+      }),
+    );
+
+  it.each(['a.b', 'a.b.c.d', '.b.c', 'a..c', 'a.b.'])(
+    'reports %s as not a JWT',
+    async (token) => {
+      const error = await verify(token);
+      expect(error.reason).toBe('malformed');
+      expect(error.message).toBe(
+        'Access token is not a JWT (expected three dot-separated segments)',
+      );
+    },
+  );
+
+  it('names a header that is not JSON', async () => {
+    const error = await verify(
+      `${b64('not json')}.${b64(payload())}.${b64('x')}`,
+    );
+    expect(error.message).toBe('Access token header is not valid JSON');
+  });
+
+  it.each([
+    ['a list', [1]],
+    ['null', null],
+    ['a number', 7],
+  ])('names a header that is %s', async (_label, header) => {
+    const error = await verify(
+      `${b64(JSON.stringify(header))}.${b64(payload())}.${b64('x')}`,
+    );
+    expect(error.reason).toBe('malformed');
+    expect(error.message).toBe('Access token header is not an object');
+  });
+
+  it('rejects a token at the second of its exp, naming the time', async () => {
+    const exp = 1_000_000;
+    const token = signRaw(
+      { alg: 'RS256', kid: 'JWT-Signature-Key' },
+      payload({ exp }),
+    );
+    const error = await verify(token, { now: () => exp * 1000 });
+    expect(error.reason).toBe('expired');
+    expect(error.message).toBe(
+      `Access token expired at ${new Date(exp * 1000).toISOString()}`,
+    );
+    await expect(
+      verifyAccessToken(token, {
+        clientId: CLIENT_ID,
+        fetch: jwksFetch(signingKey()),
+        now: () => exp * 1000 - 1,
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it('reads a string audience as one entry', async () => {
+    const token = signRaw(
+      { alg: 'RS256', kid: 'JWT-Signature-Key' },
+      payload({ aud: 'EVE Online' }),
+    );
+    await expect(
+      verifyAccessToken(token, {
+        clientId: 'EVE Online',
+        fetch: jwksFetch(signingKey()),
+      }),
+    ).resolves.toMatchObject({ characterId: 2114794365 });
+  });
+
+  it('gives a call with its own fetch its own key set cache', async () => {
+    fetchMock.mockResponse(jwksBody([signingKey()]));
+    await verifyAccessToken(makeSignedJwt(), { clientId: CLIENT_ID });
+    const fetch = jwksFetch(signingKey());
+    await verifyAccessToken(makeSignedJwt(), { clientId: CLIENT_ID, fetch });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});

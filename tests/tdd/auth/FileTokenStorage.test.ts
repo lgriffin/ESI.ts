@@ -163,6 +163,45 @@ describe('FileTokenStorage', () => {
     expect(await storage.get(3)).toBeNull();
   });
 
+  it.each([
+    ['a characterId that is not a number', { characterId: '7' }],
+    ['a characterName that is not a string', { characterName: 7 }],
+    ['an accessToken that is not a string', { accessToken: 7 }],
+    ['a refreshToken that is not a string', { refreshToken: null }],
+    ['an updatedAt that is not a number', { updatedAt: '1' }],
+    ['scopes holding a non-string', { scopes: ['esi', 1] }],
+    ['an ownerHash that is not a string', { ownerHash: 7 }],
+    ['a revokedAt that is not a number', { revokedAt: '1' }],
+  ])('ignores an entry with %s', async (_label, edit) => {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        version: 1,
+        tokens: {
+          '1': makeStoredToken({ characterId: 1 }),
+          '7': { ...makeStoredToken({ characterId: 7 }), ...edit },
+        },
+      }),
+    );
+    const storage = new FileTokenStorage(file);
+    expect((await storage.list()).map((t) => t.characterId)).toEqual([1]);
+  });
+
+  it('keeps an entry without the optional ownerHash and revokedAt', async () => {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const bare: Partial<StoredToken> = makeStoredToken({ characterId: 8 });
+    delete bare.ownerHash;
+    delete bare.revokedAt;
+    fs.writeFileSync(
+      file,
+      JSON.stringify({ version: 1, tokens: { '8': bare } }),
+    );
+    const stored = await new FileTokenStorage(file).get(8);
+    expect(stored?.characterId).toBe(8);
+    expect(stored?.ownerHash).toBeUndefined();
+  });
+
   it('keeps optional fields when present and valid', async () => {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     const revoked = makeStoredToken({ characterId: 9, revokedAt: 123 });
