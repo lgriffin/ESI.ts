@@ -14,7 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **cache:** carry invalidations between processes sharing a CacheStore ([#685](https://github.com/lgriffin/ESI.ts/issues/685)) ([80a712b](https://github.com/lgriffin/ESI.ts/commit/80a712b79b2f34fbd9ccc06cf080b162ca05843d))
 * **clients:** diagnostics and shutdown on factory-built domain clients ([#682](https://github.com/lgriffin/ESI.ts/issues/682)) ([ce4a0f2](https://github.com/lgriffin/ESI.ts/commit/ce4a0f222163f551801104b46610284fafc0c98d))
 * **clients:** identity views for the custom clients with as(identity) ([#680](https://github.com/lgriffin/ESI.ts/issues/680)) ([ee1154c](https://github.com/lgriffin/ESI.ts/commit/ee1154c6296d9523722e449f3c022bdf3182f97f))
-* **client:** take a transport on the custom clients, so createMockTransport works with EsiClient ([6463264](https://github.com/lgriffin/ESI.ts/commit/6463264e46ae0ba998c66f19fb33a2cf83dc7a08))
 * **client:** take a transport on the custom clients, so createMockTransport works with EsiClient ([e7bc353](https://github.com/lgriffin/ESI.ts/commit/e7bc353e2508308e6fd663baee0eedbb84cf1a88))
 * **endpoints:** derive all 39 endpoint maps from the generated operations ([#681](https://github.com/lgriffin/ESI.ts/issues/681)) ([fca7c2d](https://github.com/lgriffin/ESI.ts/commit/fca7c2d21a8edb806ae7574c333b55ca00086731))
 * **endpoints:** derive endpoint definitions from the generated operations ([#679](https://github.com/lgriffin/ESI.ts/issues/679)) ([5cbb019](https://github.com/lgriffin/ESI.ts/commit/5cbb0192f78159097ea52aabc604c4c68a2790fc))
@@ -31,9 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-* **ci:** bump the github-actions group with 3 updates ([76871f5](https://github.com/lgriffin/ESI.ts/commit/76871f514b5ae37ef0763df32fdad6e174884608))
 * **ci:** bump the github-actions group with 3 updates ([edccff2](https://github.com/lgriffin/ESI.ts/commit/edccff298c976b0198f0be9e49211cb0283c98ad))
-* **deps:** bump the minor group with 5 updates ([39399ab](https://github.com/lgriffin/ESI.ts/commit/39399abc1d1c2ec19ca54dbd35b2addb1a04d169))
 * **deps:** bump the minor group with 5 updates ([6a6e140](https://github.com/lgriffin/ESI.ts/commit/6a6e140f0a09bccf796a80eac7fe695b41e66ba6))
 * **deps:** raise the fast-uri override to ^3.1.9 ([#701](https://github.com/lgriffin/ESI.ts/issues/701)) ([7c2eff8](https://github.com/lgriffin/ESI.ts/commit/7c2eff82d3daae0f3172f5e0f2d5a061f1fd0ded)), closes [#700](https://github.com/lgriffin/ESI.ts/issues/700)
 
@@ -43,16 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **architecture:** redraw diagrams for custom clients as the product and spec:generate outputs ([#688](https://github.com/lgriffin/ESI.ts/issues/688)) ([18e9bcc](https://github.com/lgriffin/ESI.ts/commit/18e9bcce3767c124b75a99a1676914a97137c183))
 * **contributing:** name the coverage run check:local leaves out; plain list in the PR template ([157ac69](https://github.com/lgriffin/ESI.ts/commit/157ac6911ffdb656f1291cd59a6be400b5d4339c))
 * lead with the custom clients, close out the [#664](https://github.com/lgriffin/ESI.ts/issues/664) questions ([#687](https://github.com/lgriffin/ESI.ts/issues/687)) ([80937fb](https://github.com/lgriffin/ESI.ts/commit/80937fb3a9c90a1af2c98feb71badc5c63140780))
-* one contributor path from a fresh clone to a merged pull request ([d2e7817](https://github.com/lgriffin/ESI.ts/commit/d2e7817ac0332d3d7ae429ce1d68110ccf9099e3))
 * one contributor path from a fresh clone to a merged pull request ([813823a](https://github.com/lgriffin/ESI.ts/commit/813823a1874e89091c791f87c346ade444ba6360))
 * **testing:** make the mock transport example self-contained ([6f6a48e](https://github.com/lgriffin/ESI.ts/commit/6f6a48e523ad5dd446b2dcb1d9003d1595343047))
 
 
 ### Testing
 
-* keep the library's default logger silent under the unit suite ([d00c61a](https://github.com/lgriffin/ESI.ts/commit/d00c61aad453650d75bc130e49905d4e5ae2bfa9))
 * keep the library's default logger silent under the unit suite ([22acf75](https://github.com/lgriffin/ESI.ts/commit/22acf75c73683836df9fd80c2f6bff374bf6b2b9))
-* **mutation:** mutate src/auth and the construction surfaces in the unit run ([4d8178c](https://github.com/lgriffin/ESI.ts/commit/4d8178c8a86f0de567d4cfb3a70e44a0b857b5f1))
 * **mutation:** mutate src/auth and the construction surfaces in the unit run ([72dc4dc](https://github.com/lgriffin/ESI.ts/commit/72dc4dc3a063f02febed06060ba019fe2a69906c))
 * **mutation:** run the core-support-2 BDD shard at 3 test runners ([#702](https://github.com/lgriffin/ESI.ts/issues/702)) ([5552361](https://github.com/lgriffin/ESI.ts/commit/5552361650e3c05dafea930dcd6d80687b4f5d19))
 * shut down the clients the new construction and refusal tests build ([e37cd19](https://github.com/lgriffin/ESI.ts/commit/e37cd19b0c277c5e1b46c7bff71b965d95a038f5))
