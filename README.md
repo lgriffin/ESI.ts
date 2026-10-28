@@ -244,10 +244,11 @@ The full list is in [USAGE.md](guides/USAGE.md#8-examples), and the [examples sh
 ```bash
 git clone https://github.com/lgriffin/ESI.ts.git && cd ESI.ts
 npm ci
+npm test                        # unit and BDD suites, about three minutes
 npm run check:local -- --fast   # every offline CI tier, minus the build
 ```
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) first. Every behaviour change starts with an EARS requirement and a failing scenario. Every commit is a conventional commit classified by [SEMVER.md](guides/SEMVER.md). No floor is ever lowered. Work is tracked in GitHub issues labelled by release and phase, mirrored in [beads](guides/BEADS.md).
+[CONTRIBUTING.md](CONTRIBUTING.md) is the whole path from a fresh clone to a merged pull request, including the checks CI runs that a first pull request usually trips. Issues labelled [`good first issue`](https://github.com/lgriffin/ESI.ts/labels/good%20first%20issue) are bounded and need no product decision. Every behaviour change starts with an EARS requirement and a failing scenario, every commit is a conventional commit classified by [SEMVER.md](guides/SEMVER.md), and no floor is ever lowered.
 
 ## License
 

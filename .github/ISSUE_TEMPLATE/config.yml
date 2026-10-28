@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/lgriffin/ESI.ts/security/advisories/new
+    about: Privately, as SECURITY.md describes. Please do not open a public issue.
+  - name: Contributing guide
+    url: https://github.com/lgriffin/ESI.ts/blob/master/CONTRIBUTING.md
+    about: How to set up, find a good first issue, and get a pull request through CI.

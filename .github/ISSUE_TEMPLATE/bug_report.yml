@@ -1,0 +1,53 @@
+name: Bug report
+description: Something in @lgriffin/esi.ts does not do what the docs say
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Never paste an access or refresh token; replace it with `<token>`.
+        Security problems go to a private advisory instead: https://github.com/lgriffin/ESI.ts/security/advisories/new
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      description: From `npm ls @lgriffin/esi.ts`
+      placeholder: 12.3.0
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version and OS
+      placeholder: Node 22.12, Ubuntu 24.04
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface were you using?
+      options:
+        - EsiClient
+        - EsiClientBuilder (build or buildPublic)
+        - EsiApiFactory.createClient
+        - createEsi (./client)
+        - EsiTokenManager or EveSsoClient (auth)
+        - SDE (./sde)
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: What you did
+      description: The smallest code that shows it. A `createMockTransport()` route table that reproduces it offline is ideal.
+      render: typescript
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened instead
+      description: Include the error's name, `code` and message.
+    validations:
+      required: true

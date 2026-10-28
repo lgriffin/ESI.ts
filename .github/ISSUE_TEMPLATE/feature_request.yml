@@ -1,0 +1,20 @@
+name: Feature request
+description: Something the client should do that it does not
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What you are trying to do
+      description: The task in your application, not the API you want. It becomes the EARS requirement.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: What you do today instead
+  - type: textarea
+    id: shape
+    attributes:
+      label: A sketch of the call you would like (optional)
+      render: typescript
