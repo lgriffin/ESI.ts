@@ -946,11 +946,11 @@ The `auth` and `surfaces` shards were seeded from local runs on 2026-10-28, with
 
 | Directory    | Before the new tests |   After (first) | After #721/#722 work | Floor |
 | :----------- | -------------------: | --------------: | -------------------: | ----: |
-| `src/auth`   |      80.0% (500/625) | 88.1% (551/625) |      91.8% (573/624) |   90% |
+| `src/auth`   |      80.0% (500/625) | 88.1% (551/625) |      91.7% (573/625) |   90% |
 | `src`        |      72.9% (135/185) | 88.6% (164/185) |      95.6% (177/185) |   90% |
-| `src/client` |        64.9% (37/57) |   82.4% (47/57) |        97.9% (48/49) |   95% |
+| `src/client` |        64.9% (37/57) |   82.4% (47/57) |        98.0% (49/50) |   95% |
 
-The second round added tests for what each surface logs and drops on shutdown, the shared per-identity `ApiClient` behind `createEsi`'s views, a non-default compatibility date, the token manager's staleness boundary, JWKS fetch and revocation reporting, and the SSO client's malformed-body messages. Mutants that no test can tell apart from the original carry a `// Stryker disable next-line` comment saying why, which is why `src/auth` and `src/client` count fewer valid mutants than before.
+The second round added tests for what each surface logs and drops on shutdown, the shared per-identity `ApiClient` behind `createEsi`'s views, a non-default compatibility date, the token manager's staleness boundary, JWKS fetch and revocation reporting, and the SSO client's malformed-body messages. Where a mutant could not be told apart from the original, the code was restructured to remove it (`createEsi` passes datasource, language and compatibility date straight to their setters), or, where the only mutant on the line is equivalent, it carries a `// Stryker disable next-line` comment saying why. A `ConditionalExpression` directive is never used for this, because it would hide the line's observable `false` mutant too.
 
 `src` is the two construction surfaces, `EsiClient.ts` and `EsiClientBuilder.ts`, the only files directly under `src/` the run mutates. Its floor sits further under the score than the usual two points because 24 of its detected mutants are timeouts (mostly a cache or breaker left running, which keeps the test process alive), which a slower runner can turn into survivors. `src/auth/jwks.ts` went from 70.7% to 94.3%; the nine survivors left in it are the `try`/`catch` around key import and a reset no caller can observe.
 

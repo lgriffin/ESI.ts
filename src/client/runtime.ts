@@ -262,13 +262,10 @@ export function createEsi(options: EsiOptions): Esi {
     options.unsafeAllowCustomHost,
   );
   const runtime = new ApiClient(CLIENT_ID, baseUrl);
-  // Stryker disable next-line ConditionalExpression: the runtime starts with no datasource, so setting an absent one changes nothing.
-  if (options.datasource) runtime.setDatasource(options.datasource);
-  // Stryker disable next-line ConditionalExpression: the runtime starts with no language, so setting an absent one changes nothing.
-  if (options.language) runtime.setLanguage(options.language);
-  if (options.compatibilityDate) {
-    runtime.setCompatibilityDate(options.compatibilityDate);
-  }
+  // An empty string means unset, as it does for the custom clients.
+  runtime.setDatasource(options.datasource || undefined);
+  runtime.setLanguage(options.language || undefined);
+  runtime.setCompatibilityDate(options.compatibilityDate || undefined);
   // The transport and the supplied middleware (cache, rateLimiter,
   // circuitBreaker, deduplicator, clock) ride in the options, as they do in
   // EsiClientConfig for the custom clients, so configureApiClient installs
@@ -327,7 +324,6 @@ export function createEsi(options: EsiOptions): Esi {
     EsiViews<SafeView<PublicScopeTree>, SafeView<ScopeTree>> | undefined;
   const diagnostics: RuntimeDiagnostics = new EsiDiagnostics(
     runtime,
-    // Stryker disable next-line ConditionalExpression: EsiDiagnostics reads the cache again and treats a null one as disabled either way.
     runtime.getCache() !== null,
     runtime.getDeduplicator(),
   );

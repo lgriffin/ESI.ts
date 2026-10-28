@@ -386,7 +386,6 @@ export class EveSsoClient {
     let description: string | undefined;
     try {
       const json: unknown = JSON.parse(reply.body);
-      // Stryker disable next-line ConditionalExpression: reading error from null throws into the catch below, and from any other non-object finds no string; both keep the defaults.
       if (isRecord(json)) {
         const body = json as SsoErrorJson;
         if (typeof body.error === 'string') errorCode = body.error;
