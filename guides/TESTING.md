@@ -41,7 +41,7 @@ Coverage is collected from `src/**/*.ts`, excluding `.d.ts`, `src/types/`, `*.ge
 | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Feature files                                | <!-- metric:featureFiles -->80<!-- /metric --> (`core/` <!-- metric:featureFilesCore -->55<!-- /metric -->, `integration/` <!-- metric:featureFilesIntegration -->1<!-- /metric -->, `performance/` <!-- metric:featureFilesPerformance -->1<!-- /metric -->, `sde/` <!-- metric:featureFilesSde -->23<!-- /metric -->) |
 | `Rule:` requirements                         | <!-- metric:requirements -->683<!-- /metric -->                                                                                                                                                                                                                                                                         |
-| Scenarios                                    | <!-- metric:scenarios -->887<!-- /metric --> (<!-- metric:plainScenarios -->871<!-- /metric --> `Scenario`, <!-- metric:scenarioOutlines -->16<!-- /metric --> `Scenario Outline`)                                                                                                                                      |
+| Scenarios                                    | <!-- metric:scenarios -->888<!-- /metric --> (<!-- metric:plainScenarios -->872<!-- /metric --> `Scenario`, <!-- metric:scenarioOutlines -->16<!-- /metric --> `Scenario Outline`)                                                                                                                                      |
 | Audit result                                 | <!-- metric:featureFiles -->80<!-- /metric --> of <!-- metric:featureFiles -->80<!-- /metric --> pass                                                                                                                                                                                                                   |
 
 Other counts, each reproducible with `ls` or `find`: <!-- metric:typeTestFiles -->15<!-- /metric --> tsd files in `tests/typetests/`, 9 Jest configs (`ls config/jest/*.config.cjs`), and 29 workflows in `.github/workflows/` (30 files including its `README.md`).
@@ -433,7 +433,7 @@ On every PR each scenario runs every schedule of two and three calls; the schedu
 **Config:** `config/jest/unit.config.cjs` (its `testMatch` includes `tests/bdd/step-definitions/**/*.steps.ts` and `tests/bdd/specs/**/*.spec.ts`)
 **Run:** `npm run bdd`, or `npm test`, which includes it
 
-The <!-- metric:featureFiles -->80<!-- /metric --> feature files state <!-- metric:requirements -->683<!-- /metric --> requirements, one per `Rule:`, verified by <!-- metric:scenarios -->887<!-- /metric --> scenarios (`npm run spec:audit:verbose`). Every scenario mocks at the transport seam (`TEST-03`), so the rate limiter, retry, deduplication, ETag cache, JSON parsing and Zod validation all execute. Coverage by area:
+The <!-- metric:featureFiles -->80<!-- /metric --> feature files state <!-- metric:requirements -->683<!-- /metric --> requirements, one per `Rule:`, verified by <!-- metric:scenarios -->888<!-- /metric --> scenarios (`npm run spec:audit:verbose`). Every scenario mocks at the transport seam (`TEST-03`), so the rate limiter, retry, deduplication, ETag cache, JSON parsing and Zod validation all execute. Coverage by area:
 
 - **Core** (`features/core/`, <!-- metric:featureFilesCore -->55<!-- /metric --> files): one feature per domain client, plus the cross-cutting ones numbered from 0050: ETag caching, resilience, response headers, runtime validation, token management, request headers, the shared runtime (`createEsi`), the mock transport, logging, path parameters, the custom client, rate-limit status, the security boundary, the custom clients' identity views, the public custom client (`buildPublic()`) and invalidation across clients sharing a cache store.
 - **Integration** (`features/integration/`): cross-domain workflows such as character profile assembly and fleet operations.
@@ -944,13 +944,15 @@ The first two complete runs of the sharded unit matrix: 18 September 2026 (run 3
 
 The `auth` and `surfaces` shards were seeded from local runs on 2026-10-28, with the nightly's config, after new unit tests for JWKS verification (`tests/tdd/auth/jwks.test.ts`), token-file validation, the config every surface maps onto its `ApiClient` (`tests/tdd/core/constructionConfig.test.ts`) and `createEsi`'s refusals and shutdown ownership:
 
-| Directory    | Before the new tests |           After | Floor |
-| :----------- | -------------------: | --------------: | ----: |
-| `src/auth`   |      80.0% (500/625) | 88.1% (551/625) |   86% |
-| `src`        |      72.9% (135/185) | 88.6% (164/185) |   80% |
-| `src/client` |        64.9% (37/57) |   82.4% (47/57) |   80% |
+| Directory    | Before the new tests |   After (first) | After #721/#722 work | Floor |
+| :----------- | -------------------: | --------------: | -------------------: | ----: |
+| `src/auth`   |      80.0% (500/625) | 88.1% (551/625) |      91.8% (573/624) |   90% |
+| `src`        |      72.9% (135/185) | 88.6% (164/185) |      95.6% (177/185) |   90% |
+| `src/client` |        64.9% (37/57) |   82.4% (47/57) |        97.9% (48/49) |   95% |
 
-`src` is the two construction surfaces, `EsiClient.ts` and `EsiClientBuilder.ts`, the only files directly under `src/` the run mutates. Its floor sits further under the score than the usual two points because 13 of its detected mutants are timeouts, which a slower runner can turn into survivors. `src/auth/jwks.ts` went from 70.7% to 94.3%; the nine survivors left in it are the `try`/`catch` around key import and a reset no caller can observe.
+The second round added tests for what each surface logs and drops on shutdown, the shared per-identity `ApiClient` behind `createEsi`'s views, a non-default compatibility date, the token manager's staleness boundary, JWKS fetch and revocation reporting, and the SSO client's malformed-body messages. Mutants that no test can tell apart from the original carry a `// Stryker disable next-line` comment saying why, which is why `src/auth` and `src/client` count fewer valid mutants than before.
+
+`src` is the two construction surfaces, `EsiClient.ts` and `EsiClientBuilder.ts`, the only files directly under `src/` the run mutates. Its floor sits further under the score than the usual two points because 24 of its detected mutants are timeouts (mostly a cache or breaker left running, which keeps the test process alive), which a slower runner can turn into survivors. `src/auth/jwks.ts` went from 70.7% to 94.3%; the nine survivors left in it are the `try`/`catch` around key import and a reset no caller can observe.
 
 A snapshot, not a source of truth: the live numbers are whatever the last nightly published, and this table is here to say where the floors sat relative to reality when the matrix first worked.
 

@@ -12,6 +12,8 @@ import {
   type CacheStore,
   type Identity,
 } from '../../../src/client';
+import { ApiClient } from '../../../src/core/ApiClient';
+import { COMPATIBILITY_DATE } from '../../../src/core/constants';
 import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
 import { CircuitBreaker } from '../../../src/core/circuitBreaker/CircuitBreaker';
 import { RequestDeduplicator } from '../../../src/core/RequestDeduplicator';
@@ -70,7 +72,7 @@ describe('createEsi', () => {
     const esi = createEsi({
       ...OPTIONS,
       tenant: 'singularity',
-      compatibilityDate: '2026-08-18',
+      compatibilityDate: '2025-12-16',
       language: 'de',
       datasource: 'singularity',
     });
@@ -81,9 +83,34 @@ describe('createEsi', () => {
 
     for (const i of [0, 1]) {
       expect(sent(i).headers.get('x-tenant')).toBe('singularity');
-      expect(sent(i).headers.get('x-compatibility-date')).toBe('2026-08-18');
+      expect(sent(i).headers.get('x-compatibility-date')).toBe('2025-12-16');
       expect(sent(i).headers.get('accept-language')).toBe('de');
       expect(sent(i).url.searchParams.get('datasource')).toBe('singularity');
+    }
+  });
+
+  it('sends the default compatibility date when none is given', async () => {
+    const esi = createEsi(OPTIONS);
+    fetchMock.mockResponseOnce(JSON.stringify(STATUS));
+
+    await esi.public.status.get();
+
+    expect(sent().headers.get('x-compatibility-date')).toBe(COMPATIBILITY_DATE);
+  });
+
+  it('builds one client per identity, shared by the plain and metadata views', () => {
+    const forIdentity = jest.spyOn(ApiClient.prototype, 'forIdentity');
+    try {
+      const esi = createEsi(OPTIONS);
+      const identity = identityFromToken('t');
+
+      esi.as(identity);
+      esi.withMetadata().as(identity);
+      esi.withSafeMode().as(identity);
+
+      expect(forIdentity).toHaveBeenCalledTimes(1);
+    } finally {
+      forIdentity.mockRestore();
     }
   });
 

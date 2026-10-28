@@ -246,12 +246,12 @@ describe('EveSsoClient', () => {
 
   describe('malformed success bodies', () => {
     it.each([
-      ['invalid JSON', '<html>ok</html>'],
-      ['null', 'null'],
-      ['an array', '["a", "r"]'],
-      ['a string', '"token"'],
-      ['a number', '42'],
-    ])('reports %s as SsoError invalid_response', async (_label, body) => {
+      ['invalid JSON', '<html>ok</html>', 'not valid JSON'],
+      ['null', 'null', 'not a JSON object'],
+      ['an array', '["a", "r"]', 'not a JSON object'],
+      ['a string', '"token"', 'not a JSON object'],
+      ['a number', '42', 'not a JSON object'],
+    ])('reports %s as SsoError invalid_response', async (_label, body, why) => {
       fetchMock.mockResponseOnce(body, { status: 200 });
       const err = await confidential()
         .refresh('old')
@@ -259,6 +259,9 @@ describe('EveSsoClient', () => {
       expect(err).toBeInstanceOf(SsoError);
       expect((err as SsoError).statusCode).toBe(200);
       expect((err as SsoError).errorCode).toBe('invalid_response');
+      expect((err as SsoError).message).toContain(
+        `Token response body was ${why}`,
+      );
     });
   });
 

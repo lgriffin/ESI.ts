@@ -727,4 +727,118 @@ describe('EsiTokenManager', () => {
       );
     });
   });
+  describe('verification, staleness and revocation in detail', () => {
+    it('fetches the JWKS through the configured fetch', async () => {
+      const configured = jest.fn(async (input: RequestInfo | URL) =>
+        String(input).endsWith('/oauth/jwks')
+          ? new Response(jwksBody([signingKey()]))
+          : new Response(
+              ssoTokenBody({
+                accessToken: makeSignedJwt({ characterId: 1, clientId: 'cid' }),
+              }),
+            ),
+      );
+      await manager({
+        verifyTokens: true,
+        fetch: configured as unknown as typeof fetch,
+      }).addCharacter('code');
+      expect(configured.mock.calls.map(([input]) => String(input))).toContain(
+        'https://login.eveonline.com/oauth/jwks',
+      );
+      expect(await storage.get(1)).not.toBeNull();
+    });
+
+    it('refuses an unsigned token when verifyTokens is set', async () => {
+      fetchMock.mockResponseOnce(
+        ssoTokenBody({
+          accessToken: makeJwt({ characterId: 1, clientId: 'cid' }),
+        }),
+      );
+      fetchMock.mockResponseOnce(jwksBody([signingKey()]));
+      await expect(
+        manager({ verifyTokens: true }).addCharacter('code'),
+      ).rejects.toThrow();
+      expect(await storage.get(1)).toBeNull();
+    });
+
+    it('does not warn when a re-authorization keeps every scope', async () => {
+      await storage.set(1, makeStoredToken({ characterId: 1, scopes: ['a'] }));
+      fetchMock.mockResponseOnce(
+        ssoTokenBody({ characterId: 1, scopes: ['a'] }),
+      );
+      await manager().addCharacter('code');
+      expect(logger.warn).not.toHaveBeenCalled();
+    });
+
+    it('keeps the stored scopes when a refreshed token names none', async () => {
+      await storage.set(1, makeStoredToken({ characterId: 1, scopes: ['a'] }));
+      fetchMock.mockResponseOnce(ssoTokenBody({ characterId: 1, scopes: [] }));
+      expect((await manager().refresh(1)).scopes).toEqual(['a']);
+    });
+
+    it('logs each refresh at debug level', async () => {
+      await storage.set(1, makeStoredToken({ characterId: 1 }));
+      fetchMock.mockResponseOnce(ssoTokenBody({ characterId: 1 }));
+      await manager().refresh(1);
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Refreshed token for character 1',
+      );
+    });
+
+    it('names the character on the TokenRevokedError an invalid_grant raises', async () => {
+      await storage.set(1, makeStoredToken({ characterId: 1 }));
+      fetchMock.mockResponseOnce(ssoErrorBody('invalid_grant'), {
+        status: 400,
+      });
+      const error = await manager()
+        .refresh(1)
+        .catch((err: unknown) => err);
+      expect(error).toBeInstanceOf(TokenRevokedError);
+      expect((error as TokenRevokedError).characterId).toBe(1);
+      expect(logger.error).not.toHaveBeenCalled();
+    });
+
+    it('treats a token expiring exactly at the edge of the window as stale', async () => {
+      const now = 1_000_000;
+      await storage.set(1, {
+        ...makeStoredToken({ characterId: 1 }),
+        expiresAt: now + 60_000 + 5_000,
+      });
+      await storage.set(2, {
+        ...makeStoredToken({ characterId: 2 }),
+        expiresAt: now + 60_000 + 5_001,
+      });
+      fetchMock.mockResponseOnce(ssoTokenBody({ characterId: 1 }));
+      const results = await manager({ now: () => now }).refreshAll({
+        expiringWithinMs: 5_000,
+        concurrency: 1,
+      });
+      expect(results.map((r) => [r.characterId, r.status])).toEqual([
+        [1, 'refreshed'],
+        [2, 'skipped'],
+      ]);
+    });
+
+    it('reports a stored revocation with its own message, without asking SSO', async () => {
+      await storage.set(1, makeStoredToken({ characterId: 1, revokedAt: 1 }));
+      const [result] = await manager().refreshAll();
+      expect(result!.error?.message).toBe(
+        'Refresh token for character 1 was revoked',
+      );
+    });
+
+    it('reports an invalid_grant during refreshAll as revoked and not retryable', async () => {
+      await storage.set(1, makeStoredToken({ characterId: 1 }));
+      fetchMock.mockResponseOnce(ssoErrorBody('invalid_grant'), {
+        status: 400,
+      });
+      const [result] = await manager().refreshAll();
+      expect(result).toMatchObject({
+        characterId: 1,
+        status: 'revoked',
+        retryable: false,
+      });
+      expect(result!.error).toBeInstanceOf(TokenRevokedError);
+    });
+  });
 });

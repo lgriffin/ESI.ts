@@ -469,6 +469,7 @@ export class EsiTokenManager {
   }
 
   private bumpGeneration(characterId: number): void {
+    // Stryker disable next-line ArithmeticOperator: a generation is only compared for equality, so counting down changes it as surely as counting up.
     this.generations.set(characterId, this.generationOf(characterId) + 1);
   }
 

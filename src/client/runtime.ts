@@ -254,6 +254,7 @@ export function createEsi(options: EsiOptions): Esi {
       'userAgent is required: an application name, version and contact address',
     );
   }
+  // Stryker disable next-line CallExpression: configureApiClient validates the same header again through setUserAgent; this call only fails earlier.
   validateHeaderOption('userAgent', options.userAgent);
 
   const baseUrl = validateBaseUrl(
@@ -261,7 +262,9 @@ export function createEsi(options: EsiOptions): Esi {
     options.unsafeAllowCustomHost,
   );
   const runtime = new ApiClient(CLIENT_ID, baseUrl);
+  // Stryker disable next-line ConditionalExpression: the runtime starts with no datasource, so setting an absent one changes nothing.
   if (options.datasource) runtime.setDatasource(options.datasource);
+  // Stryker disable next-line ConditionalExpression: the runtime starts with no language, so setting an absent one changes nothing.
   if (options.language) runtime.setLanguage(options.language);
   if (options.compatibilityDate) {
     runtime.setCompatibilityDate(options.compatibilityDate);
@@ -324,6 +327,7 @@ export function createEsi(options: EsiOptions): Esi {
     EsiViews<SafeView<PublicScopeTree>, SafeView<ScopeTree>> | undefined;
   const diagnostics: RuntimeDiagnostics = new EsiDiagnostics(
     runtime,
+    // Stryker disable next-line ConditionalExpression: EsiDiagnostics reads the cache again and treats a null one as disabled either way.
     runtime.getCache() !== null,
     runtime.getDeduplicator(),
   );
