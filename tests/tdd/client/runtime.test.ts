@@ -570,3 +570,81 @@ class MemoryStore implements CacheStore {
   }
   shutdown(): void {}
 }
+
+describe('createEsi refusals and shutdown ownership', () => {
+  beforeEach(() => fetchMock.resetMocks());
+
+  const FIX = 'Fix: call it through esi.as(identity)';
+
+  it('names the scopes and the fix when the public view is asked for a scoped call', async () => {
+    const esi = createEsi(OPTIONS);
+    const forced = esi.public as unknown as ReturnType<typeof esi.as>;
+    const error: unknown = await Promise.resolve()
+      .then(() => forced.character(1).wallet.get())
+      .catch((e: unknown) => e);
+    expect(String((error as Error).message)).toContain(
+      'esi-wallet.read_character_wallet.v1',
+    );
+    expect(String((error as Error).message)).toContain(FIX);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('names the fix when the public view is asked to page a scoped collection', async () => {
+    const esi = createEsi(OPTIONS);
+    const forced = esi.public as unknown as ReturnType<typeof esi.as>;
+    const iterate = async () => {
+      for await (const asset of forced.character(1).assets.get()) void asset;
+    };
+    await expect(iterate()).rejects.toThrow(FIX);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('refuses an empty user agent with the reason', () => {
+    expect(() => createEsi({ ...OPTIONS, userAgent: '' })).toThrow(
+      'userAgent is required',
+    );
+  });
+
+  it('refuses a user agent that would break the header', () => {
+    expect(() =>
+      createEsi({ ...OPTIONS, userAgent: 'app/1.0\r\nX-Evil: 1' }),
+    ).toThrow(/^\[VALIDATION_ERROR\] /);
+  });
+
+  it('empties the cache through clearCache', async () => {
+    const esi = createEsi(OPTIONS);
+    fetchMock.mockResponseOnce(JSON.stringify([1]), {
+      headers: { 'content-type': 'application/json', etag: '"a"' },
+    });
+    await esi.public.alliances.get();
+    expect(esi.getCacheStats()?.totalEntries).toBe(1);
+    esi.clearCache();
+    expect(esi.getCacheStats()?.totalEntries).toBe(0);
+    esi.shutdown();
+  });
+
+  it('leaves a supplied cache to its owner on shutdown', () => {
+    const cache = new ETagCacheManager({ maxEntries: 5 });
+    const stop = jest.spyOn(cache, 'shutdown');
+    try {
+      createEsi({ ...OPTIONS, cache }).shutdown();
+      expect(stop).not.toHaveBeenCalled();
+    } finally {
+      cache.shutdown();
+    }
+  });
+
+  it('stops the circuit breaker and clears the deduplicator it built itself', () => {
+    const esi = createEsi({ ...OPTIONS, enableCircuitBreaker: true });
+    const stop = jest.spyOn(CircuitBreaker.prototype, 'shutdown');
+    const clear = jest.spyOn(RequestDeduplicator.prototype, 'clear');
+    try {
+      esi.shutdown();
+      expect(stop).toHaveBeenCalled();
+      expect(clear).toHaveBeenCalled();
+    } finally {
+      stop.mockRestore();
+      clear.mockRestore();
+    }
+  });
+});

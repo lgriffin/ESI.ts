@@ -2,8 +2,9 @@
  * Self-tests for the unit-suite mutation shards (config/mutation/unit-shards.json).
  *
  * Same contract as the BDD shards, over a smaller tree: the shards must
- * partition the directories the unit run mutates, `src/core` and `src/sde`
- * (Track S Run 2), because a file claimed by no shard is never mutated
+ * partition what the unit run mutates, `src/core` and `src/sde`
+ * (Track S Run 2), `src/auth` and `src/client`, and the construction surfaces
+ * `src/EsiClient.ts` and `src/EsiClientBuilder.ts` (2026-10-28), because a file claimed by no shard is never mutated
  * and its directory's score silently improves, while a file claimed by two is
  * counted twice. `scripts/mutation/mutation-merge-core.ts` holds the logic and
  * `bddShards.test.ts` covers its behaviour in detail; this file pins the unit
@@ -34,7 +35,10 @@ const shards = parseShards(
 );
 
 /** The directories the unit run mutates (config/mutation/stryker.config.mjs, unsharded). */
-const MUTATED = ['src/core', 'src/sde'];
+const MUTATED = ['src/core', 'src/sde', 'src/auth', 'src/client'];
+
+/** The single files directly under src/ it mutates. */
+const MUTATED_FILES = ['src/EsiClient.ts', 'src/EsiClientBuilder.ts'];
 
 /** Every TypeScript file under a directory, repo-relative with forward slashes. */
 function filesUnder(dir: string): string[] {
@@ -49,13 +53,29 @@ function filesUnder(dir: string): string[] {
   return found;
 }
 
-const mutatedFiles = MUTATED.flatMap(filesUnder);
+const mutatedFiles = [...MUTATED.flatMap(filesUnder), ...MUTATED_FILES];
 
 describe('the unit shards partition the directories the unit run mutates', () => {
   it('finds the trees it is meant to check', () => {
     // A rename that emptied this walk would make every case below vacuous.
     expect(filesUnder('src/core').length).toBeGreaterThan(40);
     expect(filesUnder('src/sde').length).toBeGreaterThan(10);
+    expect(filesUnder('src/auth').length).toBeGreaterThan(5);
+    expect(filesUnder('src/client').length).toBeGreaterThan(0);
+  });
+
+  it('gives auth and the construction surfaces shards of their own', () => {
+    expect(shardsClaiming('src/auth/jwks.ts', shards)).toEqual(['auth']);
+    expect(
+      shardsClaiming('src/auth/storage/FileTokenStorage.ts', shards),
+    ).toEqual(['auth']);
+    expect(shardsClaiming('src/EsiClient.ts', shards)).toEqual(['surfaces']);
+    expect(shardsClaiming('src/EsiClientBuilder.ts', shards)).toEqual([
+      'surfaces',
+    ]);
+    expect(shardsClaiming('src/client/runtime.ts', shards)).toEqual([
+      'surfaces',
+    ]);
   });
 
   it.each(mutatedFiles)('%s belongs to exactly one shard', (file) => {
@@ -74,7 +94,8 @@ describe('the unit shards partition the directories the unit run mutates', () =>
   it('claims nothing outside those directories', () => {
     expect(shardsClaiming('src/clients/MarketClient.ts', shards)).toEqual([]);
     expect(shardsClaiming('src/schemas/market.ts', shards)).toEqual([]);
-    expect(shardsClaiming('src/auth/EveSsoClient.ts', shards)).toEqual([]);
+    expect(shardsClaiming('src/index.ts', shards)).toEqual([]);
+    expect(shardsClaiming('src/errors.ts', shards)).toEqual([]);
   });
 
   it('still claims the directories the mutate globs exclude', () => {
@@ -99,7 +120,10 @@ describe('the unit shard list agrees with the scored directories', () => {
     // Every directory the ratchet scores has to be mutated by some shard, or
     // the merged report would be missing it and the ratchet would fail on a
     // directory nobody ran rather than on a directory that got worse.
-    expect(shardsClaiming(`${directory}/probe.ts`, shards)).toHaveLength(1);
+    // Files directly under src/ score as `src`; only the surfaces are mutated there.
+    const probe =
+      directory === 'src' ? 'src/EsiClient.ts' : `${directory}/probe.ts`;
+    expect(shardsClaiming(probe, shards)).toHaveLength(1);
   });
 });
 
