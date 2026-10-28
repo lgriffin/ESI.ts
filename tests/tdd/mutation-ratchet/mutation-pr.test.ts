@@ -19,6 +19,7 @@ import {
   globToRegExp,
   inMutationScope,
   invalidateForChangedTests,
+  filesImportedByTest,
   isTestFile,
   killsFromReport,
   parseThresholds,
@@ -168,6 +169,30 @@ describe('coverage from the incremental report', () => {
       expect(sourceDirectoryForTest(test)).toBe(expected);
     },
   );
+});
+
+describe('filesImportedByTest', () => {
+  it('resolves relative imports, requires and dynamic imports against the test', () => {
+    const source = [
+      "import { EsiClient } from '../../../src/EsiClient';",
+      "import type { ApiClient } from '../../../src/core/ApiClient';",
+      "import '../../../src/core/setup';",
+      "const lazy = await import('../../../src/client');",
+      "const old = require('./helper.ts');",
+      "import fetchMock from 'jest-fetch-mock';",
+    ].join('\n');
+    expect(filesImportedByTest('tests/tdd/core/x.test.ts', source)).toEqual([
+      'src/EsiClient.ts',
+      'src/EsiClient/index.ts',
+      'src/core/ApiClient.ts',
+      'src/core/ApiClient/index.ts',
+      'src/core/setup.ts',
+      'src/core/setup/index.ts',
+      'src/client.ts',
+      'src/client/index.ts',
+      'tests/tdd/core/helper.ts',
+    ]);
+  });
 });
 
 describe('verdicts a changed test can overturn (#571)', () => {
@@ -573,6 +598,39 @@ describe('pull request mutation plan', () => {
       'src/core/cache/cacheKey.ts',
     ]);
     expect(result.force).toBe(true);
+  });
+
+  it('reaches the files a new test imports, not only the directory its path mirrors (#722)', () => {
+    const surfaceTest = `import { EsiClient } from '../../../src/EsiClient';
+import { identityFromToken } from '../../../src/core/identity';`;
+    const result = plan({
+      trackedFiles: [
+        'src/EsiClient.ts',
+        'src/EsiClientBuilder.ts',
+        'src/core/identity.ts',
+        'src/core/cache/cacheKey.ts',
+      ],
+      mutatePatterns: [
+        'src/core/**/*.ts',
+        'src/EsiClient.ts',
+        'src/EsiClientBuilder.ts',
+      ],
+      readSource: (f) =>
+        f === 'tests/tdd/core/newSurface.test.ts' ? surfaceTest : 'source',
+      changedTestFiles: ['tests/tdd/core/newSurface.test.ts'],
+    });
+    expect(result.directories).toEqual(['src', 'src/core']);
+  });
+
+  it('plans a deleted test by its layout alone', () => {
+    const result = plan({
+      readSource: (f) => {
+        if (f.startsWith('tests/')) throw new Error('ENOENT');
+        return 'source';
+      },
+      changedTestFiles: ['tests/tdd/core/cache/gone.test.ts'],
+    });
+    expect(result.directories).toEqual(['src/core/cache']);
   });
 
   it('skips a test-only pull request whose tests covered nothing, saying it cannot lower a score', () => {

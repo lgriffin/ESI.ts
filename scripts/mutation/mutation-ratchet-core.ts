@@ -614,6 +614,40 @@ export function sourceDirectoryForTest(testFile: string): string | null {
   return directoryOf(['src', ...parts.slice(2)].join('/'));
 }
 
+/**
+ * The repo-relative files a test imports by relative path, with `.ts`
+ * added: `../../../src/EsiClient` from `tests/tdd/core/x.test.ts` is
+ * `src/EsiClient.ts`. The layout alone cannot place a test that sits in one
+ * directory and exercises another, such as the construction-surface tests
+ * under `tests/tdd/core/` that cover `src/EsiClient.ts` (#722).
+ */
+export function filesImportedByTest(
+  testFile: string,
+  source: string,
+): string[] {
+  const dir = normalise(testFile).split('/').slice(0, -1).join('/');
+  const found = new Set<string>();
+  const specifier =
+    /\b(?:from|import|require)\s*\(?\s*['"](\.{1,2}\/[^'"]+)['"]/g;
+  for (const match of source.matchAll(specifier)) {
+    const parts = [...dir.split('/'), ...match[1]!.split('/')];
+    const resolved: string[] = [];
+    for (const part of parts) {
+      if (part === '' || part === '.') continue;
+      if (part === '..') resolved.pop();
+      else resolved.push(part);
+    }
+    const file = resolved.join('/');
+    if (file.endsWith('.ts')) {
+      found.add(file);
+    } else {
+      found.add(`${file}.ts`);
+      found.add(`${file}/index.ts`);
+    }
+  }
+  return [...found];
+}
+
 export interface PrPlan {
   skip: boolean;
   /** Why the run was skipped, for the job summary. */
@@ -734,8 +768,9 @@ export function planPrRun({
     testsChanged.length > 0
   ) {
     // A test-only pull request: the directories its tests reach, by the
-    // report's coverage for a test it knows and by the tests/tdd/ layout
-    // for one it does not (a new test file, or a report without coverage).
+    // report's coverage for a test it knows, and by the tests/tdd/ layout
+    // and the in-scope files it imports for one it does not (a new test
+    // file, or a report without coverage).
     const trackedDirectories = new Set(tracked.map(directoryOf));
     for (const test of testsChanged) {
       for (const [file, tests] of baselineCoverage ?? []) {
@@ -746,6 +781,17 @@ export function planPrRun({
       const byLayout = sourceDirectoryForTest(test);
       if (byLayout !== null && trackedDirectories.has(byLayout)) {
         directories.add(byLayout);
+      }
+      let source: string | null = null;
+      try {
+        source = readSource(test);
+      } catch {
+        // A deleted test has nothing left to import.
+      }
+      for (const file of source === null
+        ? []
+        : filesImportedByTest(test, source)) {
+        if (tracked.includes(file)) directories.add(directoryOf(file));
       }
     }
   }
