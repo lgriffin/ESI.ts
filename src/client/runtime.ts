@@ -210,27 +210,41 @@ export interface Esi {
 
 const CLIENT_ID = 'esi-runtime';
 
-/** Throws NO_AUTH_TOKEN for a scoped operation: the public view holds no token. */
+/**
+ * Refuses a scoped operation with NO_AUTH_TOKEN: the public view holds no
+ * token. The refusal arrives the way any other failure does, as a rejected
+ * promise or a failed iteration, never as a synchronous throw.
+ */
 class PublicTransport implements OperationTransport {
   constructor(private readonly inner: OperationTransport) {}
 
   request<T>(meta: OperationMeta, req: OperationRequest): Promise<T> {
-    refusePublic(meta);
+    const refusal = refusalFor(meta);
+    if (refusal) return Promise.reject(refusal);
     return this.inner.request<T>(meta, req);
   }
 
   paginate<T>(meta: OperationMeta, req: OperationRequest): AsyncIterable<T> {
-    refusePublic(meta);
+    const refusal = refusalFor(meta);
+    if (refusal) return refusedIteration<T>(refusal);
     return this.inner.paginate<T>(meta, req);
   }
 }
 
-function refusePublic(meta: OperationMeta): void {
-  if (meta.scopes.length === 0) return;
-  throw new EsiConfigurationError(
+function refusalFor(meta: OperationMeta): EsiConfigurationError | null {
+  if (meta.scopes.length === 0) return null;
+  return new EsiConfigurationError(
     'NO_AUTH_TOKEN',
     `${meta.operationId} requires ${meta.scopes.join(', ')} and the public view holds no token. Fix: call it through esi.as(identity)`,
   );
+}
+
+function refusedIteration<T>(refusal: EsiConfigurationError): AsyncIterable<T> {
+  return {
+    [Symbol.asyncIterator]: () => ({
+      next: () => Promise.reject(refusal),
+    }),
+  };
 }
 
 export function createEsi(options: EsiOptions): Esi {
