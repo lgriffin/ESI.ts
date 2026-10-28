@@ -4982,6 +4982,7 @@ export interface EsiClientConfig {
     tenant?: string | undefined;
     // (undocumented)
     timeout?: number | undefined;
+    transport?: HttpTransport | undefined;
     // (undocumented)
     unsafeAllowCustomHost?: boolean | undefined;
     userAgent?: string | undefined;
@@ -6830,6 +6831,9 @@ const GraphicInfoSchema: z.ZodObject<{
     sof_race_name: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
+// @public
+export type HttpTransport = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
 // @public (undocumented)
 export interface ICache {
     // (undocumented)
@@ -8653,15 +8657,15 @@ const PlanetInfoSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// Warning: (ae-forgotten-export) The symbol "AuthenticatedMethods" needs to be exported by the entry point index.d.ts
-//
-// @public
-export type PublicClient<K extends ApiClientType> = Omit<ClientTypeMap[K], AuthenticatedMethods[K] | 'withMetadata' | 'withSafeMode' | 'streamEndpoint' | 'fetchAllEndpoint'>;
-
 // @public (undocumented)
 export interface ProviderIdentityOptions {
     readonly characterId?: number;
 }
+
+// Warning: (ae-forgotten-export) The symbol "AuthenticatedMethods" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type PublicClient<K extends ApiClientType> = Omit<ClientTypeMap[K], AuthenticatedMethods[K] | 'withMetadata' | 'withSafeMode' | 'streamEndpoint' | 'fetchAllEndpoint'>;
 
 // @public (undocumented)
 export type PublicContract = z.infer<typeof PublicContractSchema>;

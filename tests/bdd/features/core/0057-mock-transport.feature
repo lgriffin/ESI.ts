@@ -4,7 +4,9 @@ Feature: A mock transport for an application's own tests
   Until now it replaced `globalThis.fetch` by hand and rebuilt, in every
   project, the same routing table and the same record of what went over the
   wire. `createMockTransport()` in the `./testing` entry is an `HttpTransport`:
-  it is passed to `createEsi({ transport })`, answers the requests the
+  it is passed as `transport` to `createEsi()` or to a custom client
+  (`new EsiClient()`, `EsiClientBuilder`, `EsiApiFactory.createClient`),
+  answers the requests the
   application's code sends from a table of routes, and keeps every request it
   saw so a test can assert on the method, the URL, the headers and the body.
 
@@ -17,8 +19,9 @@ Feature: A mock transport for an application's own tests
   all execute, so a test written against the mock can fail for a bug in the
   SDK as well as in the application.
 
-  These scenarios drive the generated operations through a runtime built over
-  the mock transport, and read the transport's own record of the exchange.
+  Most scenarios drive the generated operations through a runtime built over
+  the mock transport; the last Rule drives the custom clients. All of them
+  read the transport's own record of the exchange.
 
   # ── Answering
 
@@ -118,3 +121,31 @@ Feature: A mock transport for an application's own tests
       And the character's view has requested the wallet balance
       When the mock transport is reset
       Then the mock transport shall have no routes and no recorded requests
+
+  # ── The custom clients
+
+  Rule: Where a custom client is configured with a transport, the client shall send every request through that transport.
+    The custom clients are the product, so an application built on them gets
+    the same test double as one built on `createEsi()`: `transport` in
+    `EsiClientConfig` replaces `fetch` for the client and for every identity
+    view opened on it. The rest of the pipeline is unchanged, and a request
+    that reached `fetch` instead would fail the scenario at the seam.
+
+    Scenario Outline: A wallet client built by <surface> reads the balance through the mock transport
+      Given a wallet client built by "<surface>" over a mock transport
+      And the mock transport answers "GET" "/characters/{character_id}/wallet" with the wallet balance
+      When the wallet client requests the wallet balance
+      Then the wallet client shall receive the wallet balance
+      And the mock transport shall have recorded one request carrying the header "authorization" with the value "Bearer raw-access-token"
+
+      Examples:
+        | surface          |
+        | EsiClient        |
+        | EsiClientBuilder |
+        | EsiApiFactory    |
+
+    Scenario: An unrouted request from a custom client fails without a retry
+      Given a wallet client built by "EsiClient" over a mock transport
+      When the wallet client requests the wallet balance
+      Then the call shall be rejected with a configuration error
+      And the mock transport shall list the request "GET https://esi.evetech.net/characters/2114794365/wallet" as unrouted

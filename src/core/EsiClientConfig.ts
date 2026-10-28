@@ -19,6 +19,7 @@ import type { LogLevel } from './logger/DefaultLogger';
 import type { IncompletePagesMode } from './pagination/pageLimit';
 import type { CacheStore } from './ports/CacheStore';
 import type { Clock } from './ports/Clock';
+import type { HttpTransport } from './ports/HttpTransport';
 import type { ICircuitBreaker } from './circuitBreaker/ICircuitBreaker';
 import type { IDeduplicator } from './IDeduplicator';
 import type { IRateLimiter } from './rateLimiter/IRateLimiter';
@@ -106,4 +107,12 @@ export interface EsiClientConfig {
    * supplied middleware instance keeps whatever clock it was built with.
    */
   clock?: Clock | undefined;
+  /**
+   * Sends each HTTP request, in place of `globalThis.fetch`: a proxy agent, a
+   * recording transport, or `createMockTransport()` from
+   * `@lgriffin/esi.ts/testing` for an application's own tests. Everything
+   * between a domain-client call and the transport is the real pipeline.
+   * Identity views from `as(identity)` send through it too.
+   */
+  transport?: HttpTransport | undefined;
 }
