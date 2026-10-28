@@ -1360,6 +1360,10 @@ npx jest --config config/jest/unit.config.cjs --testPathPatterns=composition
 # Replay a nightly no-retry order
 npx jest --config config/jest/unit.config.cjs --randomize --seed=<seed>
 
+# See the library's own log lines (the unit config sets ESI_LOG_LEVEL=silent
+# when it is unset, so the error-path tests do not bury a failure)
+ESI_LOG_LEVEL=warn npm test
+
 # Node inspector
 node --inspect-brk node_modules/.bin/jest --config config/jest/unit.config.cjs --runInBand
 ```
