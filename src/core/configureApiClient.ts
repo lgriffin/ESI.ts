@@ -25,7 +25,8 @@ export interface ConfigureApiClientResult {
  * `circuitBreaker`, `deduplicator`) is installed in place of what the config
  * would build: a supplied circuit breaker or deduplicator even when the
  * config leaves that stage off, a supplied cache unless the config turns the
- * ETag cache off. A supplied `clock` goes on the client and into every stage
+ * ETag cache off. A supplied `transport` replaces `fetch`. A supplied
+ * `clock` goes on the client and into every stage
  * built here. The returned deduplicator is only one built here.
  */
 export function configureApiClient(
@@ -33,6 +34,7 @@ export function configureApiClient(
   config?: EsiClientConfig,
 ): ConfigureApiClientResult {
   if (config?.clock) client.setClock(config.clock);
+  if (config?.transport) client.setFetch(config.transport);
 
   // Per-client logger first, so the middleware built below (the ETag
   // cache's startup line included) logs to it from the start.

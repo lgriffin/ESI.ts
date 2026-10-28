@@ -252,10 +252,10 @@ export function createEsi(options: EsiOptions): Esi {
   if (options.compatibilityDate) {
     runtime.setCompatibilityDate(options.compatibilityDate);
   }
-  if (options.transport) runtime.setFetch(options.transport);
-  // The supplied middleware (cache, rateLimiter, circuitBreaker,
-  // deduplicator, clock) rides in the options, as it does in EsiClientConfig
-  // for the custom clients, so configureApiClient installs it for both.
+  // The transport and the supplied middleware (cache, rateLimiter,
+  // circuitBreaker, deduplicator, clock) ride in the options, as they do in
+  // EsiClientConfig for the custom clients, so configureApiClient installs
+  // them for both.
   configureApiClient(runtime, {
     ...options,
     requestInterceptors: options.requestInterceptors?.slice(),

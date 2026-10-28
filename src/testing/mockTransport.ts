@@ -2,10 +2,11 @@
  * A mock `HttpTransport` for an application's own tests.
  *
  * `createMockTransport()` answers the requests the SDK sends from a table of
- * routes and records every request it saw. It is passed to
- * `createEsi({ transport })`, so everything between the application's call
- * and the transport (URL building, headers, retries, the cache, pagination,
- * response validation) is the SDK's real pipeline.
+ * routes and records every request it saw. It is passed as `transport` to
+ * `new EsiClient()`, `EsiClientBuilder.withConfig()`,
+ * `EsiApiFactory.createClient()` or `createEsi()`, so everything between
+ * the application's call and the transport (URL building, headers, retries,
+ * the cache, pagination, response validation) is the SDK's real pipeline.
  *
  * Specification: tests/bdd/features/core/0057-mock-transport.feature.
  */
@@ -214,8 +215,8 @@ function describeRoute(route: MockRoute): string {
 }
 
 /**
- * Builds a mock `HttpTransport` for tests. Pass it to
- * `createEsi({ transport })`; add routes with `respond()`; read what the
+ * Builds a mock `HttpTransport` for tests. Pass it as `transport` to
+ * `new EsiClient()` or another construction surface; add routes with `respond()`; read what the
  * application sent from `sent`.
  *
  * A request no route answers rejects with an `EsiConfigurationError` carrying

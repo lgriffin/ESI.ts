@@ -6,6 +6,7 @@ import {
 } from '../../../src/EsiClientBuilder';
 import { IRetryStrategy } from '../../../src/core/IRetryStrategy';
 import type { ApiClient } from '../../../src/core/ApiClient';
+import { identityFromToken } from '../../../src/client';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -174,6 +175,58 @@ describe('ARCH-08: construction parity (every legacy surface configures the pipe
         'throw',
         'throw',
       ]);
+    });
+  });
+
+  describe('transport', () => {
+    const fetchers = (config?: EsiClientConfig) => {
+      const esiClient = new EsiClient(config);
+      const customClient = new CustomEsiClient({
+        ...config,
+        clients: ['status'],
+      });
+      const factoryClient = EsiApiFactory.createClient('status', config);
+      const result = [
+        (esiClient as unknown as { apiClient: ApiClient }).apiClient,
+        getApiClientFromDomainClient(customClient.getClient('status')),
+        getApiClientFromDomainClient(factoryClient),
+      ].map((client) => (client as ApiClient).getFetch());
+      esiClient.shutdown();
+      customClient.shutdown();
+      return result;
+    };
+
+    it('defaults to globalThis.fetch on all three surfaces', () => {
+      expect(fetchers()).toEqual([
+        globalThis.fetch,
+        globalThis.fetch,
+        globalThis.fetch,
+      ]);
+    });
+
+    it('a supplied transport replaces fetch on all three surfaces', () => {
+      const transport = jest.fn<
+        Promise<Response>,
+        [RequestInfo | URL, RequestInit?]
+      >();
+      expect(fetchers({ transport })).toEqual([
+        transport,
+        transport,
+        transport,
+      ]);
+    });
+
+    it("an identity view sends through its parent's transport", () => {
+      const transport = jest.fn<
+        Promise<Response>,
+        [RequestInfo | URL, RequestInit?]
+      >();
+      const esiClient = new EsiClient({ transport });
+      const view = esiClient.as(identityFromToken('token'));
+      expect(
+        (view as unknown as { apiClient: ApiClient }).apiClient.getFetch(),
+      ).toBe(transport);
+      esiClient.shutdown();
     });
   });
 
