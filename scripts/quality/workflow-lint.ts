@@ -19,6 +19,8 @@ import { spawnSync } from 'child_process';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 
+import { TOOL_MISSING_EXIT } from './verify-local-core';
+
 const ROOT = path.resolve(__dirname, '../..');
 const CI = '.github/workflows/ci.yml';
 
@@ -60,7 +62,7 @@ function main(): void {
         `  Or zizmor:   pipx install zizmor==${version}\n` +
         'This is the same audit the `zizmor` job runs on every pull request.',
     );
-    process.exit(2);
+    process.exit(TOOL_MISSING_EXIT);
   }
 
   if (runner.command === 'zizmor') {

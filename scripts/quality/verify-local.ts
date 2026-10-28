@@ -22,6 +22,7 @@ import * as path from 'path';
 import {
   TIERS,
   TierResult,
+  TOOL_MISSING_EXIT,
   VerifyLocalError,
   duplicateScripts,
   exitCodeFor,
@@ -32,14 +33,22 @@ import {
 
 const ROOT = path.resolve(__dirname, '../..');
 
-function run(script: string): { ok: boolean; ms: number } {
+function run(script: string): {
+  ok: boolean;
+  unavailable: boolean;
+  ms: number;
+} {
   const started = Date.now();
   const result = spawnSync('npm', ['run', script], {
     cwd: ROOT,
     stdio: 'inherit',
     shell: process.platform === 'win32',
   });
-  return { ok: result.status === 0, ms: Date.now() - started };
+  return {
+    ok: result.status === 0,
+    unavailable: result.status === TOOL_MISSING_EXIT,
+    ms: Date.now() - started,
+  };
 }
 
 function main(): void {
@@ -84,9 +93,15 @@ function main(): void {
     }
 
     console.log(`\n=== ${tier.script} — ${tier.covers}\n`);
-    const { ok, ms } = run(tier.script);
+    const { ok, unavailable, ms } = run(tier.script);
     if (!ok && tier.script === 'build') buildFailed = true;
-    results.push({ script: tier.script, covers: tier.covers, ok, ms });
+    results.push({
+      script: tier.script,
+      covers: tier.covers,
+      ok,
+      ms,
+      ...(unavailable ? { unavailable } : {}),
+    });
   }
 
   console.log(`\n${'='.repeat(64)}\n`);

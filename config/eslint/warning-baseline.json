@@ -105,7 +105,6 @@
       "sonarjs/cognitive-complexity": 1
     },
     "scripts/quality/verify-local-core.ts": {
-      "sonarjs/no-nested-conditional": 1,
       "sonarjs/no-nested-template-literals": 1
     },
     "scripts/quality/verify-local.ts": {

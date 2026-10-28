@@ -233,6 +233,24 @@ describe('the summary and the exit code', () => {
     expect(renderSummary([result('a', true)])).toContain('1 tiers passed');
   });
 
+  it('reports a tier whose tool is missing as not run, without failing the run', () => {
+    const missing = { ...result('lint:workflows', false), unavailable: true };
+    const summary = renderSummary([result('a', true), missing]);
+    expect(summary).toContain('n/a');
+    expect(summary).toContain('1 tiers passed, 1 not run (a tool is missing)');
+    expect(summary).toContain('not run: npm run lint:workflows');
+    expect(summary).not.toContain('re-run: npm run lint:workflows');
+    expect(exitCodeFor([result('a', true), missing])).toBe(0);
+  });
+
+  it('still fails a run with a real failure beside a missing tool', () => {
+    const missing = { ...result('lint:workflows', false), unavailable: true };
+    expect(exitCodeFor([result('faults', false), missing])).toBe(1);
+    expect(renderSummary([result('faults', false), missing])).toContain(
+      '0 passed, 1 failed, 1 not run (a tool is missing)',
+    );
+  });
+
   it('separates what failed from what was not reached', () => {
     const summary = renderSummary([
       result('build', false),

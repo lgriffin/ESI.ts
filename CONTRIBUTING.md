@@ -1,137 +1,97 @@
 # Contributing to ESI.ts
 
-Thank you for your interest in contributing to ESI.ts! This guide will help you get started.
+Thank you for helping. This page is the one path from a fresh clone to a merged pull request. It lists every check CI runs that a first pull request usually trips, so nothing on the pull request should surprise you.
 
-## Prerequisites
+## 1. Prerequisites
 
-- **Node.js** 22.12 or later (`.nvmrc` pins 22)
-- **npm**
+| Need              | Why                                                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- |
+| Node.js 22.12+    | `engines` floor; `.nvmrc` pins 22                                                                          |
+| npm               | The lockfile is npm's; use `npm ci`                                                                        |
+| About 8 GB of RAM | Type-aware ESLint over `src/`, `tests/` and `scripts/` runs with a 4 GB heap (`npm run lint` sets it)      |
+| uv (optional)     | `npm run lint:workflows` runs zizmor through `uvx`. Without it, `check:local` reports that tier as not run |
+| Docker (optional) | Only for `fuzz:api`, `mock:esi` and `contract:diff`, which CI and the nightlies run anyway                 |
 
-## Getting Started
-
-1. Fork the repository on GitHub: https://github.com/lgriffin/ESI.ts
-2. Clone your fork locally:
-   ```bash
-   git clone https://github.com/<your-username>/ESI.ts.git
-   cd ESI.ts
-   ```
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-4. Build the project:
-   ```bash
-   npm run build
-   ```
-5. Run the test suite to verify everything works:
-   ```bash
-   npm test
-   ```
-
-## Finding npm Commands
-
-There are ~100 npm scripts. Instead of scrolling through them, run:
+## 2. Set up
 
 ```bash
-npm run help                 # grouped overview by intent
-npm run help wallet          # any script whose name or hint mentions "wallet"
-npm run help example         # every runnable example script
-npm run help bdd             # every BDD scenario group
+git clone https://github.com/<your-username>/ESI.ts.git   # your fork
+cd ESI.ts
+npm ci                       # also builds dist/ through the prepare script
+npm test                     # unit and BDD suites, about three minutes
 ```
 
-The overview highlights the scripts you'll reach for most (`build`, `test`,
-`coverage`, `lint`, `docs`, token management, codegen, validation gates) and
-collapses the `example:*` and `bdd:*` families. Add a keyword to drop straight
-to a match list — no memorizing sub-script names needed.
+`npm test` is quiet by design: the library's own log lines are silenced under test. `ESI_LOG_LEVEL=warn npm test` shows them.
 
-## Development Workflow
+## 3. Find something to work on
 
-1. Create a feature branch from `master`:
-   ```bash
-   git checkout -b feature/your-feature master
-   ```
-2. Make your changes.
-3. Run the full validation suite before submitting:
-   ```bash
-   npm run validate
-   ```
-4. Commit your changes and push to your fork.
-5. Open a pull request against `master`.
+Issues labelled [`good first issue`](https://github.com/lgriffin/ESI.ts/labels/good%20first%20issue) are bounded, need no product decision, and each one names the committed baseline that proves it is done. GitHub issues are the public tracker; the maintainer's own planning also lives in Beads ([guides/BEADS.md](guides/BEADS.md)), which you do not need.
 
-## Code Style
+For something not on the list, open an issue first if it changes behaviour, so the requirement can be agreed before code is written.
 
-ESLint and Prettier are enforced automatically via pre-commit hooks (Husky + lint-staged). You do not need to run formatting manually -- the hooks will handle it when you commit.
+## 4. Make the change
 
-If you want to check lint status manually:
+Read the guide for the kind of change you are making:
+
+| You are…                               | Read                                                                                                                |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Changing what the client does          | [tests/bdd/GUIDE.md](tests/bdd/GUIDE.md): write the EARS `Rule:` and a failing scenario first (TEST-01)             |
+| Adding or fixing an endpoint or schema | [guides/DESIGN-RULES.md](guides/DESIGN-RULES.md) §3, which walks one operation end to end                           |
+| Adding a test                          | [guides/TESTING.md](guides/TESTING.md#adding-tests)                                                                 |
+| Migrating a legacy BDD step file       | [tests/bdd/README.md](tests/bdd/README.md), the `legacyStepFiles` list in `scripts/spec/spec-audit-exceptions.json` |
+| Touching CI, release or supply chain   | [guides/QUALITY-GATES.md](guides/QUALITY-GATES.md), [guides/SECURITY.md](guides/SECURITY.md)                        |
+
+Two rules hold whatever the change:
+
+- **The custom clients are the product.** `EsiClient`, `EsiClientBuilder`, `EsiApiFactory` and the 39 domain clients are never deprecated or replaced by the generated layer ([CHARTER.md](guides/CHARTER.md) posture 1, ARCH-14). A test fails a change that tries.
+- **No floor is lowered.** Every baseline and threshold in this repo is shrink-only or ratchets up.
+
+## 5. Check before you push
 
 ```bash
-npm run lint
+npm run check:local -- --fast   # every offline CI tier except the build, about nine minutes
+npm run check:local             # the same plus the build, size budgets, packed-package and docs-example checks
 ```
 
-## Testing
+Every tier runs even after one fails, and the summary names the command to re-run. A tier whose tool is not installed (uv) shows `n/a` and does not fail the run; CI runs it on your pull request.
 
-- **TDD tests** live in `tests/tdd/` and mirror the source structure.
-- **BDD scenarios** live in `tests/bdd/`. These are an EARS specification: one
-  atomic requirement per Gherkin `Rule:` block, verified by the scenarios nested
-  under it, and enforced in CI by `npm run spec:audit`. Read
-  [`tests/bdd/GUIDE.md`](tests/bdd/GUIDE.md) before changing observable client
-  behaviour; [`tests/bdd/README.md`](tests/bdd/README.md) is the short version.
-- **Benchmarks and the heap soak** live in `tests/benchmark/`; see
-  [`tests/benchmark/AGENTS.md`](tests/benchmark/AGENTS.md). They are not Jest
-  tests: a change is compared with its base statistically rather than against a
-  wall-clock limit.
-- **Shared test helpers** live in `tests/tdd/helpers/` (e.g., `clientErrorTests.ts` for HTTP error path testing).
-- Run all tests:
-  ```bash
-  npm test
-  ```
-- Run tests with coverage report:
-  ```bash
-  npm run coverage
-  ```
-- Run benchmarks and the heap soak:
-  ```bash
-  npm run benchmark   # this tree only
-  npm run soak        # 100 000 requests, forced GC
-  ```
+### CI will fail if…
 
-All pull requests must include tests for new or changed functionality. Coverage thresholds are enforced in CI. See `guides/TESTING.md` for the full testing guide.
+| …you                                                          | Then run, and commit what it changes                                                          |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Added or removed a `Rule:`, scenario, feature file or example | `npm run docs:metrics` (the counts in README and the guides; `validate:versions` checks them) |
+| Changed anything exported                                     | `npm run build && npm run api-report` (`etc/esi.ts.api.md`)                                   |
+| Added an export                                               | Reference it from a test (`npm run test:export-coverage`)                                     |
+| Added a domain-client method                                  | Name it in a `Rule:` or call it from a bound step (`npm run spec:coverage:clients`)           |
+| Made the bundle bigger                                        | `npm run build && npm run size`; a raised budget needs a reason in `.size-limit.cjs`          |
+| Added a lint warning to a file                                | Fix it; `npm run lint:ratchet` holds warnings per file and rule                               |
+| Changed `CLAUDE.md` or `AGENTS.md`                            | Make the same edit to the other; a test keeps their shared sections identical                 |
+| Touched a `*.generated.ts` file by hand                       | Revert it and regenerate (`npm run spec:generate` or `npm run generate:types`)                |
+| Wrote a test that cannot fail                                 | `npm run lint:suite-health` rejects `.only`, `.skip` and assertion-free tests                 |
 
-## Pull Requests
+## 6. Commit and open the pull request
 
-- Target the `master` branch.
-- Include tests that cover your changes.
-- Ensure CI passes (build, lint, tests, coverage).
-- Update `CHANGELOG.md` if your change is user-facing (new features, bug fixes, breaking changes).
-- Keep pull requests focused -- one logical change per PR.
+- **Conventional commits**, enforced by commitlint: `feat:`, `fix:`, `perf:`, `refactor:`, `test:`, `docs:`, `chore:`. The type decides the release, so classify the change with [guides/SEMVER.md](guides/SEMVER.md) first. A breaking change needs `!` and a `BREAKING CHANGE:` footer, and the maintainer's agreement before it is written.
+- **Do not edit `CHANGELOG.md`.** release-please writes it from the commit messages.
+- **The pull request title** is a conventional commit too, because a squash merge uses it.
+- **One logical change per pull request**, targeting `master`.
+- Pre-commit hooks run ESLint and Prettier on staged files, so formatting takes care of itself.
 
-## Commit Messages
+CI runs about 35 checks in roughly ten minutes and reports them as one required check, `ci-success`. A failing job's log names the command to reproduce it locally.
 
-Use [Conventional Commits](https://www.conventionalcommits.org/) format:
+## 7. Finding npm commands
 
-- `feat:` -- a new feature
-- `fix:` -- a bug fix
-- `chore:` -- maintenance tasks (dependencies, CI, tooling)
-- `docs:` -- documentation changes
-- `test:` -- adding or updating tests
-- `refactor:` -- code restructuring without behavior changes
+There are over 200 npm scripts. Rather than scroll through them:
 
-Examples:
-
-```
-feat: add support for corporation wallet endpoint
-fix: handle rate limit response from ESI
-test: add coverage for alliance contacts client
+```bash
+npm run help            # grouped overview by intent
+npm run help wallet     # any script whose name or hint mentions "wallet"
+npm run help bdd        # every BDD scenario group
 ```
 
-## Reporting Bugs
+## 8. Reporting bugs and asking questions
 
-Please use [GitHub Issues](https://github.com/lgriffin/ESI.ts/issues) to report bugs. Include:
-
-- A clear description of the problem
-- Steps to reproduce
-- Expected vs. actual behavior
-- Node.js version and OS
+Use [GitHub Issues](https://github.com/lgriffin/ESI.ts/issues/new/choose). The bug template asks for the package version, Node version, which surface you used (`EsiClient`, the builder, `createEsi`) and the request with its token removed. Report security problems privately, as [SECURITY.md](SECURITY.md) describes.
 
 ## License
 
