@@ -38,12 +38,11 @@ function apiClientOf(surface: Surface, config?: EsiClientConfig): ApiClient {
       opened.push(client);
       return (client as unknown as { apiClient: ApiClient }).apiClient;
     }
-    case 'EsiApiFactory':
-      return (
-        EsiApiFactory.createClient('status', config) as unknown as {
-          _client: ApiClient;
-        }
-      )._client;
+    case 'EsiApiFactory': {
+      const client = EsiApiFactory.createClient('status', config);
+      opened.push(client);
+      return (client as unknown as { _client: ApiClient })._client;
+    }
   }
 }
 

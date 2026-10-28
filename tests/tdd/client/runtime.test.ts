@@ -575,9 +575,14 @@ describe('createEsi refusals and shutdown ownership', () => {
   beforeEach(() => fetchMock.resetMocks());
 
   const FIX = 'Fix: call it through esi.as(identity)';
+  const built: Array<{ shutdown(): void }> = [];
+  afterEach(() => {
+    for (const esi of built.splice(0)) esi.shutdown();
+  });
 
   it('names the scopes and the fix when the public view is asked for a scoped call', async () => {
     const esi = createEsi(OPTIONS);
+    built.push(esi);
     const forced = esi.public as unknown as ReturnType<typeof esi.as>;
     const error: unknown = await Promise.resolve()
       .then(() => forced.character(1).wallet.get())
@@ -591,6 +596,7 @@ describe('createEsi refusals and shutdown ownership', () => {
 
   it('names the fix when the public view is asked to page a scoped collection', async () => {
     const esi = createEsi(OPTIONS);
+    built.push(esi);
     const forced = esi.public as unknown as ReturnType<typeof esi.as>;
     const iterate = async () => {
       for await (const asset of forced.character(1).assets.get()) void asset;
