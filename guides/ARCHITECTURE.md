@@ -4,7 +4,7 @@
 
 How ESI.ts is layered, the route every request takes, and how each piece of middleware behaves. The charter states the requirements; this guide explains how the code meets them. Where the two disagree, the code is the fact and the difference is called out.
 
-This guide describes the code on `master` at 10.2.3 with ROADMAP Phase 2 merged. The seams it added (ports, `PipelineTransport`, the generated operations and the scope tree) reach consumers through the `./client` entry: one shared runtime, a public view and a view per identity ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)); `createMockTransport` in `./testing` implements the `HttpTransport` port for consumers' tests. [§1a](#1a-ports-adapters-and-the-layer-rule) describes them and says what 11.0.0 will still change: the Phase 4 logger work, as planned in [ROADMAP.md](ROADMAP.md).
+This guide describes the code on `master` in the 12.x line, after the custom-client plan in [CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md) landed. The custom clients (`EsiClient`, `EsiClientBuilder`, `EsiApiFactory` and the 39 domain clients) are the product; the ports, `PipelineTransport`, the generated operations and the scope tree sit underneath and also reach consumers through the `./client` entry ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)). `createMockTransport` in `./testing` implements the `HttpTransport` port for consumers' tests and plugs into every construction surface through `transport`. [§1a](#1a-ports-adapters-and-the-layer-rule) describes the seams.
 
 Topics with their own guide are summarised here and linked:
 
@@ -479,16 +479,6 @@ flowchart BT
 ```
 
 Solid arrows are the directions the rule permits for the ruled trees (ports, generated, core, adapters, SDE). The route table lives inside `src/core`, so the endpoint maps read it without crossing a layer; `src/generated` is the separate tree of operations that only `./client` uses. In `layers.rules.cjs` the custom-client trees are the `LEGACY` list, a name from before they were confirmed as the product; the rule itself, that `src/client` and `src/adapters` do not import them, is unchanged. Auth and the custom clients have no rule between them: `index.ts` re-exports `src/auth`, and `EsiTokenManager.createClient` constructs an `EsiClient` (the dashed arrow), so the two import each other at the directory level. Phase 7 deprecates `EsiTokenManager.createClient` in favour of `as()`; removing it, and the dashed arrow with it, needs a future major release that is not scheduled. The custom clients it builds stay ([CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)).
-
-### What 11.0.0 still changes
-
-Each item is one pull request in [ROADMAP.md](ROADMAP.md). None removes a custom-client surface.
-
-| Work                                        | What changes in this architecture                                                                                                                                                                                                     |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phase 3 · layer baseline to empty           | Done: `ClientRegistry.ts` is in `src/clients/`, `EsiClientConfig` in `src/core/`; `BASELINE` is `{}`.                                                                                                                                 |
-| Phase 4 · logging and import-time behaviour | URL sanitising moves to the logger boundary, the remaining call sites that bypass the per-client logger migrate to it (`ARCH-09`), no pino instance is built at import, and `package.json` declares `sideEffects: false` (`ARCH-06`). |
-| Phase 7 · Node 22                           | `engines.node` becomes `>=22.12.0` in the one `feat!:` commit of the release (`REL-05`).                                                                                                                                              |
 
 ---
 

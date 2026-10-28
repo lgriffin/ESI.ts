@@ -391,6 +391,15 @@ export function uncoveredCiScripts(
   return ciScripts.filter((script) => !covered(script)).sort();
 }
 
+/**
+ * The exit code a tier's script uses to say a tool it needs is not installed
+ * (uv for the workflow audit), as opposed to finding a problem. CI installs
+ * every such tool, so locally the tier is reported as not run rather than as
+ * a failure: a fresh clone without uv still gets a green run, and the summary
+ * says what to install to run the rest.
+ */
+export const TOOL_MISSING_EXIT = 3;
+
 export interface TierResult {
   script: string;
   covers: string;
@@ -399,6 +408,8 @@ export interface TierResult {
   ms: number;
   /** Set when the tier was not reached because the build failed. */
   skipped?: boolean;
+  /** Set when the tier exited with TOOL_MISSING_EXIT: a tool it needs is not installed. */
+  unavailable?: boolean;
 }
 
 function duration(ms: number): string {
@@ -407,33 +418,55 @@ function duration(ms: number): string {
     : `${(ms / 1000).toFixed(1)}s`;
 }
 
+/** The summary column: not reached, not run for a missing tool, passed or failed. */
+function markOf(r: TierResult): string {
+  if (r.skipped) return '-';
+  if (r.unavailable) return 'n/a';
+  return r.ok ? 'ok' : 'FAIL';
+}
+
 /** The closing table: what ran, what it covers, how long it took. */
 export function renderSummary(results: TierResult[]): string {
   const width = Math.max(6, ...results.map((r) => r.script.length));
   const lines = results.map((r) => {
-    const mark = r.skipped ? '-' : r.ok ? 'ok' : 'FAIL';
+    const mark = markOf(r);
     const time = r.skipped ? '' : duration(r.ms);
     return `  ${mark.padEnd(4)} ${r.script.padEnd(width)}  ${time.padStart(6)}  ${r.covers}`;
   });
-  const failed = results.filter((r) => !r.ok && !r.skipped);
+  const failed = results.filter((r) => !r.ok && !r.skipped && !r.unavailable);
   const skipped = results.filter((r) => r.skipped);
+  const unavailable = results.filter((r) => r.unavailable);
   const total = results.reduce((sum, r) => sum + r.ms, 0);
+  const notRun =
+    unavailable.length > 0
+      ? `, ${unavailable.length} not run (a tool is missing)`
+      : '';
 
   lines.push('');
   if (failed.length === 0 && skipped.length === 0) {
-    lines.push(`${results.length} tiers passed in ${duration(total)}.`);
+    lines.push(
+      `${results.length - unavailable.length} tiers passed${notRun} in ${duration(total)}.`,
+    );
   } else {
     lines.push(
-      `${results.length - failed.length - skipped.length} passed, ` +
-        `${failed.length} failed${skipped.length > 0 ? `, ${skipped.length} not reached` : ''}, ` +
+      `${results.length - failed.length - skipped.length - unavailable.length} passed, ` +
+        `${failed.length} failed${skipped.length > 0 ? `, ${skipped.length} not reached` : ''}${notRun}, ` +
         `in ${duration(total)}.`,
     );
     for (const r of failed) lines.push(`  re-run: npm run ${r.script}`);
   }
+  for (const r of unavailable) {
+    lines.push(
+      `  not run: npm run ${r.script} needs a tool that is not installed (its output above says which); CI runs it on every pull request`,
+    );
+  }
   return lines.join('\n');
 }
 
-/** Non-zero when anything failed or was not reached, so CI and shells see it. */
+/**
+ * Non-zero when anything failed or was not reached, so CI and shells see it.
+ * A tier whose tool is missing does not fail the run: CI runs it anyway.
+ */
 export function exitCodeFor(results: TierResult[]): number {
-  return results.some((r) => !r.ok || r.skipped) ? 1 : 0;
+  return results.some((r) => (!r.ok && !r.unavailable) || r.skipped) ? 1 : 0;
 }

@@ -40,8 +40,8 @@ Coverage is collected from `src/**/*.ts`, excluding `.d.ts`, `src/types/`, `*.ge
 | Specification (`npm run spec:audit:verbose`) | Count                                                                                                                                                                                                                                                                                                                   |
 | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Feature files                                | <!-- metric:featureFiles -->80<!-- /metric --> (`core/` <!-- metric:featureFilesCore -->55<!-- /metric -->, `integration/` <!-- metric:featureFilesIntegration -->1<!-- /metric -->, `performance/` <!-- metric:featureFilesPerformance -->1<!-- /metric -->, `sde/` <!-- metric:featureFilesSde -->23<!-- /metric -->) |
-| `Rule:` requirements                         | <!-- metric:requirements -->682<!-- /metric -->                                                                                                                                                                                                                                                                         |
-| Scenarios                                    | <!-- metric:scenarios -->885<!-- /metric --> (<!-- metric:plainScenarios -->870<!-- /metric --> `Scenario`, <!-- metric:scenarioOutlines -->15<!-- /metric --> `Scenario Outline`)                                                                                                                                      |
+| `Rule:` requirements                         | <!-- metric:requirements -->683<!-- /metric -->                                                                                                                                                                                                                                                                         |
+| Scenarios                                    | <!-- metric:scenarios -->887<!-- /metric --> (<!-- metric:plainScenarios -->871<!-- /metric --> `Scenario`, <!-- metric:scenarioOutlines -->16<!-- /metric --> `Scenario Outline`)                                                                                                                                      |
 | Audit result                                 | <!-- metric:featureFiles -->80<!-- /metric --> of <!-- metric:featureFiles -->80<!-- /metric --> pass                                                                                                                                                                                                                   |
 
 Other counts, each reproducible with `ls` or `find`: <!-- metric:typeTestFiles -->15<!-- /metric --> tsd files in `tests/typetests/`, 9 Jest configs (`ls config/jest/*.config.cjs`), and 29 workflows in `.github/workflows/` (30 files including its `README.md`).
@@ -433,7 +433,7 @@ On every PR each scenario runs every schedule of two and three calls; the schedu
 **Config:** `config/jest/unit.config.cjs` (its `testMatch` includes `tests/bdd/step-definitions/**/*.steps.ts` and `tests/bdd/specs/**/*.spec.ts`)
 **Run:** `npm run bdd`, or `npm test`, which includes it
 
-The <!-- metric:featureFiles -->80<!-- /metric --> feature files state <!-- metric:requirements -->682<!-- /metric --> requirements, one per `Rule:`, verified by <!-- metric:scenarios -->885<!-- /metric --> scenarios (`npm run spec:audit:verbose`). Every scenario mocks at the transport seam (`TEST-03`), so the rate limiter, retry, deduplication, ETag cache, JSON parsing and Zod validation all execute. Coverage by area:
+The <!-- metric:featureFiles -->80<!-- /metric --> feature files state <!-- metric:requirements -->683<!-- /metric --> requirements, one per `Rule:`, verified by <!-- metric:scenarios -->887<!-- /metric --> scenarios (`npm run spec:audit:verbose`). Every scenario mocks at the transport seam (`TEST-03`), so the rate limiter, retry, deduplication, ETag cache, JSON parsing and Zod validation all execute. Coverage by area:
 
 - **Core** (`features/core/`, <!-- metric:featureFilesCore -->55<!-- /metric --> files): one feature per domain client, plus the cross-cutting ones numbered from 0050: ETag caching, resilience, response headers, runtime validation, token management, request headers, the shared runtime (`createEsi`), the mock transport, logging, path parameters, the custom client, rate-limit status, the security boundary, the custom clients' identity views, the public custom client (`buildPublic()`) and invalidation across clients sharing a cache store.
 - **Integration** (`features/integration/`): cross-domain workflows such as character profile assembly and fleet operations.
@@ -1245,12 +1245,13 @@ Zod validation is tested at four levels, each owning a different question:
 
 ## Testing your application
 
-An application's own tests run without ESI by handing the runtime a mock transport. `createMockTransport()` from `@lgriffin/esi.ts/testing` is an `HttpTransport`: it answers requests from a table of routes and records every request it saw. Everything between the application's call and the transport is the SDK's real pipeline (URL building, headers, retries, the cache, pagination, response validation), so a test written against it can fail for a bug in the SDK as well as in the application. The specification is [`0057-mock-transport.feature`](../tests/bdd/features/core/0057-mock-transport.feature).
+An application's own tests run without ESI by handing the client a mock transport. `createMockTransport()` from `@lgriffin/esi.ts/testing` is an `HttpTransport`, passed as `transport` to `new EsiClient()`, `EsiClientBuilder.withConfig()`, `EsiApiFactory.createClient()` or `createEsi()`. It answers requests from a table of routes and records every request it saw. Everything between the application's call and the transport is the SDK's real pipeline (URL building, headers, retries, the cache, pagination, response validation), so a test written against it can fail for a bug in the SDK as well as in the application. The specification is [`0057-mock-transport.feature`](../tests/bdd/features/core/0057-mock-transport.feature).
 
 ```typescript
-import { createEsi, identityFromToken } from '@lgriffin/esi.ts/client';
+import { EsiClient, identityFromToken } from '@lgriffin/esi.ts';
 import { createMockTransport } from '@lgriffin/esi.ts/testing';
 
+const characterId = 2114794365;
 const transport = createMockTransport()
   .respond({
     method: 'GET',
@@ -1275,16 +1276,20 @@ const transport = createMockTransport()
     body: [],
   });
 
-const esi = createEsi({ userAgent: 'my-app/1.0 (you@example.com)', transport });
-const wallet = await esi
-  .as(identityFromToken(token))
-  .character(characterId)
-  .wallet.get();
+const client = new EsiClient({
+  userAgent: 'my-app/1.0 (you@example.com)',
+  transport,
+});
+const wallet = await client
+  .as(identityFromToken('test-token'))
+  .wallet.getCharacterWallet(characterId);
 
-transport.sent[0]?.headers['authorization']; // "Bearer <token>"
+transport.sent[0]?.headers['authorization']; // "Bearer test-token"
 transport.unrouted; // [] when every request had a route
-transport.reset(); // forget the routes and the record, keep the runtime
+transport.reset(); // forget the routes and the record, keep the client
 ```
+
+The same transport works with `createEsi({ userAgent, transport })` and its views, for the spec-shaped surface. An identity view from `as(identity)` sends through its parent's transport.
 
 A route is one `respond()` call:
 
@@ -1299,7 +1304,7 @@ A route is one `respond()` call:
 
 Routes are tried in the order added and the first match answers. A request no route answers is rejected with an `EsiConfigurationError` (code `CONFIGURATION_ERROR`) naming the request and the route table. The pipeline passes an `EsiError` a transport throws through unchanged, so the call fails at once under that name, without a retry and without falling back to a stale cache entry as an HTTP 5xx would; the transport lists the request under `unrouted`. `sent` holds every request in order, header names in lower case, the body as a string or `undefined`.
 
-`reset()` empties the route table and the record, not the runtime built over the transport: once a route answered with an `etag` header, the runtime's response cache serves that request again without reaching the transport. A test file that repeats a request across a reset builds a runtime per test, or passes `enableETagCache: false` to `createEsi`.
+`reset()` empties the route table and the record, not the client built over the transport: once a route answered with an `etag` header, the client's response cache serves that request again without reaching the transport. A test file that repeats a request across a reset builds a client per test, or passes `enableETagCache: false`.
 
 `TestDataFactory`, from the same entry, builds response bodies the schemas accept ([Test helpers](#test-helpers)).
 
@@ -1371,6 +1376,10 @@ npx jest --config config/jest/unit.config.cjs --testPathPatterns=composition
 
 # Replay a nightly no-retry order
 npx jest --config config/jest/unit.config.cjs --randomize --seed=<seed>
+
+# See the library's own log lines (the unit config sets ESI_LOG_LEVEL=silent
+# when it is unset, so the error-path tests do not bury a failure)
+ESI_LOG_LEVEL=warn npm test
 
 # Node inspector
 node --inspect-brk node_modules/.bin/jest --config config/jest/unit.config.cjs --runInBand

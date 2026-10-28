@@ -197,6 +197,7 @@ export type {
   CachedResponse,
 } from './core/ports/CacheStore';
 export type { Clock } from './core/ports/Clock';
+export type { HttpTransport } from './core/ports/HttpTransport';
 export {
   IRateLimiter,
   RateLimitGroupStatus,

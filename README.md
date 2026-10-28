@@ -91,12 +91,11 @@ const prices = await pub.market?.getMarketPrices();
 
 ### Testing your application without ESI
 
-`createMockTransport()` from `@lgriffin/esi.ts/testing` is a transport for `createEsi()`. It answers requests from a table of routes and records what your code sent. Everything between your call and the transport is the real pipeline, so this runs as written:
+`createMockTransport()` from `@lgriffin/esi.ts/testing` stands in for the network in your own tests. Pass it as `transport` to `EsiClient`, `EsiClientBuilder` or `EsiApiFactory.createClient` (or to `createEsi()`). It answers requests from a table of routes and records what your code sent. Everything between your call and the transport is the real pipeline: URL building, token attachment, the cache, retry, pagination and Zod validation. So a test can catch a bug in your code or in ours, and this runs as written:
 
 ```typescript runnable
-import { createEsi, identityFromToken } from '@lgriffin/esi.ts/client';
+import { EsiClient, createConsoleLogger } from '@lgriffin/esi.ts';
 import { createMockTransport } from '@lgriffin/esi.ts/testing';
-import { createConsoleLogger } from '@lgriffin/esi.ts';
 
 const log = createConsoleLogger('info');
 
@@ -105,17 +104,17 @@ const transport = createMockTransport().respond({
   path: '/characters/{character_id}/wallet',
   body: 1234567.89,
 });
-const esi = createEsi({
+const client = new EsiClient({
   userAgent: 'my-app/1.0 (you@example.com)',
+  accessToken: 'an-access-token',
   transport,
 });
 try {
-  const view = esi.as(identityFromToken('an-access-token'));
-  const wallet = await view.character(2114794365).wallet.get();
+  const wallet = await client.wallet.getCharacterWallet(2114794365);
   log.info(`Wallet: ${wallet}`); // Wallet: 1234567.89
   log.info(`Sent: ${transport.sent[0]?.headers['authorization']}`); // Sent: Bearer an-access-token
 } finally {
-  esi.shutdown();
+  client.shutdown();
 }
 ```
 
@@ -156,7 +155,7 @@ Measured on `master` at `9486fe2c` on 2026-09-28 with the commands shown; the mu
 | Tests run offline         | 10,045 tests in 319 suites; 9,837 run, 0 failing (208 live tests skip without credentials or an SDE export)                                                                                                                                                                                                                                                                                                                                 | `npm test`, `fuzz`, `faults`, `contract:replay`, `test:integration`         |
 | Unit, BDD and composition | 291 suites, 8,308 tests in about two and a half minutes                                                                                                                                                                                                                                                                                                                                                                                     | `npm test`                                                                  |
 | Coverage                  | 97.8% statements, 95.9% branches, 93.6% functions, 97.9% lines                                                                                                                                                                                                                                                                                                                                                                              | `npm run coverage` (floors 90 / 80 / 75 / 90)                               |
-| Executable specification  | <!-- metric:requirements -->682<!-- /metric --> EARS requirements, <!-- metric:scenarios -->885<!-- /metric --> scenarios, <!-- metric:featureFiles -->80<!-- /metric --> feature files                                                                                                                                                                                                                                                     | `npm run ears`                                                              |
+| Executable specification  | <!-- metric:requirements -->683<!-- /metric --> EARS requirements, <!-- metric:scenarios -->887<!-- /metric --> scenarios, <!-- metric:featureFiles -->80<!-- /metric --> feature files                                                                                                                                                                                                                                                     | `npm run ears`                                                              |
 | Property and fuzz tests   | 1,240 tests; 10,000 runs a property nightly                                                                                                                                                                                                                                                                                                                                                                                                 | `npm run fuzz`                                                              |
 | Transport fault catalogue | 148 faults through the real pipeline                                                                                                                                                                                                                                                                                                                                                                                                        | `npm run faults`                                                            |
 | Recorded ESI payloads     | 121 replay tests, re-recorded nightly with a drift PR                                                                                                                                                                                                                                                                                                                                                                                       | `npm run contract:replay`                                                   |
@@ -244,10 +243,11 @@ The full list is in [USAGE.md](guides/USAGE.md#8-examples), and the [examples sh
 ```bash
 git clone https://github.com/lgriffin/ESI.ts.git && cd ESI.ts
 npm ci
+npm test                        # unit and BDD suites, about three minutes
 npm run check:local -- --fast   # every offline CI tier, minus the build
 ```
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) first. Every behaviour change starts with an EARS requirement and a failing scenario. Every commit is a conventional commit classified by [SEMVER.md](guides/SEMVER.md). No floor is ever lowered. Work is tracked in GitHub issues labelled by release and phase, mirrored in [beads](guides/BEADS.md).
+[CONTRIBUTING.md](CONTRIBUTING.md) is the whole path from a fresh clone to a merged pull request, including the checks CI runs that a first pull request usually trips. Issues labelled [`good first issue`](https://github.com/lgriffin/ESI.ts/labels/good%20first%20issue) are bounded and need no product decision. Every behaviour change starts with an EARS requirement and a failing scenario, every commit is a conventional commit classified by [SEMVER.md](guides/SEMVER.md), and no floor is ever lowered.
 
 ## License
 
