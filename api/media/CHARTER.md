@@ -9,9 +9,9 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 | Domain clients                                                 | <!-- metric:clients -->39<!-- /metric -->                                                                         |
 | ESI endpoints wired                                            | <!-- metric:routes -->235<!-- /metric -->                                                                         |
 | Generated operations (`src/generated/operations.generated.ts`) | <!-- metric:operations -->235<!-- /metric -->                                                                     |
-| EARS requirements in the specification                         | <!-- metric:requirements -->664<!-- /metric --> (<!-- metric:featureFiles -->77<!-- /metric --> feature files)    |
-| Gherkin scenarios                                              | <!-- metric:scenarios -->863<!-- /metric -->                                                                      |
-| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->369<!-- /metric -->                                                                      |
+| EARS requirements in the specification                         | <!-- metric:requirements -->683<!-- /metric --> (<!-- metric:featureFiles -->80<!-- /metric --> feature files)    |
+| Gherkin scenarios                                              | <!-- metric:scenarios -->887<!-- /metric -->                                                                      |
+| Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->384<!-- /metric -->                                                                      |
 | Statement coverage                                             | 97.8% (`npm run coverage` on master `114a485a`, 2026-09-28; floor 90%)                                            |
 | OpenSSF Scorecard                                              | 8.3 / 10 (`scorecard.yml` run 36409177565 on master `9486fe2c`, 2026-09-28; 8.2 on 2026-09-21, 6.7 on 2026-08-24) |
 
@@ -208,23 +208,23 @@ Every domain method takes this route. Order is the information: a stage cannot s
 
 ```
 Error
-├── EsiError (statusCode, sanitised url, requestId)      .retryable ⇐ {0, 420, 429, 502, 503, 504}
-│   ├── TimeoutError (+ timeoutMs)
-│   ├── EsiNetworkError (+ cause)
-│   ├── EsiValidationError (+ ZodError, direction: request | response)
-│   ├── CircuitOpenError (endpoint, failures, retryAfterMs)   statusCode 0, never retryable
-│   └── EsiFaultError (+ code, cause)                     raised by the library, not ESI
+├── EsiError (statusCode, sanitised url, requestId)      .retryable ⇐ {420, 429, 502, 503, 504}, or status 0 on this class
+│   ├── TimeoutError (+ timeoutMs)                        status 0, retryable
+│   ├── EsiNetworkError (+ cause)                         status 0, retryable
+│   ├── EsiValidationError (+ ZodError, direction: request | response)   status 0, never retryable
+│   ├── CircuitOpenError (endpoint, failures, retryAfterMs)   status 0, never retryable
+│   └── EsiFaultError (+ code, cause)                     raised by the library, not ESI; status 0, never retryable
 │       ├── EsiConfigurationError                         VALIDATION_ERROR, NO_AUTH_TOKEN, CONFIGURATION_ERROR
 │       ├── EsiParseError                                 JSON_PARSE_ERROR
 │       ├── EsiPaginationError                            PAGINATION_INCOMPLETE
 │       └── EsiTokenRefreshError                          TOKEN_REFRESH_FAILED
 ├── AuthError
-│   ├── SsoError (+ statusCode)                           .retryable ⇐ 429 or ≥ 500
+│   ├── SsoError (+ statusCode, errorCode)                isRetryable() ⇐ 429, ≥ 500, or a timeout
 │   ├── TokenRevokedError
 │   ├── TokenDecodeError                                  no type guard yet
-│   ├── TokenVerificationError
+│   ├── TokenVerificationError (+ reason)
 │   └── CharacterNotFoundError
-└── SdeError → SdeValidationError | SdeVersionMismatchError
+└── SdeError → SdeValidationError | SdeVersionMismatchError | SdeDatabaseError (deprecated, never thrown)
 ```
 
 Every failure the request pipeline raises is an `EsiError`, `CircuitOpenError` included, so `isEsiError(err)` is true for all of them ([ERRORS.md](ERRORS.md#hierarchy)). The auth subtree is exported from the root and from `./errors`, with guards `isAuthError`, `isSsoError`, `isTokenRevoked`, `isTokenVerificationError` and `isCharacterNotFound`.
@@ -412,9 +412,9 @@ This table is the canonical tier order. Both testing guides merge into one and c
 
 | Tier | Name                           | Where                            | Files                                                                                                                                                                    | Runner                    | Runs on                                                        |
 | ---- | ------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | -------------------------------------------------------------- |
-| 1    | Unit (TDD)                     | `tests/tdd`                      | <!-- metric:unitSuites -->240<!-- /metric -->                                                                                                                            | jest.unit                 | push (Node 22), PR (Node 22/24)                                |
-| 2    | Specification (EARS/BDD)       | `tests/bdd`                      | <!-- metric:featureFiles -->77<!-- /metric --> features · <!-- metric:requirements -->664<!-- /metric --> rules · <!-- metric:scenarios -->863<!-- /metric --> scenarios | jest.unit + jest-cucumber | push (`npm test`), PR (`bdd-tests`), plus `spec:audit`         |
-| 3    | Type tests                     | `tests/typetests`                | <!-- metric:typeTestFiles -->13<!-- /metric -->                                                                                                                          | tsd                       | PR (full suite)                                                |
+| 1    | Unit (TDD)                     | `tests/tdd`                      | <!-- metric:unitSuites -->250<!-- /metric -->                                                                                                                            | jest.unit                 | push (Node 22), PR (Node 22/24)                                |
+| 2    | Specification (EARS/BDD)       | `tests/bdd`                      | <!-- metric:featureFiles -->80<!-- /metric --> features · <!-- metric:requirements -->683<!-- /metric --> rules · <!-- metric:scenarios -->887<!-- /metric --> scenarios | jest.unit + jest-cucumber | push (`npm test`), PR (`bdd-tests`), plus `spec:audit`         |
+| 3    | Type tests                     | `tests/typetests`                | <!-- metric:typeTestFiles -->15<!-- /metric -->                                                                                                                          | tsd                       | PR (full suite)                                                |
 | 4    | Property fuzz                  | `tests/fuzz`                     | <!-- metric:fuzzSuites -->15<!-- /metric -->                                                                                                                             | jest.fuzz + fast-check    | PR, nightly properties                                         |
 | 5    | Contract                       | `tests/contract`                 | 6 (2 live + 4 replay) + snapshot                                                                                                                                         | jest.contract(.replay)    | PR (`contract-replay`), soft-skip on ESI 503                   |
 | 6    | Fault catalogue                | `tests/faults`                   | 3                                                                                                                                                                        | jest.faults               | PR (`fault-catalogue`), nightly                                |

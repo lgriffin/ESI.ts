@@ -1,8 +1,38 @@
 # Many characters, one runtime
 
-**Implements:** `ARCH-08` · `SEC-02` · `DES-01`. See [CHARTER.md](CHARTER.md) Part 2 and Part 6. **Specification:** `tests/bdd/features/core/0056-shared-runtime.feature`.
+**Implements:** `ARCH-08` · `SEC-02` · `DES-01`. See [CHARTER.md](CHARTER.md) Part 2 and Part 6. **Specification:** `tests/bdd/features/core/0056-shared-runtime.feature`, `tests/bdd/features/core/0063-custom-client-identity-views.feature`.
 
-An application that acts for more than one character (a corporation tool, a market bot, an alliance auth service) has one relationship with ESI, not one per character. ESI meters every request by the calling IP, and the error budget that a 420 exhausts is the application's, not a character's. `@lgriffin/esi.ts/client` is built around that fact: one runtime, and a view over it for each identity.
+An application that acts for more than one character (a corporation tool, a market bot, an alliance auth service) has one relationship with ESI, not one per character. ESI meters every request by the calling IP, and the error budget that a 420 exhausts is the application's, not a character's. So ESI.ts builds one pipeline and hands out a view of it for each identity.
+
+With the custom clients, the product (see [CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)), that is `as(identity)` on an `EsiClient` or a `CustomEsiClient`:
+
+```ts
+import { EsiClient } from '@lgriffin/esi.ts';
+
+const client = new EsiClient({ clientId: 'fleet-tool/2.1 (ops@example.com)' });
+
+const status = await client.status.getStatus();
+const pilot = client.as(tokens.identity(characterId));
+const balance = await pilot.wallet.getCharacterWallet(characterId);
+```
+
+```mermaid
+flowchart LR
+  subgraph root["One EsiClient or CustomEsiClient"]
+    direction TB
+    mw["Shared middleware<br/>cache, rate limiter, error budget,<br/>circuit breaker, deduplicator, retry, interceptors"]
+  end
+  a["client.as(identityA)"] --> mw
+  b["client.as(identityB)"] --> mw
+  pub["client.status, client.market, ...<br/>(no identity)"] --> mw
+  tm["EsiTokenManager<br/>tokens.identity(id)"] -. "accessToken() before each call<br/>refreshAccessToken() after a 401" .-> a
+  tm -.-> b
+  mw --> api[("ESI")]
+```
+
+`client.as(identity)` returns the same domain clients, sending as that identity. Every view shares the client's cache, rate limiter, circuit breaker, deduplicator, retry policy, interceptors and settings, and the cache keeps each character's authenticated entries apart. The view asks `identity.accessToken()` before each authenticated request and `identity.refreshAccessToken()` after a 401, the same identity returns the same view, and a view cannot change its identity (`setAccessToken` and `setTokenProvider` throw on it). `Identity`, `identityFromToken` and `identityFromProvider` are exported from the root entry as well as `./client`. Specification: `tests/bdd/features/core/0063-custom-client-identity-views.feature`.
+
+The spec-shaped surface, `createEsi()` from `@lgriffin/esi.ts/client`, has had the same model from the start, and the custom clients' views run on the same code:
 
 ```ts
 import { createEsi } from '@lgriffin/esi.ts/client';
@@ -16,7 +46,7 @@ const wallet = await esi
   .wallet.get();
 ```
 
-The rest of this guide explains each part of that, how it relates to `EsiClient` and `EsiTokenManager.createClient`, and how to move over.
+Most of what follows holds for both surfaces, because the views are built by the same code. The sections below walk through the `createEsi` runtime, since it is the one with options of its own, then how to move over from `EsiTokenManager.createClient`.
 
 ## The runtime
 
@@ -146,19 +176,30 @@ A test hands the runtime a mock transport instead of the network: `createMockTra
 
 ## Moving from `EsiTokenManager.createClient`
 
-`tokens.createClient(id)` builds a complete `EsiClient` per character, each with its own rate limiter, error budget and cache. It still works and behaves as before, but 11.0.0 marks it `@deprecated`, as it does `EsiApiFactory`'s nine named `create*Client` methods (use `EsiApiFactory.createClient(type)` or `EsiClientBuilder` for those). Removing them needs a future major release, and none is scheduled. The rest of the custom clients are supported and stay the product ([CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)); identity views for them are on that plan. To move an application to one runtime today:
+`tokens.createClient(id)` builds a complete `EsiClient` per character, each with its own rate limiter, error budget and cache. It still works and behaves as before, but 11.0.0 marks it `@deprecated`, as it does `EsiApiFactory`'s nine named `create*Client` methods (use `EsiApiFactory.createClient(type)` or `EsiClientBuilder` for those). Removing them needs a future major release, and none is scheduled. The rest of the custom clients are supported and stay the product ([CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)).
+
+The shortest move keeps the custom clients and their method names, and builds one client with a view per character:
+
+| Before                                                        | After                                                          |
+| ------------------------------------------------------------- | -------------------------------------------------------------- |
+| `const client = await tokens.createClient(id, { userAgent })` | `const client = new EsiClient({ userAgent })`, once            |
+| `client.wallet.getCharacterWallet(id)`                        | `client.as(tokens.identity(id)).wallet.getCharacterWallet(id)` |
+| `client.status.getStatus()`                                   | `client.status.getStatus()`                                    |
+| `client.market.streamMarketOrders(regionId)`                  | `client.market.streamMarketOrders(regionId)`                   |
+| `client.shutdown()` per character                             | `client.shutdown()`, once                                      |
+
+A view is an `EsiClient`, so `withMetadata()`, `withSafeMode()` and `diagnostics` work on it. The shared cache and circuit breaker belong to the client the view came from, so call `shutdown()` on that client; a view's `shutdown()` leaves them running.
+
+To move to the spec-shaped surface instead:
 
 | Before                                                        | After                                                             |
 | ------------------------------------------------------------- | ----------------------------------------------------------------- |
 | `const client = await tokens.createClient(id, { userAgent })` | `const esi = createEsi({ userAgent })`, once                      |
 | `client.wallet.getCharacterWallet(id)`                        | `esi.as(tokens.identity(id)).character(id).wallet.get()`          |
 | `client.status.getStatus()`                                   | `esi.public.status.get()`                                         |
-| `client.market.streamRegionOrders(regionId)`                  | `for await (const o of esi.public.market(regionId).orders.get())` |
+| `client.market.streamMarketOrders(regionId)`                  | `for await (const o of esi.public.market(regionId).orders.get())` |
 | `client.shutdown()` per character                             | `esi.shutdown()`, once                                            |
 
-Two differences to know before switching:
+Its operations are the generated ones. They follow the ESI OpenAPI document exactly: resource-shaped names (`character(id).wallet.get()` rather than `wallet.getCharacterWallet(id)`), spec-typed responses, and every paginated operation returned as an `AsyncIterable` that follows the pages. They are validated against the generated schemas only when `createEsi` is given `validateResponse: true`.
 
-- **The operations are the generated ones.** They follow the ESI OpenAPI document exactly: resource-shaped names (`character(id).wallet.get()` rather than `wallet.getCharacterWallet(id)`), spec-typed responses, and every paginated operation returned as an `AsyncIterable` that follows the pages. They are not validated by the hand-written Zod schemas; `PipelineTransport` returns the body typed from the spec. Runtime validation for the generated operations is Phase 3 of [ROADMAP.md](ROADMAP.md).
-- **A view is not an `EsiClient`.** It has no `withMetadata()`, `withSafeMode()` or `getCacheStats()`, and `shutdown()` is on the runtime, not the view. Diagnostics for the runtime are on the roadmap with the rest of Phase 4.
-
-`examples/multi-character.ts` shows several characters' wallets through one runtime, and `examples/public-vs-authenticated.ts` shows the type split with the `@ts-expect-error` line.
+`examples/multi-character.ts` reads several characters' wallets through one `EsiClient` with `client.as(identity)`, and `examples/public-vs-authenticated.ts` shows the type split with `buildPublic()` and its `@ts-expect-error` line, then the same calls through `createEsi()`.

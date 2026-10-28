@@ -74,13 +74,14 @@ Do not import the global logger in a client. [LOGGING.md](LOGGING.md) covers res
 
 ## 2 · The endpoint definition
 
-`src/core/endpoints/EndpointDefinition.ts` is the whole contract:
+`src/core/endpoints/EndpointDefinition.ts` is the whole contract. Every definition is built with `fromOperation(operationId, custom)` (`src/core/endpoints/fromOperation.ts`), which takes the facts the spec states from the generated route table, `src/core/endpoints/esi-operations.generated.ts`, and adds the custom part you write. You never write the first four fields by hand:
 
 | Field              | Type                                   | Purpose                                                                              |
 | ------------------ | -------------------------------------- | ------------------------------------------------------------------------------------ |
-| `path`             | `string`                               | Template with camelCase placeholders, e.g. `'alliances/{allianceId}/icons/'`         |
-| `method`           | `'GET' \| 'POST' \| 'PUT' \| 'DELETE'` | HTTP method                                                                          |
-| `requiresAuth`     | `boolean`                              | Attach the bearer token. Must agree with the generated scope map (DES-04)            |
+| `operation`        | `EsiOperationId`                       | From `fromOperation`: the spec operation this method calls                           |
+| `path`             | `string`                               | From the route table, placeholders renamed to your `pathParams` (`{regionId}`)       |
+| `method`           | `'GET' \| 'POST' \| 'PUT' \| 'DELETE'` | From the route table                                                                 |
+| `requiresAuth`     | `boolean`                              | From the route table: whether the operation declares a scope (DES-04)                |
 | `pathParams`       | `readonly string[]`                    | Placeholder names in method-argument order                                           |
 | `queryParams`      | `Record<string, string>`               | Method parameter name → query key, e.g. `{ orderType: 'order_type' }`                |
 | `hasBody`          | `boolean`                              | The argument after the path and query parameters is sent as the body                 |
@@ -92,6 +93,8 @@ Do not import the global logger in a client. [LOGGING.md](LOGGING.md) covers res
 
 Arguments are consumed positionally by `buildEndpointPath`: path parameters, then query parameters in declaration order (an `undefined` query argument is omitted), then the body. Offset pagination is not declared; the pipeline follows `x-pages` whenever ESI returns it. See [PAGINATION.md](PAGINATION.md).
 
+The custom part can also set `trailingSlash: true`, which keeps a path ending in `/` as the definition had it before it was derived, so URLs, cache keys and recorded expectations stay the same. A new definition leaves it out.
+
 A representative map, adapted from `src/core/endpoints/marketEndpoints.ts` and `contactEndpoints.ts`:
 
 <!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
@@ -99,27 +102,23 @@ A representative map, adapted from `src/core/endpoints/marketEndpoints.ts` and `
 ```ts
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { fromOperation } from './fromOperation';
 import { MarketOrderSchema } from '../../schemas/market';
+import { AddedContactIdsSchema } from '../../schemas/contacts';
 
 export const exampleEndpoints = {
-  getMarketOrders: {
-    path: 'markets/{regionId}/orders/',
-    method: 'GET',
-    requiresAuth: false,
+  getMarketOrders: fromOperation('GetMarketsRegionIdOrders', {
     pathParams: ['regionId'],
     queryParams: { orderType: 'order_type' },
     responseSchema: z.array(MarketOrderSchema),
-  },
-  addContacts: {
-    path: 'characters/{characterId}/contacts',
-    method: 'POST',
-    requiresAuth: true,
+  }),
+  addContacts: fromOperation('PostCharactersCharacterIdContacts', {
     pathParams: ['characterId'],
     queryParams: { standing: 'standing' },
     bodyBuilder: (contactIds: number[]) => contactIds,
     requestSchema: z.array(z.number().int()),
-    responseSchema: z.array(z.number()),
-  },
+    responseSchema: AddedContactIdsSchema,
+  }),
 } as const satisfies EndpointMap;
 ```
 
@@ -135,13 +134,9 @@ The unit of work is one ESI operation wired end to end. Behaviour comes first: f
 
 ### 3.1 Find the operation
 
-```bash
-npm run generate:endpoints
-```
+Every operation in the vendored spec has a row in `src/core/endpoints/esi-operations.generated.ts`, keyed by its `operationId` (`GetMarketsRegionIdOrders`), with its method, path and whether it needs a token. `src/generated/operations.generated.ts` has the same operation's parameters and summary in its `*Meta`. Both come from `tests/contract/snapshots/esi-openapi.snapshot.json` through `npm run spec:generate`.
 
-`scripts/spec/generate-endpoint-scaffold.ts` downloads the OpenAPI document and writes `etc/endpoint-scaffold.generated.reference.ts`: one scaffold map per ESI tag with `path`, `method`, `requiresAuth` (from the operation's `security` block) and `pathParams` filled in, and a `// responseSchema: TODO` placeholder. It is a reference to diff against, not a file to import; it never overwrites `src/core/endpoints/`.
-
-The scaffold is pinned to the compatibility date in the script (`ESI_OPENAPI_URL`). An operation newer than that date does not appear; read it from the live spec, or run the nightly drift check (`scripts/spec/check-spec-drift.ts`, described in [QUALITY-GATES.md](QUALITY-GATES.md)) which lists what is missing against the latest date.
+An operation ESI added after the vendored compatibility date is not there yet. Re-vendor the spec first, on a `spec-refresh/**` branch (`spec-refresh.yml`) or with `npm run contract:snapshot` then `npm run spec:generate`, in a pull request of its own. The nightly drift check (`scripts/spec/check-spec-drift.ts`, described in [QUALITY-GATES.md](QUALITY-GATES.md)) lists what is missing against the latest date.
 
 ### 3.2 Write or reuse the schema
 
@@ -149,13 +144,15 @@ Add the response schema to the domain file in `src/schemas/`, using `z.looseObje
 
 ### 3.3 Add the definition
 
-Copy the scaffold entry into the domain's `*Endpoints.ts` map, then:
+In the domain's `*Endpoints.ts` map, add `key: fromOperation('<operationId>', { … })`:
 
-1. Rename the key to the method name the client will expose (`getMarketOrders`, not `GetMarketsRegionIdOrders`).
-2. Keep `pathParams` in camelCase and in URL order.
+1. Name the key after the method the client will expose (`getMarketOrders`, not `GetMarketsRegionIdOrders`).
+2. List `pathParams` in camelCase, in the order the method takes them. `fromOperation` renames the spec's placeholders to match and throws if the count differs.
 3. Add `queryParams`, `hasBody` or `bodyBuilder` as the operation needs.
 4. Add `responseSchema`, and `requestSchema` for a body.
 5. Set `cursorPagination: true` if the operation takes `before`/`after`.
+
+Path, method and `requiresAuth` come from the route table, so they cannot disagree with the spec. Where ESI reads a request differently from what the spec says (parameters in the query rather than the body, say), the definition follows ESI, and the difference goes in `tests/tdd/core/endpointWireDeviations.test.ts` with its reason. `tests/tdd/core/endpointOperationParity.test.ts` fails when a definition and its operation disagree about deprecation, a text response or an empty list.
 
 ### 3.4 Check authentication against the scope map (DES-04)
 
@@ -170,7 +167,7 @@ npm run validate:auth-scopes
 | `requiresAuth: false` | present         | **Error**, exit 1. The token is never sent and ESI refuses.  |
 | `requiresAuth: true`  | absent          | **Error**, exit 1. The token is sent but no scope is listed. |
 
-A genuine mismatch in the generated map (a path ESI spells differently, or a scope newer than the generated file) is recorded in `scripts/spec/auth-scope-exceptions.json` with a `reason`. An entry that no longer excuses a mismatch also fails the run, so remove it once the generated map catches up. The file is empty today. Never flip `requiresAuth` to make the script pass; the bearer header is attached only when that flag is set.
+A genuine mismatch in the generated map (a path ESI spells differently, or a scope newer than the generated file) is recorded in `scripts/spec/auth-scope-exceptions.json` with a `reason`. An entry that no longer excuses a mismatch also fails the run, so remove it once the generated map catches up. The file is empty today. `requiresAuth` comes from the route table, so a mismatch means the generated files disagree with each other; regenerate them (`npm run spec:generate`, `npm run generate:types`) rather than editing either.
 
 ### 3.5 Check the schema against the spec
 
@@ -187,18 +184,17 @@ When ESI deprecates an operation, keep the definition and add the field rather t
 <!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```ts
-getOldThing: {
-  path: 'old/thing/',
-  method: 'GET',
-  requiresAuth: false,
+getOldThing: fromOperation('GetOldThing', {
   responseSchema: OldThingSchema,
   deprecated: {
     message: 'ESI is retiring this route.',
     replacedBy: 'getNewThing',
     sunsetDate: '2027-01-01',
   },
-},
+}),
 ```
+
+Give the operation the same guidance in the `deprecations` section of `scripts/spec/operation-overlay.json`, so `createEsi()` warns the same way; `endpointOperationParity.test.ts` fails when the two differ.
 
 `createClient` logs one warning per call through the owning client's logger. When a hand-written client method is itself deprecated (a method that moved to another client), mark it `@deprecated` in JSDoc and call `logWarn(this._client, …)`, as `AllianceClient.getContacts()` does.
 

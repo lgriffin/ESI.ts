@@ -15,6 +15,30 @@ ESI.ts is a library of hand-written, curated custom clients. The code that is ge
 - **`createEsi()` from `@lgriffin/esi.ts/client` is the spec-shaped low-level surface.** It stays documented for anyone who wants calls that mirror the URL and the spec's parameters exactly (`esi.public`, `esi.as(identity)`, [MULTI-CHARACTER.md](MULTI-CHARACTER.md)), and it becomes the engine under the custom clients. It needs no feature parity with them.
 - **Changing this is a charter amendment first.** ARCH-14 fails a change that deprecates or removes a custom-client construction surface, or replaces one with the generated surface.
 
+### How the layers fit
+
+Generation feeds the custom clients, and both surfaces end in one pipeline:
+
+```mermaid
+flowchart TB
+  spec["Vendored ESI OpenAPI snapshot"] --> gen["npm run spec:generate"]
+  gen --> routes["esi-operations.generated.ts<br/>route table"]
+  gen --> baselines["src/schemas/generated/<br/>baseline schemas"]
+  gen --> ops["operations.generated.ts<br/>ScopeTree"]
+  gen --> rs["src/adapters/<br/>responseSchemas.generated.ts"]
+  custom["Hand-written: method names, argument order,<br/>bodyBuilder, wire fixes, Zod schemas"] --> fromOp
+  routes --> fromOp["fromOperation(operationId, custom)"]
+  fromOp --> maps["39 endpoint maps<br/>src/core/endpoints/"]
+  baselines -. "explicit import" .-> maps
+  maps --> clients["Custom clients, the product<br/>EsiClient, CustomEsiClient, EsiApiFactory<br/>as(identity), buildPublic()"]
+  ops --> esi["createEsi()<br/>spec-shaped surface"]
+  esi --> pt["PipelineTransport"]
+  rs -. "validateResponse: true" .-> pt
+  clients --> pipeline["One ApiClient pipeline<br/>cache, rate limiter, breaker, dedup, retry"]
+  pt --> pipeline
+  pipeline --> api[("ESI")]
+```
+
 ### What 12.2.0 changes
 
 12.1.0 marked the custom clients `@deprecated` for removal in 13.0.0, following a plan to make `createEsi()` the only surface. 12.2.0 lifts those deprecations. That is a compatible change: no name, signature or behaviour changes.
@@ -38,14 +62,30 @@ No 13.0 is planned.
 
 Each step is additive or internal, so each can ship in a 12.x minor release. A future major would only be for clean-up chosen later, such as dropping setters that identity views make redundant.
 
+All five steps have landed in 12.x: step 1 in 12.2.0, and steps 2 to 5 through [#671](https://github.com/lgriffin/ESI.ts/issues/671) to [#678](https://github.com/lgriffin/ESI.ts/issues/678), tracked on [#664](https://github.com/lgriffin/ESI.ts/issues/664). Each bullet below names what shipped.
+
 1. **Lift the deprecations** (12.2.0, this page). Posture 1 and ARCH-14 go into the charter.
 2. **Derive the endpoint maps from the generated `*Meta`.** Path, method, scopes, pagination kind and headers come from the spec. The hand-written part shrinks to what a custom client adds: the method name, argument order, `bodyBuilder`, and the wire fixes the spec gets wrong (query versus body for `addContacts`, comma-joined ids, `read` rather than `is_read`), kept in one overlay. `spec:coverage` then also proves every custom method points at a real operation. A spike on two domains comes before converting all 39.
+   - **Spike** (12.x, [#671](https://github.com/lgriffin/ESI.ts/issues/671)): `npm run spec:generate` also writes `src/core/endpoints/esi-operations.generated.ts`, one row per operation (method, path, whether it needs a token, text and empty responses) that imports nothing and carries only what `fromOperation` reads, since it ships in the root bundle, so the endpoint maps in `src/core` can read it. `fromOperation(operationId, custom)` builds a definition from a row and the custom part; the status and market maps use it, and `endpointOperationParity.test.ts` pairs a definition that names its operation by id.
+   - **All 39 maps** (12.x, [#672](https://github.com/lgriffin/ESI.ts/issues/672)): every definition is built with `fromOperation` and names its operation, so every custom method provably calls a real operation. `endpointWireDeviations.test.ts` lists, with its reason, each place a definition sends what its operation does not describe (two today), so a new one is a decision.
 3. **Generate the baseline schemas, hand-write the overrides.** The generated response schemas become the baseline, and a hand-written schema stays only where ESI's wire differs from the spec. Schema drift becomes a generator diff instead of an audit.
+   - **Baselines reachable** (12.x, [#673](https://github.com/lgriffin/ESI.ts/issues/673)): `npm run spec:generate` also writes `src/schemas/generated/responseSchemas.generated.ts`, one schema per operation exported as `<operationId>Schema` (`GetStatusSchema`), which the endpoint maps may import (`src/core` may import `src/schemas`, not `src/adapters`). Each is a pure `z.lazy`, so a bundle carries only the baselines it imports, and the root entry pays nothing until a map takes one. `baselineSchemas.test.ts` runs every hand-written schema and its baseline over the recorded payloads; today both accept all of them, so `BASELINE_REJECTS` is empty. Every hand-written schema stays, and validation results are unchanged. A definition that leaves out `responseSchema` and falls back to its baseline at run time would put the whole map, about 63 kB minified, into the root entry, so maps import baselines explicitly instead (decided on #673). A baseline is typed `z.ZodType`, so it is for a definition that has no `responseSchema` (whose result is `unknown` either way); swapping one in for a hand-written schema would widen that method's result type, a public-contract change under guides/SEMVER.md.
 4. **Identity views for the custom clients.** A shared runtime with per-identity views, along the lines of `client.as(identity)` returning the same custom clients bound to one character over one cache, rate-limit budget and breaker, and a public-only builder whose types omit authenticated methods. Custom-client users get the multi-character model without learning a new call style.
+   - **Identity views** (12.x, [#674](https://github.com/lgriffin/ESI.ts/issues/674)): `EsiClient.as(identity)` and `CustomEsiClient.as(identity)` return the same custom clients sending as one identity over the client's shared middleware. `ApiClient.forIdentity` in `src/core` builds the view's client, and `createEsi`'s `esi.as(identity)` uses the same code. See [MULTI-CHARACTER.md](MULTI-CHARACTER.md).
+   - **Public-only builder** (12.x, [#675](https://github.com/lgriffin/ESI.ts/issues/675)): `EsiClientBuilder.buildPublic()` returns a `PublicCustomEsiClient` that holds no token. `PublicClient<K>` omits the methods listed in the generated `src/clients/authenticatedMethods.generated.ts`, which `npm run generate:public-clients` builds by running every method on a token-less client, so aliases and helpers that delegate to another client's endpoints are classified by what they call.
 5. **Close runtime gaps once, in the shared runtime.** Parallel page collection, response metadata and safe mode, diagnostics, swappable middleware and nameable response types are built where both surfaces see them, not twice.
    - **Response metadata and safe mode** (12.x): one reader, `buildResponseMeta` in `src/core/responseMeta.ts`, serves each domain client's `withMetadata()`, the new `EsiClient.withMetadata()` / `withSafeMode()` and `CustomEsiClient.withMetadata()` / `withSafeMode()` (every domain from one call), and `esi.withMetadata()` / `esi.withSafeMode()`.
-   - **Diagnostics** (12.x): `EsiDiagnostics` backs `EsiClient.diagnostics`, the new `CustomEsiClient.diagnostics` and its shortcuts, and `esi.diagnostics`.
+   - **Diagnostics** (12.x): `EsiDiagnostics` backs `EsiClient.diagnostics`, the new `CustomEsiClient.diagnostics` and its shortcuts, and `esi.diagnostics`. Since [#677](https://github.com/lgriffin/ESI.ts/issues/677) every domain client has `diagnostics` and `shutdown()` too: one built by `EsiApiFactory.createClient` reads and stops the pipeline it owns, and one reached through `EsiClient` or `CustomEsiClient` returns its parent's diagnostics object and leaves the shared pipeline to the parent (`src/core/pipelineOwnership.ts`).
    - **Swappable middleware** (12.x): `cache`, `rateLimiter`, `circuitBreaker`, `deduplicator` and `clock` are `EsiClientConfig` fields that `configureApiClient` installs, so `EsiClient`, the builder, `EsiApiFactory.createClient` and `createEsi` (whose `EsiOptions` carry the same five) take them the same way.
+   - **Invalidation across processes** (12.x, [#676](https://github.com/lgriffin/ESI.ts/issues/676)): a supplied `CacheStore` may add `publishInvalidation` and `onInvalidate`. `CacheStoreCache` publishes each path a write invalidates and each `clear()`, and on another holder's event drops its own keys under the path and records the write in `src/core/cache/writeLog.ts`, so an in-flight read does not cache the pre-write body. Every surface gets it, since all of them adapt a store the same way.
+
+### The open questions, answered
+
+Section 7 of [#664](https://github.com/lgriffin/ESI.ts/issues/664) left three questions for after the plan. These are the answers the project works to; the maintainer can change any of them.
+
+- **Q2: is `createEsi()` still documented for direct use?** Yes. `createEsi()` and the `./client` entry stay documented for anyone who wants calls that mirror the URL, second to the custom clients: the README, [USAGE.md](USAGE.md), [MULTI-CHARACTER.md](MULTI-CHARACTER.md) and the documentation site lead with `EsiClient`, `EsiClientBuilder`, `as(identity)` and `buildPublic()`, then show `createEsi()` as the low-level surface and the engine underneath.
+- **Q3: do custom method names change to match the spec?** No. Custom method names stay exactly as they are. Any alignment would be a separate decision, shipped with deprecation aliases under [SEMVER.md](SEMVER.md).
+- **Q4: what happens to `EsiApiFactory`'s nine named factories?** They stay deprecated, as since 11.0.0, in favour of `EsiApiFactory.createClient(type)` and the builder. Removal needs a future major release, and none is scheduled.
 
 ### Shared already
 
@@ -57,7 +97,7 @@ A feature the generated layer gains reaches the custom clients through the same 
 | The OpenAPI document, as JSON and YAML | `meta.getOpenApiJson()`, `meta.getOpenApiYaml()`                                                                                                     | `meta.openapiJson.get()`, `meta.openapiYaml.get()`                        | `textResponse` through `handleRequest`; the same Accept header and the same JSON schema              |
 | An empty answer on a public contract   | `getPublicContractBids/Items`, `fetchAllPublicContractBids/Items`, `streamPublicContractBids/Items`, and `streamEndpoint`/`fetchAllEndpoint` by name | `contracts.public.bids(id).get()`, `contracts.public.items(id).get()`     | `answeredWithNoContent` and `emptyListWhenNoContent` in `src/core/requestPipeline/statusHandling.ts` |
 
-The endpoint maps stay hand-written and `src/core` may not import the generated layer, so `tests/tdd/core/endpointOperationParity.test.ts` holds the two in step: it fails when an endpoint definition and its generated operation disagree about deprecation (with the message and sunset date from `scripts/spec/operation-overlay.json`), a text response and its Accept header, or reading no content as an empty list. Step 2 of the plan derives these facts instead of checking them.
+The endpoint maps take path, method and token requirement from the generated route table (plan step 2), and `tests/tdd/core/endpointOperationParity.test.ts` holds the facts that stay hand-written in step: it fails when an endpoint definition and its generated operation disagree about deprecation (with the message and sunset date from `scripts/spec/operation-overlay.json`), a text response and its Accept header, or reading no content as an empty list.
 
 ---
 
