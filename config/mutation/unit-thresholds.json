@@ -1,7 +1,7 @@
 {
-  "src": 80,
-  "src/auth": 86,
-  "src/client": 80,
+  "src": 90,
+  "src/auth": 90,
+  "src/client": 95,
   "src/core": 81.8,
   "src/core/cache": 65.3,
   "src/core/circuitBreaker": 77.7,

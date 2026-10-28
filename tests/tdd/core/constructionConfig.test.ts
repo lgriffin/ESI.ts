@@ -7,6 +7,9 @@
 import { EsiClient } from '../../../src/EsiClient';
 import { EsiApiFactory, EsiClientBuilder } from '../../../src/EsiClientBuilder';
 import type { ApiClient } from '../../../src/core/ApiClient';
+import { CircuitBreaker } from '../../../src/core/circuitBreaker/CircuitBreaker';
+import type { ILogger, LogContext } from '../../../src/core/logger/ILogger';
+import { RequestDeduplicator } from '../../../src/core/RequestDeduplicator';
 import type { EsiClientConfig } from '../../../src/core/EsiClientConfig';
 import { identityFromToken } from '../../../src/core/identity';
 
@@ -177,5 +180,122 @@ describe.each([
     expect(cacheShutdown).toHaveBeenCalled();
     expect(breakerShutdown).toHaveBeenCalled();
     opened.pop();
+  });
+});
+
+/** A logger that records every line, so a test can assert what was said. */
+function recordingLogger(): ILogger & { lines: Array<[string, LogContext?]> } {
+  const lines: Array<[string, LogContext?]> = [];
+  const record = (message: string, context?: LogContext) => {
+    lines.push(context === undefined ? [message] : [message, context]);
+  };
+  return {
+    lines,
+    fatal: record,
+    error: record,
+    warn: record,
+    info: record,
+    debug: record,
+    trace: record,
+  };
+}
+
+describe('EsiClient lifecycle', () => {
+  it('logs its construction, token changes and shutdown', () => {
+    const logger = recordingLogger();
+    const client = new EsiClient({
+      logger,
+      clientId: 'lifecycle-app',
+      baseUrl: 'https://esi.evetech.net',
+    });
+
+    client.setAccessToken('token');
+    client.setTokenProvider(() => Promise.resolve('fresh'));
+    client.setTokenProvider(undefined);
+    client.shutdown();
+
+    expect(logger.lines).toEqual(
+      expect.arrayContaining([
+        [
+          'EsiClient initialized successfully',
+          expect.objectContaining({
+            baseUrl: 'https://esi.evetech.net',
+            clientId: 'lifecycle-app',
+          }),
+        ],
+        ['Access token updated'],
+        ['Token provider configured'],
+        ['Token provider removed'],
+        ['EsiClient shutdown completed'],
+      ]),
+    );
+  });
+
+  it('drops its in-flight requests and its domain clients on shutdown', () => {
+    const clear = jest.spyOn(RequestDeduplicator.prototype, 'clear');
+    try {
+      const client = new EsiClient();
+      const before = client.status;
+
+      client.shutdown();
+
+      expect(clear).toHaveBeenCalled();
+      expect(client.status).not.toBe(before);
+    } finally {
+      clear.mockRestore();
+    }
+  });
+});
+
+describe('CustomEsiClient lifecycle', () => {
+  it('logs the clients it was built with once each, and its shutdown', () => {
+    const logger = recordingLogger();
+    const client = new EsiClientBuilder()
+      .withConfig({ logger })
+      .addClient('status')
+      .addClient('status')
+      .build();
+
+    client.shutdown();
+
+    expect(logger.lines).toEqual(
+      expect.arrayContaining([
+        [
+          'CustomEsiClient initialized with clients: status',
+          { clients: ['status'] },
+        ],
+        ['CustomEsiClient shutdown completed'],
+      ]),
+    );
+  });
+
+  it('drops its in-flight requests and its domain clients on shutdown', () => {
+    const clear = jest.spyOn(RequestDeduplicator.prototype, 'clear');
+    try {
+      const client = new EsiClientBuilder().addClient('status').build();
+      expect(client.getClient('status')).toBeDefined();
+
+      client.shutdown();
+
+      expect(clear).toHaveBeenCalled();
+      expect(client.getClient('status')).toBeUndefined();
+    } finally {
+      clear.mockRestore();
+    }
+  });
+});
+
+describe('EsiApiFactory', () => {
+  it('leaves a supplied circuit breaker running when its client shuts down', () => {
+    const breaker = new CircuitBreaker();
+    const shutdown = jest.spyOn(breaker, 'shutdown');
+    try {
+      EsiApiFactory.createClient('status', {
+        circuitBreaker: breaker,
+      }).shutdown();
+      expect(shutdown).not.toHaveBeenCalled();
+    } finally {
+      breaker.shutdown();
+    }
   });
 });

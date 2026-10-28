@@ -72,6 +72,11 @@ Feature: One runtime, many identities
       When an authenticated wallet request is forced through the public view
       Then the call shall be rejected with NO_AUTH_TOKEN and no request shall be sent
 
+    Scenario: The refusal arrives through the returned promise, not as a throw
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      When an authenticated wallet request is forced through the public view and handled with catch
+      Then the catch handler shall receive NO_AUTH_TOKEN and the call shall not have thrown
+
   # ── A character's view
 
   Rule: When a view requests an authenticated operation, the runtime shall send the identity's current access token as the bearer.
