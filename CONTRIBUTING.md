@@ -55,6 +55,8 @@ npm run check:local             # the same plus the build, size budgets, packed-
 
 Every tier runs even after one fails, and the summary names the command to re-run. A tier whose tool is not installed (uv) shows `n/a` and does not fail the run; CI runs it on your pull request.
 
+`check:local` leaves out the coverage run, because it repeats `npm test` with instrumentation. If you added source code, run `npm run coverage` too: CI fails a pull request that takes branches below 80%, functions below 75%, or lines and statements below 90%.
+
 ### CI will fail if…
 
 | …you                                                          | Then run, and commit what it changes                                                          |
