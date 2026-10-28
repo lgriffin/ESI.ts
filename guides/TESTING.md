@@ -1236,9 +1236,10 @@ Zod validation is tested at four levels, each owning a different question:
 An application's own tests run without ESI by handing the client a mock transport. `createMockTransport()` from `@lgriffin/esi.ts/testing` is an `HttpTransport`, passed as `transport` to `new EsiClient()`, `EsiClientBuilder.withConfig()`, `EsiApiFactory.createClient()` or `createEsi()`. It answers requests from a table of routes and records every request it saw. Everything between the application's call and the transport is the SDK's real pipeline (URL building, headers, retries, the cache, pagination, response validation), so a test written against it can fail for a bug in the SDK as well as in the application. The specification is [`0057-mock-transport.feature`](../tests/bdd/features/core/0057-mock-transport.feature).
 
 ```typescript
-import { EsiClient } from '@lgriffin/esi.ts';
+import { EsiClient, identityFromToken } from '@lgriffin/esi.ts';
 import { createMockTransport } from '@lgriffin/esi.ts/testing';
 
+const characterId = 2114794365;
 const transport = createMockTransport()
   .respond({
     method: 'GET',
@@ -1268,10 +1269,10 @@ const client = new EsiClient({
   transport,
 });
 const wallet = await client
-  .as(tokens.identity(characterId))
+  .as(identityFromToken('test-token'))
   .wallet.getCharacterWallet(characterId);
 
-transport.sent[0]?.headers['authorization']; // "Bearer <token>"
+transport.sent[0]?.headers['authorization']; // "Bearer test-token"
 transport.unrouted; // [] when every request had a route
 transport.reset(); // forget the routes and the record, keep the client
 ```
