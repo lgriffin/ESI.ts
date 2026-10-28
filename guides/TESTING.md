@@ -14,28 +14,49 @@ Three positions explain every choice below.
 
 ## Where the suite stands
 
-Measured on 2026-09-28 on `master` at `9486fe2c` (v10.2.3; 11.0.0 in progress), on a 4-core machine. The command in the first column reproduces each row.
+Measured on 2026-10-28 on `master` at `801998a` (12.4.0), on a 4-core machine. The command in the first column reproduces each row.
 
 | Command                                       | Config                                   | Suites |  Tests | Result                                                                                         |
 | --------------------------------------------- | ---------------------------------------- | -----: | -----: | ---------------------------------------------------------------------------------------------- |
-| `npm test`                                    | `config/jest/unit.config.cjs`            |    291 |  8,308 | All pass, about 141 s                                                                          |
-| of which unit, `tests/tdd` (not composition)  | same                                     |    210 |  7,524 |                                                                                                |
-| of which specification, `tests/bdd`           | same                                     |     74 |    742 | 31 legacy `*.steps.ts` files and 43 `*.spec.ts` entries                                        |
+| `npm test`                                    | `config/jest/unit.config.cjs`            |    338 |  9,631 | All pass, about 209 s with coverage; one skips without a build                                 |
+| of which unit, `tests/tdd` (not composition)  | same                                     |    250 |  8,669 |                                                                                                |
+| of which specification, `tests/bdd`           | same                                     |     81 |    920 | 31 legacy `*.steps.ts` files and 50 `*.spec.ts` entries                                        |
 | of which composition, `tests/tdd/composition` | same                                     |      7 |     42 |                                                                                                |
-| `npm run fuzz`                                | `config/jest/fuzz.config.cjs`            |     15 |  1,240 | All pass, about 22 s with four workers                                                         |
-| `npm run faults`                              | `config/jest/faults.config.cjs`          |      2 |    148 | All pass                                                                                       |
-| `npm run contract:replay`                     | `config/jest/contract.replay.config.cjs` |      5 |    121 | All pass, over 86 recorded fixtures                                                            |
+| `npm run fuzz`                                | `config/jest/fuzz.config.cjs`            |     15 |  1,276 | All pass, about 20 s with four workers                                                         |
+| `npm run faults`                              | `config/jest/faults.config.cjs`          |      2 |    159 | All pass                                                                                       |
+| `npm run contract:replay`                     | `config/jest/contract.replay.config.cjs` |      5 |    128 | All pass                                                                                       |
 | `npm run test:integration`                    | `config/jest/integration.config.cjs`     |      6 |    228 | 20 mocked pass; 208 live tests skip without `ESI_LIVE_TESTS`, `ESI_GATED_TESTS` or `sde-data/` |
-| **Offline total**                             |                                          |    319 | 10,045 | 9,837 run, 0 failures                                                                          |
+| **Offline total**                             |                                          |    366 | 11,422 | 11,213 run, 0 failures                                                                         |
 
 | Coverage (`npm run coverage`) | Measured | Floor (`config/jest/unit.config.cjs`) |
 | ----------------------------- | -------: | ------------------------------------: |
-| Statements                    |   97.79% |                                   90% |
-| Branches                      |   95.88% |                                   80% |
-| Functions                     |   93.57% |                                   75% |
-| Lines                         |   97.85% |                                   90% |
+| Statements                    |   99.21% |                                   90% |
+| Branches                      |   96.31% |                                   80% |
+| Functions                     |   97.97% |                                   75% |
+| Lines                         |   99.43% |                                   90% |
 
 Coverage is collected from `src/**/*.ts`, excluding `.d.ts`, `src/types/`, `*.generated.ts` and `src/clients/generated/`. The floors sit well below the measured values on purpose (`TEST-04`): they catch an untested module without turning one bad week into a broken gate. Mutation, not coverage, is what says the tests assert anything.
+
+| Unit mutation, by directory | Score | Detected / valid | Floor | Source                                                                                                                          |
+| --------------------------- | ----: | ---------------: | ----: | ------------------------------------------------------------------------------------------------------------------------------- |
+| `src/core`                  | 87.0% |          288/331 | 81.8% | [Nightly, 2026-10-28](https://github.com/lgriffin/ESI.ts/actions/runs/40653555543)                                              |
+| `src/core/cache`            | 81.1% |          215/265 | 65.3% | same                                                                                                                            |
+| `src/core/circuitBreaker`   | 86.4% |          108/125 | 77.7% | same                                                                                                                            |
+| `src/core/logger`           | 75.0% |            63/84 | 55.5% | same                                                                                                                            |
+| `src/core/middleware`       |  100% |            35/35 |  100% | same                                                                                                                            |
+| `src/core/pagination`       | 97.4% |          190/195 | 73.9% | same                                                                                                                            |
+| `src/core/rateLimiter`      | 80.6% |          217/269 | 77.9% | same                                                                                                                            |
+| `src/core/requestPipeline`  | 82.0% |          228/278 | 75.2% | same                                                                                                                            |
+| `src/core/util`             | 97.7% |          217/222 | 95.4% | same                                                                                                                            |
+| `src/sde`                   | 93.3% |            14/15 | 85.6% | same                                                                                                                            |
+| `src/sde/ingestion`         |  100% |          119/119 |   98% | same                                                                                                                            |
+| `src/sde/providers`         |  100% |            92/92 |   98% | same                                                                                                                            |
+| `src/auth`                  | 91.7% |          573/625 |   90% | Local `auth` shard, 2026-10-28 ([#723](https://github.com/lgriffin/ESI.ts/pull/723)); the first nightly with it runs after this |
+| `src`                       | 95.6% |          177/185 |   90% | Local `surfaces` shard, same                                                                                                    |
+| `src/client`                | 98.0% |            49/50 |   95% | same                                                                                                                            |
+| **All of the above**        | 89.4% |      2,585/2,890 |       |                                                                                                                                 |
+
+Several `src/core` floors sit well under their nightly scores (`cache`, `logger`, `pagination`); [#718](https://github.com/lgriffin/ESI.ts/issues/718) raises the logger floor, and [Where the scores stand](#where-the-scores-stand) explains why a floor trails its score.
 
 | Specification (`npm run spec:audit:verbose`) | Count                                                                                                                                                                                                                                                                                                                   |
 | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
