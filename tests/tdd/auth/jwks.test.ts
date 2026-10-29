@@ -372,18 +372,34 @@ describe('SsoJwks', () => {
   });
 });
 
+/**
+ * verifyAccessToken from a fresh copy of the module, so its process-wide key
+ * set cache starts empty whatever ran before it in this file.
+ */
+function freshVerifyAccessToken(): typeof verifyAccessToken {
+  let fresh: typeof verifyAccessToken | undefined;
+  jest.isolateModules(() => {
+    fresh = (
+      require('../../../src/auth/jwks') as typeof import('../../../src/auth/jwks')
+    ).verifyAccessToken;
+  });
+  return fresh!;
+}
+
 describe('verifyAccessToken without a jwks option', () => {
   it('shares one process-wide key set cache across calls', async () => {
+    const verify = freshVerifyAccessToken();
     fetchMock.mockResponse(jwksBody([signingKey()]));
     const before = jwksCallCount();
-    await verifyAccessToken(makeSignedJwt(), { clientId: CLIENT_ID });
-    await verifyAccessToken(makeSignedJwt(), { clientId: CLIENT_ID });
+    await verify(makeSignedJwt(), { clientId: CLIENT_ID });
+    await verify(makeSignedJwt(), { clientId: CLIENT_ID });
     for (const kid of ['made-up-1', 'made-up-2', 'made-up-3']) {
+      // A copy of the module has its own error classes, so match by name.
       await expect(
-        verifyAccessToken(makeSignedJwt({}, { ...signingKey(), kid }), {
+        verify(makeSignedJwt({}, { ...signingKey(), kid }), {
           clientId: CLIENT_ID,
         }),
-      ).rejects.toThrow(TokenVerificationError);
+      ).rejects.toMatchObject({ name: 'TokenVerificationError' });
     }
     expect(jwksCallCount() - before).toBe(1);
   });
