@@ -18,6 +18,13 @@ describe('MemoryTokenStorage', () => {
     expect((await storage.get(2))?.characterId).toBe(2);
   });
 
+  it('keeps the scopes of a seeded token, in a copy of its own', async () => {
+    const seeded = makeStoredToken({ characterId: 1, scopes: ['a', 'b'] });
+    const storage = new MemoryTokenStorage([seeded]);
+    seeded.scopes.push('c');
+    expect((await storage.get(1))?.scopes).toEqual(['a', 'b']);
+  });
+
   it('round-trips a token by character id', async () => {
     const storage = new MemoryTokenStorage();
     const token = makeStoredToken({ characterId: 5 });

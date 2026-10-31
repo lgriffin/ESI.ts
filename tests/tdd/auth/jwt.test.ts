@@ -56,6 +56,15 @@ describe('jwt', () => {
         /not a character subject/,
       );
     });
+
+    it('rejects a subject with anything before or after the character id', () => {
+      expect(() => parseCharacterId('XCHARACTER:EVE:1')).toThrow(
+        /not a character subject/,
+      );
+      expect(() => parseCharacterId('CHARACTER:EVE:12abc')).toThrow(
+        /not a character subject/,
+      );
+    });
   });
 
   describe('parseScopes', () => {
