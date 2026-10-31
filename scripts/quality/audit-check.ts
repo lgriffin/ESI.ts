@@ -33,7 +33,7 @@ const EXCEPTIONS_PATH = path.resolve(__dirname, 'audit-exceptions.json');
 const SEVERITY_ORDER = ['info', 'low', 'moderate', 'high', 'critical'] as const;
 type Severity = (typeof SEVERITY_ORDER)[number];
 
-interface AuditException {
+export interface AuditException {
   ghsa: string;
   package: string;
   severity: string;
@@ -363,6 +363,17 @@ export function withoutAccepted(
 }
 
 /**
+ * The exception ids that still count as accepted once the `devOnly` ones a
+ * production dependency now reaches are taken out.
+ */
+export function stillAccepted(
+  exceptions: ReadonlyMap<string, AuditException>,
+  breached: ReadonlySet<string>,
+): Set<string> {
+  return new Set([...exceptions.keys()].filter((id) => !breached.has(id)));
+}
+
+/**
  * Strip accepted advisories from a report, preserving npm's structure so the
  * nightly workflow's existing jq queries keep working.
  */
@@ -373,7 +384,18 @@ function filterMode(
 ) {
   const report = readReport(inFile);
   const vulnerabilities = report.vulnerabilities ?? {};
-  const kept = withoutAccepted(vulnerabilities, new Set(exceptions.keys()));
+  // Same devOnly guard as --check: an acceptance whose reason no longer holds
+  // must not hide the advisory from the nightly issue either.
+  const breached = devOnlyBreaches(collectAdvisories(report), exceptions);
+  for (const ghsa of breached) {
+    console.error(
+      `${ghsa} (${exceptions.get(ghsa)?.package}) is accepted as devOnly, but a production dependency now reaches it; keeping it in the report.`,
+    );
+  }
+  const kept = withoutAccepted(
+    vulnerabilities,
+    stillAccepted(exceptions, breached),
+  );
   const dropped =
     Object.keys(vulnerabilities).length - Object.keys(kept).length;
 
