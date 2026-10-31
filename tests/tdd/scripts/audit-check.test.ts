@@ -8,7 +8,10 @@
  * nothing but the accepted risk (issue #588: fast-glob, globby, micromatch
  * and tsd, all through braces).
  */
-import { withoutAccepted } from '../../../scripts/quality/audit-check';
+import {
+  stillAccepted,
+  withoutAccepted,
+} from '../../../scripts/quality/audit-check';
 
 const advisory = (ghsa: string, name: string) => ({
   source: 1,
@@ -63,5 +66,50 @@ describe('withoutAccepted', () => {
       'a',
       'b',
     ]);
+  });
+});
+
+describe('stillAccepted', () => {
+  const exceptions = new Map([
+    [
+      BRACES,
+      {
+        ghsa: BRACES,
+        package: 'braces',
+        severity: 'high',
+        reason: 'dev only',
+        expires: '2099-01-01',
+        devOnly: true,
+      },
+    ],
+    [
+      OTHER,
+      {
+        ghsa: OTHER,
+        package: 'other',
+        severity: 'low',
+        reason: 'reviewed',
+        expires: '2099-01-01',
+      },
+    ],
+  ]);
+
+  it('accepts every exception while no devOnly one is breached', () => {
+    expect(stillAccepted(exceptions, new Set())).toEqual(
+      new Set([BRACES, OTHER]),
+    );
+  });
+
+  it('stops accepting a devOnly exception a production dependency reaches', () => {
+    const accepted = stillAccepted(exceptions, new Set([BRACES]));
+    expect(accepted).toEqual(new Set([OTHER]));
+    expect(
+      Object.keys(
+        withoutAccepted(
+          { braces: { name: 'braces', via: [advisory(BRACES, 'braces')] } },
+          accepted,
+        ),
+      ),
+    ).toEqual(['braces']);
   });
 });
