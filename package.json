@@ -396,7 +396,7 @@
     "ts-jest": "^29.4.14",
     "ts-node": "^10.9.2",
     "tsd": "^0.33.0",
-    "tsup": "^8.5.1",
+    "tsup": "^9.0.0",
     "typedoc": "^0.28.18",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.1"
