@@ -135,9 +135,10 @@ export default {
   },
   // No global break: the gate is per directory, in config/mutation/bdd-thresholds.json.
   thresholds: { high: 80, low: 60, break: null },
-  // A shard may lower this in bdd-shards.json: ApiRequestHandler's mutants
-  // ran the runner out of memory at 6 (#587).
-  concurrency: shard?.concurrency ?? 6,
+  // 3, not Stryker's usual 6: at 6, one shard or another lost its GitHub
+  // runner to memory most nights (#587, #650, #670, #729), each time while
+  // timed-out mutants piled up. A shard may override it in bdd-shards.json.
+  concurrency: shard?.concurrency ?? 3,
   timeoutMS: 30000,
   // The initial test run executes every BDD spec with per-test coverage,
   // whatever the shard. It took 4m52s on a green shard on 2026-10-23 and

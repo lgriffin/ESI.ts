@@ -174,21 +174,19 @@ describe('parseShards', () => {
     }
   });
 
-  it('runs the shards that ran out of memory with fewer test runners', () => {
-    const byName = new Map(
-      parseShards(
-        readFileSync(path.join(ROOT, SHARDS_FILE), 'utf8'),
-        SHARDS_FILE,
-      ).map((s) => [s.name, s]),
+  it('runs every shard with at most 3 test runners, which kept runners alive', () => {
+    const shards = parseShards(
+      readFileSync(path.join(ROOT, SHARDS_FILE), 'utf8'),
+      SHARDS_FILE,
     );
-    expect(byName.get('core-root-1')?.concurrency).toBe(3);
-    expect(byName.get('core-request-pipeline')?.concurrency).toBe(3);
-    expect(byName.get('core-rate-limiter')?.concurrency).toBe(3);
-    expect(byName.get('core-status-handling')?.concurrency).toBe(3);
-    expect(byName.get('core-middleware')?.concurrency).toBe(3);
-    expect(byName.get('core-etag-cache')?.concurrency).toBe(3);
-    expect(byName.get('core-pagination')?.concurrency).toBe(3);
-    expect(byName.get('core-support-2')?.concurrency).toBe(3);
+    expect(
+      shards.filter((s) => (s.concurrency ?? 3) > 3).map((s) => s.name),
+    ).toEqual([]);
+    const config = readFileSync(
+      path.join(ROOT, 'config/mutation/stryker.bdd.config.mjs'),
+      'utf8',
+    );
+    expect(config).toContain('concurrency: shard?.concurrency ?? 3,');
   });
 });
 
