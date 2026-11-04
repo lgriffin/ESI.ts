@@ -31,6 +31,14 @@
       "reason": "No upstream fix exists: deepmerge 4.3.1 is the latest release and every version from 4.2.0 is affected; npm's only offered remedy is a downgrade to jest 25. It reaches this repo only through jest-config (jest 30, ts-jest, jest-cucumber), devDependencies never installed for package consumers. jest-config merges only this repo's own checked-in Jest configs, so no attacker-controlled object reaches mergeObject(). Revisit when deepmerge ships a fix or jest-config drops it.",
       "expires": "2027-01-29",
       "devOnly": true
+    },
+    {
+      "ghsa": "GHSA-g3hv-75wg-m249",
+      "package": "minimatch",
+      "severity": "moderate",
+      "reason": "Fixed in minimatch 11.0.1, and package.json overrides move every other copy to 11. typedoc 0.28.20 (the latest) is the exception: it calls Minimatch.prototype.matchOne, which minimatch 11 removed, so forcing 11 crashes npm run docs ('mini.matchOne is not a function'); overrides pin typedoc's own copy to 10.2.6. typedoc is a devDependency never installed for package consumers, and the only patterns it expands are this repo's own typedoc.json entry points and excludes, so no attacker-controlled glob reaches the globparts amplification. Revisit when typedoc supports minimatch 11.",
+      "expires": "2027-02-04",
+      "devOnly": true
     }
   ]
 }
