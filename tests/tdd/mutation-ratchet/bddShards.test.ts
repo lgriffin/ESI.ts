@@ -15,6 +15,7 @@
  *    otherwise leave its directories scored on nothing, which reads as a
  *    passing ratchet.
  */
+import { execFileSync } from 'child_process';
 import { readFileSync, readdirSync } from 'fs';
 import * as path from 'path';
 
@@ -179,14 +180,30 @@ describe('parseShards', () => {
       readFileSync(path.join(ROOT, SHARDS_FILE), 'utf8'),
       SHARDS_FILE,
     );
+    // Load the real config once per shard, as the nightly job does, and read
+    // the concurrency Stryker would get.
+    const resolved = JSON.parse(
+      execFileSync(
+        process.execPath,
+        [
+          '--input-type=module',
+          '-e',
+          `const out = {};
+for (const name of JSON.parse(process.argv[1])) {
+  process.env.BDD_MUTATION_SHARD = name;
+  const m = await import('./config/mutation/stryker.bdd.config.mjs?' + name);
+  out[name] = m.default.concurrency;
+}
+console.log(JSON.stringify(out));`,
+          JSON.stringify(shards.map((s) => s.name)),
+        ],
+        { cwd: ROOT, encoding: 'utf8' },
+      ),
+    ) as Record<string, number>;
     expect(
-      shards.filter((s) => (s.concurrency ?? 3) > 3).map((s) => s.name),
+      Object.entries(resolved).filter(([, n]) => !(n >= 1 && n <= 3)),
     ).toEqual([]);
-    const config = readFileSync(
-      path.join(ROOT, 'config/mutation/stryker.bdd.config.mjs'),
-      'utf8',
-    );
-    expect(config).toContain('concurrency: shard?.concurrency ?? 3,');
+    expect(Object.keys(resolved)).toHaveLength(shards.length);
   });
 });
 
