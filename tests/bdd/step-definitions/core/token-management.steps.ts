@@ -46,6 +46,17 @@ const feature = loadFeature(
   'tests/bdd/features/core/0054-token-management.feature',
 );
 
+/**
+ * Remove a scenario's temporary directory, if its Given made one. Jest runs a
+ * scenario's afterAll even when a filtered run skips the scenario itself:
+ * Stryker runs only the scenarios covering each mutant, and an unguarded
+ * fs.rmSync(undefined) there failed the whole file, so every mutant these
+ * scenarios cover was scored a RuntimeError instead of killed (#735).
+ */
+function removeTempDir(dir: string | undefined): void {
+  if (dir) fs.rmSync(dir, { recursive: true, force: true });
+}
+
 const CLIENT_ID = 'test-client-id';
 const CLIENT_SECRET = 'test-client-secret';
 const CALLBACK_URL = 'https://app.example/callback';
@@ -1581,7 +1592,7 @@ defineFeature(feature, (test) => {
     let second: FileTokenStorage;
 
     afterAll(() => {
-      fs.rmSync(dir, { recursive: true, force: true });
+      removeTempDir(dir);
     });
 
     given('a file token storage on a temporary path', () => {
@@ -2116,7 +2127,7 @@ defineFeature(feature, (test) => {
     let storage: FileTokenStorage;
 
     afterAll(() => {
-      fs.rmSync(dir, { recursive: true, force: true });
+      removeTempDir(dir);
     });
 
     given(
@@ -2174,7 +2185,7 @@ defineFeature(feature, (test) => {
 
     afterAll(() => {
       readSpy?.mockRestore();
-      fs.rmSync(dir, { recursive: true, force: true });
+      removeTempDir(dir);
     });
 
     given(
@@ -2254,7 +2265,7 @@ defineFeature(feature, (test) => {
     let returned: string[];
 
     afterAll(() => {
-      fs.rmSync(dir, { recursive: true, force: true });
+      removeTempDir(dir);
     });
 
     given(
@@ -2411,7 +2422,7 @@ defineFeature(feature, (test) => {
     let storages: FileTokenStorage[];
 
     afterAll(() => {
-      fs.rmSync(dir, { recursive: true, force: true });
+      removeTempDir(dir);
     });
 
     given(
@@ -2459,7 +2470,7 @@ defineFeature(feature, (test) => {
     let storage: FileTokenStorage;
 
     afterAll(() => {
-      fs.rmSync(dir, { recursive: true, force: true });
+      removeTempDir(dir);
     });
 
     given(
@@ -2510,7 +2521,7 @@ defineFeature(feature, (test) => {
     let error: unknown;
 
     afterAll(() => {
-      fs.rmSync(dir, { recursive: true, force: true });
+      removeTempDir(dir);
     });
 
     given(
