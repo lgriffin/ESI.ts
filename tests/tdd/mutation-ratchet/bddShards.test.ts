@@ -15,6 +15,7 @@
  *    otherwise leave its directories scored on nothing, which reads as a
  *    passing ratchet.
  */
+import { execFileSync } from 'child_process';
 import { readFileSync, readdirSync } from 'fs';
 import * as path from 'path';
 
@@ -174,21 +175,35 @@ describe('parseShards', () => {
     }
   });
 
-  it('runs the shards that ran out of memory with fewer test runners', () => {
-    const byName = new Map(
-      parseShards(
-        readFileSync(path.join(ROOT, SHARDS_FILE), 'utf8'),
-        SHARDS_FILE,
-      ).map((s) => [s.name, s]),
+  it('runs every shard with at most 3 test runners, which kept runners alive', () => {
+    const shards = parseShards(
+      readFileSync(path.join(ROOT, SHARDS_FILE), 'utf8'),
+      SHARDS_FILE,
     );
-    expect(byName.get('core-root-1')?.concurrency).toBe(3);
-    expect(byName.get('core-request-pipeline')?.concurrency).toBe(3);
-    expect(byName.get('core-rate-limiter')?.concurrency).toBe(3);
-    expect(byName.get('core-status-handling')?.concurrency).toBe(3);
-    expect(byName.get('core-middleware')?.concurrency).toBe(3);
-    expect(byName.get('core-etag-cache')?.concurrency).toBe(3);
-    expect(byName.get('core-pagination')?.concurrency).toBe(3);
-    expect(byName.get('core-support-2')?.concurrency).toBe(3);
+    // Load the real config once per shard, as the nightly job does, and read
+    // the concurrency Stryker would get.
+    const resolved = JSON.parse(
+      execFileSync(
+        process.execPath,
+        [
+          '--input-type=module',
+          '-e',
+          `const out = {};
+for (const name of JSON.parse(process.argv[1])) {
+  process.env.BDD_MUTATION_SHARD = name;
+  const m = await import('./config/mutation/stryker.bdd.config.mjs?' + name);
+  out[name] = m.default.concurrency;
+}
+console.log(JSON.stringify(out));`,
+          JSON.stringify(shards.map((s) => s.name)),
+        ],
+        { cwd: ROOT, encoding: 'utf8' },
+      ),
+    ) as Record<string, number>;
+    expect(
+      Object.entries(resolved).filter(([, n]) => !(n >= 1 && n <= 3)),
+    ).toEqual([]);
+    expect(Object.keys(resolved)).toHaveLength(shards.length);
   });
 });
 
