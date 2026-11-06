@@ -75,19 +75,19 @@ file sets no floor for that directory.
 
 | Directory                  | Unit (`config/mutation/unit-thresholds.json`) | BDD-only (`config/mutation/bdd-thresholds.json`) |
 | -------------------------- | --------------------------------------------: | -----------------------------------------------: |
-| `src`                      |                                             — |                                             15.5 |
-| `src/auth`                 |                                             — |                                             23.4 |
-| `src/clients`              |                                             — |                                             12.1 |
-| `src/core`                 |                                          81.8 |                                             28.8 |
-| `src/core/cache`           |                                          65.3 |                                             22.3 |
-| `src/core/circuitBreaker`  |                                          77.7 |                                             37.3 |
-| `src/core/endpoints`       |                                             — |                                             24.5 |
-| `src/core/logger`          |                                          55.5 |                                             21.7 |
-| `src/core/middleware`      |                                         100.0 |                                             26.0 |
-| `src/core/pagination`      |                                          73.9 |                                             12.6 |
-| `src/core/rateLimiter`     |                                          77.9 |                                             11.7 |
-| `src/core/requestPipeline` |                                          75.2 |                                             38.5 |
-| `src/core/util`            |                                          95.4 |                                             42.8 |
+| `src`                      |                                             — |                                             31.5 |
+| `src/auth`                 |                                             — |                                             45.5 |
+| `src/clients`              |                                             — |                                             19.9 |
+| `src/core`                 |                                          81.8 |                                             42.2 |
+| `src/core/cache`           |                                          65.3 |                                             27.0 |
+| `src/core/circuitBreaker`  |                                          77.7 |                                             40.4 |
+| `src/core/endpoints`       |                                             — |                                             37.6 |
+| `src/core/logger`          |                                          55.5 |                                             38.0 |
+| `src/core/middleware`      |                                         100.0 |                                             31.4 |
+| `src/core/pagination`      |                                          73.9 |                                             55.9 |
+| `src/core/rateLimiter`     |                                          77.9 |                                             24.0 |
+| `src/core/requestPipeline` |                                          75.2 |                                             56.1 |
+| `src/core/util`            |                                          95.4 |                                             52.9 |
 | `src/schemas`              |                                             — |                                              0.0 |
 | `src/sde`                  |                                          85.6 |                                             93.0 |
 | `src/sde/ingestion`        |                                          98.0 |                                             97.0 |

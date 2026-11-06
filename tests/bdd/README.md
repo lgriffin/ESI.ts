@@ -506,8 +506,8 @@ protection. A scenario that executes and passes can still pass whatever the
 client does. Floors are per directory (`src/clients`, `src/core/<sub>`,
 `src/sde`, ...), so a domain's Rules count once the directory holding its code
 has an entry, and every scored directory must have one or the ratchet fails.
-`config/mutation/bdd-thresholds.json` holds 15 floors today, from 0% (`src/schemas`)
-and 10.6% (`src/sde`) to 42.8% (`src/core/util`). A floor of 0 ratchets
+`config/mutation/bdd-thresholds.json` holds 19 floors today, from 0% (`src/schemas`)
+and 19.9% (`src/clients`) to 97% (`src/sde/ingestion`). A floor of 0 ratchets
 nothing yet: it records that the scenarios kill no mutant in that directory.
 
 The floors were first seeded on 19 September 2026. Until then the file was
