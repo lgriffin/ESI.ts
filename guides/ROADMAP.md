@@ -393,7 +393,7 @@ The table is the gate. A row moves to Yes only by citing the merged pull request
 
 **Mutation is not on the release path** (decided 2026-09-28 by the maintainer). The nightly mutation runs keep ratcheting and filing issues, but 11.0.0 does not wait for them. These follow the release, in 11.x:
 
-- Every directory in `config/mutation/unit-thresholds.json` at 60 or above and every directory in `config/mutation/bdd-thresholds.json` at 20 or above, `src/schemas` excepted in the BDD file (CHARTER TEST-07). Below today: unit `src/core/logger`; BDD `src`, `src/clients`, `src/core/pagination`, `src/core/rateLimiter`.
+- Every directory in `config/mutation/unit-thresholds.json` at 60 or above and every directory in `config/mutation/bdd-thresholds.json` at 20 or above, `src/schemas` excepted in the BDD file (CHARTER TEST-07). Below today: unit `src/core/logger`; BDD `src/clients` (19.9).
 - `mutation-pr` back in `ci.yml` and needed by `ci-success` (advisory in `mutation-pr.yml` since 2026-09-27).
 - ~~Every SDE directory at 90, or with every survivor carrying an equivalence reason (Run M).~~ Done 2026-10-08.
 
