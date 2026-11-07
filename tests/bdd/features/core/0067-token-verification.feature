@@ -166,6 +166,26 @@ Feature: Access token decoding and verification
       Then the verification shall reject with TokenVerificationError for reason "algorithm"
 
   @sec-P5
+  Rule: If an access token's header has no string kid, then verifyAccessToken shall reject it with TokenVerificationError for reason malformed.
+    Without a key id there is no key to check the signature against, so the
+    token is refused before the key set is asked.
+
+    Scenario: A token whose header kid is null is rejected
+      Given EVE SSO publishes its current signing key
+      When a token signed by SSO's current key with the header "kid" set to 'null' is verified
+      Then the verification shall reject with TokenVerificationError for reason "malformed"
+
+  @sec-P5
+  Rule: If an access token's signature does not verify against the key its header names, then verifyAccessToken shall reject it with TokenVerificationError for reason signature.
+    A payload changed after signing is the forgery the signature exists to
+    catch, so the claims are not read until the signature checks out.
+
+    Scenario: A token whose payload was changed after signing is rejected
+      Given EVE SSO publishes its current signing key
+      When a token signed by SSO's current key whose payload is changed after signing is verified
+      Then the verification shall reject with TokenVerificationError for reason "signature"
+
+  @sec-P5
   Rule: If an access token's iss claim is not EVE SSO, then verifyAccessToken shall reject it with TokenVerificationError for reason issuer.
     The key set is EVE SSO's, but the issuer is checked as well so a token
     minted for another issuer that shares the key cannot pass.
@@ -174,6 +194,16 @@ Feature: Access token decoding and verification
       Given EVE SSO publishes its current signing key
       When a token signed by SSO's current key with the claim "iss" set to '"https://login.example.com"' is verified
       Then the verification shall reject with TokenVerificationError for reason "issuer"
+
+  @sec-P5
+  Rule: If an access token's aud claim does not name both the application's client id and EVE Online, then verifyAccessToken shall reject it with TokenVerificationError for reason audience.
+    A token SSO signed for another application is genuine but not ours, so
+    the audience has to name this client id.
+
+    Scenario: A token issued to another application is rejected
+      Given EVE SSO publishes its current signing key
+      When a token signed by SSO's current key with the claim "aud" set to '["another-client", "EVE Online"]' is verified
+      Then the verification shall reject with TokenVerificationError for reason "audience"
 
   @sec-P5
   Rule: If the current time is at or past an access token's exp claim plus the clock tolerance, then verifyAccessToken shall reject it with TokenVerificationError for reason expired, naming the expiry time.

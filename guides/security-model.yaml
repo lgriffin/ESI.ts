@@ -196,6 +196,8 @@ properties:
     claim: The token file is written atomically with mode 0o600
     severity: medium
     tests:
+      # The 0070 Rule states the mode; the atomic rename is a filesystem fact
+      # only the unit test observes.
       - tests/tdd/auth/FileTokenStorage.test.ts
       - tests/bdd/features/core/0070-token-storage.feature
   - id: P11
