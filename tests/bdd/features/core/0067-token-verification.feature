@@ -117,6 +117,7 @@ Feature: Access token decoding and verification
       When a token signed by SSO's current key with the claim "iss" set to '"login.eveonline.com"' is verified
       Then the verification shall resolve with character 2114794365
 
+  @sec-P5
   Rule: If an access token does not have exactly three non-empty dot-separated segments, then verifyAccessToken shall reject it with TokenVerificationError for reason malformed.
     A JWS compact token is a header, a payload and a signature. A token with
     a segment missing or one too many is not one, whatever the segments it
@@ -137,6 +138,7 @@ Feature: Access token decoding and verification
       When a token signed by SSO's current key with its signature segment emptied is verified
       Then the verification shall reject with TokenVerificationError for reason "malformed"
 
+  @sec-P5
   Rule: If an access token's header is not a JSON object, then verifyAccessToken shall reject it with TokenVerificationError for reason malformed.
     The header is read for its algorithm and key id before anything is
     verified. JSON that is a number, null or an array has neither.
@@ -152,6 +154,7 @@ Feature: Access token decoding and verification
         | null     | null   |
         | an array | []     |
 
+  @sec-P5
   Rule: If an access token's header names an algorithm other than RS256, then verifyAccessToken shall reject it with TokenVerificationError for reason algorithm.
     SSO signs with RS256 only. Accepting the algorithm a token claims is the
     classic JWT forgery, so the header has to name RS256 even when the
@@ -162,6 +165,7 @@ Feature: Access token decoding and verification
       When a token signed by SSO's current key with the header "alg" set to '"RS512"' is verified
       Then the verification shall reject with TokenVerificationError for reason "algorithm"
 
+  @sec-P5
   Rule: If an access token's iss claim is not EVE SSO, then verifyAccessToken shall reject it with TokenVerificationError for reason issuer.
     The key set is EVE SSO's, but the issuer is checked as well so a token
     minted for another issuer that shares the key cannot pass.
@@ -171,6 +175,7 @@ Feature: Access token decoding and verification
       When a token signed by SSO's current key with the claim "iss" set to '"https://login.example.com"' is verified
       Then the verification shall reject with TokenVerificationError for reason "issuer"
 
+  @sec-P5
   Rule: If the current time is at or past an access token's exp claim plus the clock tolerance, then verifyAccessToken shall reject it with TokenVerificationError for reason expired, naming the expiry time.
     exp is the first second the token is no longer valid. A tolerance lets a
     server whose clock runs ahead of SSO's accept a token that has only just
