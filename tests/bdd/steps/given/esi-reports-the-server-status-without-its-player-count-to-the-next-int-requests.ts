@@ -7,6 +7,11 @@ Given(
   function (times: number) {
     const body: Record<string, unknown> = { ...serverStatus() };
     delete body.players;
-    queueResponse({ match: STATUS_PATH, body, times });
+    queueResponse({
+      match: STATUS_PATH,
+      body,
+      headers: { etag: '"status-without-players"' },
+      times,
+    });
   },
 );
