@@ -5,7 +5,7 @@
   "src/client": 58,
   "src/clients": 19.9,
   "src/core": 42.2,
-  "src/core/cache": 27,
+  "src/core/cache": 92.7,
   "src/core/circuitBreaker": 40.4,
   "src/core/endpoints": 37.6,
   "src/core/logger": 80.9,

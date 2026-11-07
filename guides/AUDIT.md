@@ -79,7 +79,7 @@ file sets no floor for that directory.
 | `src/auth`                 |                                             — |                                             45.5 |
 | `src/clients`              |                                             — |                                             19.9 |
 | `src/core`                 |                                          81.8 |                                             42.2 |
-| `src/core/cache`           |                                          65.3 |                                             27.0 |
+| `src/core/cache`           |                                          65.3 |                                             92.7 |
 | `src/core/circuitBreaker`  |                                          77.7 |                                             40.4 |
 | `src/core/endpoints`       |                                             — |                                             37.6 |
 | `src/core/logger`          |                                          55.5 |                                             80.9 |
