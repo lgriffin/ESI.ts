@@ -273,7 +273,7 @@ Feature: Batches, request deduplication, retry, client set-up and pipeline owner
       When the pipeline is shut down
       Then the shutdown shall report that the pipeline was owned
       And the client shall have logged at info "ETag cache manager shut down"
-      And the circuit breaker shall hold no circuits
+      And the pipeline's circuit breaker shall hold no circuits
       And the next request for "/status/" shall be sent again
 
   Rule: When a domain client that owns its pipeline shuts down, the pipeline shall leave every supplied cache, circuit breaker and deduplicator running.
@@ -285,7 +285,7 @@ Feature: Batches, request deduplication, retry, client set-up and pipeline owner
       When the pipeline is shut down
       Then the shutdown shall report that the pipeline was owned
       And the client shall have logged no line starting "ETag cache manager shut down"
-      And the circuit breaker shall hold 1 circuit
+      And the pipeline's circuit breaker shall hold 1 circuit
       And the next request for "/status/" shall join the one in flight
 
   Rule: If nothing claimed a pipeline, then shutting the pipeline down shall stop nothing and report that the pipeline was not owned.
@@ -295,7 +295,7 @@ Feature: Batches, request deduplication, retry, client set-up and pipeline owner
       And the pipeline has a circuit and a request in flight
       When the pipeline is shut down
       Then the shutdown shall report that the pipeline was not owned
-      And the circuit breaker shall hold 1 circuit
+      And the pipeline's circuit breaker shall hold 1 circuit
 
   Rule: The pipeline shall give every surface over one ApiClient the same diagnostics, which report no cache statistics while the ETag cache is disabled.
 
