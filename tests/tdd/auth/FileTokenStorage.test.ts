@@ -248,4 +248,38 @@ describe('FileTokenStorage', () => {
       spy.mockRestore();
     }
   });
+
+  it('writes a temporary file beside the token file and renames it over, so a reader never sees a torn file', async () => {
+    const storage = new FileTokenStorage(file);
+    await storage.set(1, makeStoredToken({ characterId: 1 }));
+    const before = fs.readFileSync(file, 'utf8');
+    const rename = fs.promises.rename;
+    const seen: { from: string; to: string; target: string; source: string }[] =
+      [];
+    const spy = jest
+      .spyOn(fs.promises, 'rename')
+      .mockImplementation(async (from, to) => {
+        seen.push({
+          from: String(from),
+          to: String(to),
+          target: fs.readFileSync(file, 'utf8'),
+          source: fs.readFileSync(from, 'utf8'),
+        });
+        return rename(from, to);
+      });
+    try {
+      await storage.set(2, makeStoredToken({ characterId: 2 }));
+    } finally {
+      spy.mockRestore();
+    }
+    expect(seen).toHaveLength(1);
+    const [step] = seen;
+    expect(path.dirname(step!.from)).toBe(path.dirname(file));
+    expect(step!.from).not.toBe(file);
+    expect(step!.to).toBe(path.resolve(file));
+    // Until the rename, the token file still holds the previous complete document.
+    expect(step!.target).toBe(before);
+    expect(Object.keys(JSON.parse(step!.source).tokens)).toEqual(['1', '2']);
+    expect(fs.readFileSync(file, 'utf8')).toBe(step!.source);
+  });
 });
