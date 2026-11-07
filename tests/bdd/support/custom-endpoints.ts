@@ -12,7 +12,8 @@ import type { CursorOptions } from '../../../src/core/endpoints/createClient';
 import type { EsiClient } from '../../../src/EsiClient';
 import type { World } from './world';
 
-export const PROJECT_LIST_PATH = 'corporations/98000001/projects';
+/** The project list route alone: the exact path, with or without a query. */
+export const PROJECT_LIST_PATH = /\/corporations\/98000001\/projects\/?(\?|$)/;
 
 const projectEndpoints = {
   listProjects: {
