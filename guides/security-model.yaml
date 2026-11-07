@@ -165,6 +165,7 @@ properties:
     tests:
       - tests/tdd/auth/jwks.test.ts
       - tests/tdd/auth/jwt.test.ts
+      - tests/bdd/features/core/0067-token-verification.feature
   - id: P6
     claim: Values a response supplies never select a host and never carry the token off the allowlisted host
     severity: high
@@ -194,9 +195,11 @@ properties:
   - id: P10
     claim: The token file is written atomically with mode 0o600
     severity: medium
-    tests: [tests/tdd/auth/FileTokenStorage.test.ts]
-    rule: none
-    rule_reason: File mode and an atomic rename are filesystem facts the BDD transport seam cannot observe; the unit test stats the written file.
+    tests:
+      # The 0070 Rule states the mode; the atomic rename is a filesystem fact
+      # only the unit test observes.
+      - tests/tdd/auth/FileTokenStorage.test.ts
+      - tests/bdd/features/core/0070-token-storage.feature
   - id: P11
     claim: "The published tarball is what this repository's workflow built: provenance, cosign bundle, SBOM"
     severity: high
