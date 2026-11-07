@@ -44,10 +44,19 @@ export function recordRequests(world: World): RequestContext[] {
   return seen;
 }
 
-export function clientRecordingResponses(world: World): void {
+export function clientRecordingResponses(
+  world: World,
+  requestMs: number,
+): void {
   const clock = new ManualClock();
   world.values.clock = clock;
   world.client = createSeamClient({ clock });
+  // A request interceptor runs after the client notes the start time, so
+  // moving the clock here is time the request took.
+  world.client.addRequestInterceptor((context) => {
+    clock.advance(requestMs);
+    return context;
+  });
   const seen: ResponseContext[] = [];
   world.client.addResponseInterceptor((context) => {
     seen.push(context);

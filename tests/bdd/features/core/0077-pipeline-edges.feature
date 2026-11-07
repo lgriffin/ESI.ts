@@ -105,6 +105,7 @@ Feature: Request pipeline edges
       And ESI answers the server status with HTTP 503, then reports it, then answers HTTP 503, then reports it
       When the client requests the server status 4 times
       Then the client shall have sent 4 requests
+      And the calls shall have ended with "503, ok, 503, ok"
 
   Rule: Where the circuit breaker keys circuits by route template, the EsiClient shall share one circuit among every character's request to the same route.
     A template key protects a route that is down for everyone.
@@ -141,10 +142,10 @@ Feature: Request pipeline edges
     fast request.
 
     Scenario: A response interceptor sees the duration and the cache flag
-      Given a client with a supplied clock whose response interceptor records what it sees
+      Given a client with a supplied clock on which each request takes 25 ms and whose response interceptor records what it sees
       And ESI reports the server status
       When the client requests the server status
-      Then the response interceptor shall have seen a duration of 0 ms and an answer not from the cache
+      Then the response interceptor shall have seen a duration of 25 ms and an answer not from the cache
 
   # ── The cache at the edges
 
