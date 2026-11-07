@@ -255,6 +255,7 @@ Feature: Building custom clients and shutting them down
     Scenario: The status domain added twice
       When an EsiClientBuilder is given the status domain twice
       Then the built CustomEsiClient shall hold the domains "status"
+      And the client shall have logged "CustomEsiClient initialized with clients: status" with the context '{"clients":["status"]}'
 
   Rule: If an EsiClientBuilder is given no domain, then the EsiClientBuilder shall refuse to build a client.
 
