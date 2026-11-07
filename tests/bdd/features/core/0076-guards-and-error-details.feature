@@ -144,6 +144,7 @@ Feature: Input guards and what an error tells its reader
     Scenario Outline: A <direction> validation error for a URL with a token names the <name> without the token
       When an application raises a <direction> EsiValidationError for "https://esi.evetech.net/characters/1/mail/?token=secret-value"
       Then the error message shall start with "<name> validation failed for"
+      And the error message shall end with "https://esi.evetech.net/characters/1/mail/?token=%5BREDACTED%5D"
       And the error message shall not contain "secret-value"
 
       Examples:
