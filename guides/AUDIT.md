@@ -83,7 +83,7 @@ file sets no floor for that directory.
 | `src/core/circuitBreaker`  |                                          77.7 |                                             40.4 |
 | `src/core/endpoints`       |                                             — |                                             37.6 |
 | `src/core/logger`          |                                          55.5 |                                             80.9 |
-| `src/core/middleware`      |                                         100.0 |                                             31.4 |
+| `src/core/middleware`      |                                         100.0 |                                             80.0 |
 | `src/core/pagination`      |                                          73.9 |                                             55.9 |
 | `src/core/rateLimiter`     |                                          77.9 |                                             24.0 |
 | `src/core/requestPipeline` |                                          75.2 |                                             56.1 |
