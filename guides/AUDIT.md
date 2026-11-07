@@ -82,7 +82,7 @@ file sets no floor for that directory.
 | `src/clients`              |                                             — |                                             19.9 |
 | `src/core`                 |                                          81.8 |                                             42.2 |
 | `src/core/cache`           |                                          65.3 |                                             27.0 |
-| `src/core/circuitBreaker`  |                                          77.7 |                                             40.4 |
+| `src/core/circuitBreaker`  |                                          77.7 |                                             82.0 |
 | `src/core/endpoints`       |                                             — |                                             37.6 |
 | `src/core/logger`          |                                          55.5 |                                             80.9 |
 | `src/core/middleware`      |                                         100.0 |                                             80.0 |
