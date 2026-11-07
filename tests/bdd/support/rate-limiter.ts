@@ -24,13 +24,14 @@ export interface LimiterClock extends Clock {
   readonly waits: number[];
   advance(ms: number): void;
   /** Runs after every wait, once the clock has moved past it. */
-  afterEachWait?: (() => void) | undefined;
+  afterEachWait: (() => void) | undefined;
 }
 
 function limiterClock(): LimiterClock {
   let now = LIMITER_CLOCK_START;
   const clock: LimiterClock = {
     waits: [],
+    afterEachWait: undefined,
     now: () => now,
     sleep(ms: number) {
       clock.waits.push(ms);
