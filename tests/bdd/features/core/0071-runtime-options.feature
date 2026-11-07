@@ -69,7 +69,7 @@ Feature: Runtime options, views and shutdown
 
     Scenario: The server status is requested again after the cache is cleared
       Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
-      And ESI reports the server status to the next 2 requests
+      And ESI reports the server status with an ETag to the next 2 requests
       When the public view requests the server status
       And the runtime's cache is cleared
       And the public view requests the server status
