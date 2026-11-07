@@ -559,3 +559,50 @@ Feature: One runtime, many identities
       And ESI reports the server status without its player count
       When the public view requests the server status
       Then the call shall resolve with the server status as ESI sent it
+
+  # ── How generated operations reach ESI ─────────────────────────────
+
+  Rule: When a generated operation is called with a query parameter, the runtime shall send it to ESI as that parameter's name and value.
+    The generated operations take their query parameters as named fields.
+    Each one has to reach ESI under the name the OpenAPI document gives it.
+
+    Scenario: The wars before a given war are asked for by max_war_id
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And ESI lists two wars
+      When the public view lists the wars before war 700
+      Then the request to ESI shall carry the query parameter "max_war_id" with the value "700"
+
+  Rule: When a generated operation is called with a list query parameter, the runtime shall send the list to ESI as one comma-separated value.
+    ESI reads an array query parameter as a single comma-separated value,
+    the way the hand-written clients send it.
+
+    Scenario: Two contacts are deleted in one request
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And a view for a character holding an access token
+      And ESI accepts the deletion of contacts
+      When the character view deletes the contacts 2112625428 and 98000001
+      Then the request to ESI shall carry the query parameter "contact_ids" with the value "2112625428,98000001"
+
+  Rule: When ESI answers a generated operation that is not paginated with no content, the runtime shall resolve the call with no body.
+    Only a paginated route that documents an empty answer reads it as an
+    empty list. Elsewhere no content means the call had nothing to return,
+    such as a deletion.
+
+    Scenario: A contact deletion answered 204 resolves with nothing
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And a view for a character holding an access token
+      And ESI accepts the deletion of contacts
+      When the character view deletes the contacts 2112625428 and 98000001
+      Then the call shall resolve with no body
+
+  Rule: Where response validation is turned on, if ESI's body for a generated operation fails its schema, then the runtime shall send the next call for that operation to ESI rather than answer it from the cache.
+    A body the runtime refused must not be served again from the cache for
+    the rest of its lifetime; the next call asks ESI, which may have
+    recovered.
+
+    Scenario: A refused server status is asked for again
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)" with response validation on
+      And ESI reports the server status without its player count to the next 2 requests
+      When the public view requests the server status twice in turn
+      Then both calls shall be rejected with an EsiValidationError
+      And ESI shall have received 2 requests for the server status
