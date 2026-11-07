@@ -12,7 +12,7 @@
   "src/core/middleware": 31.4,
   "src/core/pagination": 55.9,
   "src/core/rateLimiter": 24,
-  "src/core/requestPipeline": 56.1,
+  "src/core/requestPipeline": 66.7,
   "src/core/util": 52.9,
   "src/schemas": 0,
   "src/sde": 93,

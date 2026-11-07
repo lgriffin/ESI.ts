@@ -86,7 +86,7 @@ file sets no floor for that directory.
 | `src/core/middleware`      |                                         100.0 |                                             31.4 |
 | `src/core/pagination`      |                                          73.9 |                                             55.9 |
 | `src/core/rateLimiter`     |                                          77.9 |                                             24.0 |
-| `src/core/requestPipeline` |                                          75.2 |                                             56.1 |
+| `src/core/requestPipeline` |                                          75.2 |                                             66.7 |
 | `src/core/util`            |                                          95.4 |                                             52.9 |
 | `src/schemas`              |                                             — |                                              0.0 |
 | `src/sde`                  |                                          85.6 |                                             93.0 |
