@@ -9,7 +9,18 @@ import type {
   LogContext,
   LoggerLevel,
 } from '../../../src/core/logger/ILogger';
+import {
+  getLogger,
+  logDebug,
+  logError,
+  logFatal,
+  logInfo,
+  logTrace,
+  logWarn,
+  setLogger,
+} from '../../../src/core/logger/loggerUtil';
 import type { RequestInterceptor } from '../../../src/core/middleware/Middleware';
+import type { World } from './world';
 
 export interface LoggedLine {
   level: LoggerLevel;
@@ -21,14 +32,21 @@ export interface RecordingLogger extends ILogger {
   readonly lines: LoggedLine[];
 }
 
-export function recordingLogger(): RecordingLogger {
+/**
+ * A logger that records every line it receives. Given `disabled` levels, it
+ * also answers `isLevelEnabled`, false for those levels and true for the rest,
+ * the way a levelled sink tells the library which lines to skip.
+ */
+export function recordingLogger(
+  disabled?: readonly LoggerLevel[],
+): RecordingLogger {
   const lines: LoggedLine[] = [];
   const at =
     (level: LoggerLevel) =>
     (message: string, context?: LogContext): void => {
       lines.push({ level, message, context });
     };
-  return {
+  const logger: RecordingLogger = {
     lines,
     fatal: at('fatal'),
     error: at('error'),
@@ -37,6 +55,10 @@ export function recordingLogger(): RecordingLogger {
     debug: at('debug'),
     trace: at('trace'),
   };
+  if (disabled) {
+    logger.isLevelEnabled = (level) => !disabled.includes(level);
+  }
+  return logger;
 }
 
 /** Appends `name=value` to the query of every request URL. */
@@ -164,4 +186,96 @@ export function withLogLevelEnv(value: string | undefined): () => void {
     if (had) process.env.ESI_LOG_LEVEL = previous;
     else delete process.env.ESI_LOG_LEVEL;
   };
+}
+
+/**
+ * Installs `logger` as the global logger with `setLogger` and registers the
+ * cleanup that puts back the one the process had before.
+ */
+export function useGlobalLogger(world: World, logger: ILogger): void {
+  const previous = getLogger();
+  setLogger(logger);
+  world.cleanups.push(() => setLogger(previous));
+}
+
+/** The library's exported log functions, by the level each writes at. */
+export const LIBRARY_LOG: Readonly<
+  Record<LoggerLevel, (message: string, context?: LogContext) => void>
+> = {
+  fatal: logFatal,
+  error: logError,
+  warn: logWarn,
+  info: logInfo,
+  debug: logDebug,
+  trace: logTrace,
+};
+
+/** One call a pino-compatible sink received: the method and its arguments. */
+export interface SinkCall {
+  method: LoggerLevel;
+  args: unknown[];
+}
+
+/** pino's numeric level values. */
+export const PINO_LEVEL_VALUES: Readonly<Record<LoggerLevel, number>> = {
+  trace: 10,
+  debug: 20,
+  info: 30,
+  warn: 40,
+  error: 50,
+  fatal: 60,
+};
+
+export interface PinoSink {
+  fatal: (...a: unknown[]) => void;
+  error: (...a: unknown[]) => void;
+  warn: (...a: unknown[]) => void;
+  info: (...a: unknown[]) => void;
+  debug: (...a: unknown[]) => void;
+  trace: (...a: unknown[]) => void;
+  isLevelEnabled?: (level: string) => boolean;
+  levelVal?: number;
+  levels?: { values: Record<string, number> };
+  readonly calls: SinkCall[];
+}
+
+/**
+ * A stand-in for pino or a custom pino-compatible sink that records each call
+ * instead of writing it. What level information it exposes is up to the
+ * scenario: `level` gives it pino's level values and a current level,
+ * `levelValues` the values alone, `disabled` an `isLevelEnabled` method.
+ */
+export function pinoSink(
+  options: {
+    level?: LoggerLevel;
+    levelValues?: boolean;
+    disabled?: readonly LoggerLevel[];
+  } = {},
+): PinoSink {
+  const calls: SinkCall[] = [];
+  const at =
+    (method: LoggerLevel) =>
+    (...args: unknown[]): void => {
+      calls.push({ method, args });
+    };
+  const sink: PinoSink = {
+    calls,
+    fatal: at('fatal'),
+    error: at('error'),
+    warn: at('warn'),
+    info: at('info'),
+    debug: at('debug'),
+    trace: at('trace'),
+  };
+  if (options.level !== undefined || options.levelValues) {
+    sink.levels = { values: { ...PINO_LEVEL_VALUES } };
+  }
+  if (options.level !== undefined) {
+    sink.levelVal = PINO_LEVEL_VALUES[options.level];
+  }
+  const disabled = options.disabled;
+  if (disabled) {
+    sink.isLevelEnabled = (level) => !disabled.includes(level as LoggerLevel);
+  }
+  return sink;
 }

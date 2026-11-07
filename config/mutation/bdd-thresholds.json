@@ -8,7 +8,7 @@
   "src/core/cache": 27,
   "src/core/circuitBreaker": 40.4,
   "src/core/endpoints": 37.6,
-  "src/core/logger": 38,
+  "src/core/logger": 80.9,
   "src/core/middleware": 31.4,
   "src/core/pagination": 55.9,
   "src/core/rateLimiter": 24,
