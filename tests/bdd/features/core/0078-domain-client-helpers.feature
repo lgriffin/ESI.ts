@@ -45,6 +45,8 @@ Feature: Domain client page helpers, views and lifecycle
         | contracts    | fetchAllCharacterContracts             | 2112625428           |
         | contracts    | fetchAllCorporationContracts           | 98000001             |
         | contracts    | fetchAllPublicContracts                | 10000002             |
+        | contracts    | fetchAllPublicContractBids             | 214400001            |
+        | contracts    | fetchAllPublicContractItems            | 214400001            |
         | corporations | fetchAllCorporationAllianceHistory     | 98000001             |
         | corporations | fetchAllCorporationAlscLogs            | 98000001             |
         | corporations | fetchAllCorporationBlueprints          | 98000001             |
@@ -83,6 +85,7 @@ Feature: Domain client page helpers, views and lifecycle
         | market       | fetchAllCorporationOrderHistory        | 98000001             |
         | market       | fetchAllCorporationOrders              | 98000001             |
         | market       | fetchAllMarketOrdersInStructure        | 1035466617946        |
+        | market       | fetchAllMarketTypes                    | 10000002             |
         | pi           | fetchAllColonies                       | 2112625428           |
         | pi           | fetchAllCorporationCustomsOffices      | 98000001             |
         | wallet       | fetchAllCharacterWalletJournal         | 2112625428           |
@@ -181,8 +184,9 @@ Feature: Domain client page helpers, views and lifecycle
       Given ESI accepts the next request with no content
       When the fleet client renames a <unit> to "Ten Chars!"
       Then the call shall resolve with no body after 1 request
+      And the request shall have been a PUT to "<path>" with the body '{"name":"Ten Chars!"}'
 
       Examples:
-        | unit  |
-        | squad |
-        | wing  |
+        | unit  | path                            |
+        | squad | /fleets/1234567890/squads/3000/ |
+        | wing  | /fleets/1234567890/wings/2000/  |
