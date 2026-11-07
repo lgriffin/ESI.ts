@@ -50,7 +50,7 @@ Feature: Circuit breaker state, statistics and clean-up
     Scenario: A check 400 ms into a 1000 ms timeout is told to wait 600 ms
       Given a circuit breaker that opens after 2 failures and resets after 1000 ms
       And the endpoint "status/" fails 2 times with status 503
-      And 400 ms pass
+      And 400 ms pass on the breaker's clock
       When the circuit breaker checks the endpoint "status/"
       Then the check shall be refused with a CircuitOpenError retrying after 600 ms
       And the circuit for "status/" shall be open
@@ -61,7 +61,7 @@ Feature: Circuit breaker state, statistics and clean-up
     Scenario: A check exactly 1000 ms into a 1000 ms timeout is admitted as the probe
       Given a circuit breaker that opens after 2 failures and resets after 1000 ms
       And the endpoint "status/" fails 2 times with status 503
-      And 1000 ms pass
+      And 1000 ms pass on the breaker's clock
       Then the circuit for "status/" shall be half-open
       When the circuit breaker checks the endpoint "status/"
       Then the check shall be admitted
@@ -73,7 +73,7 @@ Feature: Circuit breaker state, statistics and clean-up
     Scenario: A circuit that allows 2 probes admits 2 checks and refuses the third
       Given a circuit breaker that opens after 2 failures and allows 2 probes
       And the endpoint "status/" fails 2 times with status 503
-      And 1000 ms pass
+      And 1000 ms pass on the breaker's clock
       When the circuit breaker checks the endpoint "status/" 3 times
       Then the circuit breaker shall have admitted 2 checks before refusing one
 
@@ -123,10 +123,10 @@ Feature: Circuit breaker state, statistics and clean-up
       And the endpoint "wallet/" fails with status 503
       And the endpoint "markets/" fails 2 times with status 503
       And the endpoint "route/" is checked
-      And 500 ms pass
+      And 500 ms pass on the breaker's clock
       And the endpoint "fresh/" fails with status 503
       And the endpoint "fresh/" succeeds
-      And 501 ms pass
+      And 501 ms pass on the breaker's clock
       When the circuit breaker cleans up
       Then the clean-up shall have removed 1 circuits
       And the circuit breaker shall hold the circuits "wallet/, markets/, route/, fresh/"
@@ -135,7 +135,7 @@ Feature: Circuit breaker state, statistics and clean-up
       Given a circuit breaker that opens after 2 failures and drops circuits idle for 1000 ms
       And the endpoint "status/" fails with status 503
       And the endpoint "status/" succeeds
-      And 1000 ms pass
+      And 1000 ms pass on the breaker's clock
       When the circuit breaker cleans up
       Then the clean-up shall have removed 0 circuits
       And the circuit breaker shall hold the circuits "status/"
@@ -148,7 +148,7 @@ Feature: Circuit breaker state, statistics and clean-up
       Given a circuit breaker that drops circuits idle for 1000 ms and cleans up every 5 ms
       And the endpoint "status/" fails with status 503
       And the endpoint "status/" succeeds
-      And 1001 ms pass
+      And 1001 ms pass on the breaker's clock
       When 40 ms of real time pass
       Then the circuit breaker shall hold no circuits
 
@@ -157,7 +157,7 @@ Feature: Circuit breaker state, statistics and clean-up
       And the circuit breaker is shut down
       And the endpoint "status/" fails with status 503
       And the endpoint "status/" succeeds
-      And 1001 ms pass
+      And 1001 ms pass on the breaker's clock
       When 40 ms of real time pass
       Then the circuit breaker shall hold the circuits "status/"
 
@@ -168,6 +168,6 @@ Feature: Circuit breaker state, statistics and clean-up
       Given a circuit breaker that drops circuits idle for 1000 ms and cleans up every 0 ms
       And the endpoint "status/" fails with status 503
       And the endpoint "status/" succeeds
-      And 1001 ms pass
+      And 1001 ms pass on the breaker's clock
       When 40 ms of real time pass
       Then the circuit breaker shall hold the circuits "status/"
