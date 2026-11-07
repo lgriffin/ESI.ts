@@ -149,6 +149,7 @@ Feature: Batches, request deduplication, retry, client set-up and pipeline owner
       And the operation fails 1 time with status 401 and then succeeds
       When the retry strategy runs the operation for an authenticated GET
       Then the operation shall have been attempted 2 times
+      And the retry shall have resolved with "ok"
       And the token shall have been refreshed 1 time
       And the strategy shall have logged at info "Received 401, attempting token refresh..." with the context '{"endpoint":"/characters/1/wallet/"}'
       And the strategy shall have logged at info "Token refreshed, retrying request" with the context '{"endpoint":"/characters/1/wallet/"}'
@@ -168,6 +169,7 @@ Feature: Batches, request deduplication, retry, client set-up and pipeline owner
       And the operation fails 1 time with status 503 and then succeeds
       When the retry strategy runs the operation for an authenticated GET
       Then the operation shall have been attempted 2 times
+      And the retry shall have resolved with "ok"
       And the token shall have been refreshed 0 times
 
   Rule: If the token refresh fails with an EsiError, then the retry strategy shall fail with that EsiError.
@@ -264,7 +266,7 @@ Feature: Batches, request deduplication, retry, client set-up and pipeline owner
 
   # ── Pipeline ownership
 
-  Rule: When a domain client that owns its pipeline shuts down, the pipeline shall stop the cache and circuit breaker it built and drop the in-flight requests of the deduplicator it built.
+  Rule: When a claimed pipeline is shut down, the pipeline shall stop the cache and circuit breaker it built and drop the in-flight requests of the deduplicator it built.
 
     Scenario: A pipeline that built every part
       Given an ApiClient configured with every middleware built for it
@@ -276,7 +278,7 @@ Feature: Batches, request deduplication, retry, client set-up and pipeline owner
       And the pipeline's circuit breaker shall hold no circuits
       And the next request for "/status/" shall be sent again
 
-  Rule: When a domain client that owns its pipeline shuts down, the pipeline shall leave every supplied cache, circuit breaker and deduplicator running.
+  Rule: When a claimed pipeline is shut down, the pipeline shall leave every cache, circuit breaker and deduplicator its claim marks as supplied running.
 
     Scenario: A pipeline whose parts were all supplied
       Given an ApiClient configured with every middleware built for it
@@ -305,8 +307,8 @@ Feature: Batches, request deduplication, retry, client set-up and pipeline owner
       And the diagnostics shall report cache statistics
 
     Scenario: Diagnostics with the ETag cache disabled
-      Given an ApiClient configured with every middleware built for it
-      Then diagnostics made with the ETag cache disabled shall report no cache statistics
+      Given an ApiClient configured with the ETag cache disabled
+      Then the diagnostics shall report no cache statistics
 
   # ── Identities
 
