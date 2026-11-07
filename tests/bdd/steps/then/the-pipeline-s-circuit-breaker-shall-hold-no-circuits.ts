@@ -1,8 +1,8 @@
 import { apiClientOf } from '../../support/pipeline-parts';
 import { Then } from '../../support/steps';
 
-Then('the circuit breaker shall hold {int} circuit', function (count: number) {
+Then("the pipeline's circuit breaker shall hold no circuits", function () {
   expect(apiClientOf(this).getCircuitBreaker()?.getStats().totalCircuits).toBe(
-    count,
+    0,
   );
 });
