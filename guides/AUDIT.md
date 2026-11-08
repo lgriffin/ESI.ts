@@ -75,7 +75,7 @@ file sets no floor for that directory.
 
 | Directory                  | Unit (`config/mutation/unit-thresholds.json`) | BDD-only (`config/mutation/bdd-thresholds.json`) |
 | -------------------------- | --------------------------------------------: | -----------------------------------------------: |
-| `src`                      |                                             — |                                             31.5 |
+| `src`                      |                                             — |                                             89.8 |
 | `src/auth`                 |                                             — |                                             86.4 |
 | `src/clients`              |                                             — |                                             90.6 |
 | `src/core`                 |                                          81.8 |                                             83.8 |
