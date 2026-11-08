@@ -75,7 +75,7 @@ file sets no floor for that directory.
 
 | Directory                  | Unit (`config/mutation/unit-thresholds.json`) | BDD-only (`config/mutation/bdd-thresholds.json`) |
 | -------------------------- | --------------------------------------------: | -----------------------------------------------: |
-| `src`                      |                                             — |                                             31.5 |
+| `src`                      |                                             — |                                             89.8 |
 | `src/auth`                 |                                             — |                                             86.4 |
 | `src/clients`              |                                             — |                                             90.6 |
 | `src/core`                 |                                          81.8 |                                             83.8 |
@@ -87,7 +87,7 @@ file sets no floor for that directory.
 | `src/core/logger`          |                                          55.5 |                                             80.9 |
 | `src/core/middleware`      |                                         100.0 |                                             80.0 |
 | `src/core/pagination`      |                                          73.9 |                                             79.9 |
-| `src/core/rateLimiter`     |                                          77.9 |                                             24.0 |
+| `src/core/rateLimiter`     |                                          77.9 |                                             92.8 |
 | `src/core/requestPipeline` |                                          75.2 |                                             66.7 |
 | `src/core/util`            |                                          95.4 |                                             84.4 |
 | `src/schemas`              |                                             — |                                              0.0 |
