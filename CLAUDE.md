@@ -48,7 +48,7 @@ npm run fuzz           # Property-based fuzz tests (fast-check)
 npm run benchmark      # Benchmark HEAD against a reference commit (scripts/bench/bench-ab.ts); see bench:compare, bench:trend, soak
 npm run test:types     # Type tests (tsd)
 npm run test:export-coverage  # Public exports no test references (--ci gates against scripts/package/export-coverage-baseline.json)
-npm run test:type-mutation  # Mutate built dist/*.d.ts, run tsd per mutant; -- --ratchet gates (nightly)
+npm run test:type-mutation  # Mutate built dist/*.d.ts, run tsd per mutant; -- --ratchet gates (weekly)
 npm run test:consumer  # Pack, install into a clean consumer, type-check + run CJS/ESM/sub-paths (not in npm test)
 npm run test:docs-examples  # Type-check every ts block in README/guides/SDE docs against the packed package (not in npm test)
 npm run examples:nightly    # Run the @nightly public/mixed examples against live ESI (--only <file>, --json <path>)
@@ -134,7 +134,7 @@ Key middleware in the pipeline:
 
 - **ci-fast.yml** — runs on every push (Node 22): `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, format check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, unit tests
 - **ci.yml** — runs on pull requests to master: unit tests on Node 22/24, consumer contract on Node 22 and 24, BDD, spec audit, contract, fuzz, coverage, API surface, doc examples and more. `ci-success` is the single required check and fails when any job fails or is skipped
-- **nightly-mutation.yml** — runs nightly: unit mutation testing (Stryker) with a 4-hour timeout, the BDD-only run as one job per shard, and type mutation
+- **nightly-mutation.yml** — unit mutation (Stryker, a 4-hour timeout per shard) and type mutation weekly on Sunday; the BDD-only run, one job per shard, monthly on the 1st
 - **nightly-examples.yml** — runs nightly and on PRs touching examples: type-checks every example, runs the public ones against live ESI, opens/closes one issue per failing example
 - **nightly-sde.yml** — runs nightly: downloads CCP's current SDE export (cached per build), runs the real-data integration suite, `sde:drift` against the registry and schemas, the SDE examples, then the `sde/` benchmarks and the SDE heap soak; keeps one issue open while red
 - **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: the deterministic skill eval judges on recorded outputs (no live, LLM-judged tier; `skill-eval.ts --live` is local only)

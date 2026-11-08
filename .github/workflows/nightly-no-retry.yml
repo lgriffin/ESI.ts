@@ -1,4 +1,4 @@
-name: Nightly No-Retry Test Run
+name: Weekly No-Retry Test Run
 
 # Runs the full unit + BDD suite (config/jest/unit.config.cjs, the same suite as
 # `npm test`) once a night with Jest retries disabled, to surface flaky tests
@@ -19,7 +19,10 @@ name: Nightly No-Retry Test Run
 
 on:
   schedule:
-    - cron: '0 3 * * *'
+    # Weekly, Saturday, since 2026-11-08: in its last 30 nightly runs this
+    # workflow found no product defect, so a daily run bought no information a
+    # weekly one does not (Lean review, guides/lean/08-testing-framework-value.md).
+    - cron: '0 3 * * 6'
   workflow_dispatch:
     inputs:
       seed:
@@ -122,7 +125,7 @@ jobs:
         run: |
           REPORT=reports/no-retry/jest-results.json
           {
-            echo "## Nightly No-Retry Test Run"
+            echo "## Weekly No-Retry Test Run"
             echo ""
             echo "- **Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "- **Jest outcome:** $JEST_OUTCOME"
