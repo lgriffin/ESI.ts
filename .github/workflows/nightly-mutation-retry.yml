@@ -24,7 +24,7 @@ name: Nightly Mutation Retry
 
 on:
   workflow_run:
-    workflows: ['Nightly Mutation Testing']
+    workflows: ['Mutation Testing']
     types: [completed]
 
 permissions:
