@@ -62,7 +62,6 @@ const WRITE_SCOPES: Record<string, string[]> = {
   'nightly-properties.yml#report': ['issues'],
   'nightly-recorded-payloads.yml#rerecord': ['contents', 'pull-requests'],
   'nightly-recorded-payloads.yml#report-failure': ['issues'],
-  'nightly-schemathesis.yml#report': ['issues'],
   'nightly-sde.yml#report': ['issues'],
   'nightly-spec-drift.yml#check-spec-drift': ['issues'],
   'nightly-spec-drift.yml#report-check-failure': ['issues'],

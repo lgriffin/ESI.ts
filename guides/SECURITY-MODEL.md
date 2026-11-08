@@ -155,15 +155,15 @@ This list is written to be handed to a scanner or an agent as a suppression set;
 
 The model becomes rigid through seven additions that reuse machinery the repository already has: the spec audit's fixture pattern, the audit-exception expiry rule, the charter, and `ci-success`. All seven are in place; [Rollout and open gaps](#rollout-and-open-gaps) records the order they landed in.
 
-| Add                                                                                    | What it does                                                                                                                                     |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `guides/SECURITY-MODEL.md`                                                             | This document. The prose is canonical.                                                                                                           |
-| `guides/security-model.yaml`                                                           | Derived index of roles, inputs, properties, disclaimed properties, non-findings and dispositions. Read by the audit script, scanners and agents. |
-| `scripts/quality/security-model-audit.ts`, run as `npm run security:model`             | The gate. Negative fixtures under `tests/tdd/scripts/fixtures/security-model/`, one per rule below.                                              |
-| `tests/bdd/features/core/0062-security-boundary.feature`                               | One Rule per property it holds, in the unwanted-behaviour form.                                                                                  |
-| `tests/tdd/core/untrusted-input-sites.test.ts`                                         | Discovers every network call and every response-header read under `src/` and fails when one is missing from the index.                           |
-| `guides/security-triage-log.md`                                                        | One line per closed report: date, source, disposition, section cited.                                                                            |
-| CHARTER rows SEC-09 to SEC-12, and a `security-model` job in the needs of `ci-success` | Makes the four rules below requirements with a status.                                                                                           |
+| Add                                                                                     | What it does                                                                                                                                     |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `guides/SECURITY-MODEL.md`                                                              | This document. The prose is canonical.                                                                                                           |
+| `guides/security-model.yaml`                                                            | Derived index of roles, inputs, properties, disclaimed properties, non-findings and dispositions. Read by the audit script, scanners and agents. |
+| `scripts/quality/security-model-audit.ts`, run as `npm run security:model`              | The gate. Negative fixtures under `tests/tdd/scripts/fixtures/security-model/`, one per rule below.                                              |
+| `tests/bdd/features/core/0062-security-boundary.feature`                                | One Rule per property it holds, in the unwanted-behaviour form.                                                                                  |
+| `tests/tdd/core/untrusted-input-sites.test.ts`                                          | Discovers every network call and every response-header read under `src/` and fails when one is missing from the index.                           |
+| `guides/security-triage-log.md`                                                         | One line per closed report: date, source, disposition, section cited.                                                                            |
+| CHARTER rows SEC-09 to SEC-12, and the security-model audit in a job `ci-success` needs | Makes the four rules below requirements with a status.                                                                                           |
 
 ### What the audit fails on
 
@@ -193,5 +193,5 @@ Rollout, tracked by [#627](https://github.com/lgriffin/ESI.ts/issues/627):
 
 1. Land this document, the index, a link from `SECURITY.md` and the agent pointer. Documentation only. Done in [#628](https://github.com/lgriffin/ESI.ts/pull/628).
 2. Fix gaps 1 to 3, each with its Rule in feature 0062. Done in [#629](https://github.com/lgriffin/ESI.ts/pull/629).
-3. Land the audit script, its fixtures and the input-site test, add `security-model` to `ci-success`, and add SEC-09 to SEC-12 to the charter as Enforced. Done, with step 4.
+3. Land the audit script, its fixtures and the input-site test, add the audit to `ci-success` (since 2026-11-08 a step of the `coverage` job), and add SEC-09 to SEC-12 to the charter as Enforced. Done, with step 4.
 4. Point the nightly payload fuzz and the fault catalogue at the input registry, so every registered input has a hostile-value generator. Done: each input in the index lists its `generators` (fuzz and unit test files, the nightly payload fuzz, and `fault:<id>` entries of the fault catalogue, which gains `x-pages-beyond-the-cap` and `redirect-to-another-host`); the audit fails an input with none, and the catalogue's self-test fails a reference to a fault it does not hold.

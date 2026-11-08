@@ -299,9 +299,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint-and-build
 
+    # Node 22 runs the same suite once, with coverage, in the `coverage` job;
+    # this one only proves the newer runtime. Until 2026-11-08 both versions ran
+    # here as well, so every pull request ran the unit suite four times and the
+    # BDD scenarios six (Lean review, guides/lean/08-testing-framework-value.md).
     strategy:
       matrix:
-        node-version: [22, 24]
+        node-version: [24]
 
     steps:
       - name: Checkout code
@@ -321,8 +325,12 @@ jobs:
       - name: Run unit tests
         run: npm test
 
+  # One run of the whole Jest suite on Node 22 (unit, BDD and composition
+  # share config/jest/unit.config.cjs), with coverage. Its --json results feed
+  # the BDD scenario report and the security-model audit, which until
+  # 2026-11-08 each ran the BDD scenarios again in a job of their own.
   coverage:
-    name: Test Coverage
+    name: Unit, BDD and Coverage (Node 22)
     runs-on: ubuntu-latest
     needs: lint-and-build
     permissions:
@@ -344,11 +352,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests with coverage
-        run: npm run coverage
+      # The security model's gap count is held against master's copy of the
+      # index.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      # --json records every test Jest ran, so the report below can prove each
+      # scenario in the feature files executed, not only that those that ran
+      # passed. Jest does not create the output file's directory.
+      - name: Run the unit and BDD tests with coverage
+        run: |
+          mkdir -p reports/bdd
+          npm run coverage -- --json --outputFile=reports/bdd/jest-results.json
+
+      # Runs after a failing suite too, so the summary names the Rules that
+      # broke. Fails when a scenario stated in a feature file did not execute.
+      - name: Report scenarios by Rule and check each one executed
+        if: ${{ !cancelled() }}
+        run: npm run bdd:report
+
+      # Every Rule tagged @sec-<id> must have run and passed, so the audit
+      # reads this run's results rather than trusting the tags.
+      - name: Audit the security model against its index, Rules and sources
+        if: ${{ !cancelled() }}
+        run: npm run security:model -- --results=reports/bdd/jest-results.json
 
       - name: Post coverage comment
-        if: github.event_name == 'pull_request'
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         uses: MishaKav/jest-coverage-comment@642ef024cc554a34b7082cea12c7bf63575ae151 # v1.0.36
         with:
           coverage-summary-path: coverage/unit/coverage-summary.json
@@ -356,45 +386,12 @@ jobs:
           badge-title: Coverage
 
       - name: Upload coverage report
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: coverage-report
           path: coverage/
           retention-days: 30
-
-  bdd-tests:
-    name: BDD Scenarios
-    runs-on: ubuntu-latest
-    needs: lint-and-build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      # --json records every test Jest ran, so the report below can prove each
-      # scenario in the feature files executed, not only that those that ran
-      # passed. Jest does not create the output file's directory.
-      - name: Run all BDD tests
-        run: |
-          mkdir -p reports/bdd
-          npm run bdd -- --json --outputFile=reports/bdd/jest-results.json
-
-      # Runs after a failing suite too, so the summary names the Rules that
-      # broke. Fails when a scenario stated in a feature file did not execute.
-      - name: Report scenarios by Rule and check each one executed
-        if: ${{ !cancelled() }}
-        run: npm run bdd:report
 
       - name: Upload the JUnit report and scenario results
         if: ${{ !cancelled() }}
@@ -456,41 +453,6 @@ jobs:
 
       - name: No focused, skipped, assertion-free or silenced tests
         run: npm run lint:suite-health
-
-  security-model:
-    name: Security Model Audit
-    runs-on: ubuntu-latest
-    needs: lint-and-build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      # The gap count is held against master's copy of the index.
-      - name: Fetch the ratchet baseline
-        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
-
-      # Every Rule tagged @sec-<id> must have run and passed, so the audit
-      # reads a BDD run of its own rather than trusting the tags.
-      - name: Run the BDD scenarios with results
-        run: |
-          mkdir -p reports/security-model
-          npm run bdd -- --json --outputFile=reports/security-model/jest-results.json
-
-      - name: Audit the security model against its index, Rules and sources
-        if: ${{ !cancelled() }}
-        run: npm run security:model -- --results=reports/security-model/jest-results.json
 
   contract-tests:
     name: Contract Tests
@@ -661,7 +623,7 @@ jobs:
           if-no-files-found: warn
 
   full-test-suite:
-    name: Complete Test Suite
+    name: Integration and Type Tests
     runs-on: ubuntu-latest
     needs: lint-and-build
 
@@ -680,36 +642,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # npm run test:all, one tier per step so each writes its results file.
-      # Every step runs even when an earlier one failed, so the artefact holds
-      # all five; the job still fails if any did. Type tests have no Jest
-      # JSON, so test:types:report writes one record per tsd file instead.
+      # The tiers of npm run test:all that no other job runs: the unit and BDD
+      # suites run once in `coverage` (Node 22) and `unit-tests` (Node 24), and
+      # fuzz in `fuzz-tests`. Every step runs even when an earlier one failed,
+      # so the artefact holds both; the job still fails if either did. Type
+      # tests have no Jest JSON, so test:types:report writes one record per
+      # tsd file instead.
       # Runs only when install succeeded; the tier steps key off it.
       - name: Prepare the results directory
         id: results-dir
         run: mkdir -p reports/test-results
 
-      - name: Run the unit tests
-        if: ${{ !cancelled() && steps.results-dir.conclusion == 'success' }}
-        run: npm test -- --json --outputFile=reports/test-results/unit.json
-
-      - name: Run the BDD tests
-        if: ${{ !cancelled() && steps.results-dir.conclusion == 'success' }}
-        run: npm run bdd -- --json --outputFile=reports/test-results/bdd.json
-
       - name: Run the integration tests
         if: ${{ !cancelled() && steps.results-dir.conclusion == 'success' }}
         run: npm run test:integration -- --json --outputFile=reports/test-results/integration.json
-
-      - name: Run the fuzz tests
-        if: ${{ !cancelled() && steps.results-dir.conclusion == 'success' }}
-        run: npm run fuzz -- --json --outputFile=reports/test-results/fuzz.json
 
       - name: Run the type tests
         if: ${{ !cancelled() && steps.results-dir.conclusion == 'success' }}
         run: npm run test:types:report
 
-      # One results file per tier: unit, bdd, integration, fuzz, types.
+      # One results file per tier: integration, types.
       - name: Upload the test results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -1273,9 +1225,7 @@ jobs:
         static-analysis,
         unit-tests,
         coverage,
-        bdd-tests,
         spec-audit,
-        security-model,
         contract-tests,
         contract-replay,
         fuzz-tests,

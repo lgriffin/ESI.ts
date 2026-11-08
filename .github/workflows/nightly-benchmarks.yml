@@ -1,4 +1,4 @@
-name: Nightly Benchmarks and Heap Soak
+name: Weekly Benchmarks and Heap Soak
 
 # Tier L (performance and memory), the half that does not run on pull requests.
 #
@@ -21,7 +21,10 @@ name: Nightly Benchmarks and Heap Soak
 
 on:
   schedule:
-    - cron: '30 4 * * *'
+    # Weekly, Saturday, since 2026-11-08: in its last 30 nightly runs this
+    # workflow found no product defect, so a daily run bought no information a
+    # weekly one does not (Lean review, guides/lean/08-testing-framework-value.md).
+    - cron: '30 4 * * 6'
   workflow_dispatch:
     inputs:
       accept_reference:

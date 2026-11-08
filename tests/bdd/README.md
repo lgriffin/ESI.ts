@@ -464,7 +464,7 @@ a report shows the requirement a failure breaks. The name comes from the
 feature file rather than from Jest's describe path, because jest-cucumber's
 `defineFeature` drops Rule titles and a legacy step file has no Rule in its
 path. A failed scenario is a `<failure>`; a scenario that did not run is an
-`<error>`. In CI the `bdd-tests` job uploads `reports/bdd/` as the `bdd-junit`
+`<error>`. In CI the `coverage` job uploads `reports/bdd/` as the `bdd-junit`
 artifact and writes the Rules not verified to the job summary.
 
 It also writes `reports/bdd/scenarios.json`, one record per scenario, for a
