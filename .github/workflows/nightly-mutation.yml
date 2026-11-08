@@ -420,11 +420,13 @@ jobs:
             reports/type-mutation/type-mutation.md
           retention-days: 30
 
-  # A red scheduled run notifies nobody, so the run keeps one open issue
-  # labelled `mutation` and titled "mutation: nightly run failed": it creates
-  # it, or comments on it when it is already open, listing every job that did
-  # not succeed and the run link, and closes it on the next run in which every
-  # job succeeds (GATE-05, #277).
+  # A red scheduled run notifies nobody, so each half keeps one open issue
+  # labelled `mutation`: "mutation: weekly run failed" (unit and type) and
+  # "mutation: monthly BDD run failed". The report creates it, or comments on
+  # it when it is already open, listing every job that did not succeed and the
+  # run link, and closes it on the next run of that half in which every job
+  # succeeds (GATE-05, #277). It also closes the old daily issue, "mutation:
+  # nightly run failed", if one is still open.
   #
   # nightly-mutation-retry.yml re-runs the failed jobs of a failed first
   # attempt once, and this job with them as their dependent. A reclaimed runner
@@ -464,6 +466,9 @@ jobs:
           RUN_ATTEMPT: ${{ github.run_attempt }}
           PLAN: ${{ needs.plan.result }}
           PLAN_UNIT: ${{ needs.plan.outputs.unit }}
+          PLAN_BDD: ${{ needs.plan.outputs.bdd }}
+          EVENT: ${{ github.event_name }}
+          CRON: ${{ github.event.schedule }}
           UNIT_SHARDS: ${{ needs.unit-mutation-shards.result }}
           UNIT_MUTATION: ${{ needs.mutation-testing.result }}
           UNIT_RATCHET: ${{ needs.mutation-ratchet.result }}
@@ -473,83 +478,111 @@ jobs:
           TYPE_MUTATION: ${{ needs.type-mutation-testing.result }}
         run: |
           # One issue per half, so a green weekly unit run never closes the
-          # issue a red monthly BDD run opened.
-          if [ "$PLAN_UNIT" = "false" ]; then
-            TITLE="mutation: monthly BDD run failed"
-          else
-            TITLE="mutation: weekly run failed"
-          fi
+          # issue a red monthly BDD run opened, and a run that did both halves
+          # reports each to its own issue.
           LABEL="mutation"
           RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           TODAY=$(date -u +%Y-%m-%d)
 
-          ROWS=""
-          ANY_FAILURE=false
-          while IFS='=' read -r job result; do
-            [ -n "$job" ] || continue
-            # A half this trigger did not ask for is skipped, not failed.
-            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
-              ROWS="${ROWS}| \`${job}\` | ${result} |"$'\n'
-              if [ "$result" = "failure" ]; then ANY_FAILURE=true; fi
+          # Which halves ran. The plan job says; when it failed and gave no
+          # outputs, fall back to the trigger so its failure still reaches
+          # the right issue (the monthly cron is BDD, anything else is unit).
+          RAN_UNIT="$PLAN_UNIT"
+          RAN_BDD="$PLAN_BDD"
+          if [ -z "$RAN_UNIT" ]; then
+            if [ "$EVENT" = "schedule" ] && [ "$CRON" = "0 4 1 * *" ]; then
+              RAN_UNIT=false; RAN_BDD=true
+            else
+              RAN_UNIT=true; RAN_BDD=false
             fi
-          done <<EOF
-          unit-mutation-shards=$UNIT_SHARDS
-          mutation-testing=$UNIT_MUTATION
-          mutation-ratchet=$UNIT_RATCHET
-          bdd-mutation-shards=$BDD_SHARDS
-          bdd-mutation-testing=$BDD_MUTATION
-          bdd-mutation-ratchet=$BDD_RATCHET
-          type-mutation-testing=$TYPE_MUTATION
-          plan=$PLAN
-          EOF
+          fi
+
+          gh label create "$LABEL" \
+            --description "Automated: the scheduled mutation run failed" \
+            --color "B60205" 2>/dev/null || true
 
           open_issue() {
             # Every page of the label's open issues, so the match is exhaustive.
             gh api --paginate "repos/${GH_REPO}/issues?state=open&labels=${LABEL}&per_page=100" \
-              | jq -rs --arg t "$TITLE" 'add // [] | map(select(.title == $t and (.pull_request | not))) | .[0].number // empty'
+              | jq -rs --arg t "$1" 'add // [] | map(select(.title == $t and (.pull_request | not))) | .[0].number // empty'
           }
 
-          if [ -z "$ROWS" ]; then
-            ISSUE=$(open_issue)
-            if [ -n "$ISSUE" ]; then
-              gh issue close "$ISSUE" \
-                --comment "Every mutation job this run asked for succeeded on ${TODAY}: ${RUN_URL}. Closing automatically."
+          # The issue the daily schedule kept is replaced by the two below;
+          # close it so it is not left open with nothing to close it.
+          LEGACY=$(open_issue "mutation: nightly run failed")
+          if [ -n "$LEGACY" ]; then
+            gh issue close "$LEGACY" \
+              --comment "The mutation run is now weekly (unit and type) and monthly (BDD), and each reports to its own issue: \"mutation: weekly run failed\" and \"mutation: monthly BDD run failed\". Closing this one; the next failing run of either half opens its own."
+          fi
+
+          # report TITLE then job=result lines on stdin: open, comment on or
+          # close the half's issue.
+          report() {
+            local title="$1" rows="" any_failure=false job result issue body
+            while IFS='=' read -r job result; do
+              [ -n "$job" ] || continue
+              if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+                rows="${rows}| \`${job}\` | ${result} |"$'\n'
+                if [ "$result" = "failure" ]; then any_failure=true; fi
+              fi
+            done
+
+            if [ -z "$rows" ]; then
+              issue=$(open_issue "$title")
+              if [ -n "$issue" ]; then
+                gh issue close "$issue" \
+                  --comment "Every mutation job in this half succeeded on ${TODAY}: ${RUN_URL}. Closing automatically."
+              fi
+              return 0
             fi
-            exit 0
-          fi
 
-          if [ "$RUN_ATTEMPT" = "1" ] && [ "$ANY_FAILURE" = "true" ]; then
-            echo "::notice::Attempt 1 failed; nightly-mutation-retry.yml re-runs the failed jobs once and this job reports that attempt's result."
-            exit 0
-          fi
+            if [ "$RUN_ATTEMPT" = "1" ] && [ "$any_failure" = "true" ]; then
+              echo "::notice::${title}: attempt 1 failed; nightly-mutation-retry.yml re-runs the failed jobs once and this job reports that attempt's result."
+              return 0
+            fi
 
-          BODY=$(cat <<EOF
+            body=$(cat <<EOF
           ## Mutation run failed — ${TODAY}
 
           Run: ${RUN_URL} (attempt ${RUN_ATTEMPT})
 
           | Job | Result |
           |-----|--------|
-          ${ROWS}
+          ${rows}
           A ratchet job fails when a directory (or, for type mutation, an entry
           point) scores below its floor, or when a shard is missing from the merge;
           its step summary names which. A shard job that failed twice is not a
           reclaimed runner. See "Mutation testing" in guides/TESTING.md.
 
-          This issue closes itself on the next run in which every job succeeds.
+          This issue closes itself on the next run of this half in which every job succeeds.
 
           ---
           *Auto-generated by the mutation workflow (nightly-mutation.yml)*
           EOF
-          )
+            )
 
-          gh label create "$LABEL" \
-            --description "Automated: the nightly mutation run failed" \
-            --color "B60205" 2>/dev/null || true
+            issue=$(open_issue "$title")
+            if [ -n "$issue" ]; then
+              gh issue comment "$issue" --body "$body"
+            else
+              gh issue create --title "$title" --label "$LABEL" --body "$body"
+            fi
+          }
 
-          ISSUE=$(open_issue)
-          if [ -n "$ISSUE" ]; then
-            gh issue comment "$ISSUE" --body "$BODY"
-          else
-            gh issue create --title "$TITLE" --label "$LABEL" --body "$BODY"
+          if [ "$RAN_UNIT" = "true" ]; then
+            report "mutation: weekly run failed" <<EOF
+          plan=$PLAN
+          unit-mutation-shards=$UNIT_SHARDS
+          mutation-testing=$UNIT_MUTATION
+          mutation-ratchet=$UNIT_RATCHET
+          type-mutation-testing=$TYPE_MUTATION
+          EOF
+          fi
+          if [ "$RAN_BDD" = "true" ]; then
+            report "mutation: monthly BDD run failed" <<EOF
+          plan=$PLAN
+          bdd-mutation-shards=$BDD_SHARDS
+          bdd-mutation-testing=$BDD_MUTATION
+          bdd-mutation-ratchet=$BDD_RATCHET
+          EOF
           fi
