@@ -251,3 +251,7 @@ These are the rules the record supports. When something is not covered here, app
 | Muri            | One person holding every approval                                            |
 | Genchi genbutsu | Nightly runs against live ESI                                                |
 | Hansei          | Stopping to measure, as this document does                                   |
+
+## Follow-up: the test suite
+
+On 8 November 2026 the same lens was turned on the test suite: which tiers find defects a consumer would hit, and which are appraisal or waste. The evaluation and its ranked recommendations are in [lean/08-testing-framework-value.md](lean/08-testing-framework-value.md).
