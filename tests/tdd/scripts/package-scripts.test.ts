@@ -110,10 +110,8 @@ describe('targetsIn', () => {
       targetsIn('a', 'ts-node examples/status.ts').map((t) => t.path),
     ).toEqual(['examples/status.ts']);
     expect(
-      targetsIn('a', 'bash scripts/spec/run-schemathesis.sh').map(
-        (t) => t.path,
-      ),
-    ).toEqual(['scripts/spec/run-schemathesis.sh']);
+      targetsIn('a', 'bash scripts/release/run-thing.sh').map((t) => t.path),
+    ).toEqual(['scripts/release/run-thing.sh']);
   });
 
   it('finds a runner config, spelled either way', () => {

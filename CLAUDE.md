@@ -45,7 +45,6 @@ npm run ears:dashboard # One HTML page of every requirement: pattern, verdict, w
 npm run test:integration  # Integration tests
 npm run contract       # Contract tests against live ESI spec
 npm run fuzz           # Property-based fuzz tests (fast-check)
-npm run fuzz:api       # Schemathesis API fuzzing (requires Docker)
 npm run benchmark      # Benchmark HEAD against a reference commit (scripts/bench/bench-ab.ts); see bench:compare, bench:trend, soak
 npm run test:types     # Type tests (tsd)
 npm run test:export-coverage  # Public exports no test references (--ci gates against scripts/package/export-coverage-baseline.json)
@@ -141,7 +140,7 @@ Key middleware in the pipeline:
 - **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: the deterministic skill eval judges on recorded outputs (no live, LLM-judged tier; `skill-eval.ts --live` is local only)
 - **spec-refresh.yml** — on push to `spec-refresh/**` or manual dispatch: re-vendors the ESI OpenAPI document at `COMPATIBILITY_DATE` and regenerates every generated file from it
 
-These are the ones an agent meets most. `.github/workflows/` holds 29 workflow files; `guides/QUALITY-GATES.md` lists every one and what it gates.
+These are the ones an agent meets most. `.github/workflows/` holds 28 workflow files; `guides/QUALITY-GATES.md` lists every one and what it gates.
 
 ## Semantic Versioning (enforced)
 
