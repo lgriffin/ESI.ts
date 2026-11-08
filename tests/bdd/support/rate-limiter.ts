@@ -108,14 +108,16 @@ export function readResponse(
 }
 
 /**
- * Asks the limiter to clear a request, recording the waits it took and the
- * error it refused with.
+ * Asks the limiter to clear a request, recording the waits it took. A refusal
+ * fails the step unless `expectRefusal` is set, in which case the error is
+ * kept for a Then step to check.
  */
 export async function clearRequest(
   world: World,
   method: string,
   path: string,
   user?: string,
+  expectRefusal = false,
 ): Promise<void> {
   const clock = limiterClockOf(world);
   clock.waits.length = 0;
@@ -123,9 +125,16 @@ export async function clearRequest(
   try {
     await rateLimiterOf(world).checkRateLimit(path, method, userHeaders(user));
   } catch (error: unknown) {
+    if (!expectRefusal) throw error;
     world.error = error;
+  } finally {
+    world.values.lastWaits = [...clock.waits];
   }
-  world.values.lastWaits = [...clock.waits];
+  if (expectRefusal && world.error === undefined) {
+    throw new Error(
+      'The limiter cleared a request the scenario expected it to refuse',
+    );
+  }
 }
 
 /** The waits the last clearance took, as `a, b`, or `none`. */

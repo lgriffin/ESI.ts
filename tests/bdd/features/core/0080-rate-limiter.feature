@@ -157,7 +157,7 @@ Feature: Rate limiter token groups, blocks, error budget and pacing
       Given a rate limiter with a minimum delay of 0 ms
       And the limiter has read a 200 response to GET "status/" with the headers "retry-after=30"
       And a response to GET "status/" with Retry-After 60 arrives during every wait
-      When the limiter clears a request to GET "status/"
+      When the limiter is asked to clear a request it refuses to GET "status/"
       Then the limiter shall have waited 10 times
       And the clearance shall be refused with status 429 saying "Rate limit group 'status' still blocked for 60s"
       And the limiter shall have warned "[ESI Rate Limit] Group 'status' still blocked after retry budget exhausted; aborting request instead of sending while blocked" with the context '{"group":"status"}'
