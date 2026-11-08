@@ -32,6 +32,8 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 ### Amendments after revision 2 (the detail behind revision 3)
 
+- **2026-11-08, the pull-request gate runs each suite once (Lean review).** Every pull request ran the unit suite four times and the BDD scenarios up to six: Node 22 and 24 in `unit-tests`, again in `coverage`, again in `bdd-tests` for the scenario report, again in `security-model` for the audit, and again in `full-test-suite`. Now `coverage` runs the Jest suite once on Node 22 with `--json`, and the BDD scenario report and the security-model audit read that run; `unit-tests` runs Node 24 only; `full-test-suite` keeps the tiers no other job runs (mocked integration, type tests). The `bdd-tests` and `security-model` jobs are gone. No check was removed: every gate still runs, on fewer runs of the same tests. SEC-09 to SEC-12 and TEST-08 keep their status.
+
 - **2026-11-08, mutation on a weekly and a monthly cadence (Lean review of the test suite, `guides/lean/08-testing-framework-value.md`).** Over the 30 days to 8 November the nightly mutation run used about 77% of all CI runner time, its BDD-only shards alone over half, and was red on 20 of 30 nights, every time for an infrastructure reason; neither it nor the BDD floors epic (#738) found a product defect. The maintainer kept BDD-only mutation as a monthly condition: `nightly-mutation.yml` now runs its BDD-only shards and ratchet on the 1st of each month, and the unit and type shards weekly on Sunday. The floors are unchanged. A failed monthly run keeps its own issue, "mutation: monthly BDD run failed", so a green weekly run never closes it. TEST-07 keeps its status.
 
 - **2026-10-17, the SQLite path removed (12.x, minor).** `SdeDatabaseBuilder` was exported by no entry point, used by no script, and replaced by the YAML provider by design. The maintainer ruled it removed, with the SQLite-only transforms and the `better-sqlite3` optional peer, and approved dropping the peer in a 12.x minor release: no public export loads it, so an install that has it keeps working ([SEMVER.md](SEMVER.md)). `SdeDatabaseError` and `isSdeDatabaseError` stay exported from `./sde` and `./sde/memory` with the same shape, marked `@deprecated` because nothing in the package throws the class any more, and leave in the next major. ARCH-12 and ARCH-13 keep their ids and now state what ingestion still does, download and extract; ARCH-10 loses the peer, and ARCH-11 keeps the class as deprecated. The security model retires P12 rather than renumbering.
@@ -680,14 +682,14 @@ Local credentials **shall** be minted by the PKCE script into a git-ignored `.en
 The security model audit **shall** fail when a property, disclaimed property, non-finding or disposition appears in only one of `guides/SECURITY-MODEL.md` and `guides/security-model.yaml`, or when a property's severity differs between them.
 
 - **Why:** The prose is canonical and the index is what scanners and agents read. Two copies that drift tell a reviewer two different things.
-- **Verified by:** Gate: `npm run security:model` in the `security-model` job of `ci.yml`. Test: `tests/tdd/scripts/security-model-audit.test.ts` drives each rule with a fixture.
+- **Verified by:** Gate: `npm run security:model` in the `coverage` job of `ci.yml`. Test: `tests/tdd/scripts/security-model-audit.test.ts` drives each rule with a fixture.
 
 #### SEC-10 · Unwanted · Enforced
 
 If a claimed security property names no existing test file, has no `@sec-<id>` Rule that ran and passed and no stated reason for having none, or is a gap without an issue and an unexpired date, then the security model audit **shall** fail.
 
 - **Why:** A claim with no test is a hope. A gap with no owner or date never closes, so the count of gaps may only shrink against `master`.
-- **Verified by:** Gate: `npm run security:model` with `--results` in the `security-model` job of `ci.yml`. Test: `tests/tdd/scripts/security-model-audit.test.ts`.
+- **Verified by:** Gate: `npm run security:model` with `--results` in the `coverage` job of `ci.yml`. Test: `tests/tdd/scripts/security-model-audit.test.ts`.
 
 #### SEC-11 · Unwanted · Enforced
 

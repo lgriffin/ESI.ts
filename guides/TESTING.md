@@ -298,7 +298,7 @@ npm run faults:nightly       # seeded payload fuzz over every endpoint
 npm run contract:replay      # recorded payloads through the pipeline, no network
 npm run test:integration     # mocked integration; live suites skip
 npm run test:types           # tsd
-npm run test:all             # test, bdd, test:integration, fuzz, test:types (what full-test-suite runs)
+npm run test:all             # test (BDD included), test:integration, fuzz, test:types (the full-test-suite job runs only integration and types; the rest run in other jobs)
 npm run check:local          # every offline CI tier in one run (below)
 ```
 
@@ -570,7 +570,7 @@ Each feature file is run by exactly one of two things, and the audit fails a fea
 
 **Location:** `tests/typetests/` (<!-- metric:typeTestFiles -->15<!-- /metric --> files: `index`, `client`, `createClient`, `endpoint-args`, `branded-ids`, `error-guards`, `result-type`, `domain-responses`, `identity-views`, `list-envelopes`, `public-client`, `schemas`, `sde`, `sde-memory`, `testing`)
 **Run:** `npm run test:types` (tsd)
-**CI:** `full-test-suite` in `ci.yml`, through `npm run test:all`
+**CI:** `full-test-suite` in `ci.yml` (`npm run test:types:report`)
 
 Compile-time assertions on the consumer-facing type surface (`TEST-06`): endpoint argument inference, branded IDs, error guards, the result envelope and domain response types. Half the value of the library is at the type level, and a refactor can break inference without failing a runtime test. The tier's own signal is [type mutation](#type-mutation).
 
@@ -718,19 +718,20 @@ npx jest --config config/jest/integration.config.cjs --testPathPatterns=esi-spec
 
 `npm run token:create` writes a PKCE token to `.env`, which `test:integration:gated` reads. Live tests have 30-second timeouts and fail when ESI is down.
 
-**Where they run.** The mocked suite runs on every pull request, inside `full-test-suite` (the `test:all` tiers). No workflow runs the live smoke, client integration, spec contract, gated auth or real-SDE suites; they are for a contributor to run by hand. The live checks CI does run are `contract-tests` on pull requests, `maintenance.yml` weekly, and the public examples in `nightly-examples.yml`.
+**Where they run.** The mocked suite runs on every pull request, inside `full-test-suite`. No workflow runs the live smoke, client integration, spec contract, gated auth or real-SDE suites; they are for a contributor to run by hand. The live checks CI does run are `contract-tests` on pull requests, `maintenance.yml` weekly, and the public examples in `nightly-examples.yml`.
 
 ### Published results
 
 Each CI job that runs a Jest tier also writes Jest's `--json` results to `reports/test-results/` and uploads them, whether the tier passed or failed, so a tool can read which tests ran and how they ended rather than only the job's status ([#639](https://github.com/lgriffin/ESI.ts/issues/639), [#640](https://github.com/lgriffin/ESI.ts/issues/640)):
 
-| Artifact                       | Job               | Files                                                                  |
-| ------------------------------ | ----------------- | ---------------------------------------------------------------------- |
-| `test-results-full-suite`      | `full-test-suite` | `unit.json`, `bdd.json`, `integration.json`, `fuzz.json`, `types.json` |
-| `test-results-contract-live`   | `contract-tests`  | `contract-live.json` (written on a 503 soft-skip too, with what ran)   |
-| `test-results-contract-replay` | `contract-replay` | `contract-replay.json`                                                 |
-| `test-results-fuzz`            | `fuzz-tests`      | `fuzz.json`                                                            |
-| `test-results-faults`          | `fault-catalogue` | `faults.json`                                                          |
+| Artifact                       | Job               | Files                                                                          |
+| ------------------------------ | ----------------- | ------------------------------------------------------------------------------ |
+| `bdd-junit`                    | `coverage`        | `jest-results.json` (unit, composition and BDD), `junit.xml`, `scenarios.json` |
+| `test-results-full-suite`      | `full-test-suite` | `integration.json`, `types.json`                                               |
+| `test-results-contract-live`   | `contract-tests`  | `contract-live.json` (written on a 503 soft-skip too, with what ran)           |
+| `test-results-contract-replay` | `contract-replay` | `contract-replay.json`                                                         |
+| `test-results-fuzz`            | `fuzz-tests`      | `fuzz.json`                                                                    |
+| `test-results-faults`          | `fault-catalogue` | `faults.json`                                                                  |
 
 tsd has no JSON output, so `npm run test:types:report` (`scripts/quality/type-test-report.ts`) runs the same type tests as `test:types` and writes `types.json`: one record per `tests/typetests/*.test-d.ts` file, failed when tsd reports an error against it, with the diagnostics. The live tiers no workflow runs (smoke, client integration, spec contract, gated auth) show up in `integration.json` as skipped, which is what they are. The BDD results per scenario are in the `bdd-junit` artifact (see [Specification](#specification-earsbdd)).
 
