@@ -403,9 +403,9 @@ export function serializeBaseline(report: ExportCoverageReport): string {
     {
       $comment:
         'Public exports no test references yet. Shrink-only: CI fails on an ' +
-        'unreferenced export missing from this list, on an entry that is now ' +
-        'referenced or no longer exported, and on any entry not on master. ' +
-        'Regenerate with npm run test:export-coverage -- --write-baseline.',
+        'unreferenced export missing from this list and on any entry not on ' +
+        'master; an entry that is now referenced or no longer exported is ' +
+        'reported, not failed. Regenerate with npm run test:export-coverage -- --write-baseline.',
       unreferenced,
     },
     null,
@@ -502,18 +502,25 @@ export function applyBaseline(
   return { unlisted, stale, added, baseRefMissing: base.ref === null };
 }
 
+/**
+ * Baseline entries that no longer need to be there: a notice, not a failure,
+ * so a pull request that only adds tests does not also have to edit the
+ * baseline (2026-11-08). The list still cannot grow.
+ */
+export function ratchetNotices(result: RatchetResult): string[] {
+  if (result.stale.length === 0) return [];
+  return [
+    `${result.stale.length} baseline entries are now referenced by a test or no longer exported: ` +
+      `${result.stale.join(', ')}. Removing them from ${BASELINE_FILE} locks the improvement in.`,
+  ];
+}
+
 export function ratchetProblems(result: RatchetResult): string[] {
   const problems: string[] = [];
   if (result.unlisted.length > 0) {
     problems.push(
       `${result.unlisted.length} public exports are referenced by no test and are not in the baseline: ` +
         `${result.unlisted.join(', ')}. Add a test that uses each one.`,
-    );
-  }
-  if (result.stale.length > 0) {
-    problems.push(
-      `${result.stale.length} baseline entries are now referenced by a test or no longer exported: ` +
-        `${result.stale.join(', ')}. Remove them from ${BASELINE_FILE} to lock the improvement in.`,
     );
   }
   if (result.added.length > 0) {

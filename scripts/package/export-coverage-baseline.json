@@ -1,5 +1,5 @@
 {
-  "$comment": "Public exports no test references yet. Shrink-only: CI fails on an unreferenced export missing from this list, on an entry that is now referenced or no longer exported, and on any entry not on master. Regenerate with npm run test:export-coverage -- --write-baseline.",
+  "$comment": "Public exports no test references yet. Shrink-only: CI fails on an unreferenced export missing from this list and on any entry not on master; an entry that is now referenced or no longer exported is reported, not failed. Regenerate with npm run test:export-coverage -- --write-baseline.",
   "unreferenced": {
     ".": [
       "AccessList",

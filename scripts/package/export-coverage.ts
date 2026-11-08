@@ -29,10 +29,12 @@ import {
   integrityProblems,
   loadBaseBaseline,
   parseBaseline,
+  ratchetNotices,
   ratchetProblems,
   renderReport,
   serializeBaseline,
 } from './export-coverage-core';
+import { printNotices } from '../spec/method-coverage-core';
 
 function main(): number {
   const args = process.argv.slice(2);
@@ -95,7 +97,9 @@ function main(): number {
     );
   }
 
-  const problems = ratchetProblems(applyBaseline(report, baseline, base));
+  const result = applyBaseline(report, baseline, base);
+  const problems = ratchetProblems(result);
+  printNotices(ratchetNotices(result), BASELINE_FILE);
   if (process.env.GITHUB_STEP_SUMMARY) {
     appendFileSync(
       process.env.GITHUB_STEP_SUMMARY,

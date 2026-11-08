@@ -52,6 +52,7 @@ import {
   StepProject,
   type StepPattern,
   applyGroupedBaseline,
+  groupedRatchetNotices,
   groupedRatchetProblems,
   loadGroupedBaseBaseline,
   parseGroupedBaseline,
@@ -590,9 +591,9 @@ export function serializeBaseline(report: CoverageReport): string {
   return serializeGroupedBaseline(
     'Public domain-client methods no Rule names and no bound step calls, by ' +
       'client. Shrink-only: CI fails on an uncovered method missing from this ' +
-      'list, on an entry that is now covered or no longer a method, and on any ' +
-      'entry not on master. Regenerate with npm run spec:coverage:clients -- ' +
-      '--write-baseline.',
+      'list and on any entry not on master; an entry that is now covered or no ' +
+      'longer a method is reported, not failed. Regenerate with npm run ' +
+      'spec:coverage:clients -- --write-baseline.',
     uncoveredByClient(report),
   );
 }
@@ -616,4 +617,9 @@ export function applyBaseline(
 
 export function ratchetProblems(result: RatchetResult): string[] {
   return groupedRatchetProblems(result, RATCHET_WORDS);
+}
+
+/** Entries that can leave the baseline: reported, never failed on. */
+export function ratchetNotices(result: RatchetResult): string[] {
+  return groupedRatchetNotices(result, RATCHET_WORDS);
 }

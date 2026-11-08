@@ -1,9 +1,7 @@
 {
-  "$comment": "Public domain-client methods no Rule names and no bound step calls, by client. Shrink-only: CI fails on an uncovered method missing from this list, on an entry that is now covered or no longer a method, and on any entry not on master. Regenerate with npm run spec:coverage:clients -- --write-baseline.",
+  "$comment": "Public domain-client methods no Rule names and no bound step calls, by client. Shrink-only: CI fails on an uncovered method missing from this list and on any entry not on master; an entry that is now covered or no longer a method is reported, not failed. Regenerate with npm run spec:coverage:clients -- --write-baseline.",
   "uncovered": {
-    "AccessListsClient": [
-      "getCharacterAccessLists"
-    ],
+    "AccessListsClient": ["getCharacterAccessLists"],
     "AllianceClient": [
       "getContactLabels",
       "getIcons",
@@ -53,10 +51,7 @@
       "fetchAllCharacterSkillQueue",
       "streamCharacterSkillQueue"
     ],
-    "ClonesClient": [
-      "fetchAllImplants",
-      "streamImplants"
-    ],
+    "ClonesClient": ["fetchAllImplants", "streamImplants"],
     "ContactsClient": [
       "getAllianceContacts",
       "getAllianceContactLabels",
@@ -132,10 +127,7 @@
       "streamCorporationTitles",
       "streamNpcCorporations"
     ],
-    "FittingsClient": [
-      "fetchAllFittings",
-      "streamFittings"
-    ],
+    "FittingsClient": ["fetchAllFittings", "streamFittings"],
     "FleetClient": [
       "createFleetInvitation",
       "deleteFleetSquad",
@@ -196,10 +188,7 @@
       "streamCorporationOrderHistory",
       "streamMarketOrdersInStructure"
     ],
-    "MetaClient": [
-      "getCompatibilityDates",
-      "getName"
-    ],
+    "MetaClient": ["getCompatibilityDates", "getName"],
     "MilitaryCampaignsClient": [
       "getMilitaryCampaignObjective",
       "getCharacterMilitaryCampaignObjective"

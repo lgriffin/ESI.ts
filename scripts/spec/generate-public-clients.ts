@@ -25,10 +25,13 @@ async function main(): Promise<void> {
     process.exit(2);
   }
   const config = (await prettier.resolveConfig(out)) ?? {};
-  const source = await prettier.format(renderAuthenticatedMethods(authenticated), {
-    ...config,
-    filepath: out,
-  });
+  const source = await prettier.format(
+    renderAuthenticatedMethods(authenticated),
+    {
+      ...config,
+      filepath: out,
+    },
+  );
   if (process.argv.includes('--check')) {
     const current = fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : '';
     if (current !== source) {

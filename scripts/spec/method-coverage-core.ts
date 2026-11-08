@@ -469,6 +469,34 @@ export function applyGroupedBaseline(
   };
 }
 
+/** Prints ratchet notices, as GitHub annotations too when in Actions. */
+export function printNotices(notices: string[], file: string): void {
+  for (const notice of notices) {
+    console.log(`\n[NOTICE] ${notice}`);
+    if (process.env.GITHUB_ACTIONS === 'true') {
+      console.log(`::notice file=${file}::${notice}`);
+    }
+  }
+}
+
+/**
+ * Baseline entries that no longer need to be there. A notice, not a failure:
+ * until 2026-11-08 a pull request that only added tests failed here until it
+ * also edited the baseline, which made writing a Rule cost a second change
+ * (Lean review, guides/lean/08-testing-framework-value.md). The list still
+ * cannot grow (`added`), and `--write-baseline` locks an improvement in.
+ */
+export function groupedRatchetNotices(
+  result: RatchetResult,
+  words: RatchetWords,
+): string[] {
+  if (result.stale.length === 0) return [];
+  return [
+    `${result.stale.length} baseline entries are now covered, no longer a ${words.method}, or under the wrong ${words.group}: ` +
+      `${result.stale.join(', ')}. Removing them from ${words.baselineFile} locks the improvement in.`,
+  ];
+}
+
 export function groupedRatchetProblems(
   result: RatchetResult,
   words: RatchetWords,
@@ -478,12 +506,6 @@ export function groupedRatchetProblems(
     problems.push(
       `${result.unlisted.length} ${words.methods} are named by no Rule and reached by no bound step, ` +
         `and are not in the baseline under their ${words.group}: ${result.unlisted.join(', ')}. Write a Rule and scenario for each.`,
-    );
-  }
-  if (result.stale.length > 0) {
-    problems.push(
-      `${result.stale.length} baseline entries are now covered, no longer a ${words.method}, or under the wrong ${words.group}: ` +
-        `${result.stale.join(', ')}. Remove them from ${words.baselineFile} to lock the improvement in.`,
     );
   }
   if (result.added.length > 0) {
@@ -578,10 +600,9 @@ export function runCoverageCommand<R>(
     }
   }
 
-  const problems = groupedRatchetProblems(
-    command.apply(report, baseline, base),
-    words,
-  );
+  const result = command.apply(report, baseline, base);
+  const problems = groupedRatchetProblems(result, words);
+  printNotices(groupedRatchetNotices(result, words), words.baselineFile);
   if (process.env.GITHUB_STEP_SUMMARY) {
     appendFileSync(
       process.env.GITHUB_STEP_SUMMARY,

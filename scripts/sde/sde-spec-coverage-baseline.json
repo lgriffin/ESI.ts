@@ -1,4 +1,4 @@
 {
-  "$comment": "IStaticDataProvider methods no Rule names and no bound step reaches, by entity family in the interface order. Shrink-only: CI fails on an uncovered method missing from this list, on an entry that is now covered or no longer a method, and on any entry not on master. Regenerate with npm run spec:coverage:sde -- --write-baseline.",
+  "$comment": "IStaticDataProvider methods no Rule names and no bound step reaches, by entity family in the interface order. Shrink-only: CI fails on an uncovered method missing from this list and on any entry not on master; an entry that is now covered or no longer a method is reported, not failed. Regenerate with npm run spec:coverage:sde -- --write-baseline.",
   "uncovered": {}
 }
