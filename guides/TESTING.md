@@ -8,7 +8,7 @@ How ESI.ts is tested: what each tier owns, where it lives, how to run it, where 
 
 Three positions explain every choice below.
 
-1. **A tier that cannot fail manufactures confidence.** Each tier owns one class of failure and carries a signal that proves it can go red: a negative fixture, a killed mutant, an injected leak, a deliberately broken package. A green run from a tier with no such signal says nothing, so the one tier that has none today (API fuzz) is listed as such rather than counted as protection.
+1. **A tier that cannot fail manufactures confidence.** Each tier owns one class of failure and carries a signal that proves it can go red: a negative fixture, a killed mutant, an injected leak, a deliberately broken package. A green run from a tier with no such signal says nothing. The one tier that had none, API fuzz, was removed on 2026-11-08 rather than counted as protection.
 2. **Every gate is a one-way ratchet.** Floors, baselines and known-gap lists start at the value measured on the day they were introduced and move in one direction. Each shrink-only list fails when an entry is added, fails when a listed entry stops reproducing, and fails closed when the base ref it compares against cannot be read. A fix cannot leave a stale exception behind, and a pull request cannot exempt itself.
 3. **The specification executes.** Behaviour is stated as EARS requirements, one `shall` per Gherkin `Rule:`, verified by scenarios that mock only the HTTP transport. `npm run spec:audit` fails a pull request that weakens the wording, `npm run bdd:report` fails one in which a scenario did not run, and the BDD-only mutation ratchet fails when the scenarios stop killing mutants (charter posture 6).
 
@@ -65,11 +65,11 @@ Several `src/core` floors sit well under their nightly scores (`cache`, `logger`
 | Scenarios                                    | <!-- metric:scenarios -->1,255<!-- /metric --> (<!-- metric:plainScenarios -->1,178<!-- /metric --> `Scenario`, <!-- metric:scenarioOutlines -->77<!-- /metric --> `Scenario Outline`)                                                                                                                                  |
 | Audit result                                 | <!-- metric:featureFiles -->97<!-- /metric --> of <!-- metric:featureFiles -->97<!-- /metric --> pass                                                                                                                                                                                                                   |
 
-Other counts, each reproducible with `ls` or `find`: <!-- metric:typeTestFiles -->15<!-- /metric --> tsd files in `tests/typetests/`, 9 Jest configs (`ls config/jest/*.config.cjs`), and 29 workflows in `.github/workflows/` (30 files including its `README.md`).
+Other counts, each reproducible with `ls` or `find`: <!-- metric:typeTestFiles -->15<!-- /metric --> tsd files in `tests/typetests/`, 9 Jest configs (`ls config/jest/*.config.cjs`), and 28 workflows in `.github/workflows/` (29 files including its `README.md`).
 
 ## The tiers
 
-This is the canonical tier table. Every other file names tiers by these names; none of them uses a number. Seventeen tiers, each owning one class of failure.
+This is the canonical tier table. Every other file names tiers by these names; none of them uses a number. Sixteen tiers, each owning one class of failure. API fuzz (Schemathesis against a Prism mock) was removed on 2026-11-08: it fuzzed a mock built from the spec, so it could find contradictions inside the spec but not bugs in this client, and it had no signal that it could fail.
 
 | Tier                        | Location                                                                            | Files                                                                                                                 | Config · command                                                                                | Where CI runs it                                                                                     | Signal that it can fail                                                                              |
 | --------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
@@ -89,9 +89,8 @@ This is the canonical tier table. Every other file names tiers by these names; n
 | Documentation examples      | `tests/doc-examples/`                                                               | every `ts` block in the docs                                                                                          | `npm run test:docs-examples`                                                                    | PR (`doc-examples`)                                                                                  | Negative fixtures in `tests/tdd/doc-examples/`                                                       |
 | Benchmarks and heap soak    | `tests/benchmark/`                                                                  | 18 tasks and the soak                                                                                                 | `npm run bench:ab`, `npm run bench:compare`, `npm run soak`                                     | PR (`benchmarks`, only when a hot path changes); `nightly-benchmarks.yml`                            | An injected slowdown and an injected leak must be flagged                                            |
 | Mutation                    | `src/**`                                                                            | unit, BDD-only and type runs                                                                                          | Stryker · `npm run mutation:pr`, `mutation`, `mutation:bdd`; `npm run test:type-mutation`       | PR (`mutation-pr`, changed files); `nightly-mutation.yml`                                            | `tests/mutation-fixture/` must leave survivors and kill at least one mutant                          |
-| API fuzz                    | Prism mock and Schemathesis                                                         | none                                                                                                                  | `npm run fuzz:api` (Docker)                                                                     | `nightly-schemathesis.yml`                                                                           | None. It uploads a report and files an `api-fuzz` issue on failure; count it as a probe, not a gate  |
 
-The charter's Part 4 table groups the same ground as twelve rows. This table splits its contract row into recorded replay and live contract, and adds four the charter counts under gates: static analysis, composition, consumer contract and documentation examples.
+The charter's Part 4 table groups the same ground as eleven rows. This table splits its contract row into recorded replay and live contract, and adds four the charter counts under gates: static analysis, composition, consumer contract and documentation examples.
 
 The shrink-only lists that hold today's known gaps live beside the tier that owns them: `tests/faults/known-gaps.json` (empty), `tests/contract/fixtures/known-mismatches.json` (empty) and `unrecordable.json` (one entry), `scripts/spec/spec-audit-exceptions.json` (`unconverted` empty, `legacyStepFiles` 38, `unchartedFeatures` empty), `scripts/*/*-baseline.json`, `config/mutation/unit-thresholds.json`, `config/mutation/bdd-thresholds.json` and `config/mutation/type-thresholds.json`.
 
@@ -109,7 +108,7 @@ flowchart TB
     reviewer(["Reviewer"])
 
     subgraph boundary [" "]
-        suite["ESI.ts test suite<br/>17 tiers, one per failure class"]
+        suite["ESI.ts test suite<br/>16 tiers, one per failure class"]
     end
 
     esi[/"ESI API<br/>live, public + authenticated"/]
@@ -169,7 +168,7 @@ flowchart LR
         nrec["Re-record payloads, diff, open a PR"]
         nbench["Benchmarks vs pinned reference + heap soak"]
         nex["Examples against live ESI"]
-        nflake["No-retry run · interleavings · audit · spec drift · Schemathesis"]
+        nflake["No-retry run · interleavings · audit · spec drift"]
     end
 
     subgraph weekly ["Weekly"]
@@ -313,7 +312,6 @@ npm run bench:ab -- --base ../base-worktree --head . && npm run bench:compare
 npm run soak                 # heap soak, 100 000 requests
 ESI_LIVE_TESTS=true npm run contract:live
 ESI_LIVE_TESTS=true npm run contract:record
-npm run fuzz:api             # Schemathesis against a Prism mock (Docker)
 ```
 
 ### Running the gates locally
@@ -680,14 +678,11 @@ Known deviations sit in three named exception sets at the top of the file, each 
 
 ### Spec-drift tools
 
-| Tool         | Command                                                          | What it does                                                                                                                     | Where it runs                                 |
-| ------------ | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| oasdiff      | `npm run contract:diff` (Docker)                                 | Breaking changes between the committed snapshot and the live spec                                                                | Weekly, `maintenance.yml`                     |
-| Snapshot     | `npm run contract:snapshot` (`scripts/spec/snapshot-openapi.ts`) | Refreshes the committed spec baseline                                                                                            | Weekly, `maintenance.yml`, before oasdiff     |
-| Prism        | `npm run mock:esi` (Docker)                                      | A spec-conformant ESI mock on port 4010                                                                                          | Locally, and under Schemathesis               |
-| Schemathesis | `npm run fuzz:api` (`scripts/spec/run-schemathesis.sh`, Docker)  | Downloads the spec, strips security requirements, serves it with Prism and fuzzes it; fails only on failures in its JUnit report | Nightly 01:00 UTC, `nightly-schemathesis.yml` |
-
-Schemathesis is the API fuzz tier. It fuzzes a mock generated from the spec, so it finds contradictions inside the spec, not bugs in this client, and it has no negative fixture proving it can fail. It uploads `schemathesis-report`, and a failed night opens or comments on the issue titled "api-fuzz: nightly Schemathesis run failed", which the next green night closes. Missing endpoints, stale generated types and schema drift are checked nightly by `nightly-spec-drift.yml`, described in [QUALITY-GATES.md](QUALITY-GATES.md#nightly-spec-drift).
+| Tool     | Command                                                          | What it does                                                      | Where it runs                             |
+| -------- | ---------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------- |
+| oasdiff  | `npm run contract:diff` (Docker)                                 | Breaking changes between the committed snapshot and the live spec | Weekly, `maintenance.yml`                 |
+| Snapshot | `npm run contract:snapshot` (`scripts/spec/snapshot-openapi.ts`) | Refreshes the committed spec baseline                             | Weekly, `maintenance.yml`, before oasdiff |
+| Prism    | `npm run mock:esi` (Docker)                                      | A spec-conformant ESI mock on port 4010                           | Locally                                   |
 
 ## Integration
 
@@ -1353,7 +1348,6 @@ Every pull request to `master` runs `ci.yml`, whose single required check is `ci
 | `ci-fast.yml`                   | Every push                                                 | `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `typecheck:examples`, `typecheck:isolated`, `npm test` on Node 22 | Status only                                                                                |
 | `ci.yml`                        | Every pull request                                         | Every tier marked PR in [the tier table](#the-tiers); `ci-success` fans in all of its jobs                                                                           | Blocks the merge                                                                           |
 | `ears.yml`                      | Pull requests touching the specification or `src/`; manual | `npm run ears`                                                                                                                                                       | Status; advisory                                                                           |
-| `nightly-schemathesis.yml`      | Daily 01:00                                                | `npm run fuzz:api` equivalent against a Prism mock                                                                                                                   | Artifact; issue "api-fuzz: nightly Schemathesis run failed"                                |
 | `nightly-mutation.yml`          | Sunday 02:00; 1st of the month 04:00                       | Unit mutation (8 shards) and type mutation weekly; BDD-only mutation (32 shards) monthly; each ratcheted                                                             | Fails the run; issues "mutation: weekly run failed" and "mutation: monthly BDD run failed" |
 | `nightly-mutation-retry.yml`    | When `nightly-mutation.yml` fails on its first attempt     | Re-runs the failed shards once                                                                                                                                       | Status only                                                                                |
 | `nightly-no-retry.yml`          | Saturday 03:00                                             | `npm test` in random order with a fresh seed; fails if any test ran more than once                                                                                   | Fails the run; `no-retry-report` artifact                                                  |
@@ -1384,7 +1378,6 @@ Nothing runs the live smoke, client integration, spec contract or gated auth sui
 | Corporate auth endpoints     | Medium   | Gated tests cover character-level auth, not corporation director endpoints                                                                                                                                                                                                                                                                                                                           |
 | DNS and TLS failures         | Low      | The fault tier covers resets, stalls and timeouts; DNS and TLS failures reach the client as the same `fetch failed` and are not told apart                                                                                                                                                                                                                                                           |
 | Mutation flakiness           | Medium   | Mutants that time out on one runner and survive on another ([#382](https://github.com/lgriffin/ESI.ts/issues/382)); stale incremental results ([#380](https://github.com/lgriffin/ESI.ts/issues/380))                                                                                                                                                                                                |
-| API fuzz has no signal       | Low      | Schemathesis has no negative fixture, so a green night does not prove it can fail                                                                                                                                                                                                                                                                                                                    |
 
 ## Debugging
 
@@ -1427,7 +1420,6 @@ node --inspect-brk node_modules/.bin/jest --config config/jest/unit.config.cjs -
 | `tests/contract/record.ts`                                                                                                   | The payload recorder                                              |
 | `tests/contract/esi-contract.test.ts`                                                                                        | Deep contract, with the known exception sets                      |
 | `tests/contract/snapshots/esi-openapi.snapshot.json`                                                                         | The committed spec baseline                                       |
-| `scripts/spec/run-schemathesis.sh`                                                                                           | Prism and Schemathesis runner                                     |
 | `scripts/quality/consumer-contract.ts`                                                                                       | The consumer contract driver                                      |
 | `scripts/docs/doc-examples.ts`                                                                                               | The documentation example checker                                 |
 | `scripts/bench/bench-ab.ts`, `scripts/bench/bench-compare-core.ts`                                                           | Alternating runs; Mann-Whitney U, Holm, the verdict               |

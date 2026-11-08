@@ -10,8 +10,10 @@ name: Nightly Live Health
 #   ESI_HEALTH_CLIENT_SECRET  its secret; leave unset for a PKCE (public) app
 #   ESI_HEALTH_REFRESH_TOKEN  a refresh token for a character that granted
 #                             esi-location.read_online.v1
-# Until they exist the run reports "not configured" as a warning and files
-# nothing, so the workflow can land before the secrets do.
+# Until they exist the run fails with "not configured" and files nothing new:
+# #545 tracks minting the token. Until 2026-11-08 an unconfigured run passed
+# with a warning, so the check was green every night without making one
+# authenticated call (Lean review, guides/lean/08-testing-framework-value.md).
 #
 # On a failure the SDK or the token owns (exit 1, or any exit the script did
 # not choose, or a run that never reached the smoke) a run on master opens
@@ -82,7 +84,7 @@ jobs:
           case "$CODE" in
             0) VERDICT=healthy; echo "::notice title=Live health::healthy" ;;
             2) VERDICT=unavailable; echo "::warning title=Live health::Tranquility or SSO unavailable; see the step summary" ;;
-            3) VERDICT=unconfigured; echo "::warning title=Live health::not configured: add ESI_HEALTH_CLIENT_ID and ESI_HEALTH_REFRESH_TOKEN (and ESI_HEALTH_CLIENT_SECRET for a confidential app) as repository secrets" ;;
+            3) VERDICT=unconfigured; echo "::error title=Live health::not configured (#545): add ESI_HEALTH_CLIENT_ID and ESI_HEALTH_REFRESH_TOKEN (and ESI_HEALTH_CLIENT_SECRET for a confidential app) as repository secrets" ;;
             *) VERDICT=failed; echo "::error title=Live health::failed (exit $CODE); see the step summary and the issue titled '$ISSUE_TITLE'" ;;
           esac
           echo "code=$CODE" >> "$GITHUB_OUTPUT"
@@ -125,6 +127,14 @@ jobs:
           else
             gh issue create --title "$ISSUE_TITLE" --body "$BODY"
           fi
+
+      # A smoke that cannot run is not a pass. #545 already tracks the token,
+      # so this fails the run without opening a second issue.
+      - name: Fail when not configured
+        if: steps.smoke.outputs.verdict == 'unconfigured'
+        run: |
+          echo "Live health is not configured, so no authenticated route was checked. Mint the token (#545) and add the secrets named at the top of this workflow." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
 
       - name: Close the issue when healthy
         if: github.ref == 'refs/heads/master' && steps.smoke.outputs.verdict == 'healthy'
