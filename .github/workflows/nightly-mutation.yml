@@ -1,10 +1,28 @@
-name: Nightly Mutation Testing
+name: Mutation Testing
+
+# Cadence (Lean review of the test suite, 2026-11-08, guides/lean/08):
+# - Weekly, Sunday 02:00 UTC: the unit shards and type mutation. Pull requests
+#   restore the unit shards' incremental files from the Actions cache, so a
+#   weekly baseline only makes a pull request's run re-mutate what changed in
+#   the week.
+# - Monthly, the 1st at 04:00 UTC: the BDD-only shards and their ratchet. They
+#   took about 1,460 runner minutes a run, over half of all CI time, and found no
+#   product defect the unit run had not; the maintainer chose to keep them as a
+#   monthly condition rather than a nightly one.
+# A manual dispatch runs the unit and type jobs, and the BDD jobs as well when
+# `run_bdd` or `seed_bdd_thresholds` is set.
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '0 2 * * 0'
+    - cron: '0 4 1 * *'
   workflow_dispatch:
     inputs:
+      run_bdd:
+        description: 'Also run the BDD-only shards and their ratchet (otherwise monthly only)'
+        required: false
+        default: false
+        type: boolean
       seed_bdd_thresholds:
         description: "Print config/mutation/bdd-thresholds.json raised to this run's BDD scores, and upload it, for a maintainer to review and commit"
         required: false
@@ -15,12 +33,43 @@ permissions:
   contents: read
 
 jobs:
+  # Which half of the run this trigger asks for. The monthly cron runs only the
+  # BDD half; the weekly cron and a dispatch run the unit and type half, and a
+  # dispatch adds the BDD half on request.
+  plan:
+    name: Plan the run
+    runs-on: ubuntu-latest
+    outputs:
+      unit: ${{ steps.plan.outputs.unit }}
+      bdd: ${{ steps.plan.outputs.bdd }}
+    steps:
+      - name: Choose the jobs
+        id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          CRON: ${{ github.event.schedule }}
+          RUN_BDD: ${{ inputs.run_bdd || inputs.seed_bdd_thresholds }}
+        run: |
+          unit=true
+          bdd=false
+          if [ "$EVENT" = "schedule" ] && [ "$CRON" = "0 4 1 * *" ]; then
+            unit=false
+            bdd=true
+          fi
+          if [ "$EVENT" = "workflow_dispatch" ] && [ "$RUN_BDD" = "true" ]; then
+            bdd=true
+          fi
+          echo "unit=$unit" | tee -a "$GITHUB_OUTPUT"
+          echo "bdd=$bdd" | tee -a "$GITHUB_OUTPUT"
+
   # The shard names the unit matrix runs, read from config/mutation/unit-shards.json
   # so the list lives in one place. tests/tdd/mutation-ratchet/unitShards.test.ts
   # proves those shards partition src/core.
   unit-mutation-shards:
     name: Unit Mutation Shards
     runs-on: ubuntu-latest
+    needs: plan
+    if: needs.plan.outputs.unit == 'true'
     outputs:
       shards: ${{ steps.read.outputs.shards }}
 
@@ -165,7 +214,7 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          echo "## Nightly Mutation Testing" >> $GITHUB_STEP_SUMMARY
+          echo "## Unit Mutation Testing" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
           echo "- **Shards:** ${{ join(fromJSON(needs.unit-mutation-shards.outputs.shards), ', ') }}" >> $GITHUB_STEP_SUMMARY
@@ -177,6 +226,8 @@ jobs:
   bdd-mutation-shards:
     name: BDD Mutation Shards
     runs-on: ubuntu-latest
+    needs: plan
+    if: needs.plan.outputs.bdd == 'true'
     outputs:
       shards: ${{ steps.read.outputs.shards }}
 
@@ -326,6 +377,8 @@ jobs:
   type-mutation-testing:
     name: Type Mutation Testing
     runs-on: ubuntu-latest
+    needs: plan
+    if: needs.plan.outputs.unit == 'true'
     timeout-minutes: 45
 
     steps:
@@ -386,6 +439,7 @@ jobs:
     name: Open or close the mutation issue
     runs-on: ubuntu-latest
     needs:
+      - plan
       - unit-mutation-shards
       - mutation-testing
       - mutation-ratchet
@@ -408,6 +462,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
+          PLAN: ${{ needs.plan.result }}
+          PLAN_UNIT: ${{ needs.plan.outputs.unit }}
           UNIT_SHARDS: ${{ needs.unit-mutation-shards.result }}
           UNIT_MUTATION: ${{ needs.mutation-testing.result }}
           UNIT_RATCHET: ${{ needs.mutation-ratchet.result }}
@@ -416,7 +472,13 @@ jobs:
           BDD_RATCHET: ${{ needs.bdd-mutation-ratchet.result }}
           TYPE_MUTATION: ${{ needs.type-mutation-testing.result }}
         run: |
-          TITLE="mutation: nightly run failed"
+          # One issue per half, so a green weekly unit run never closes the
+          # issue a red monthly BDD run opened.
+          if [ "$PLAN_UNIT" = "false" ]; then
+            TITLE="mutation: monthly BDD run failed"
+          else
+            TITLE="mutation: weekly run failed"
+          fi
           LABEL="mutation"
           RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           TODAY=$(date -u +%Y-%m-%d)
@@ -425,7 +487,8 @@ jobs:
           ANY_FAILURE=false
           while IFS='=' read -r job result; do
             [ -n "$job" ] || continue
-            if [ "$result" != "success" ]; then
+            # A half this trigger did not ask for is skipped, not failed.
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
               ROWS="${ROWS}| \`${job}\` | ${result} |"$'\n'
               if [ "$result" = "failure" ]; then ANY_FAILURE=true; fi
             fi
@@ -437,6 +500,7 @@ jobs:
           bdd-mutation-testing=$BDD_MUTATION
           bdd-mutation-ratchet=$BDD_RATCHET
           type-mutation-testing=$TYPE_MUTATION
+          plan=$PLAN
           EOF
 
           open_issue() {
@@ -449,7 +513,7 @@ jobs:
             ISSUE=$(open_issue)
             if [ -n "$ISSUE" ]; then
               gh issue close "$ISSUE" \
-                --comment "Every nightly mutation job succeeded on ${TODAY}: ${RUN_URL}. Closing automatically."
+                --comment "Every mutation job this run asked for succeeded on ${TODAY}: ${RUN_URL}. Closing automatically."
             fi
             exit 0
           fi
@@ -460,7 +524,7 @@ jobs:
           fi
 
           BODY=$(cat <<EOF
-          ## Nightly mutation run failed — ${TODAY}
+          ## Mutation run failed — ${TODAY}
 
           Run: ${RUN_URL} (attempt ${RUN_ATTEMPT})
 
@@ -475,7 +539,7 @@ jobs:
           This issue closes itself on the next run in which every job succeeds.
 
           ---
-          *Auto-generated by the nightly mutation workflow*
+          *Auto-generated by the mutation workflow (nightly-mutation.yml)*
           EOF
           )
 
