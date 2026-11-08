@@ -139,9 +139,7 @@
     "FleetClient": [
       "createFleetInvitation",
       "deleteFleetSquad",
-      "renameFleetSquad",
       "deleteFleetWing",
-      "renameFleetWing",
       "fetchAllFleetMembers",
       "fetchAllFleetWings",
       "streamFleetMembers",
