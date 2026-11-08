@@ -33,7 +33,7 @@ Feature: Building custom clients and shutting them down
         | EsiApiFactory   | the compatibility date "2020-01-01" | the header "x-compatibility-date" "2020-01-01" |
         | EsiApiFactory   | the datasource "singularity"        | the query parameter "datasource" "singularity" |
 
-  Rule: Where no base URL, client ID or datasource is configured, every custom client construction surface shall take the setting from ESI_BASE_URL, ESI_CLIENT_ID or ESI_DATASOURCE.
+  Rule: Where no base URL or client ID is configured, every custom client construction surface shall take the setting from ESI_BASE_URL or ESI_CLIENT_ID.
 
     Scenario Outline: A client built by <surface> takes its base URL and client ID from the environment
       Given the environment variable "ESI_BASE_URL" is "https://esi.example.test"
@@ -49,6 +49,8 @@ Feature: Building custom clients and shutting them down
         | EsiClient       |
         | EsiClientBuilder |
         | EsiApiFactory   |
+
+  Rule: Where no datasource is configured, the EsiClient shall take the datasource from ESI_DATASOURCE.
 
     Scenario: An EsiClient takes its datasource from the environment
       Given the environment variable "ESI_DATASOURCE" is "singularity"
@@ -198,13 +200,25 @@ Feature: Building custom clients and shutting them down
       Then the last request to ESI shall carry the bearer token "provided-token"
       And the client shall have logged "Token provider configured" with no context
 
-  Rule: When an EsiClient's token provider is removed or its access token is replaced, the EsiClient shall log the change.
+  Rule: When an EsiClient's token provider is removed, the EsiClient shall log the removal and stop refreshing a token after a 401.
 
-    Scenario: The provider is removed and the token replaced
-      Given a client built by EsiClient configured with no settings
+    Scenario: A removed token provider
+      Given a client built by EsiClient for the wallet configured with no settings
+      And the EsiClient is given a token provider answering "provided-token"
+      And ESI rejects the next wallet request with status 401
       When the EsiClient's token provider is removed
-      And the EsiClient's access token is replaced
-      Then the client shall have logged "Token provider removed" with no context
+      And the built client reads the character's wallet
+      Then the call shall be rejected with status 401 after a single request
+      And the client shall have logged "Token provider removed" with no context
+
+  Rule: When an EsiClient's access token is replaced, the EsiClient shall send the new token and log the change.
+
+    Scenario: A replaced access token
+      Given a client built by EsiClient for the wallet configured with no settings
+      And ESI reports the character's wallet balance
+      When the EsiClient's access token is replaced
+      And the built client reads the character's wallet
+      Then the last request to ESI shall carry the bearer token "replaced-token"
       And the client shall have logged "Access token updated" with no context
 
   # ── Diagnostics and caches
