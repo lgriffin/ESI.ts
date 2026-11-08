@@ -298,6 +298,23 @@ describe('TEST-10: sde-spec-coverage: the baseline ratchet', () => {
     );
   });
 
+  it('fails on a stale entry under --strict, the release pull request', () => {
+    const result = applyBaseline(
+      report,
+      { Lifecycle: ['getVersion', 'close'], Types: ['getType', 'getRemoved'] },
+      {
+        ref: 'origin/master',
+        baseline: {
+          Lifecycle: ['getVersion', 'close'],
+          Types: ['getType', 'getRemoved'],
+        },
+      },
+    );
+    expect(ratchetProblems(result, true).join('\n')).toMatch(
+      /Types: getType, Types: getRemoved/,
+    );
+  });
+
   it('fails on an entry the base branch does not carry: the list only shrinks', () => {
     const result = applyBaseline(report, measured, {
       ref: 'origin/master',

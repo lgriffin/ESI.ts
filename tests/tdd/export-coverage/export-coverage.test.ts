@@ -324,6 +324,14 @@ describe('export coverage', () => {
       );
     });
 
+    it('fails on a stale entry under --strict, the release pull request', () => {
+      const result = applyBaseline(reportWith([]), baseline, onMaster);
+
+      expect(ratchetProblems(result, true).join('\n')).toMatch(
+        /\. unreferenced/,
+      );
+    });
+
     it('rejects an entry the base branch baseline does not have', () => {
       const result = applyBaseline(reportWith(['unreferenced']), baseline, {
         ref: 'origin/master',

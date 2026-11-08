@@ -341,6 +341,22 @@ describe('TEST-10: client-spec-coverage: the baseline ratchet', () => {
     );
   });
 
+  it('fails on a stale entry under --strict, the release pull request', () => {
+    const result = applyBaseline(
+      report,
+      {
+        AlphaClient: ['getAmbiguous', 'overridden', 'getDirect'],
+        BetaClient: ['getShared', 'getAmbiguous', 'getOnlyInHook'],
+      },
+      null,
+    );
+    expect(result.stale).toEqual(['AlphaClient: getDirect']);
+    expect(ratchetProblems(result)).toEqual([]);
+    expect(ratchetProblems(result, true).join('\n')).toMatch(
+      /AlphaClient: getDirect/,
+    );
+  });
+
   it('fails closed when no base ref resolves, naming its variable', () => {
     const result = applyBaseline(report, measured, {
       ref: null,

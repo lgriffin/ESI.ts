@@ -515,8 +515,16 @@ export function ratchetNotices(result: RatchetResult): string[] {
   ];
 }
 
-export function ratchetProblems(result: RatchetResult): string[] {
-  const problems: string[] = [];
+/**
+ * What fails the ratchet. `strict` (the `--strict` flag, which CI passes on
+ * the release pull request) also fails on stale entries, so one left behind
+ * cannot outlive a release and later hide a regression of the same export.
+ */
+export function ratchetProblems(
+  result: RatchetResult,
+  strict = false,
+): string[] {
+  const problems: string[] = strict ? ratchetNotices(result) : [];
   if (result.unlisted.length > 0) {
     problems.push(
       `${result.unlisted.length} public exports are referenced by no test and are not in the baseline: ` +

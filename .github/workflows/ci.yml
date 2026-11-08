@@ -207,10 +207,15 @@ jobs:
       # scripts/package/export-coverage-baseline.json. The baseline only shrinks
       # relative to the base tip, HEAD^1 (fetch-depth 2 above); without a base
       # ref the check fails closed.
+      # A baseline entry that is now covered is a notice on an ordinary pull
+      # request and a failure (--strict) on the release pull request, so a
+      # stale entry cannot outlive a release and later hide a regression. The
+      # same holds for the two spec-coverage baselines below.
       - name: Check every public export is referenced by a test
         env:
           EXPORT_COVERAGE_BASE_REF: HEAD^1
-        run: npm run test:export-coverage -- --ci
+          COVERAGE_STRICT: ${{ startsWith(github.head_ref, 'release-please--') && '--strict' || '' }}
+        run: npm run test:export-coverage -- --ci $COVERAGE_STRICT
 
       # Drift listed in scripts/spec/schema-drift-baseline.json passes; the baseline
       # may only shrink relative to the base tip, which fetch-depth 2 provides
@@ -433,11 +438,15 @@ jobs:
 
       # Also compares against master's copy of the baseline (fetched above).
       - name: Every provider method is named by a Rule or reached by a bound step
-        run: npm run spec:coverage:sde:ci
+        env:
+          COVERAGE_STRICT: ${{ startsWith(github.head_ref, 'release-please--') && '--strict' || '' }}
+        run: npm run spec:coverage:sde:ci -- $COVERAGE_STRICT
 
       # Also compares against master's copy of the baseline (fetched above).
       - name: Every public client method is named by a Rule or called by a bound step
-        run: npm run spec:coverage:clients:ci
+        env:
+          COVERAGE_STRICT: ${{ startsWith(github.head_ref, 'release-please--') && '--strict' || '' }}
+        run: npm run spec:coverage:clients:ci -- $COVERAGE_STRICT
 
       - name: Rule titles agree with response schemas
         run: npm run validate:spec-consistency

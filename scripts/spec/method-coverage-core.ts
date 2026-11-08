@@ -497,11 +497,18 @@ export function groupedRatchetNotices(
   ];
 }
 
+/**
+ * What fails the ratchet. `strict` (the `--strict` flag, which CI passes on
+ * the release pull request) also fails on stale entries, so one left behind
+ * by a pull request that added coverage cannot outlive a release and later
+ * hide a regression of the same item.
+ */
 export function groupedRatchetProblems(
   result: RatchetResult,
   words: RatchetWords,
+  strict = false,
 ): string[] {
-  const problems: string[] = [];
+  const problems: string[] = strict ? groupedRatchetNotices(result, words) : [];
   if (result.unlisted.length > 0) {
     problems.push(
       `${result.unlisted.length} ${words.methods} are named by no Rule and reached by no bound step, ` +
@@ -540,11 +547,24 @@ export interface CoverageCommand<R> {
   ): RatchetResult;
 }
 
+/** The ratchet's failures; stale entries are printed as notices unless `strict` fails them. */
+function ratchetOutcome(
+  result: RatchetResult,
+  words: RatchetWords,
+  strict: boolean,
+): string[] {
+  if (!strict) {
+    printNotices(groupedRatchetNotices(result, words), words.baselineFile);
+  }
+  return groupedRatchetProblems(result, words, strict);
+}
+
 /**
- * `[--ci] [--write-baseline] [--root <dir>]`. Exit 2 when the check itself is
+ * `[--ci] [--strict] [--write-baseline] [--root <dir>]`. Exit 2 when the check itself is
  * broken; exit 1 when the baseline and the working tree disagree, or, under
  * `--ci`, when the baseline lists an entry the base branch's copy lacks.
- * Without `--ci` and without a baseline file it only reports.
+ * Without `--ci` and without a baseline file it only reports. A stale entry
+ * is a notice, or under `--strict` a failure.
  */
 export function runCoverageCommand<R>(
   command: CoverageCommand<R>,
@@ -600,9 +620,11 @@ export function runCoverageCommand<R>(
     }
   }
 
-  const result = command.apply(report, baseline, base);
-  const problems = groupedRatchetProblems(result, words);
-  printNotices(groupedRatchetNotices(result, words), words.baselineFile);
+  const problems = ratchetOutcome(
+    command.apply(report, baseline, base),
+    words,
+    args.includes('--strict'),
+  );
   if (process.env.GITHUB_STEP_SUMMARY) {
     appendFileSync(
       process.env.GITHUB_STEP_SUMMARY,

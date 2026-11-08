@@ -371,8 +371,11 @@ export function applyBaseline(
   );
 }
 
-export function ratchetProblems(result: RatchetResult): string[] {
-  return groupedRatchetProblems(result, RATCHET_WORDS);
+export function ratchetProblems(
+  result: RatchetResult,
+  strict = false,
+): string[] {
+  return groupedRatchetProblems(result, RATCHET_WORDS, strict);
 }
 
 /** Entries that can leave the baseline: reported, never failed on. */
