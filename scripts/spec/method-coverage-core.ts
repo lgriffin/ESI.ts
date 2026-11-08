@@ -469,21 +469,50 @@ export function applyGroupedBaseline(
   };
 }
 
-export function groupedRatchetProblems(
+/** Prints ratchet notices, as GitHub annotations too when in Actions. */
+export function printNotices(notices: string[], file: string): void {
+  for (const notice of notices) {
+    console.log(`\n[NOTICE] ${notice}`);
+    if (process.env.GITHUB_ACTIONS === 'true') {
+      console.log(`::notice file=${file}::${notice}`);
+    }
+  }
+}
+
+/**
+ * Baseline entries that no longer need to be there. A notice, not a failure:
+ * until 2026-11-08 a pull request that only added tests failed here until it
+ * also edited the baseline, which made writing a Rule cost a second change
+ * (Lean review, guides/lean/08-testing-framework-value.md). The list still
+ * cannot grow (`added`), and `--write-baseline` locks an improvement in.
+ */
+export function groupedRatchetNotices(
   result: RatchetResult,
   words: RatchetWords,
 ): string[] {
-  const problems: string[] = [];
+  if (result.stale.length === 0) return [];
+  return [
+    `${result.stale.length} baseline entries are now covered, no longer a ${words.method}, or under the wrong ${words.group}: ` +
+      `${result.stale.join(', ')}. Removing them from ${words.baselineFile} locks the improvement in.`,
+  ];
+}
+
+/**
+ * What fails the ratchet. `strict` (the `--strict` flag, which CI passes on
+ * the release pull request) also fails on stale entries, so one left behind
+ * by a pull request that added coverage cannot outlive a release and later
+ * hide a regression of the same item.
+ */
+export function groupedRatchetProblems(
+  result: RatchetResult,
+  words: RatchetWords,
+  strict = false,
+): string[] {
+  const problems: string[] = strict ? groupedRatchetNotices(result, words) : [];
   if (result.unlisted.length > 0) {
     problems.push(
       `${result.unlisted.length} ${words.methods} are named by no Rule and reached by no bound step, ` +
         `and are not in the baseline under their ${words.group}: ${result.unlisted.join(', ')}. Write a Rule and scenario for each.`,
-    );
-  }
-  if (result.stale.length > 0) {
-    problems.push(
-      `${result.stale.length} baseline entries are now covered, no longer a ${words.method}, or under the wrong ${words.group}: ` +
-        `${result.stale.join(', ')}. Remove them from ${words.baselineFile} to lock the improvement in.`,
     );
   }
   if (result.added.length > 0) {
@@ -518,11 +547,24 @@ export interface CoverageCommand<R> {
   ): RatchetResult;
 }
 
+/** The ratchet's failures; stale entries are printed as notices unless `strict` fails them. */
+function ratchetOutcome(
+  result: RatchetResult,
+  words: RatchetWords,
+  strict: boolean,
+): string[] {
+  if (!strict) {
+    printNotices(groupedRatchetNotices(result, words), words.baselineFile);
+  }
+  return groupedRatchetProblems(result, words, strict);
+}
+
 /**
- * `[--ci] [--write-baseline] [--root <dir>]`. Exit 2 when the check itself is
+ * `[--ci] [--strict] [--write-baseline] [--root <dir>]`. Exit 2 when the check itself is
  * broken; exit 1 when the baseline and the working tree disagree, or, under
  * `--ci`, when the baseline lists an entry the base branch's copy lacks.
- * Without `--ci` and without a baseline file it only reports.
+ * Without `--ci` and without a baseline file it only reports. A stale entry
+ * is a notice, or under `--strict` a failure.
  */
 export function runCoverageCommand<R>(
   command: CoverageCommand<R>,
@@ -578,9 +620,10 @@ export function runCoverageCommand<R>(
     }
   }
 
-  const problems = groupedRatchetProblems(
+  const problems = ratchetOutcome(
     command.apply(report, baseline, base),
     words,
+    args.includes('--strict'),
   );
   if (process.env.GITHUB_STEP_SUMMARY) {
     appendFileSync(

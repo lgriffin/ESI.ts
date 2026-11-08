@@ -30,9 +30,7 @@ async function outcomeOf(
   let error: unknown;
   try {
     const result = call() as
-      | AsyncIterable<unknown>
-      | Promise<unknown>
-      | undefined;
+      AsyncIterable<unknown> | Promise<unknown> | undefined;
     if (result && Symbol.asyncIterator in Object(result)) {
       await (result as AsyncIterable<unknown>)[Symbol.asyncIterator]().next();
     } else {
@@ -58,8 +56,7 @@ function ownMethods(client: object): string[] {
     (name) =>
       name !== 'constructor' &&
       !name.startsWith('_') &&
-      typeof Object.getOwnPropertyDescriptor(proto, name)?.value ===
-        'function',
+      typeof Object.getOwnPropertyDescriptor(proto, name)?.value === 'function',
   );
 }
 

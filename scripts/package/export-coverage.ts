@@ -1,5 +1,5 @@
 /**
- * npm run test:export-coverage [-- --ci] [-- --write-baseline] [-- --root <dir>]
+ * npm run test:export-coverage [-- --ci] [-- --strict] [-- --write-baseline] [-- --root <dir>]
  *
  * Prints every public export (per package.json `exports` entry) that no file
  * under tests/ references, grouped by entry point. See export-coverage-core.ts
@@ -7,9 +7,9 @@
  *
  * Report mode exits 0 unless the check is broken (exit 2). --ci also fails
  * (exit 1) on an unreferenced export missing from
- * scripts/package/export-coverage-baseline.json, on a baseline entry that is now
- * referenced or no longer exported, and on a baseline entry absent from the
- * base branch's copy. The base is EXPORT_COVERAGE_BASE_REF, then origin/master,
+ * scripts/package/export-coverage-baseline.json and on a baseline entry absent
+ * from the base branch's copy. A baseline entry that is now referenced or no
+ * longer exported is a notice; --strict (the release pull request) fails on it. The base is EXPORT_COVERAGE_BASE_REF, then origin/master,
  * then master; with none of them available every entry counts as added.
  *
  * --root points the check at another project (the Jest suite's fixture).
@@ -29,10 +29,12 @@ import {
   integrityProblems,
   loadBaseBaseline,
   parseBaseline,
+  ratchetNotices,
   ratchetProblems,
   renderReport,
   serializeBaseline,
 } from './export-coverage-core';
+import { printNotices } from '../spec/method-coverage-core';
 
 function main(): number {
   const args = process.argv.slice(2);
@@ -95,7 +97,10 @@ function main(): number {
     );
   }
 
-  const problems = ratchetProblems(applyBaseline(report, baseline, base));
+  const strict = args.includes('--strict');
+  const result = applyBaseline(report, baseline, base);
+  const problems = ratchetProblems(result, strict);
+  if (!strict) printNotices(ratchetNotices(result), BASELINE_FILE);
   if (process.env.GITHUB_STEP_SUMMARY) {
     appendFileSync(
       process.env.GITHUB_STEP_SUMMARY,

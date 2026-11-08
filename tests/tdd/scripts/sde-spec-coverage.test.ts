@@ -36,6 +36,7 @@ import {
   integrityProblems,
   loadBaseBaseline,
   parseBaseline,
+  ratchetNotices,
   ratchetProblems,
   readProviderMethods,
   readStepPatterns,
@@ -264,7 +265,8 @@ describe('TEST-10: sde-spec-coverage: the baseline ratchet', () => {
     expect(result.unlisted).toEqual(['Lifecycle: getVersion']);
     expect(result.stale).toEqual(['Types: getVersion']);
     expect(result.added).toEqual([]);
-    expect(ratchetProblems(result).join('\n')).toMatch(/wrong family/);
+    expect(ratchetProblems(result).join('\n')).toMatch(/under their family/);
+    expect(ratchetNotices(result).join('\n')).toMatch(/wrong family/);
   });
 
   it('checks the working tree alone when no base is given, for local runs', () => {
@@ -277,7 +279,7 @@ describe('TEST-10: sde-spec-coverage: the baseline ratchet', () => {
     });
   });
 
-  it('fails on a stale entry: a method now covered, or gone from the interface', () => {
+  it('reports, without failing, a stale entry: a method now covered, or gone from the interface', () => {
     const result = applyBaseline(
       report,
       { Lifecycle: ['getVersion', 'close'], Types: ['getType', 'getRemoved'] },
@@ -290,8 +292,26 @@ describe('TEST-10: sde-spec-coverage: the baseline ratchet', () => {
       },
     );
     expect(result.stale).toEqual(['Types: getType', 'Types: getRemoved']);
-    expect(ratchetProblems(result).join('\n')).toMatch(
-      /lock the improvement in/,
+    expect(ratchetProblems(result)).toEqual([]);
+    expect(ratchetNotices(result).join('\n')).toMatch(
+      /locks the improvement in/,
+    );
+  });
+
+  it('fails on a stale entry under --strict, the release pull request', () => {
+    const result = applyBaseline(
+      report,
+      { Lifecycle: ['getVersion', 'close'], Types: ['getType', 'getRemoved'] },
+      {
+        ref: 'origin/master',
+        baseline: {
+          Lifecycle: ['getVersion', 'close'],
+          Types: ['getType', 'getRemoved'],
+        },
+      },
+    );
+    expect(ratchetProblems(result, true).join('\n')).toMatch(
+      /Types: getType, Types: getRemoved/,
     );
   });
 

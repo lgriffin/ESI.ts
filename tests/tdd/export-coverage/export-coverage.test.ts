@@ -21,6 +21,7 @@ import {
   entryPointsFromPackage,
   loadBaseBaseline,
   parseBaseline,
+  ratchetNotices,
   ratchetProblems,
   serializeBaseline,
 } from '../../../scripts/package/export-coverage-core';
@@ -313,11 +314,22 @@ describe('export coverage', () => {
       expect(result.unlisted).toEqual(['. a']);
     });
 
-    it('rejects a stale entry that is now referenced', () => {
+    it('reports a stale entry that is now referenced, without failing', () => {
       const result = applyBaseline(reportWith([]), baseline, onMaster);
 
       expect(result.stale).toEqual(['. unreferenced']);
-      expect(ratchetProblems(result)).toHaveLength(1);
+      expect(ratchetProblems(result)).toEqual([]);
+      expect(ratchetNotices(result).join('\n')).toMatch(
+        /locks the improvement in/,
+      );
+    });
+
+    it('fails on a stale entry under --strict, the release pull request', () => {
+      const result = applyBaseline(reportWith([]), baseline, onMaster);
+
+      expect(ratchetProblems(result, true).join('\n')).toMatch(
+        /\. unreferenced/,
+      );
     });
 
     it('rejects an entry the base branch baseline does not have', () => {
