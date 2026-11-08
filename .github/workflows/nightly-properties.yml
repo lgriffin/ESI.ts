@@ -1,4 +1,4 @@
-name: Nightly Property Run
+name: Weekly Property Run
 
 # Runs the model-based property tests (tests/fuzz/*.property.test.ts) with
 # 10000 runs per property, against a seed chosen once per night. The PR run in
@@ -17,7 +17,10 @@ name: Nightly Property Run
 
 on:
   schedule:
-    - cron: '30 3 * * *'
+    # Weekly, Saturday, since 2026-11-08: in its last 30 nightly runs this
+    # workflow found no product defect, so a daily run bought no information a
+    # weekly one does not (Lean review, guides/lean/08-testing-framework-value.md).
+    - cron: '15 3 * * 6'
   workflow_dispatch:
     inputs:
       seed:
@@ -113,7 +116,7 @@ jobs:
         run: |
           REPORT=reports/properties/jest-results.json
           {
-            echo "## Nightly Property Run"
+            echo "## Weekly Property Run"
             echo ""
             echo "- **Outcome:** $RUN_OUTCOME"
             echo "- **Seed:** \`$SEED\` (replay: \`FC_NUM_RUNS=10000 FC_SEED=$SEED npm run fuzz:properties\`)"

@@ -1,4 +1,4 @@
-name: Nightly Interleaving Run
+name: Weekly Interleaving Run
 
 # The composition tier (tests/tdd/composition) explores every schedule of two
 # and three overlapping calls on each pull request, inside `npm test`. Four
@@ -15,7 +15,10 @@ name: Nightly Interleaving Run
 
 on:
   schedule:
-    - cron: '30 3 * * *'
+    # Weekly, Saturday, since 2026-11-08: in its last 30 nightly runs this
+    # workflow found no product defect, so a daily run bought no information a
+    # weekly one does not (Lean review, guides/lean/08-testing-framework-value.md).
+    - cron: '30 3 * * 6'
   workflow_dispatch:
     inputs:
       seed:
@@ -97,7 +100,7 @@ jobs:
           RUNS: ${{ steps.seed.outputs.runs }}
         run: |
           {
-            echo "## Nightly Interleaving Run"
+            echo "## Weekly Interleaving Run"
             echo ""
             echo "- **Outcome:** $JEST_OUTCOME"
             echo "- **Seed:** \`$SEED\`, $RUNS schedules per scenario"

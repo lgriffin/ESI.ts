@@ -1,4 +1,4 @@
-name: Nightly Consumer Matrix
+name: Weekly Consumer Matrix
 
 # The consumer contract (scripts/quality/consumer-contract.ts) on the part of the
 # matrix pull requests do not run: TypeScript's nightly `next` build and its
@@ -11,7 +11,10 @@ name: Nightly Consumer Matrix
 
 on:
   schedule:
-    - cron: '45 4 * * *'
+    # Weekly, Saturday, since 2026-11-08: in its last 30 nightly runs this
+    # workflow found no product defect, so a daily run bought no information a
+    # weekly one does not (Lean review, guides/lean/08-testing-framework-value.md).
+    - cron: '45 4 * * 6'
   workflow_dispatch:
 
 permissions:
