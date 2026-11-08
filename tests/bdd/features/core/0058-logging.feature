@@ -146,3 +146,201 @@ Feature: Log redaction
       Given a console logger built with no level while ESI_LOG_LEVEL is "verbose"
       When the application logs "Players online: 21000" at level "info"
       Then the console shall receive no line
+
+  Rule: When a function is a context field of a line the console logger writes, the console logger shall show it as [function <name>], or [function anonymous] when it has no name.
+    A function has no JSON form, and its source would flood the line. Its
+    name is enough to tell which callback a line is about.
+
+    Scenario: A named callback is shown by its name
+      Given a console logger at level "trace"
+      When the application logs "refresh scheduled" with a callback named "onRefresh"
+      Then standard output shall receive the line "refresh scheduled [callback=[function onRefresh]]"
+
+    Scenario: An anonymous callback is shown as anonymous
+      Given a console logger at level "trace"
+      When the application logs "refresh scheduled" with an anonymous callback
+      Then standard output shall receive the line "refresh scheduled [callback=[function anonymous]]"
+
+  # ── The library's log functions and the global logger ──────────────
+
+  @sec-P3
+  Rule: When the application logs through the library's log functions, the global logger shall receive the line with the value of every sensitive query parameter in its message and in its context replaced by [REDACTED].
+    `logInfo`, `logWarn` and the rest write to the logger installed with
+    `setLogger`, through the same redaction as the per-client logger. A URL
+    can sit in the message or in a string field of the context, so both are
+    redacted; other parameters, other fields and the rest of the text keep
+    their exact wording. A sensitive parameter written with no value has
+    nothing to withhold and is logged as written.
+
+    Scenario: A token in the message and a code in the context are redacted
+      Given the global logger is a recording logger
+      When the application logs "GET https://esi.evetech.net/status?token=s3cret&page=2" at level "warn" through the library with the context:
+        """
+        { "url": "https://esi.evetech.net/status?code=c0de&page=2", "status": 200 }
+        """
+      Then the global logger shall receive only the "warn" line "GET https://esi.evetech.net/status?token=%5BREDACTED%5D&page=2"
+      And the line shall carry the context:
+        """
+        { "url": "https://esi.evetech.net/status?code=%5BREDACTED%5D&page=2", "status": 200 }
+        """
+      And no logged line shall contain "s3cret"
+      And no logged line shall contain "c0de"
+
+    Scenario: A sensitive parameter with no value is logged as written
+      Given the global logger is a recording logger
+      When the application logs "GET https://esi.evetech.net/status?token=&page=2" at level "info" through the library
+      Then the global logger shall receive only the "info" line "GET https://esi.evetech.net/status?token=&page=2"
+
+  Rule: When the application logs a line with an empty context through the library's log functions, the global logger shall receive that line without a context.
+    An empty object adds nothing to a line, and a structured sink would
+    write it as an empty field. `ILogger` promises a logger never receives
+    `{}`.
+
+    Scenario: An empty context is dropped
+      Given the global logger is a recording logger
+      When the application logs "cache cleared" at level "info" through the library with the context:
+        """
+        {}
+        """
+      Then the global logger shall receive only the "info" line "cache cleared"
+      And the line shall carry no context
+
+  Rule: When the application logs a line whose context carries no sensitive query parameter through the library's log functions, the global logger shall receive the context object the application passed, not a copy.
+    Redaction copies a context only when a field needs it. Most lines carry
+    nothing to redact, and copying each of them would cost every log call an
+    allocation for nothing.
+
+    Scenario: A context with nothing to redact arrives as passed
+      Given the global logger is a recording logger
+      When the application logs "page fetched" at level "info" through the library with the context:
+        """
+        { "url": "https://esi.evetech.net/markets/10000002/orders?page=2", "status": 200 }
+        """
+      Then the line shall carry the very context object the application passed
+
+  Rule: Where the global logger reports a level disabled, the library's log functions shall not pass a line at that level to it.
+    A disabled level then costs nothing, not even the redaction. A level the
+    logger reports enabled still reaches it.
+
+    Scenario: A debug line is held back while a warning passes
+      Given the global logger is a recording logger that reports "debug" disabled
+      When the application logs "cache miss" at level "debug" through the library
+      And the application logs "slow response" at level "warn" through the library
+      Then the global logger shall receive only the "warn" line "slow response"
+
+  # ── pino-compatible sinks ──────────────────────────────────────────
+
+  Rule: When the library logs a line to a sink adapted with toPinoLogger, the sink shall receive the context first and the message second, or the message alone when the line has no context.
+    That is pino's calling convention: a merging object, then the message.
+    The context's fields become structured fields of the log event instead
+    of text inside the message.
+
+    Scenario: A line with context reaches the sink as pino expects
+      Given the global logger adapts a pino-compatible sink with toPinoLogger
+      When the application logs "slow response" at level "warn" through the library with the context:
+        """
+        { "status": 503 }
+        """
+      Then the sink shall receive only one "warn" call with the context and the message "slow response":
+        """
+        { "status": 503 }
+        """
+
+    Scenario: A line without context reaches the sink as the message alone
+      Given the global logger adapts a pino-compatible sink with toPinoLogger
+      When the application logs "Players online: 21000" at level "info" through the library
+      Then the sink shall receive only one "info" call with the message "Players online: 21000"
+
+  Rule: Where a sink adapted with toPinoLogger exposes pino's level values and a current level, the library shall pass the sink only the lines at or above the level the sink holds when each line is logged.
+    pino keeps its current level in `levelVal`, and an application can change
+    it at any time. The adapter compares numbers instead of calling pino's own
+    `isLevelEnabled`, which costs more than the line it would skip, and reads
+    the level at each line so a change applies at once.
+
+    Scenario: A sink at info takes the info line and not the debug line
+      Given the global logger adapts a pino-compatible sink at level "info" with toPinoLogger
+      When the application logs "cache miss" at level "debug" through the library
+      And the application logs "Players online: 21000" at level "info" through the library
+      Then the sink shall receive only one "info" call with the message "Players online: 21000"
+
+    Scenario: Lowering the sink's level lets a debug line through
+      Given the global logger adapts a pino-compatible sink at level "info" with toPinoLogger
+      When the sink's level changes to "debug"
+      And the application logs "cache miss" at level "debug" through the library
+      Then the sink shall receive only one "debug" call with the message "cache miss"
+
+  Rule: Where a sink adapted with toPinoLogger reports levels through isLevelEnabled without a current level value, the library shall pass the sink only the lines it reports enabled.
+    A custom sink may answer `isLevelEnabled` without keeping pino's numeric
+    level. The adapter then asks the sink, even when the sink lists level
+    values, since values alone say nothing about the current level.
+
+    Scenario: A sink that reports debug disabled takes only the warning
+      Given the global logger adapts a pino-compatible sink that reports "debug" disabled with toPinoLogger
+      When the application logs "cache miss" at level "debug" through the library
+      And the application logs "slow response" at level "warn" through the library
+      Then the sink shall receive only one "warn" call with the message "slow response"
+
+    Scenario: A sink with level values but no current level is asked
+      Given the global logger adapts a pino-compatible sink with level values that reports "debug" disabled with toPinoLogger
+      When the application logs "cache miss" at level "debug" through the library
+      And the application logs "slow response" at level "warn" through the library
+      Then the sink shall receive only one "warn" call with the message "slow response"
+
+  # ── The default and noop loggers ───────────────────────────────────
+
+  Rule: Where an application builds the default logger, the default logger shall take its level from the level argument, then from ESI_LOG_LEVEL, then warn.
+    The level argument is what `EsiClientConfig.logLevel` passes, so a
+    client's own setting wins over the environment, and a library left
+    unconfigured stays quiet below warn. The scenarios read the level
+    through `isLevelEnabled`, which writes nothing.
+
+    Scenario: A level argument wins
+      Given a default logger built with level "debug" while ESI_LOG_LEVEL is "error"
+      Then the logger shall report "debug" enabled and "trace" disabled
+
+    Scenario: A level argument applies with ESI_LOG_LEVEL unset
+      Given a default logger built with level "error" while ESI_LOG_LEVEL is unset
+      Then the logger shall report "error" enabled and "warn" disabled
+
+    Scenario: ESI_LOG_LEVEL applies without a level argument
+      Given a default logger built with no level while ESI_LOG_LEVEL is "info"
+      Then the logger shall report "info" enabled and "debug" disabled
+
+    Scenario: Warn applies with neither
+      Given a default logger built with no level while ESI_LOG_LEVEL is unset
+      Then the logger shall report "warn" enabled and "info" disabled
+
+  Rule: The noop logger shall report every level disabled.
+    The noop logger discards every line, so the library should not build
+    one for it. Reporting each level disabled lets the library skip the
+    line before it formats or redacts anything.
+
+    Scenario: The noop logger reports all six levels disabled
+      Given a noop logger
+      Then the logger shall report every level disabled
+
+  # ── The token manager's logger ─────────────────────────────────────
+
+  @sec-P3
+  Rule: If an SSO refresh fails with a description that carries a URL, then the token manager's logger shall receive that URL with the value of every sensitive query parameter replaced by [REDACTED].
+    The token manager logs a failed refresh with the SSO error's message,
+    and SSO's error description is free text that can carry a URL. The
+    manager writes to its logger through the same redaction as the
+    pipeline, so a code or token in that URL stays out of the log.
+
+    Scenario: An OAuth code in an SSO error description is logged redacted
+      Given a token manager that logs to a recording logger that reports "debug" disabled
+      And SSO refuses the character's refresh with HTTP 400 and the description "see https://login.eveonline.com/help?code=c0de&lang=en"
+      When the token manager refreshes the character and SSO refuses it
+      Then the token manager's logger shall receive one "error" line containing "https://login.eveonline.com/help?code=%5BREDACTED%5D&lang=en"
+      And no logged line shall contain "c0de"
+
+  Rule: Where the token manager's logger reports a level disabled, the token manager shall not pass a line at that level to it.
+    The manager checks the level before it builds and redacts a line, as
+    the pipeline does.
+
+    Scenario: A refresh failure is not logged while error is disabled
+      Given a token manager that logs to a recording logger that reports "error" disabled
+      And SSO refuses the character's refresh with HTTP 400 and the description "see https://login.eveonline.com/help?code=c0de&lang=en"
+      When the token manager refreshes the character and SSO refuses it
+      Then the token manager's logger shall receive no line
