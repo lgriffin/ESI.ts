@@ -4,7 +4,7 @@
   "src/auth": 86.4,
   "src/client": 82,
   "src/clients": 90.6,
-  "src/core": 42.2,
+  "src/core": 83.8,
   "src/core/cache": 92.7,
   "src/core/circuitBreaker": 82.0,
   "src/core/endpoints": 89.7,

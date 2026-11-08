@@ -78,12 +78,12 @@ file sets no floor for that directory.
 | `src`                      |                                             — |                                             31.5 |
 | `src/auth`                 |                                             — |                                             86.4 |
 | `src/clients`              |                                             — |                                             90.6 |
-| `src/client`               |                                          95.0 |                                             82.0 |
-| `src/adapters`             |                                             — |                                             79.4 |
-| `src/core`                 |                                          81.8 |                                             42.2 |
+| `src/core`                 |                                          81.8 |                                             83.8 |
 | `src/core/cache`           |                                          65.3 |                                             92.7 |
 | `src/core/circuitBreaker`  |                                          77.7 |                                             82.0 |
 | `src/core/endpoints`       |                                             — |                                             89.7 |
+| `src/client`               |                                          95.0 |                                             82.0 |
+| `src/adapters`             |                                             — |                                             79.4 |
 | `src/core/logger`          |                                          55.5 |                                             80.9 |
 | `src/core/middleware`      |                                         100.0 |                                             80.0 |
 | `src/core/pagination`      |                                          73.9 |                                             79.9 |
