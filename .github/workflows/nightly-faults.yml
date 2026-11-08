@@ -1,4 +1,4 @@
-name: Nightly Fault Tier
+name: Weekly Fault Tier
 
 # Runs the fault tier's nightly half (tests/faults/AGENTS.md): the seeded
 # payload fuzz over every endpoint definition (`npm run faults:nightly`), and
@@ -13,7 +13,10 @@ name: Nightly Fault Tier
 
 on:
   schedule:
-    - cron: '30 3 * * *'
+    # Weekly, Saturday, since 2026-11-08: in its last 30 nightly runs this
+    # workflow found no product defect, so a daily run bought no information a
+    # weekly one does not (Lean review, guides/lean/08-testing-framework-value.md).
+    - cron: '45 3 * * 6'
   workflow_dispatch:
     inputs:
       seed:
@@ -95,7 +98,7 @@ jobs:
           CATALOGUE: ${{ steps.catalogue.outcome }}
         run: |
           {
-            echo "## Nightly Fault Tier"
+            echo "## Weekly Fault Tier"
             echo ""
             echo "- **Payload fuzz:** $FUZZ (seed \`$SEED\`, replay: \`FAULTS_SEED=$SEED npm run faults:nightly\`)"
             echo "- **Fault catalogue:** $CATALOGUE"
