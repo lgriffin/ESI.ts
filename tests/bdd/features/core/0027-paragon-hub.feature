@@ -72,4 +72,4 @@ Feature: Paragon Hub SKINR Marketplace
     Scenario: Listing request during an ESI outage is rejected with 503
       Given the ESI service is down
       When the client requests Paragon Hub data
-      Then the client shall return a 503 error
+      Then the client shall return a 503 error for the Paragon Hub listings
