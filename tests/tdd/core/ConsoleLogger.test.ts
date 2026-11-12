@@ -57,6 +57,15 @@ describe('createConsoleLogger', () => {
     expect(log).toHaveBeenCalledWith('x [circular=[unserialisable]] [n=10]');
   });
 
+  it('names a function context value instead of printing its source', () => {
+    function onRetry(): void {}
+    const anonymous = [(): void => {}][0];
+    createConsoleLogger('info').info('x', { hook: onRetry, cb: anonymous });
+    expect(log).toHaveBeenCalledWith(
+      'x [hook=[function onRetry]] [cb=[function anonymous]]',
+    );
+  });
+
   it('drops lines below its level and reports that through isLevelEnabled', () => {
     const logger = createConsoleLogger('warn');
     logger.info('hidden');

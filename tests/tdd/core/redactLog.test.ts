@@ -1,7 +1,10 @@
+import type { LoggerLevel } from '../../../src/core/logger/ILogger';
 import {
+  redactingLogger,
   redactLogContext,
   redactLogText,
 } from '../../../src/core/logger/redactLog';
+import { spyLogger } from '../helpers/spyLogger';
 import { sanitizeUrl } from '../../../src/core/util/error';
 
 const SECRET_URL =
@@ -102,5 +105,65 @@ describe('SEC-02: redactLogContext', () => {
   it('never hands a logger an empty context', () => {
     expect(redactLogContext({})).toBeUndefined();
     expect(redactLogContext(undefined)).toBeUndefined();
+  });
+});
+
+describe('SEC-02: redactingLogger', () => {
+  const gated = (enabled: readonly LoggerLevel[]) => {
+    const inner = spyLogger();
+    inner.isLevelEnabled = (level) => enabled.includes(level);
+    return inner;
+  };
+
+  it('redacts the message and the context it forwards', () => {
+    const inner = spyLogger();
+    redactingLogger(inner).warn(`GET ${SECRET_URL} failed`, {
+      url: SECRET_URL,
+      status: 401,
+    });
+    expect(inner.warn.mock.calls).toEqual([
+      [`GET ${REDACTED_URL} failed`, { url: REDACTED_URL, status: 401 }],
+    ]);
+  });
+
+  it('forwards a context that needed no redaction', () => {
+    const inner = spyLogger();
+    redactingLogger(inner).error('Refresh failed', { characterId: 1 });
+    expect(inner.error.mock.calls).toEqual([
+      ['Refresh failed', { characterId: 1 }],
+    ]);
+  });
+
+  it('passes the message alone for a missing or empty context', () => {
+    const inner = spyLogger();
+    const logger = redactingLogger(inner);
+    logger.info('a');
+    logger.info('b', {});
+    expect(inner.info.mock.calls).toEqual([['a'], ['b']]);
+  });
+
+  it('drops a line at a level the logger reports disabled', () => {
+    const inner = gated(['warn']);
+    const logger = redactingLogger(inner);
+    logger.debug('dropped');
+    logger.warn('kept');
+    expect(inner.debug).not.toHaveBeenCalled();
+    expect(inner.warn.mock.calls).toEqual([['kept']]);
+  });
+
+  it('routes each level to the same level of the logger it wraps', () => {
+    const inner = spyLogger();
+    const logger = redactingLogger(inner);
+    const levels: LoggerLevel[] = [
+      'fatal',
+      'error',
+      'warn',
+      'info',
+      'debug',
+      'trace',
+    ];
+    for (const level of levels) logger[level](level);
+    for (const level of levels)
+      expect(inner[level].mock.calls).toEqual([[level]]);
   });
 });
