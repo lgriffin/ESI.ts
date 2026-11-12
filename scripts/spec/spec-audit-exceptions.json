@@ -20,7 +20,6 @@
     "tests/bdd/step-definitions/core/loyalty.steps.ts",
     "tests/bdd/step-definitions/core/mercenary.steps.ts",
     "tests/bdd/step-definitions/core/military-campaigns.steps.ts",
-    "tests/bdd/step-definitions/core/paragon-hub.steps.ts",
     "tests/bdd/step-definitions/core/pi.steps.ts",
     "tests/bdd/step-definitions/core/resilience.steps.ts",
     "tests/bdd/step-definitions/core/response-headers.steps.ts",
