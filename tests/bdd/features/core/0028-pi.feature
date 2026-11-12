@@ -130,7 +130,7 @@ Feature: Planetary Interaction Management
       And the logger shall have received one incompletePages warning for reason "empty-page" with 2 fetched pages
 
   @DES-08
-  Rule: Where incompletePages is set to throw, if the last page of a colony or customs office walk comes back empty, then the PI client shall reject with an EsiPaginationError whose reason is empty-page.
+  Rule: Where incompletePages is set to throw, if the last page of a colony or customs office walk comes back empty, then the PI client shall reject with an empty-page EsiPaginationError.
     A stream has yielded the pages before the empty one already, so its error
     counts their entries rather than carrying them.
 

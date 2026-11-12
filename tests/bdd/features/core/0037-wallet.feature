@@ -144,7 +144,7 @@ Feature: Wallets
       And the logger shall have received one incompletePages warning for reason "empty-page" with 2 fetched pages
 
   @DES-08
-  Rule: Where incompletePages is set to throw, if the last page of a wallet journal or transaction walk comes back empty, then the Wallet client shall reject with an EsiPaginationError whose reason is empty-page.
+  Rule: Where incompletePages is set to throw, if the last page of a wallet journal or transaction walk comes back empty, then the Wallet client shall reject with an empty-page EsiPaginationError.
     A caller reconciling a wallet would rather fail than total a history with
     a hole in it. A collected walk carries the entries it fetched before the
     empty page; a stream has yielded them already, so its error counts them.

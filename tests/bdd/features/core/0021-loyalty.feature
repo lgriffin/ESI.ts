@@ -109,7 +109,7 @@ Feature: Loyalty Management
       And the logger shall have received one incompletePages warning for reason "empty-page" with 2 fetched pages
 
   @DES-08
-  Rule: Where incompletePages is set to throw, if the last page of a loyalty point or store offer walk comes back empty, then the Loyalty client shall reject with an EsiPaginationError whose reason is empty-page.
+  Rule: Where incompletePages is set to throw, if the last page of a loyalty point or store offer walk comes back empty, then the Loyalty client shall reject with an empty-page EsiPaginationError.
     The error carries the offers collected before the empty page, so a caller
     that chose to refuse short walks still holds what was read.
 
