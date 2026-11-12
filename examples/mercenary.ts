@@ -13,7 +13,7 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { isNotFound } from '../src/core/util/error';
-import { createConsoleLogger } from '../src';
+import { createConsoleLogger, decodeAccessToken } from '../src';
 
 // The program's own output. The client logs through the same console sink
 // at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
@@ -23,10 +23,16 @@ const esiLog = createConsoleLogger();
 async function main() {
   const client = new EsiClient({ logger: esiLog });
 
-  // Character ID to query mercenary data for
-  const characterId = parseInt(process.env.CHARACTER_ID || '0', 10);
+  // Character ID to query mercenary data for: CHARACTER_ID, else the
+  // token's own character.
+  const token = process.env.ESI_ACCESS_TOKEN;
+  const characterId = process.env.CHARACTER_ID
+    ? parseInt(process.env.CHARACTER_ID, 10)
+    : token
+      ? decodeAccessToken(token).characterId
+      : 0;
   if (!characterId) {
-    log.error('Set CHARACTER_ID environment variable to your character ID.');
+    log.error('Set CHARACTER_ID or ESI_ACCESS_TOKEN to choose a character.');
     process.exit(1);
   }
 

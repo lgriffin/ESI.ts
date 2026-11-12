@@ -10,7 +10,7 @@
  *
  * Usage: npm run example:skyhooks
  *
- * @nightly auth
+ * @nightly manual
  */
 import { EsiClient } from '../src/EsiClient';
 import { isNotFound } from '../src/core/util/error';

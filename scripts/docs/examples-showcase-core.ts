@@ -65,6 +65,7 @@ export function categoryOf(file: string, tier: ExampleTier): Category {
     case 'mixed':
       return 'Public data';
     case 'auth':
+    case 'manual':
       return 'Character and corporation data';
     case 'sde':
       return 'Static Data Export (SDE)';
@@ -78,6 +79,10 @@ export const TIER_BADGES: Readonly<
   public: { type: 'tip', text: 'No token needed' },
   mixed: { type: 'info', text: 'Token optional' },
   auth: { type: 'warning', text: 'Needs an access token' },
+  manual: {
+    type: 'warning',
+    text: 'Needs an access token and some setup; may change your data',
+  },
   sde: { type: 'warning', text: 'Needs local SDE data' },
 };
 

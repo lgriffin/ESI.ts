@@ -16,7 +16,7 @@
  *
  * Usage: npm run example:write-ops
  *
- * @nightly auth
+ * @nightly manual
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

@@ -164,6 +164,7 @@
     "example:write-ops": "ts-node examples/write-operations.ts",
     "token:create": "ts-node scripts/auth/create-token.ts",
     "token:refresh": "ts-node scripts/auth/refresh-token.ts",
+    "token:ci": "ts-node scripts/auth/sso-refresh.ts",
     "lint": "node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js src tests scripts",
     "lint:fix": "node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js src tests scripts --fix",
     "lint:ratchet": "node --max-old-space-size=4096 -r ts-node/register scripts/quality/warning-ratchet.ts",

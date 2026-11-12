@@ -20,7 +20,7 @@
  *
  * Usage: npm run example:token-refresh
  *
- * @nightly auth
+ * @nightly manual
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

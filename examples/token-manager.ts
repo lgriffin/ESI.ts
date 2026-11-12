@@ -17,7 +17,7 @@
  *
  * Usage: npm run example:token-manager
  *
- * @nightly auth
+ * @nightly manual
  */
 import * as http from 'http';
 import {
