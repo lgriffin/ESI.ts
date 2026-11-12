@@ -65,13 +65,13 @@ Feature: Server Status
 
     Scenario: Service unavailable rejects the status request with an EsiError
       Given the ESI API is unavailable
-      When the client requests the server status
+      When the client tries to read the server status
       Then the client shall return a 503 service unavailable error
 
     Scenario: Internal server error rejects the status request with an EsiError
       Given the ESI API encounters an internal error
       When the client requests the server status for error check
-      Then the client shall return a 500 error
+      Then the client shall return a 500 error for the server status
 
   # ── Repeated polling ────────────────────────────────────────────────
 
