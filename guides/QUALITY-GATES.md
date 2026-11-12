@@ -114,7 +114,7 @@ To add a blocking job: add the job, add its id to `ci-success.needs`. To add an 
 
 ### GATE-02 · Every push gets fast feedback
 
-`ci-fast.yml` runs on a push to any branch (`'**'`) on Node 22: ESLint, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `npm test`. It has one unconditional job, so it has no gate of its own; everything it checks is also inside `ci-success`.
+`ci-fast.yml` runs on a push to any branch (`'**'`) on Node 22: ESLint, `lint:layers`, `lint:bdd-seam`, `lint:example-imports`, `lint:suite-health`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `npm test`. It has one unconditional job, so it has no gate of its own; everything it checks is also inside `ci-success`.
 
 ### GATE-03 · The public API surface is diffed
 
@@ -225,7 +225,7 @@ All 28 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the
 
 ### `ci-fast.yml` — CI Fast
 
-One job, `Lint, Build & Test`, on Node 22: `npm ci`, `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
+One job, `Lint, Build & Test`, on Node 22: `npm ci`, `lint`, `lint:layers`, `lint:bdd-seam`, `lint:example-imports`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
 
 ### `ci.yml` — CI/CD Pipeline
 
@@ -749,6 +749,7 @@ The same "explicit, reasoned exception" pattern appears in ten more places:
 | `lint` / `lint:fix`       | ESLint over `src`, `tests` and `scripts` (relaxations declared in `eslint.config.mjs`)                                       |
 | `lint:ratchet`            | `lint` that also fails when warnings per file and rule exceed `config/eslint/warning-baseline.json`; `-- --update` lowers it |
 | `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`config/eslint/bdd-seam.rules.cjs`)                               |
+| `lint:example-imports`    | ESLint over `examples` with only the entry-point import rule (`config/eslint/example-imports.rules.cjs`)                     |
 | `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline                                                 |
 | `lint:cycles`             | No runtime import cycle among `src/` files; `import type` edges do not count (`scripts/quality/import-cycles.ts`)            |
 | `lint:layers`             | Imports in `src` point inward (`config/eslint/layers.rules.cjs`); shrink-only baseline                                       |
@@ -882,7 +883,7 @@ npm run check:all    # validate + validate:esi + validate:spec + validate:versio
 
 Neither reproduces `ci-success` completely, and neither includes the tiers added around the unit suite. `check:all` needs network access for the spec checks.
 
-`check:local` covers typecheck, the examples type-check, generated-operation freshness and coverage, every lint (`lint`, `lint:suite-health`, `lint:determinism`, `lint:layers`, `lint:bdd-seam`, `lint:workflows`), `spec:audit`, `charter:audit`, `security:model` (without `--results`, so it does not check that the tagged Rules passed), `spec:coverage:sde` and `spec:coverage:clients` (each the committed baseline against the working tree; `:ci` adds the shrink check against `origin/master`), `validate:spec-consistency`, `validate:auth-scopes`, `validate:esi:vendored` (the endpoint check against the vendored snapshot), `validate:versions`, `test`, `test:integration`, `faults`, `contract:replay`, `fuzz` and `test:export-coverage`; then, after a build, `test:types`, `test:docs-examples`, `lint:package`, `size` and `test:consumer`; `--all` adds `test:type-mutation`. What it leaves out, each with the reason `NOT_RUN_LOCALLY` records in `scripts/quality/verify-local-core.ts`:
+`check:local` covers typecheck, the examples type-check, generated-operation freshness and coverage, every lint (`lint`, `lint:suite-health`, `lint:determinism`, `lint:layers`, `lint:bdd-seam`, `lint:example-imports`, `lint:workflows`), `spec:audit`, `charter:audit`, `security:model` (without `--results`, so it does not check that the tagged Rules passed), `spec:coverage:sde` and `spec:coverage:clients` (each the committed baseline against the working tree; `:ci` adds the shrink check against `origin/master`), `validate:spec-consistency`, `validate:auth-scopes`, `validate:esi:vendored` (the endpoint check against the vendored snapshot), `validate:versions`, `test`, `test:integration`, `faults`, `contract:replay`, `fuzz` and `test:export-coverage`; then, after a build, `test:types`, `test:docs-examples`, `lint:package`, `size` and `test:consumer`; `--all` adds `test:type-mutation`. What it leaves out, each with the reason `NOT_RUN_LOCALLY` records in `scripts/quality/verify-local-core.ts`:
 
 ```bash
 npm run format:check                              # CRLF on a Windows checkout fails ~994 files; run it on a path

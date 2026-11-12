@@ -12,9 +12,8 @@
  *
  * @nightly manual
  */
-import { EsiClient } from '../src/EsiClient';
-import { isNotFound } from '../src/core/util/error';
-import { createConsoleLogger } from '../src';
+import { EsiClient, createConsoleLogger } from '../src';
+import { isNotFound } from '../src/errors';
 
 // The program's own output. The client logs through the same console sink
 // at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.

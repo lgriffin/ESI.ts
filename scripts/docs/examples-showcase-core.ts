@@ -23,11 +23,12 @@ import { BRANCH, GITHUB, SidebarGroup } from './sync-docs-core';
  */
 export const IMPORT_MAP: Readonly<Record<string, string>> = {
   '../src': '@lgriffin/esi.ts',
-  '../src/EsiClient': '@lgriffin/esi.ts',
+  '../src/schemas': '@lgriffin/esi.ts/schemas',
+  '../src/errors': '@lgriffin/esi.ts/errors',
+  '../src/testing': '@lgriffin/esi.ts/testing',
   '../src/client': '@lgriffin/esi.ts/client',
-  '../src/core/util/error': '@lgriffin/esi.ts/errors',
   '../src/sde': '@lgriffin/esi.ts/sde',
-  '../src/sde/domain/types': '@lgriffin/esi.ts/sde',
+  '../src/sde/memory': '@lgriffin/esi.ts/sde/memory',
 };
 
 /** The showcase's sections, in page order. */

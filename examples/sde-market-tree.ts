@@ -10,7 +10,7 @@
  * @nightly sde
  */
 import { SdeDataProvider } from '../src/sde';
-import type { MarketGroup } from '../src/sde/domain/types';
+import type { MarketGroup } from '../src/sde';
 import { createConsoleLogger } from '../src';
 
 // The program's own output. The client logs through the same console sink
