@@ -114,7 +114,7 @@ To add a blocking job: add the job, add its id to `ci-success.needs`. To add an 
 
 ### GATE-02 · Every push gets fast feedback
 
-`ci-fast.yml` runs on a push to any branch (`'**'`) on Node 22: ESLint, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `npm test`. It has one unconditional job, so it has no gate of its own; everything it checks is also inside `ci-success`.
+`ci-fast.yml` runs on a push to any branch (`'**'`) on Node 22: ESLint, `lint:layers`, `lint:bdd-seam`, `lint:example-imports`, `lint:suite-health`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `npm test`. It has one unconditional job, so it has no gate of its own; everything it checks is also inside `ci-success`.
 
 ### GATE-03 · The public API surface is diffed
 
@@ -151,7 +151,7 @@ Locally, on a feature branch: `npm run api-report:semver -- --base $(git merge-b
 | `nightly-properties.yml`        | Creates or comments on the issue titled "Nightly property run failed"; closes it after the next green night                                                                                                                                                                                                                          |
 | `nightly-faults.yml`            | Creates or comments on the issue titled "Nightly fault tier failing"; closes it after the next green run                                                                                                                                                                                                                             |
 | `nightly-recorded-payloads.yml` | Opens or updates a pull request with the shape diff; a failed run keeps a `recorded-payloads-check-failed` issue open                                                                                                                                                                                                                |
-| `nightly-examples.yml`          | One issue per failing example, titled `Nightly example failing: examples/<file>`, and one for a type-check failure; a passing run closes each. A failure Tranquility being unavailable explains only warns                                                                                                                           |
+| `nightly-examples.yml`          | One issue per failing example, titled `Nightly example failing: examples/<file>` (`Nightly authenticated example failing: ...` for the authenticated job), one for a type-check failure and one for the gated auth suite; a passing run closes each. A failure Tranquility being unavailable explains only warns                     |
 | `nightly-live-health.yml`       | Creates or comments on the issue titled "Live health: the Tranquility smoke failed" when SSO rejects the token, ESI rejects the request or a response fails validation; closes it after the next healthy run. An outage (5xx or no answer) is a warning, not an issue. Fails, without an issue, while the secrets are missing (#545) |
 | `nightly-mutation-retry.yml`    | Re-runs the failed jobs of a nightly mutation run once, after its first failed attempt; files nothing itself, and the mutation issue is filed from the retried attempt                                                                                                                                                               |
 | `consumer-matrix-nightly.yml`   | The step summary names the failing cell; creates or comments on the issue titled "consumer-matrix: nightly consumer contract failed" (label `consumer-matrix`); closes it after the next green night                                                                                                                                 |
@@ -225,7 +225,7 @@ All 28 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the
 
 ### `ci-fast.yml` — CI Fast
 
-One job, `Lint, Build & Test`, on Node 22: `npm ci`, `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
+One job, `Lint, Build & Test`, on Node 22: `npm ci`, `lint`, `lint:layers`, `lint:bdd-seam`, `lint:example-imports`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `typecheck:examples`, `typecheck:scripts`, `typecheck:isolated`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
 
 ### `ci.yml` — CI/CD Pipeline
 
@@ -416,12 +416,21 @@ Each example declares a tier in its header comment with `@nightly <tier>`:
 | -------- | -------------------------------------------------------------- | ------------------------------------------- |
 | `public` | Needs no token                                                 | Run                                         |
 | `mixed`  | Public calls, plus authenticated ones it skips without a token | Run                                         |
-| `auth`   | Needs an access token                                          | Type-checked only                           |
+| `auth`   | Needs an access token; reads only the token's own character    | Run by the authenticated job                |
+| `manual` | Needs a token and a person, a secret or roles, or changes data | Type-checked only                           |
 | `sde`    | Reads the Static Data Export                                   | Type-checked here; run in `nightly-sde.yml` |
 
 The job type-checks every example (`npm run typecheck:examples`, also a step in `ci.yml` and `ci-fast.yml`), then `npm run examples:nightly` runs each `public` and `mixed` example from source with no token. The `sde` examples join the run only where an export is on disk (`SDE_DATA_PATH`, else `sde-data/`), which is `nightly-sde.yml` with `--tier sde`; without one, `--tier sde` fails rather than reporting an empty run as green. An example fails when it exits non-zero, times out after 120 seconds, or exits 0 after writing to `console.error` (the `scripts/docs/examples-strict.cjs` preload turns that into exit 86). A failure is retried once. The run step stops at 90 minutes; the results file is rewritten after every example, so the issue steps still act on the examples that finished.
 
 Scheduled and manual runs share one concurrency group and queue, so their issue updates land in order. On those runs, each failing example gets an issue titled `Nightly example failing: examples/<file>`, or a comment on the open one; a later passing run closes it. A type-check failure keeps one issue, `Nightly examples do not type-check`. A pull request run opens no issues; the job result is the signal.
+
+### Authenticated nightly
+
+The `examples-auth` job in `nightly-examples.yml` runs on the schedule and on demand, never on a pull request. It mints an access token from two secrets in the `esi-sso` GitHub environment, `ESI_SSO_CLIENT_ID` and `ESI_REFRESH_TOKEN` (`npm run token:ci`, `scripts/auth/sso-refresh.ts`), then runs the gated-auth integration suite (`tests/integration/gated-auth.test.ts`) and every `auth` and `mixed` example with `npm run examples:nightly -- --authenticated`. Access tokens live 20 minutes, so the runner mints a new one when less than five minutes are left; each one is masked in the log. Examples get only `ESI_ACCESS_TOKEN`: the refresh token and client ID are removed from their environment. The examples read the token's own character, so they pass for whichever character the refresh token belongs to.
+
+Failures keep their own issues: `Nightly authenticated example failing: examples/<file>` per example, and `Nightly gated auth suite failing`. A run without the secrets, or with a refresh token SSO no longer accepts, fails at the mint step.
+
+To set it up, or to replace the token: run `npm run token:create` with an account whose character you are willing to have read nightly, then copy `ESI_SSO_CLIENT_ID` and `ESI_REFRESH_TOKEN` from `.env` into the environment (`gh secret set ESI_REFRESH_TOKEN --env esi-sso`, and the same for the client ID). Restrict the environment's deployment branches to `master` so a workflow dispatched from another branch cannot read them. EVE SSO currently rejects the new-style `esi.activity.char:read` and `esi.cosmetic.char:read` scopes, so the token is created with `ESI_SSO_EXCLUDE_SCOPES` naming both; the `mixed` examples that use them handle the 401.
 
 `tests/tdd/scripts/examples-nightly.test.ts` keeps the run complete: every example needs a tier and an npm script, and every public endpoint must be called by a `public` or `mixed` example. A new public endpoint therefore fails `npm test` until an example calls it, or it is listed with a reason in `scripts/docs/examples-coverage-exceptions.json`.
 
@@ -740,6 +749,7 @@ The same "explicit, reasoned exception" pattern appears in ten more places:
 | `lint` / `lint:fix`       | ESLint over `src`, `tests` and `scripts` (relaxations declared in `eslint.config.mjs`)                                       |
 | `lint:ratchet`            | `lint` that also fails when warnings per file and rule exceed `config/eslint/warning-baseline.json`; `-- --update` lowers it |
 | `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`config/eslint/bdd-seam.rules.cjs`)                               |
+| `lint:example-imports`    | ESLint over `examples` with only the entry-point import rule (`config/eslint/example-imports.rules.cjs`)                     |
 | `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline                                                 |
 | `lint:cycles`             | No runtime import cycle among `src/` files; `import type` edges do not count (`scripts/quality/import-cycles.ts`)            |
 | `lint:layers`             | Imports in `src` point inward (`config/eslint/layers.rules.cjs`); shrink-only baseline                                       |
@@ -873,7 +883,7 @@ npm run check:all    # validate + validate:esi + validate:spec + validate:versio
 
 Neither reproduces `ci-success` completely, and neither includes the tiers added around the unit suite. `check:all` needs network access for the spec checks.
 
-`check:local` covers typecheck, the examples type-check, generated-operation freshness and coverage, every lint (`lint`, `lint:suite-health`, `lint:determinism`, `lint:layers`, `lint:bdd-seam`, `lint:workflows`), `spec:audit`, `charter:audit`, `security:model` (without `--results`, so it does not check that the tagged Rules passed), `spec:coverage:sde` and `spec:coverage:clients` (each the committed baseline against the working tree; `:ci` adds the shrink check against `origin/master`), `validate:spec-consistency`, `validate:auth-scopes`, `validate:esi:vendored` (the endpoint check against the vendored snapshot), `validate:versions`, `test`, `test:integration`, `faults`, `contract:replay`, `fuzz` and `test:export-coverage`; then, after a build, `test:types`, `test:docs-examples`, `lint:package`, `size` and `test:consumer`; `--all` adds `test:type-mutation`. What it leaves out, each with the reason `NOT_RUN_LOCALLY` records in `scripts/quality/verify-local-core.ts`:
+`check:local` covers typecheck, the examples type-check, generated-operation freshness and coverage, every lint (`lint`, `lint:suite-health`, `lint:determinism`, `lint:layers`, `lint:bdd-seam`, `lint:example-imports`, `lint:workflows`), `spec:audit`, `charter:audit`, `security:model` (without `--results`, so it does not check that the tagged Rules passed), `spec:coverage:sde` and `spec:coverage:clients` (each the committed baseline against the working tree; `:ci` adds the shrink check against `origin/master`), `validate:spec-consistency`, `validate:auth-scopes`, `validate:esi:vendored` (the endpoint check against the vendored snapshot), `validate:versions`, `test`, `test:integration`, `faults`, `contract:replay`, `fuzz` and `test:export-coverage`; then, after a build, `test:types`, `test:docs-examples`, `lint:package`, `size` and `test:consumer`; `--all` adds `test:type-mutation`. What it leaves out, each with the reason `NOT_RUN_LOCALLY` records in `scripts/quality/verify-local-core.ts`:
 
 ```bash
 npm run format:check                              # CRLF on a Windows checkout fails ~994 files; run it on a path

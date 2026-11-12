@@ -150,6 +150,7 @@ describe('tierOf', () => {
     ['/**\n * Status\n *\n * @nightly public\n */', 'public'],
     ['/**\n * @nightly mixed\n */', 'mixed'],
     ['/**\n * @nightly auth\n */', 'auth'],
+    ['/**\n * @nightly manual\n */', 'manual'],
     ['/**\n * @nightly sde\n */', 'sde'],
   ])('reads the tier from %j', (source, tier) => {
     expect(tierOf(source)).toBe(tier);
@@ -174,6 +175,17 @@ describe('runTiers', () => {
     expect(runTiers(true, 'sde')).toEqual(['sde']);
     expect(runTiers(false, 'public')).toEqual(['public']);
     expect(() => runTiers(true, 'nope')).toThrow('Unknown tier nope');
+  });
+
+  it('runs the auth and mixed tiers in the authenticated run, never manual', () => {
+    expect(runTiers(true, undefined, true)).toEqual(['auth', 'mixed']);
+    expect(runTiers(false, 'auth', true)).toEqual(['auth']);
+    expect(() => runTiers(false, 'manual', true)).toThrow(
+      '--authenticated runs auth and mixed, not manual',
+    );
+    expect(() => runTiers(true, 'public', true)).toThrow(
+      '--authenticated runs auth and mixed, not public',
+    );
   });
 });
 
@@ -371,6 +383,18 @@ describe('verdicts and reporting', () => {
   it('titles the issue after the example file', () => {
     expect(issueTitle('status.ts')).toBe(
       'Nightly example failing: examples/status.ts',
+    );
+  });
+
+  it('gives the authenticated run its own issue title', () => {
+    expect(issueTitle('cosmetics.ts', true)).toBe(
+      'Nightly authenticated example failing: examples/cosmetics.ts',
+    );
+  });
+
+  it('heads the summary with the run it describes', () => {
+    expect(summarize([result({})], 'Nightly authenticated examples')).toContain(
+      '## Nightly authenticated examples',
     );
   });
 

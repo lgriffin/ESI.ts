@@ -15,6 +15,7 @@ npm run docs:site      # Build the documentation site (TypeDoc, guides, examples
 npm run lint           # ESLint (src/, tests/ and scripts/; test and script relaxations declared in eslint.config.mjs)
 npm run lint:ratchet   # lint, plus warnings per file and rule held to config/eslint/warning-baseline.json (shrink-only; -- --update lowers it)
 npm run lint:bdd-seam  # BDD scenarios mock only at the transport seam (tests/bdd)
+npm run lint:example-imports  # examples/ import only the package's published entry points
 npm run lint:determinism  # Time/timers/Math.random in src/ only via the clock module (shrink-only baseline)
 npm run lint:cycles    # No runtime import cycles in src/ (import type edges excluded)
 npm run lint:layers    # Imports in src/ point inward: core, ports, generated (shrink-only baseline)
@@ -132,7 +133,7 @@ Key middleware in the pipeline:
 
 ### CI Workflows
 
-- **ci-fast.yml** — runs on every push (Node 22): `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, format check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, unit tests
+- **ci-fast.yml** — runs on every push (Node 22): `lint`, `lint:layers`, `lint:bdd-seam`, `lint:example-imports`, `lint:suite-health`, format check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, unit tests
 - **ci.yml** — runs on pull requests to master: unit tests on Node 22/24, consumer contract on Node 22 and 24, BDD, spec audit, contract, fuzz, coverage, API surface, doc examples and more. `ci-success` is the single required check and fails when any job fails or is skipped
 - **nightly-mutation.yml** — unit mutation (Stryker, a 4-hour timeout per shard) and type mutation weekly on Sunday; the BDD-only run, one job per shard, monthly on the 1st
 - **nightly-examples.yml** — runs nightly and on PRs touching examples: type-checks every example, runs the public ones against live ESI, opens/closes one issue per failing example

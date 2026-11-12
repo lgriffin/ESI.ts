@@ -36,6 +36,9 @@ jobs:
       - name: Scenarios mock at the transport seam
         run: npm run lint:bdd-seam
 
+      - name: Examples import only published entry points
+        run: npm run lint:example-imports
+
       - name: No focused, skipped, assertion-free or silenced tests
         run: npm run lint:suite-health
 
