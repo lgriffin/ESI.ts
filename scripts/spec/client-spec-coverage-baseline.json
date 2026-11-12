@@ -162,18 +162,6 @@
       "streamCharacterRecentKillmails",
       "streamCorporationRecentKillmails"
     ],
-    "LoyaltyClient": [
-      "fetchAllLoyaltyPoints",
-      "fetchAllLoyaltyStoreOffers",
-      "streamLoyaltyPoints",
-      "streamLoyaltyStoreOffers"
-    ],
-    "MailClient": [
-      "fetchAllMailHeaders",
-      "fetchAllMailingLists",
-      "streamMailHeaders",
-      "streamMailingLists"
-    ],
     "MarketClient": [
       "getCorporationOrders",
       "getCorporationOrderHistory",
@@ -197,12 +185,6 @@
       "getCharacterTargetedListings",
       "getCorporationListings"
     ],
-    "PiClient": [
-      "fetchAllColonies",
-      "fetchAllCorporationCustomsOffices",
-      "streamColonies",
-      "streamCorporationCustomsOffices"
-    ],
     "UniverseClient": [
       "getAncestries",
       "getAsteroidBeltInfo",
@@ -225,16 +207,6 @@
       "postBulkNamesToIds",
       "getSchematicById",
       "getRegions"
-    ],
-    "WalletClient": [
-      "fetchAllCharacterWalletJournal",
-      "fetchAllCorporationWalletJournal",
-      "fetchAllCharacterWalletTransactions",
-      "fetchAllCorporationWalletTransactions",
-      "streamCharacterWalletJournal",
-      "streamCorporationWalletJournal",
-      "streamCharacterWalletTransactions",
-      "streamCorporationWalletTransactions"
     ],
     "WarsClient": [
       "fetchAllWars",
