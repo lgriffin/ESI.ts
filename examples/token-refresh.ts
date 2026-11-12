@@ -22,16 +22,17 @@
  *
  * @nightly manual
  */
-import { EsiClient } from '../src/EsiClient';
-import { EsiError } from '../src/core/util/error';
-import { createConsoleLogger } from '../src';
+import { EsiClient, createConsoleLogger } from '../src';
+import { EsiError } from '../src/errors';
+import { exampleCharacterId } from './support/character';
 
 // The program's own output. The client logs through the same console sink
 // at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
 const log = createConsoleLogger('info');
 const esiLog = createConsoleLogger();
 
-const CHARACTER_ID = 1689391488;
+// ESI_CHARACTER_ID, else the token's own character (examples/support/character.ts).
+const CHARACTER_ID = exampleCharacterId();
 
 // --- Token refresh implementation ---
 // In a real app, you'd store these securely (e.g., encrypted DB, keychain).

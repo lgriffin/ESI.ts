@@ -8,15 +8,16 @@
  *
  * @nightly public
  */
-import { EsiClient } from '../src/EsiClient';
-import { createConsoleLogger } from '../src';
+import { EsiClient, createConsoleLogger } from '../src';
+import { exampleCharacterId } from './support/character';
 
 // The program's own output. The client logs through the same console sink
 // at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
 const log = createConsoleLogger('info');
 const esiLog = createConsoleLogger();
 
-const CHARACTER_ID = 1689391488; // deiseman
+// ESI_CHARACTER_ID, else the token's own character (examples/support/character.ts).
+const CHARACTER_ID = exampleCharacterId(1689391488);
 
 async function main() {
   const client = new EsiClient({ logger: esiLog });

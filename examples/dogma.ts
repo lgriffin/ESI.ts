@@ -7,8 +7,7 @@
  *
  * @nightly public
  */
-import { EsiClient } from '../src/EsiClient';
-import { createConsoleLogger } from '../src';
+import { EsiClient, createConsoleLogger } from '../src';
 
 // The program's own output. The client logs through the same console sink
 // at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
