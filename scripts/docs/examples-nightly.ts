@@ -6,10 +6,17 @@
  * in the environment. A failure is retried once; an example that passes on the
  * retry is reported as flaky, not failed.
  *
+ * `--authenticated` runs the `auth` and `mixed` examples instead, each with an
+ * access token in ESI_ACCESS_TOKEN. The token comes from ESI_SSO_CLIENT_ID and
+ * ESI_REFRESH_TOKEN (minted, and minted again near expiry; see
+ * scripts/auth/sso-refresh.ts), or from ESI_ACCESS_TOKEN when no refresh token
+ * is set. The refresh token and client ID never reach an example.
+ *
  *   npm run examples:nightly                     # every nightly example
  *   npm run examples:nightly -- --only status.ts # one example
  *   npm run examples:nightly -- --json out.json  # also write the results
  *   npm run examples:nightly -- --tier sde       # only the SDE examples
+ *   npm run examples:nightly -- --authenticated  # auth + mixed, with a token
  *
  * The `sde` examples run only when an export is on disk (`SDE_DATA_PATH`,
  * else ./sde-data, holding types.yaml): with `--tier sde` that is required,
@@ -40,6 +47,7 @@ import {
   tranquilityReady,
   verdictOf,
 } from './examples-core';
+import { TokenSource } from '../auth/sso-refresh';
 
 const ROOT = path.resolve(__dirname, '../..');
 const EXAMPLES = path.join(ROOT, 'examples');
@@ -53,12 +61,17 @@ const OUTAGE_RETRY_DELAY_MS = 60_000;
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-/** Credentials an example could pick up; the nightly run is anonymous. */
+/**
+ * Credentials an example could pick up. The anonymous run passes none; the
+ * authenticated run passes only the access token it minted.
+ */
 const STRIPPED_ENV = [
   'ESI_ACCESS_TOKEN',
   'ESI_REFRESH_TOKEN',
   'ESI_CLIENT_ID',
   'ESI_CLIENT_SECRET',
+  'ESI_SSO_CLIENT_ID',
+  'ESI_SSO_CLIENT_SECRET',
 ];
 
 function argValue(flag: string): string | undefined {
@@ -93,9 +106,11 @@ function tierOfFile(file: string): ExampleTier | null {
 
 function runOnce(
   file: string,
+  accessToken: string | null,
 ): Promise<{ code: number | null; timedOut: boolean; output: string }> {
   const env: NodeJS.ProcessEnv = { ...process.env, ESI_LOG_LEVEL: 'error' };
   for (const name of STRIPPED_ENV) delete env[name];
+  if (accessToken) env.ESI_ACCESS_TOKEN = accessToken;
   return new Promise((resolve) => {
     const child = spawn(
       process.execPath,
@@ -159,13 +174,17 @@ async function waitForTranquility(): Promise<void> {
   }
 }
 
-async function run(file: string): Promise<ExampleResult> {
+async function run(
+  file: string,
+  tokens: TokenSource | null,
+): Promise<ExampleResult> {
   const started = performance.now();
   let attempts = 0;
   let last: Awaited<ReturnType<typeof runOnce>>;
   for (;;) {
     attempts++;
-    last = await runOnce(file);
+    // Per attempt, so a retry after a long wait still gets a fresh token.
+    last = await runOnce(file, tokens ? await tokens.get() : null);
     if ((!last.timedOut && last.code === 0) || attempts >= 2) break;
     if (!last.timedOut && isOutage(last.output)) {
       await sleep(OUTAGE_RETRY_DELAY_MS);
@@ -183,28 +202,33 @@ async function run(file: string): Promise<ExampleResult> {
 
 async function main(): Promise<void> {
   const tierFlag = argValue('--tier');
+  const authenticated = process.argv.includes('--authenticated');
   const sdeData = hasSdeData();
-  if (tierFlag === 'sde' && !sdeData) {
+  if (!authenticated && tierFlag === 'sde' && !sdeData) {
     console.error(
       'No SDE export on disk (SDE_DATA_PATH or ./sde-data with types.yaml); run npm run sde:ingest first.',
     );
     process.exit(1);
   }
   const files = nightlyExamples(
-    runTiers(sdeData, tierFlag),
+    runTiers(sdeData, tierFlag, authenticated),
     argValue('--only'),
   );
   if (files.length === 0) {
     console.error('No nightly examples matched.');
     process.exit(1);
   }
+  // Fails here, before any example runs, when the secrets are missing or the
+  // refresh token is no longer valid.
+  const tokens = authenticated ? TokenSource.fromEnv() : null;
+  if (tokens) await tokens.get();
   if (files.some((file) => tierOfFile(file) !== 'sde')) {
     await waitForTranquility();
   }
   const jsonPath = argValue('--json');
   const results: ExampleResult[] = [];
   for (const file of files) {
-    const result = await run(file);
+    const result = await run(file, tokens);
     results.push(result);
     if (jsonPath) {
       const withVerdicts = results.map((r) => ({
@@ -220,7 +244,10 @@ async function main(): Promise<void> {
     if (failed) console.log(result.output.replace(/^/gm, '    '));
   }
 
-  const summary = summarize(results);
+  const summary = summarize(
+    results,
+    authenticated ? 'Nightly authenticated examples' : 'Nightly examples',
+  );
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;
   if (summaryPath) fs.appendFileSync(summaryPath, summary);
 

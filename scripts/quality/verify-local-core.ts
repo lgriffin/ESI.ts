@@ -103,6 +103,11 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'lint:example-imports',
+    covers: 'examples import only published entry points',
+    stage: 'quick',
+  },
+  {
     script: 'knip',
     covers: 'no unused files, exports or dependencies in src',
     stage: 'quick',

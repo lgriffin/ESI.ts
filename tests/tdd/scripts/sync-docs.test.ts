@@ -465,8 +465,8 @@ const SAMPLE = `/**
  *
  * @nightly public
  */
-import { EsiClient } from '../src/EsiClient';
-import { EsiError } from '../src/core/util/error';
+import { EsiClient } from '../src';
+import { EsiError } from '../src/errors';
 
 const client = new EsiClient();
 await client.market.getMarketPrices();

@@ -16,17 +16,19 @@
  * @nightly mixed
  */
 
-import { EsiClient } from '../src/EsiClient';
-import { EsiError } from '../src/core/util/error';
-import { createConsoleLogger } from '../src';
+import { EsiClient, createConsoleLogger } from '../src';
+import { EsiError } from '../src/errors';
+import { exampleCharacterId } from './support/character';
 
 // The program's own output. The client logs through the same console sink
 // at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
 const log = createConsoleLogger('info');
 const esiLog = createConsoleLogger();
 
-// Demo character ID - a well-known EVE Online character (the author of this tool)
-const DEMO_CHARACTER_ID = 1689391488;
+// ESI_CHARACTER_ID, else the token's own character, else a well-known
+// character (the author of this tool) for the public calls
+// (examples/support/character.ts).
+const DEMO_CHARACTER_ID = exampleCharacterId(1689391488);
 
 /**
  * Complete Character Profile Assembly

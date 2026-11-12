@@ -53,6 +53,7 @@ const WRITE_SCOPES: Record<string, string[]> = {
   'nightly-benchmarks.yml#publish': ['contents'],
   'nightly-benchmarks.yml#report': ['issues'],
   'nightly-examples.yml#examples': ['issues'],
+  'nightly-examples.yml#examples-auth': ['issues'],
   'nightly-faults.yml#faults': ['issues'],
   'nightly-interleave.yml#report': ['issues'],
   'nightly-mutation-retry.yml#retry': ['actions'],
