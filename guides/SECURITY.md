@@ -117,7 +117,7 @@ How a release is cut and how to verify its assets is covered in [RELEASE.md](REL
 
 ## 4. Local credentials
 
-`npm run token:create` runs `scripts/auth/create-token.ts`, which performs the EVE SSO PKCE flow against a local callback on `http://localhost:3000/sso_callback` (`ESI_SSO_CALLBACK_PATH` and `ESI_SSO_CALLBACK_PORT` change it to match an application registered with another localhost URL) and writes the resulting tokens to `.env`. It requests every scope in the ESI spec except those listed in `ESI_SSO_EXCLUDE_SCOPES`, checks `state` on every callback (error callbacks included) before acting on it, and reports the scopes the access token's `scp` claim actually grants. `npm run token:refresh` renews them.
+`npm run token:create` runs `scripts/auth/create-token.ts`, which performs the EVE SSO PKCE flow against a local callback on `http://localhost:3000/sso_callback` (`ESI_SSO_CALLBACK_PATH` and `ESI_SSO_CALLBACK_PORT` change it to match an application registered with another localhost URL) and writes the resulting tokens to `.env`. It requests every scope in the ESI spec except those listed in `ESI_SSO_EXCLUDE_SCOPES`, checks `state` before acting on a callback (a code callback must carry it; an error callback may omit it, as EVE SSO does, but a present `state` must match), and reports the scopes the access token's `scp` claim actually grants. `npm run token:refresh` renews them.
 
 - `.env` and `.env.test` are git-ignored. `.env.example` is the only environment file in git and holds no values.
 - Credentials never appear in committed fixtures, snapshots or examples. Tests that need a real token read it from `.env` and are gated behind `ESI_GATED_TESTS` (see [TESTING.md](TESTING.md)).

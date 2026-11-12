@@ -306,17 +306,26 @@ function handleCallback(
   url: URL,
   expectedState: string,
 ): { status: number; html: string; outcome: CallbackResult | Error } {
-  // Checked first, error callbacks included, so a request that did not come
-  // from this login cannot make the script drop scopes or give up.
-  if (url.searchParams.get('state') !== expectedState) {
+  const state = url.searchParams.get('state');
+  const error = url.searchParams.get('error');
+  // EVE SSO leaves `state` off some error redirects, so an error callback
+  // without one is accepted; a `state` that is present must match, and a
+  // code callback must always carry it.
+  const stateMissingOnError = state === null && error !== null;
+  if (state !== expectedState && !stateMissingOnError) {
+    const received = error
+      ? ` (SSO returned ${error}: ${url.searchParams.get('error_description') ?? ''})`
+      : '';
     return {
       status: 400,
-      html: htmlPage('State mismatch', 'Possible CSRF. Please try again.'),
-      outcome: new Error('OAuth state mismatch'),
+      html: htmlPage(
+        'State mismatch',
+        `Possible CSRF. Please try again.${escapeHtml(received)}`,
+      ),
+      outcome: new Error(`OAuth state mismatch${received}`),
     };
   }
 
-  const error = url.searchParams.get('error');
   if (error) {
     const description = url.searchParams.get('error_description') || '';
     const scope =
