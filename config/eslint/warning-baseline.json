@@ -2,8 +2,7 @@
   "sites": {
     "scripts/auth/create-token.ts": {
       "@typescript-eslint/restrict-template-expressions": 2,
-      "sonarjs/cognitive-complexity": 3,
-      "sonarjs/prefer-regexp-exec": 1
+      "sonarjs/cognitive-complexity": 3
     },
     "scripts/auth/refresh-token.ts": {
       "@typescript-eslint/no-unsafe-assignment": 1,

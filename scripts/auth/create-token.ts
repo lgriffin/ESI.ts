@@ -13,6 +13,11 @@
  *   4. Copy the Client ID into your .env as ESI_SSO_CLIENT_ID
  *
  * Usage: npm run token:create
+ *
+ * SSO rejects a scope the application does not grant. When it redirects the
+ * rejection back here the script drops that scope and retries; when it shows
+ * the error on its own page instead, list the scope in ESI_SSO_EXCLUDE_SCOPES
+ * (comma- or space-separated) and re-run.
  */
 import * as crypto from 'crypto';
 import * as fs from 'fs';
@@ -72,9 +77,19 @@ function readEnvFile(): Map<string, string> {
     if (!trimmed || trimmed.startsWith('#')) continue;
     const eqIdx = trimmed.indexOf('=');
     if (eqIdx === -1) continue;
-    env.set(trimmed.slice(0, eqIdx), trimmed.slice(eqIdx + 1));
+    env.set(trimmed.slice(0, eqIdx), unquote(trimmed.slice(eqIdx + 1)));
   }
   return env;
+}
+
+/** Strips one pair of matching surrounding quotes, as dotenv does. */
+function unquote(raw: string): string {
+  const value = raw.trim();
+  const quoted =
+    value.length >= 2 &&
+    (value[0] === '"' || value[0] === "'") &&
+    value.endsWith(value[0]);
+  return quoted ? value.slice(1, -1) : value;
 }
 
 function writeEnvFile(env: Map<string, string>): void {
@@ -176,6 +191,71 @@ async function fetchAllScopes(): Promise<string[]> {
   return sorted;
 }
 
+/** Parses a comma- or whitespace-separated scope list. */
+function parseScopeList(raw: string | undefined): string[] {
+  return (raw ?? '').split(/[\s,]+/).filter((s) => s.length > 0);
+}
+
+/** Drops the scopes named in ESI_SSO_EXCLUDE_SCOPES and reports them. */
+function applyExclusions(scopes: string[], excluded: string[]): string[] {
+  if (excluded.length === 0) return scopes;
+  const skip = new Set(excluded);
+  console.log(`Excluding ${skip.size} scope(s) via ESI_SSO_EXCLUDE_SCOPES:`);
+  for (const s of skip) {
+    const note = scopes.includes(s) ? '' : ' (not in the spec; ignored)';
+    console.log(`  - ${s}${note}`);
+  }
+  return scopes.filter((s) => !skip.has(s));
+}
+
+/**
+ * Reads the scopes SSO actually granted from the access token's `scp` claim.
+ * Returns null when the token is not a JWT carrying one.
+ */
+function grantedScopes(accessToken: string): string[] | null {
+  const payload = accessToken.split('.')[1];
+  if (!payload) return null;
+  try {
+    const claims = JSON.parse(
+      Buffer.from(payload, 'base64url').toString('utf-8'),
+    ) as { scp?: string | string[] };
+    if (claims.scp === undefined) return null;
+    return Array.isArray(claims.scp) ? claims.scp : [claims.scp];
+  } catch {
+    return null;
+  }
+}
+
+function reportScopes(
+  requested: string[],
+  rejected: string[],
+  accessToken: string,
+): void {
+  const granted = grantedScopes(accessToken);
+  if (granted === null) {
+    console.log(
+      `  Scopes:        ${requested.length} requested (could not read the token's scp claim)`,
+    );
+  } else {
+    console.log(
+      `  Scopes:        ${granted.length} granted of ${requested.length} requested`,
+    );
+    const grantedSet = new Set(granted);
+    const missing = requested.filter((s) => !grantedSet.has(s));
+    for (const s of missing) {
+      console.log(`                   not granted: ${s}`);
+    }
+  }
+  if (rejected.length > 0) {
+    console.log(
+      `  Rejected:      ${rejected.length} scopes removed (not valid for this character/app)`,
+    );
+    for (const s of rejected) {
+      console.log(`                   - ${s}`);
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Browser launcher
 // ---------------------------------------------------------------------------
@@ -207,9 +287,77 @@ type CallbackResult =
   | { kind: 'invalid_scope'; scope: string }
   | { kind: 'error'; error: string; description: string };
 
+const CALLBACK_TIMEOUT_MS = 5 * 60 * 1000;
+
 function parseInvalidScope(description: string): string | null {
-  const match = description.match(/'([^']+)'/);
-  return match?.[1] ?? null;
+  return /'([^']+)'/.exec(description)?.[1] ?? null;
+}
+
+function htmlPage(heading: string, body: string): string {
+  return (
+    '<html><body style="font-family:sans-serif;text-align:center;padding:3em">' +
+    `<h2>${heading}</h2><p>${body}</p>` +
+    '</body></html>'
+  );
+}
+
+/** Turns a callback request into a response and an outcome for the caller. */
+function handleCallback(
+  url: URL,
+  expectedState: string,
+): { status: number; html: string; outcome: CallbackResult | Error } {
+  // Checked first, error callbacks included, so a request that did not come
+  // from this login cannot make the script drop scopes or give up.
+  if (url.searchParams.get('state') !== expectedState) {
+    return {
+      status: 400,
+      html: htmlPage('State mismatch', 'Possible CSRF. Please try again.'),
+      outcome: new Error('OAuth state mismatch'),
+    };
+  }
+
+  const error = url.searchParams.get('error');
+  if (error) {
+    const description = url.searchParams.get('error_description') || '';
+    const scope =
+      error === 'invalid_scope' ? parseInvalidScope(description) : null;
+    if (scope) {
+      return {
+        status: 200,
+        html: htmlPage(
+          'Retrying with corrected scopes...',
+          'A new browser tab will open shortly. You can close this one.',
+        ),
+        outcome: { kind: 'invalid_scope', scope },
+      };
+    }
+    return {
+      status: 400,
+      html: htmlPage(
+        `OAuth error: ${escapeHtml(error)}`,
+        escapeHtml(description),
+      ),
+      outcome: { kind: 'error', error, description },
+    };
+  }
+
+  const code = url.searchParams.get('code');
+  if (!code) {
+    return {
+      status: 400,
+      html: htmlPage('No authorization code received', ''),
+      outcome: new Error('No authorization code in callback'),
+    };
+  }
+
+  return {
+    status: 200,
+    html: htmlPage(
+      'Authentication successful',
+      'You can close this tab and return to your terminal.',
+    ),
+    outcome: { kind: 'code', code },
+  };
 }
 
 function waitForCallback(
@@ -218,76 +366,29 @@ function waitForCallback(
   expectedState: string,
 ): Promise<CallbackResult> {
   return new Promise((resolve, reject) => {
+    // Settles once: clears the timeout so the process can exit, and closes the
+    // server so the next attempt can listen on the same port.
+    const settle = (outcome: CallbackResult | Error): void => {
+      clearTimeout(timer);
+      server.close();
+      if (outcome instanceof Error) reject(outcome);
+      else resolve(outcome);
+    };
+
     const server = http.createServer((req, res) => {
       const url = new URL(req.url || '/', `http://localhost:${port}`);
+      // No keep-alive, so closing the server is not held open by the browser.
+      res.setHeader('Connection', 'close');
       if (url.pathname !== callbackPath) {
         res.writeHead(404);
         res.end('Not found');
         return;
       }
 
-      const error = url.searchParams.get('error');
-      const errorDesc = url.searchParams.get('error_description') || '';
-      const code = url.searchParams.get('code');
-      const state = url.searchParams.get('state');
-
-      if (error) {
-        if (error === 'invalid_scope') {
-          const scope = parseInvalidScope(errorDesc);
-          res.writeHead(200, { 'Content-Type': 'text/html' });
-          res.end(
-            '<html><body style="font-family:sans-serif;text-align:center;padding:3em">' +
-              '<h2>Retrying with corrected scopes...</h2>' +
-              '<p>A new browser tab will open shortly. You can close this one.</p>' +
-              '</body></html>',
-          );
-          server.close();
-          if (scope) {
-            resolve({ kind: 'invalid_scope', scope });
-          } else {
-            resolve({ kind: 'error', error, description: errorDesc });
-          }
-        } else {
-          const safeError = escapeHtml(error);
-          const safeDesc = escapeHtml(errorDesc);
-          res.writeHead(400, { 'Content-Type': 'text/html' });
-          res.end(
-            '<html><body style="font-family:sans-serif;text-align:center;padding:3em">' +
-              `<h2>OAuth error: ${safeError}</h2><p>${safeDesc}</p>` +
-              '</body></html>',
-          );
-          server.close();
-          resolve({ kind: 'error', error, description: errorDesc });
-        }
-        return;
-      }
-
-      if (state !== expectedState) {
-        res.writeHead(400);
-        res.end('State mismatch — possible CSRF. Please try again.');
-        server.close();
-        reject(new Error('OAuth state mismatch'));
-        return;
-      }
-
-      if (!code) {
-        res.writeHead(400);
-        res.end('No authorization code received.');
-        server.close();
-        reject(new Error('No authorization code in callback'));
-        return;
-      }
-
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(
-        '<html><body style="font-family:sans-serif;text-align:center;padding:3em">' +
-          '<h2>Authentication successful</h2>' +
-          '<p>You can close this tab and return to your terminal.</p>' +
-          '</body></html>',
-      );
-
-      server.close();
-      resolve({ kind: 'code', code });
+      const { status, html, outcome } = handleCallback(url, expectedState);
+      res.writeHead(status, { 'Content-Type': 'text/html' });
+      res.end(html);
+      settle(outcome);
     });
 
     server.listen(port, () => {
@@ -297,20 +398,23 @@ function waitForCallback(
     });
 
     server.on('error', (err) => {
-      reject(
+      settle(
         new Error(
           `Could not start callback server on port ${port}: ${err.message}`,
         ),
       );
     });
 
-    setTimeout(
-      () => {
-        server.close();
-        reject(new Error('Timed out waiting for OAuth callback (5 minutes)'));
-      },
-      5 * 60 * 1000,
-    );
+    const timer = setTimeout(() => {
+      settle(
+        new Error(
+          'Timed out waiting for OAuth callback (5 minutes).\n' +
+            '  If the browser showed an SSO error such as invalid_scope instead of\n' +
+            '  returning here, SSO rejected the request on its own page. Add the\n' +
+            '  scope it named to ESI_SSO_EXCLUDE_SCOPES in .env and re-run.',
+        ),
+      );
+    }, CALLBACK_TIMEOUT_MS);
   });
 }
 
@@ -387,7 +491,13 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  let scopes = await fetchAllScopes();
+  let scopes = applyExclusions(
+    await fetchAllScopes(),
+    parseScopeList(
+      process.env.ESI_SSO_EXCLUDE_SCOPES ||
+        envVars.get('ESI_SSO_EXCLUDE_SCOPES'),
+    ),
+  );
   const redirectUri = `http://localhost:${port}${callbackPath}`;
   const rejectedScopes: string[] = [];
   const MAX_RETRIES = 20;
@@ -451,22 +561,13 @@ async function main(): Promise<void> {
       envVars.set('ESI_SSO_CLIENT_ID', clientId);
       writeEnvFile(envVars);
 
-      const grantedCount = scopes.length;
       console.log('\n' + '='.repeat(50));
       console.log('Token created successfully!');
       console.log(
         `  Access token:  written to .env (expires in ${tokens.expires_in}s)`,
       );
       console.log('  Refresh token: written to .env');
-      console.log(`  Scopes:        ${grantedCount} granted`);
-      if (rejectedScopes.length > 0) {
-        console.log(
-          `  Rejected:      ${rejectedScopes.length} scopes removed (not valid for this character/app)`,
-        );
-        for (const s of rejectedScopes) {
-          console.log(`                   - ${s}`);
-        }
-      }
+      reportScopes(scopes, rejectedScopes, tokens.access_token);
       console.log('\nUsage:');
       console.log('  # Load env vars and run live tests');
       console.log('  export $(grep -v "^#" .env | xargs)');
