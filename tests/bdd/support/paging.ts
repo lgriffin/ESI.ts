@@ -14,6 +14,7 @@ import {
 } from '../../../src/core/pagination/CursorPaginationHandler';
 import type { IncompletePagesMode } from '../../../src/core/pagination/pageLimit';
 import { recordingLogger, type RecordingLogger } from './logging';
+import { incompletePagesWarningsIn } from './paging-helpers';
 import { createSeamClient, queueResponse } from './transport';
 import type { World } from './world';
 
@@ -105,9 +106,7 @@ export async function walkMarketOrders(
 
 /** The warnings the paging logger received that name incompletePages. */
 export function incompletePagesWarnings(world: World) {
-  return pagingLogger(world).lines.filter(
-    (line) => line.level === 'warn' && line.message.includes('incompletePages'),
-  );
+  return incompletePagesWarningsIn(pagingLogger(world));
 }
 
 // ── The cursor walk

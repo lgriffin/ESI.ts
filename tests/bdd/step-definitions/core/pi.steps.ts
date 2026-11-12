@@ -1,6 +1,16 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
-import { EsiError } from '../../../../src/core/util/error';
+import { EsiError, EsiPaginationError } from '../../../../src/core/util/error';
+import {
+  collectEveryPage,
+  entriesOfPages,
+  incompletePagesClient,
+  incompletePagesWarningsIn,
+  pagedCollection,
+  queuePagedCollection,
+  streamEveryPage,
+} from '../../support/paging-helpers';
+import type { RecordingLogger } from '../../support/logging';
 import {
   createSeamClient,
   lastRequest,
@@ -398,5 +408,168 @@ defineFeature(feature, (test) => {
       ]);
       expect(colonyLayout.pins.map((pin: any) => pin.pin_id)).toEqual([1001]);
     });
+  });
+
+  // ── Paging helpers: the walk is support/paging-helpers.ts's
+
+  test('Planetary colonies collected across two pages', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    const colonies = pagedCollection('planetary colonies');
+    const sizes = [2, 2];
+    let result: unknown[] = [];
+
+    given(
+      'ESI answers the "planetary colonies" with 2 pages of 2 entries each',
+      () => {
+        queuePagedCollection(colonies, sizes);
+      },
+    );
+
+    when(
+      'the client walks the "planetary colonies" through the fetch-all helper',
+      async () => {
+        result = await collectEveryPage(client, colonies);
+      },
+    );
+
+    then('the walk shall resolve with the entries of pages 1 to 2', () => {
+      expect(result).toEqual(entriesOfPages(colonies, sizes, 1, 2));
+    });
+
+    and('the client shall have sent 2 requests', () => {
+      expect(sentRequests()).toHaveLength(2);
+    });
+  });
+
+  test('Customs offices streamed across three pages', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    const offices = pagedCollection('customs offices');
+    const sizes = [2, 2, 2];
+    let result: unknown[] = [];
+
+    given(
+      'ESI answers the "customs offices" with 3 pages of 2 entries each',
+      () => {
+        queuePagedCollection(offices, sizes);
+      },
+    );
+
+    when(
+      'the client walks the "customs offices" through the stream helper',
+      async () => {
+        result = await streamEveryPage(client, offices);
+      },
+    );
+
+    then('the walk shall resolve with the entries of pages 1 to 3', () => {
+      expect(result).toEqual(entriesOfPages(offices, sizes, 1, 3));
+    });
+
+    and('the client shall have sent 3 requests', () => {
+      expect(sentRequests()).toHaveLength(3);
+    });
+  });
+
+  test('Customs offices whose second page of two comes back empty, collected', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    const offices = pagedCollection('customs offices');
+    const sizes = [2, 0];
+    let logger: RecordingLogger;
+    let result: unknown[] = [];
+
+    given(
+      'a client in incompletePages mode "truncate" with a recording logger',
+      () => {
+        ({ client, logger } = incompletePagesClient('truncate'));
+      },
+    );
+
+    and(
+      'ESI answers the "customs offices" with 2 pages, the last one empty',
+      () => {
+        queuePagedCollection(offices, sizes);
+      },
+    );
+
+    when(
+      'the client walks the "customs offices" through the fetch-all helper',
+      async () => {
+        result = await collectEveryPage(client, offices);
+      },
+    );
+
+    then('the walk shall resolve with the entries of pages 1 to 1', () => {
+      expect(result).toEqual(entriesOfPages(offices, sizes, 1, 1));
+    });
+
+    and(
+      'the logger shall have received one incompletePages warning for reason "empty-page" with 2 fetched pages',
+      () => {
+        const warnings = incompletePagesWarningsIn(logger);
+        expect(warnings).toHaveLength(1);
+        expect(warnings[0]!.context).toMatchObject({
+          reason: 'empty-page',
+          fetchedPages: 2,
+        });
+      },
+    );
+  });
+
+  test('Planetary colonies whose second page of two comes back empty, streamed', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    const colonies = pagedCollection('planetary colonies');
+    let caughtError: unknown;
+
+    given(
+      'a client in incompletePages mode "throw" with a recording logger',
+      () => {
+        ({ client } = incompletePagesClient('throw'));
+      },
+    );
+
+    and(
+      'ESI answers the "planetary colonies" with 2 pages, the last one empty',
+      () => {
+        queuePagedCollection(colonies, [2, 0]);
+      },
+    );
+
+    when(
+      'the client walks the "planetary colonies" through the stream helper',
+      async () => {
+        try {
+          await streamEveryPage(client, colonies);
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
+
+    then(
+      'the walk shall reject with an EsiPaginationError whose reason is "empty-page" counting 2 items',
+      () => {
+        expect(caughtError).toBeInstanceOf(EsiPaginationError);
+        const error = caughtError as EsiPaginationError;
+        expect(error.reason).toBe('empty-page');
+        expect(error.itemCount).toBe(2);
+        expect(error.partial).toEqual([]);
+      },
+    );
   });
 });

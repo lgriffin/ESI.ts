@@ -93,6 +93,53 @@ Feature: Planetary Interaction Management
       When the client requests customs offices
       Then the client shall return a list of customs offices
 
+  # ── Paging helpers ──────────────────────────────────────────────────
+
+  @DES-08
+  Rule: When the planetary colonies of a character or the customs offices of a corporation are collected or streamed page by page, the PI client shall return every entry of every page in page order.
+    Each listing has a pair of helpers beside its eager method:
+    fetchAllColonies and fetchAllCorporationCustomsOffices request the pages
+    after the first concurrently, and streamColonies and
+    streamCorporationCustomsOffices yield one page at a time, as
+    guides/PAGINATION.md describes. 0073-page-walks.feature specifies the walk
+    once; these hold each PI helper to it.
+
+    Scenario: Planetary colonies collected across two pages
+      Given ESI answers the "planetary colonies" with 2 pages of 2 entries each
+      When the client walks the "planetary colonies" through the fetch-all helper
+      Then the walk shall resolve with the entries of pages 1 to 2
+      And the client shall have sent 2 requests
+
+    Scenario: Customs offices streamed across three pages
+      Given ESI answers the "customs offices" with 3 pages of 2 entries each
+      When the client walks the "customs offices" through the stream helper
+      Then the walk shall resolve with the entries of pages 1 to 3
+      And the client shall have sent 3 requests
+
+  @DES-08
+  Rule: Where incompletePages is left at its default, if the last page of a colony or customs office walk comes back empty, then the PI client shall return the entries of the pages before it and log one incompletePages warning.
+    An empty page means the listing shrank while it was being read, as when a
+    colony is abandoned or an office is lost mid-walk. The default keeps what
+    the walk fetched, and the warning is the only sign it is short.
+
+    Scenario: Customs offices whose second page of two comes back empty, collected
+      Given a client in incompletePages mode "truncate" with a recording logger
+      And ESI answers the "customs offices" with 2 pages, the last one empty
+      When the client walks the "customs offices" through the fetch-all helper
+      Then the walk shall resolve with the entries of pages 1 to 1
+      And the logger shall have received one incompletePages warning for reason "empty-page" with 2 fetched pages
+
+  @DES-08
+  Rule: Where incompletePages is set to throw, if the last page of a colony or customs office walk comes back empty, then the PI client shall reject with an empty-page EsiPaginationError.
+    A stream has yielded the pages before the empty one already, so its error
+    counts their entries rather than carrying them.
+
+    Scenario: Planetary colonies whose second page of two comes back empty, streamed
+      Given a client in incompletePages mode "throw" with a recording logger
+      And ESI answers the "planetary colonies" with 2 pages, the last one empty
+      When the client walks the "planetary colonies" through the stream helper
+      Then the walk shall reject with an EsiPaginationError whose reason is "empty-page" counting 2 items
+
   # ── Error propagation ───────────────────────────────────────────────
 
   Rule: If every attempt at a planetary interaction request is answered with an error status and no usable cached entry exists, then the PI client shall raise an EsiError.
