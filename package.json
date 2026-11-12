@@ -207,7 +207,7 @@
     "bdd:meta": "jest --config config/jest/unit.config.cjs --testPathPatterns=specs/core/0025-meta",
     "bdd:pi": "jest --config config/jest/unit.config.cjs --testPathPatterns=step-definitions/core/pi",
     "bdd:route": "jest --config config/jest/unit.config.cjs --testPathPatterns=specs/core/0029-route",
-    "bdd:search": "jest --config config/jest/unit.config.cjs --testPathPatterns=step-definitions/core/search",
+    "bdd:search": "jest --config config/jest/unit.config.cjs --testPathPatterns=specs/core/0030-search",
     "bdd:skills": "jest --config config/jest/unit.config.cjs --testPathPatterns=step-definitions/core/skills",
     "bdd:skyhooks": "jest --config config/jest/unit.config.cjs --testPathPatterns=step-definitions/core/skyhooks",
     "bdd:sovereignty": "jest --config config/jest/unit.config.cjs --testPathPatterns=step-definitions/core/sovereignty",
