@@ -49,6 +49,8 @@ const DESCS: Record<string, string> = {
   'generate:endpoints': 'Generate a new-endpoint client scaffold',
   'token:create': 'Run the EVE SSO OAuth flow and save tokens',
   'token:refresh': 'Refresh the SSO access token',
+  'token:ci':
+    'Mint an access token from ESI_REFRESH_TOKEN (CI; exports it to $GITHUB_ENV)',
   'sde:seed': 'Seed the SDE test database',
   'sde:ingest': 'Download CCP static data into local SDE files',
   'sde:drift': 'Compare an extracted SDE export with the registry and schemas',

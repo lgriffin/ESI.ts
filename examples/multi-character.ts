@@ -13,7 +13,7 @@
  *
  * Usage: npm run example:multi-character
  *
- * @nightly auth
+ * @nightly manual
  */
 import {
   createConsoleLogger,

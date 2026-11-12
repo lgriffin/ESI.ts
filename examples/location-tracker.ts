@@ -18,14 +18,18 @@
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
-import { createConsoleLogger } from '../src';
+import { createConsoleLogger, decodeAccessToken } from '../src';
 
 // The program's own output. The client logs through the same console sink
 // at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
 const log = createConsoleLogger('info');
 const esiLog = createConsoleLogger();
 
-const CHARACTER_ID = 1689391488;
+// The token's own character, so the token may read its data; the fixed ID
+// is only for reading the example without one.
+const CHARACTER_ID = process.env.ESI_ACCESS_TOKEN
+  ? decodeAccessToken(process.env.ESI_ACCESS_TOKEN).characterId
+  : 1689391488;
 
 async function main() {
   const client = new EsiClient({

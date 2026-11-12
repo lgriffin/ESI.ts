@@ -10,7 +10,7 @@
  *
  * REQUIRES AUTHENTICATION and being in-game in a fleet as fleet commander.
  *
- * @nightly auth
+ * @nightly manual
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
