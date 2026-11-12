@@ -29,7 +29,6 @@
     "tests/bdd/step-definitions/core/skills.steps.ts",
     "tests/bdd/step-definitions/core/skyhooks.steps.ts",
     "tests/bdd/step-definitions/core/sovereignty.steps.ts",
-    "tests/bdd/step-definitions/core/status.steps.ts",
     "tests/bdd/step-definitions/core/token-management.steps.ts",
     "tests/bdd/step-definitions/core/ui.steps.ts",
     "tests/bdd/step-definitions/integration/integration-workflows.steps.ts",
