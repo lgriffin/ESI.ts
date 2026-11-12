@@ -1,8 +1,9 @@
 /**
  * ESI.ts Example: Access Lists
  *
- * Retrieves an access list (ACL) and displays its members
- * grouped by entity type. Requires ESI authentication.
+ * Lists the character's access lists (ACLs), then retrieves the first one
+ * and displays its members grouped by entity type. Requires ESI
+ * authentication.
  *
  * Usage: npm run example:access-lists
  *
@@ -11,17 +12,17 @@
  *
  * @nightly auth
  */
-import { EsiClient } from '../src/EsiClient';
-import { EsiError } from '../src/core/util/error';
-import { createConsoleLogger } from '../src';
+import { EsiClient, createConsoleLogger } from '../src';
+import { EsiError } from '../src/errors';
+import { exampleCharacterId } from './support/character';
 
 // The program's own output. The client logs through the same console sink
 // at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
 const log = createConsoleLogger('info');
 const esiLog = createConsoleLogger();
 
-const CHARACTER_ID = 90439768;
-const ACCESS_LIST_ID = 1;
+// ESI_CHARACTER_ID, else the token's own character (examples/support/character.ts).
+const CHARACTER_ID = exampleCharacterId();
 
 async function main() {
   const client = new EsiClient({
@@ -30,12 +31,17 @@ async function main() {
   });
 
   try {
-    log.info(`Access List #${ACCESS_LIST_ID}\n`);
+    const { access_lists: lists } =
+      await client.accessLists.getCharacterAccessLists(CHARACTER_ID);
+    log.info(`Access lists: ${lists.length}`);
+    const first = lists[0];
+    if (!first) {
+      log.info('This character has no access lists.');
+      return;
+    }
+    log.info(`Access List #${first.id}\n`);
 
-    const list = await client.accessLists.getAccessList(
-      CHARACTER_ID,
-      ACCESS_LIST_ID,
-    );
+    const list = await client.accessLists.getAccessList(CHARACTER_ID, first.id);
 
     const { membership } = list;
     log.info(`Name:           ${list.name}`);

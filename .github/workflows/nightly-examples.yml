@@ -17,6 +17,12 @@ name: Nightly Examples
 #
 # On a pull request that touches the examples or this tooling, the same run
 # happens but no issue is opened: the job result is the signal.
+#
+# A second job, `examples-auth`, runs on the schedule and on demand only. It
+# mints an access token from the `esi-sso` environment's secrets and runs the
+# gated-auth integration suite and every `auth` and `mixed` example with it,
+# keeping its own issues ("Nightly authenticated example failing: ...",
+# "Nightly gated auth suite failing").
 
 on:
   schedule:
@@ -162,4 +168,145 @@ jobs:
           RUN: ${{ steps.run.outcome }}
         run: |
           echo "::error::Examples type-check: $TYPECHECK; nightly run: $RUN. See the job summary."
+          exit 1
+
+  # The same check with a token: the gated-auth integration suite and every
+  # `auth` and `mixed` example, as the character the refresh token belongs to.
+  # The token is minted from two secrets in the `esi-sso` environment:
+  # ESI_SSO_CLIENT_ID and ESI_REFRESH_TOKEN (from `npm run token:create`; see
+  # guides/QUALITY-GATES.md#authenticated-nightly). Access tokens are masked
+  # and live 20 minutes; the examples runner mints a new one near expiry.
+  #
+  # Never on a pull request: the secrets stay with code already on a branch
+  # the environment allows. A run without the secrets fails rather than
+  # skipping, so a missing or revoked token cannot pass as green.
+  examples-auth:
+    name: Run the authenticated examples and gated suite against live ESI
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    environment: esi-sso
+    permissions:
+      contents: read
+      issues: write # open, comment on and close the authenticated issues
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Fails the job when a secret is missing or SSO refuses the refresh
+      # token, before anything runs. Exports a masked ESI_ACCESS_TOKEN.
+      - name: Mint an access token
+        env:
+          ESI_SSO_CLIENT_ID: ${{ secrets.ESI_SSO_CLIENT_ID }}
+          ESI_REFRESH_TOKEN: ${{ secrets.ESI_REFRESH_TOKEN }}
+        run: npm run token:ci
+
+      - name: Run the gated auth suite
+        id: gated
+        continue-on-error: true
+        env:
+          ESI_GATED_TESTS: 'true'
+        run: npx jest --config config/jest/integration.config.cjs --testPathPatterns=gated-auth
+
+      - name: Run the authenticated examples
+        id: run
+        continue-on-error: true
+        timeout-minutes: 120
+        env:
+          ESI_SSO_CLIENT_ID: ${{ secrets.ESI_SSO_CLIENT_ID }}
+          ESI_REFRESH_TOKEN: ${{ secrets.ESI_REFRESH_TOKEN }}
+        run: npm run examples:nightly -- --authenticated --json examples-auth-results.json
+
+      - name: Upload the results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: examples-auth-results
+          path: examples-auth-results.json
+          if-no-files-found: ignore
+
+      - name: Open, update or close the per-example issues
+        if: hashFiles('examples-auth-results.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          open_issue() {
+            gh issue list --state open --search "in:title \"$1\"" --json number,title \
+              --jq ".[] | select(.title == \"$1\") | .number" | head -n 1
+          }
+          jq -c '.[]' examples-auth-results.json | while read -r result; do
+            FILE=$(jq -r '.file' <<<"$result")
+            TITLE="Nightly authenticated example failing: examples/$FILE"
+            if jq -e '.verdict == "unavailable"' <<<"$result" >/dev/null; then
+              echo "::warning title=Nightly authenticated examples::examples/$FILE could not run: Tranquility was unavailable"
+              continue
+            fi
+            NUMBER=$(open_issue "$TITLE")
+            if jq -e '.timedOut or .exitCode != 0' <<<"$result" >/dev/null; then
+              REASON=$(jq -r 'if .timedOut then "timed out" elif .exitCode == 86 then "exited 0 but logged an error" else "exited with code \(.exitCode)" end' <<<"$result")
+              OUTPUT=$(jq -r '.output' <<<"$result")
+              BODY=$(printf '%s\n' \
+                "\`examples/$FILE\` failed the authenticated nightly run on $(date -u +%Y-%m-%d): $REASON, after one retry." \
+                "" \
+                "- Run: $RUN_URL" \
+                "- Reproduce: \`node --env-file=.env -r ts-node/register scripts/docs/examples-nightly.ts --authenticated --only $FILE\`" \
+                "" \
+                "Last lines of output:" \
+                "" \
+                '```' \
+                "$OUTPUT" \
+                '```')
+              if [ -n "$NUMBER" ]; then
+                gh issue comment "$NUMBER" --body "$BODY"
+              else
+                gh issue create --title "$TITLE" --body "$BODY"
+              fi
+            elif [ -n "$NUMBER" ]; then
+              gh issue close "$NUMBER" --comment "\`examples/$FILE\` passed the authenticated nightly run: $RUN_URL"
+            fi
+          done
+
+      - name: Open, update or close the gated-suite issue
+        if: always() && steps.gated.outcome != 'skipped'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GATED: ${{ steps.gated.outcome }}
+          TITLE: Nightly gated auth suite failing
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          NUMBER=$(gh issue list --state open --search "in:title \"$TITLE\"" \
+            --json number,title --jq ".[] | select(.title == \"$TITLE\") | .number" | head -n 1)
+          if [ "$GATED" != "success" ]; then
+            BODY="\`tests/integration/gated-auth.test.ts\` failed against live ESI on $(date -u +%Y-%m-%d). The failures are in the run log: $RUN_URL. Reproduce: \`npm run test:integration:gated\`."
+            if [ -n "$NUMBER" ]; then
+              gh issue comment "$NUMBER" --body "$BODY"
+            else
+              gh issue create --title "$TITLE" --body "$BODY"
+            fi
+          elif [ -n "$NUMBER" ]; then
+            gh issue close "$NUMBER" --comment "The gated auth suite passes again: $RUN_URL"
+          fi
+
+      - name: Fail the run
+        if: steps.gated.outcome != 'success' || steps.run.outcome != 'success'
+        env:
+          GATED: ${{ steps.gated.outcome }}
+          RUN: ${{ steps.run.outcome }}
+        run: |
+          echo "::error::Gated auth suite: $GATED; authenticated examples: $RUN. See the job summary."
           exit 1

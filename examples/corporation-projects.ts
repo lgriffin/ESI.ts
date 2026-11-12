@@ -13,9 +13,9 @@
  *
  * @nightly auth
  */
-import { EsiClient } from '../src/EsiClient';
-import { EsiError } from '../src/core/util/error';
-import { createConsoleLogger } from '../src';
+import { EsiClient, createConsoleLogger } from '../src';
+import { EsiError } from '../src/errors';
+import { exampleCharacterId } from './support/character';
 
 // The program's own output. The client logs through the same console sink
 // at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
@@ -23,7 +23,8 @@ const log = createConsoleLogger('info');
 const esiLog = createConsoleLogger();
 
 const CORP_ID = 98135622;
-const CHARACTER_ID = 90439768;
+// ESI_CHARACTER_ID, else the token's own character (examples/support/character.ts).
+const CHARACTER_ID = exampleCharacterId();
 
 async function tryOrSkip<T>(
   label: string,

@@ -6,8 +6,14 @@
  *
  * - `public`: calls only unauthenticated routes. Runs nightly and must pass.
  * - `mixed`: public calls first, then optional authenticated ones that it
- *   skips without `ESI_ACCESS_TOKEN`. Runs nightly without a token.
- * - `auth`: needs an access token. Type-checked, not run.
+ *   skips without `ESI_ACCESS_TOKEN`. Runs nightly without a token, and
+ *   again in the authenticated run with one.
+ * - `auth`: needs an access token and only reads the token's own character.
+ *   Runs in the authenticated run (`--authenticated`), whose token comes from
+ *   the refresh token in CI's secrets.
+ * - `manual`: needs a token and something a scheduled run cannot give it: it
+ *   changes the character's data, needs a person, a client secret or the
+ *   refresh token itself, or a corporation with roles. Type-checked, not run.
  * - `sde`: needs a local SDE export. Type-checked on every run; executed
  *   only where the export is present (`nightly-sde.yml`, or a machine with
  *   `sde-data/`), never against live ESI.
@@ -20,26 +26,37 @@
  * Pure functions with no I/O, so the unit suite can import them.
  */
 
-export const TIERS = ['public', 'mixed', 'auth', 'sde'] as const;
+export const TIERS = ['public', 'mixed', 'auth', 'manual', 'sde'] as const;
 export type ExampleTier = (typeof TIERS)[number];
 
-/** The tiers the nightly run executes against live ESI. */
+/** The tiers the nightly run executes against live ESI, without a token. */
 export const RUN_TIERS: readonly ExampleTier[] = ['public', 'mixed'];
+
+/** The tiers the authenticated nightly run executes, with an access token. */
+export const AUTH_RUN_TIERS: readonly ExampleTier[] = ['auth', 'mixed'];
 
 /**
  * The tiers one invocation runs: `--tier <t>` narrows to that tier, otherwise
- * the live tiers plus `sde` when an export is on disk.
+ * the live tiers plus `sde` when an export is on disk. An authenticated run
+ * runs `AUTH_RUN_TIERS`, and `--tier` may narrow it only to one of those.
  */
 export function runTiers(
   hasSdeData: boolean,
   only?: string,
+  authenticated = false,
 ): readonly ExampleTier[] {
   if (only !== undefined) {
     if (!(TIERS as readonly string[]).includes(only)) {
       throw new Error(`Unknown tier ${only}; one of ${TIERS.join(', ')}`);
     }
+    if (authenticated && !AUTH_RUN_TIERS.includes(only as ExampleTier)) {
+      throw new Error(
+        `--authenticated runs ${AUTH_RUN_TIERS.join(' and ')}, not ${only}`,
+      );
+    }
     return [only as ExampleTier];
   }
+  if (authenticated) return AUTH_RUN_TIERS;
   return hasSdeData ? [...RUN_TIERS, 'sde'] : RUN_TIERS;
 }
 
@@ -151,9 +168,15 @@ export function failureReason(result: ExampleResult): string {
   return `exited with code ${result.exitCode}`;
 }
 
-/** The issue title the nightly workflow opens, comments on and closes for one example. */
-export function issueTitle(file: string): string {
-  return `Nightly example failing: examples/${file}`;
+/**
+ * The issue title the nightly workflow opens, comments on and closes for one
+ * example. The authenticated run has its own, so a `mixed` example passing
+ * without a token does not close the issue its authenticated run opened.
+ */
+export function issueTitle(file: string, authenticated = false): string {
+  return authenticated
+    ? `Nightly authenticated example failing: examples/${file}`
+    : `Nightly example failing: examples/${file}`;
 }
 
 /** The last `maxLines` lines of `text`. */
@@ -163,7 +186,10 @@ export function tail(text: string, maxLines = 60): string {
 }
 
 /** A markdown summary of a nightly run, for the job summary. */
-export function summarize(results: readonly ExampleResult[]): string {
+export function summarize(
+  results: readonly ExampleResult[],
+  heading = 'Nightly examples',
+): string {
   const rows = results.map((r) => {
     const verdict = verdictOf(r);
     const detail =
@@ -179,7 +205,7 @@ export function summarize(results: readonly ExampleResult[]): string {
     (r) => verdictOf(r) === 'unavailable',
   ).length;
   return [
-    '## Nightly examples',
+    `## ${heading}`,
     '',
     `${results.length - failed - unavailable} of ${results.length} passed.`,
     ...(unavailable > 0
