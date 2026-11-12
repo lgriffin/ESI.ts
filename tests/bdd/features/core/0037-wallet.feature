@@ -85,6 +85,82 @@ Feature: Wallets
       When the client requests transactions for division 1
       Then the client shall return corporation transaction records
 
+  # ── Paging helpers ──────────────────────────────────────────────────
+
+  @DES-08
+  Rule: When a wallet journal or transaction history is collected or streamed page by page, the Wallet client shall return every entry of every page in page order.
+    The journal and transaction routes are paged, and each one has a pair of
+    helpers beside its eager method: fetchAllCharacterWalletJournal,
+    fetchAllCorporationWalletJournal, fetchAllCharacterWalletTransactions and
+    fetchAllCorporationWalletTransactions request the pages after the first
+    concurrently, and streamCharacterWalletJournal,
+    streamCorporationWalletJournal, streamCharacterWalletTransactions and
+    streamCorporationWalletTransactions yield one page at a time, as
+    guides/PAGINATION.md describes. 0073-page-walks.feature specifies the walk
+    once; these hold each wallet helper to it.
+
+    Scenario: A character journal collected across three pages
+      Given ESI answers the "character wallet journal" with 3 pages of 2 entries each
+      When the client walks the "character wallet journal" through the fetch-all helper
+      Then the walk shall resolve with the entries of pages 1 to 3
+      And the client shall have sent 3 requests
+
+    Scenario: A corporation division's transactions collected across two pages
+      Given ESI answers the "corporation wallet transactions" with 2 pages of 2 entries each
+      When the client walks the "corporation wallet transactions" through the fetch-all helper
+      Then the walk shall resolve with the entries of pages 1 to 2
+      And the client shall have sent 2 requests
+
+    Scenario: A character's transactions streamed across two pages
+      Given ESI answers the "character wallet transactions" with 2 pages of 2 entries each
+      When the client walks the "character wallet transactions" through the stream helper
+      Then the walk shall resolve with the entries of pages 1 to 2
+      And the client shall have sent 2 requests
+
+    Scenario: A corporation division's journal streamed across three pages
+      Given ESI answers the "corporation wallet journal" with 3 pages of 2 entries each
+      When the client walks the "corporation wallet journal" through the stream helper
+      Then the walk shall resolve with the entries of pages 1 to 3
+      And the client shall have sent 3 requests
+
+  @DES-08
+  Rule: Where incompletePages is left at its default, if the last page of a wallet journal or transaction walk comes back empty, then the Wallet client shall return the entries of the pages before it and log one incompletePages warning.
+    An empty page means the history shrank while it was being read, usually
+    because older entries aged out of ESI's 30-day window. The default keeps
+    what the walk fetched, and the warning is the only sign it is short.
+
+    Scenario: A character journal whose second page of two comes back empty, streamed
+      Given a client in incompletePages mode "truncate" with a recording logger
+      And ESI answers the "character wallet journal" with 2 pages, the last one empty
+      When the client walks the "character wallet journal" through the stream helper
+      Then the walk shall resolve with the entries of pages 1 to 1
+      And the logger shall have received one incompletePages warning for reason "empty-page" with 2 fetched pages
+
+    Scenario: A corporation division's journal whose second page of two comes back empty, collected
+      Given a client in incompletePages mode "truncate" with a recording logger
+      And ESI answers the "corporation wallet journal" with 2 pages, the last one empty
+      When the client walks the "corporation wallet journal" through the fetch-all helper
+      Then the walk shall resolve with the entries of pages 1 to 1
+      And the logger shall have received one incompletePages warning for reason "empty-page" with 2 fetched pages
+
+  @DES-08
+  Rule: Where incompletePages is set to throw, if the last page of a wallet journal or transaction walk comes back empty, then the Wallet client shall reject with an EsiPaginationError whose reason is empty-page.
+    A caller reconciling a wallet would rather fail than total a history with
+    a hole in it. A collected walk carries the entries it fetched before the
+    empty page; a stream has yielded them already, so its error counts them.
+
+    Scenario: A character's transactions whose second page of two comes back empty, collected
+      Given a client in incompletePages mode "throw" with a recording logger
+      And ESI answers the "character wallet transactions" with 2 pages, the last one empty
+      When the client walks the "character wallet transactions" through the fetch-all helper
+      Then the walk shall reject with an EsiPaginationError whose reason is "empty-page" carrying the entries of pages 1 to 1
+
+    Scenario: A corporation division's transactions whose second page of two comes back empty, streamed
+      Given a client in incompletePages mode "throw" with a recording logger
+      And ESI answers the "corporation wallet transactions" with 2 pages, the last one empty
+      When the client walks the "corporation wallet transactions" through the stream helper
+      Then the walk shall reject with an EsiPaginationError whose reason is "empty-page" counting 2 items
+
   # ── Authorisation ───────────────────────────────────────────────────
 
   Rule: If a wallet request is made without the scope or corporation role it needs, then the Wallet client shall reject the request with an EsiError.

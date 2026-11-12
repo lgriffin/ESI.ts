@@ -72,6 +72,53 @@ Feature: Loyalty Management
       When the client inspects the offers with requirements
       Then the client shall report the required items and quantities
 
+  # ── Paging helpers ──────────────────────────────────────────────────
+
+  @DES-08
+  Rule: When the loyalty points of a character or the store offers of an NPC corporation are collected or streamed page by page, the Loyalty client shall return every entry of every page in page order.
+    Each listing has a pair of helpers beside its eager method:
+    fetchAllLoyaltyPoints and fetchAllLoyaltyStoreOffers request the pages
+    after the first concurrently, and streamLoyaltyPoints and
+    streamLoyaltyStoreOffers yield one page at a time, as guides/PAGINATION.md
+    describes. 0073-page-walks.feature specifies the walk once; these hold
+    each loyalty helper to it.
+
+    Scenario: Loyalty points collected across two pages
+      Given ESI answers the "loyalty points" with 2 pages of 2 entries each
+      When the client walks the "loyalty points" through the fetch-all helper
+      Then the walk shall resolve with the entries of pages 1 to 2
+      And the client shall have sent 2 requests
+
+    Scenario: Store offers streamed across three pages
+      Given ESI answers the "loyalty store offers" with 3 pages of 2 entries each
+      When the client walks the "loyalty store offers" through the stream helper
+      Then the walk shall resolve with the entries of pages 1 to 3
+      And the client shall have sent 3 requests
+
+  @DES-08
+  Rule: Where incompletePages is left at its default, if the last page of a loyalty point or store offer walk comes back empty, then the Loyalty client shall return the entries of the pages before it and log one incompletePages warning.
+    An empty page means the listing shrank while it was being read. The
+    default keeps what the walk fetched, and the warning is the only sign it
+    is short.
+
+    Scenario: Loyalty points whose second page of two comes back empty, streamed
+      Given a client in incompletePages mode "truncate" with a recording logger
+      And ESI answers the "loyalty points" with 2 pages, the last one empty
+      When the client walks the "loyalty points" through the stream helper
+      Then the walk shall resolve with the entries of pages 1 to 1
+      And the logger shall have received one incompletePages warning for reason "empty-page" with 2 fetched pages
+
+  @DES-08
+  Rule: Where incompletePages is set to throw, if the last page of a loyalty point or store offer walk comes back empty, then the Loyalty client shall reject with an EsiPaginationError whose reason is empty-page.
+    The error carries the offers collected before the empty page, so a caller
+    that chose to refuse short walks still holds what was read.
+
+    Scenario: Store offers whose second page of two comes back empty, collected
+      Given a client in incompletePages mode "throw" with a recording logger
+      And ESI answers the "loyalty store offers" with 2 pages, the last one empty
+      When the client walks the "loyalty store offers" through the fetch-all helper
+      Then the walk shall reject with an EsiPaginationError whose reason is "empty-page" carrying the entries of pages 1 to 1
+
   # ── Error propagation ───────────────────────────────────────────────
 
   Rule: If every attempt at a loyalty request is answered with an error status and no usable cached entry exists, then the Loyalty client shall raise an EsiError.

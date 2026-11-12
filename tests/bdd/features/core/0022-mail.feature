@@ -71,6 +71,52 @@ Feature: Mail Management
       When the client requests their mailing lists
       Then the client shall return the mailing list details
 
+  # ── Paging helpers ──────────────────────────────────────────────────
+
+  @DES-08
+  Rule: When the mail headers or mailing lists of a character are collected or streamed page by page, the Mail client shall return every entry of every page in page order.
+    Each listing has a pair of helpers beside its eager method:
+    fetchAllMailHeaders and fetchAllMailingLists request the pages after the
+    first concurrently, and streamMailHeaders and streamMailingLists yield one
+    page at a time, as guides/PAGINATION.md describes. 0073-page-walks.feature
+    specifies the walk once; these hold each mail helper to it.
+
+    Scenario: Mail headers collected across three pages
+      Given ESI answers the "mail headers" with 3 pages of 2 entries each
+      When the client walks the "mail headers" through the fetch-all helper
+      Then the walk shall resolve with the entries of pages 1 to 3
+      And the client shall have sent 3 requests
+
+    Scenario: Mailing lists streamed across two pages
+      Given ESI answers the "mailing lists" with 2 pages of 2 entries each
+      When the client walks the "mailing lists" through the stream helper
+      Then the walk shall resolve with the entries of pages 1 to 2
+      And the client shall have sent 2 requests
+
+  @DES-08
+  Rule: Where incompletePages is left at its default, if the last page of a mail header or mailing list walk comes back empty, then the Mail client shall return the entries of the pages before it and log one incompletePages warning.
+    An empty page means the listing shrank while it was being read, as when
+    mail is deleted mid-walk. The default keeps what the walk fetched, and the
+    warning is the only sign it is short.
+
+    Scenario: Mail headers whose second page of two comes back empty, streamed
+      Given a client in incompletePages mode "truncate" with a recording logger
+      And ESI answers the "mail headers" with 2 pages, the last one empty
+      When the client walks the "mail headers" through the stream helper
+      Then the walk shall resolve with the entries of pages 1 to 1
+      And the logger shall have received one incompletePages warning for reason "empty-page" with 2 fetched pages
+
+  @DES-08
+  Rule: Where incompletePages is set to throw, if the last page of a mail header or mailing list walk comes back empty, then the Mail client shall reject with an EsiPaginationError whose reason is empty-page.
+    The error carries the entries collected before the empty page, so a
+    caller that chose to refuse short walks still holds what was read.
+
+    Scenario: Mailing lists whose second page of two comes back empty, collected
+      Given a client in incompletePages mode "throw" with a recording logger
+      And ESI answers the "mailing lists" with 2 pages, the last one empty
+      When the client walks the "mailing lists" through the fetch-all helper
+      Then the walk shall reject with an EsiPaginationError whose reason is "empty-page" carrying the entries of pages 1 to 1
+
   # ── Creating mail resources ─────────────────────────────────────────
 
   Rule: When a mail resource is created, the Mail client shall return the numeric identifier that ESI assigns to it.
