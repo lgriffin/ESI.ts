@@ -21,13 +21,20 @@ const SENSITIVE_PARAMS = [
 const NAME_BOUNDARY = String.raw`(?:^|[?&\s"'\x60(\[{,;])`;
 
 /**
+ * The characters a parameter name can hold: none of the boundaries, so a scan
+ * for a name stops at the next one and the prefilter stays linear in the
+ * length of the line. The same set as the name in redactLog's `PAIR`.
+ */
+const NAME_CHAR = String.raw`[^=&#?\s"'\x60()[\]{},;<>]`;
+
+/**
  * Matches text that may carry a parameter `sanitizeUrl` redacts: one of the
  * names above, or a percent-encoded name it could decode to, written as a URL
  * query parameter, a form field or a JSON key. A cheap prefilter, so a line
  * without one skips the redaction entirely.
  */
 export const SENSITIVE_QUERY_PATTERN: RegExp = new RegExp(
-  `${NAME_BOUNDARY}(?:(?:${SENSITIVE_PARAMS.join('|')})(?![A-Za-z0-9_])|[^?&=\\s]*%)`,
+  `${NAME_BOUNDARY}(?:(?:${SENSITIVE_PARAMS.join('|')})(?![A-Za-z0-9_])|${NAME_CHAR}*%)`,
 );
 
 const SENSITIVE_PARAM_SET: ReadonlySet<string> = new Set(SENSITIVE_PARAMS);

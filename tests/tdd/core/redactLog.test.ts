@@ -137,6 +137,28 @@ describe('SEC-02: redactLogText outside a URL', () => {
     );
   });
 
+  // A boundary the name scan does not stop at makes the prefilter rescan to
+  // the end of the line from every comma or quote: quadratic, so a 1 MB
+  // compact JSON body took minutes. Linear, each takes milliseconds; the
+  // bound leaves room for a slow machine and still fails a quadratic scan.
+  it.each([
+    [
+      'compact JSON',
+      JSON.stringify(
+        Array.from({ length: 50_000 }, (_, i) => ({ a: i, b: 'x' })),
+      ),
+    ],
+    ['brackets', '('.repeat(1_000_000)],
+    ['commas before a percent sign', `${','.repeat(1_000_000)}%`],
+    ['quotes', '"'.repeat(1_000_000)],
+  ])('redacts a megabyte of %s in linear time', (_kind, body) => {
+    const text = `${body} refresh_token=s3cret`;
+    const started = performance.now();
+    const out = redactLogText(text);
+    expect(performance.now() - started).toBeLessThan(1_000);
+    expect(out.endsWith('refresh_token=%5BREDACTED%5D')).toBe(true);
+  });
+
   it.each([
     'token: abc',
     'auth failed for character 1',
