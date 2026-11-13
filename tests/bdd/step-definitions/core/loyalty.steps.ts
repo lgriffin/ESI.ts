@@ -1,6 +1,16 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
-import { EsiError } from '../../../../src/core/util/error';
+import { EsiError, EsiPaginationError } from '../../../../src/core/util/error';
+import {
+  collectEveryPage,
+  entriesOfPages,
+  incompletePagesClient,
+  incompletePagesWarningsIn,
+  pagedCollection,
+  queuePagedCollection,
+  streamEveryPage,
+} from '../../support/paging-helpers';
+import type { RecordingLogger } from '../../support/logging';
 import {
   createSeamClient,
   lastRequest,
@@ -353,5 +363,170 @@ defineFeature(feature, (test) => {
       // 500 is not retried.
       expect(sentRequests()).toHaveLength(1);
     });
+  });
+
+  // ── Paging helpers: the walk is support/paging-helpers.ts's
+
+  test('Loyalty points collected across two pages', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    const points = pagedCollection('loyalty points');
+    const sizes = [2, 2];
+    let result: unknown[] = [];
+
+    given(
+      'ESI answers the "loyalty points" with 2 pages of 2 entries each',
+      () => {
+        queuePagedCollection(points, sizes);
+      },
+    );
+
+    when(
+      'the client walks the "loyalty points" through the fetch-all helper',
+      async () => {
+        result = await collectEveryPage(client, points);
+      },
+    );
+
+    then('the walk shall resolve with the entries of pages 1 to 2', () => {
+      expect(result).toEqual(entriesOfPages(points, sizes, 1, 2));
+    });
+
+    and('the client shall have sent 2 requests', () => {
+      expect(sentRequests()).toHaveLength(2);
+    });
+  });
+
+  test('Store offers streamed across three pages', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    const offers = pagedCollection('loyalty store offers');
+    const sizes = [2, 2, 2];
+    let result: unknown[] = [];
+
+    given(
+      'ESI answers the "loyalty store offers" with 3 pages of 2 entries each',
+      () => {
+        queuePagedCollection(offers, sizes);
+      },
+    );
+
+    when(
+      'the client walks the "loyalty store offers" through the stream helper',
+      async () => {
+        result = await streamEveryPage(client, offers);
+      },
+    );
+
+    then('the walk shall resolve with the entries of pages 1 to 3', () => {
+      expect(result).toEqual(entriesOfPages(offers, sizes, 1, 3));
+    });
+
+    and('the client shall have sent 3 requests', () => {
+      expect(sentRequests()).toHaveLength(3);
+    });
+  });
+
+  test('Loyalty points whose second page of two comes back empty, streamed', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    const points = pagedCollection('loyalty points');
+    const sizes = [2, 0];
+    let logger: RecordingLogger;
+    let result: unknown[] = [];
+
+    given(
+      'a client in incompletePages mode "truncate" with a recording logger',
+      () => {
+        ({ client, logger } = incompletePagesClient('truncate'));
+      },
+    );
+
+    and(
+      'ESI answers the "loyalty points" with 2 pages, the last one empty',
+      () => {
+        queuePagedCollection(points, sizes);
+      },
+    );
+
+    when(
+      'the client walks the "loyalty points" through the stream helper',
+      async () => {
+        result = await streamEveryPage(client, points);
+      },
+    );
+
+    then('the walk shall resolve with the entries of pages 1 to 1', () => {
+      expect(result).toEqual(entriesOfPages(points, sizes, 1, 1));
+    });
+
+    and(
+      'the logger shall have received one incompletePages warning for reason "empty-page" with 2 fetched pages',
+      () => {
+        const warnings = incompletePagesWarningsIn(logger);
+        expect(warnings).toHaveLength(1);
+        expect(warnings[0]!.context).toMatchObject({
+          reason: 'empty-page',
+          fetchedPages: 2,
+        });
+      },
+    );
+  });
+
+  test('Store offers whose second page of two comes back empty, collected', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    const offers = pagedCollection('loyalty store offers');
+    const sizes = [2, 0];
+    let caughtError: unknown;
+
+    given(
+      'a client in incompletePages mode "throw" with a recording logger',
+      () => {
+        ({ client } = incompletePagesClient('throw'));
+      },
+    );
+
+    and(
+      'ESI answers the "loyalty store offers" with 2 pages, the last one empty',
+      () => {
+        queuePagedCollection(offers, sizes);
+      },
+    );
+
+    when(
+      'the client walks the "loyalty store offers" through the fetch-all helper',
+      async () => {
+        try {
+          await collectEveryPage(client, offers);
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
+
+    then(
+      'the walk shall reject with an EsiPaginationError whose reason is "empty-page" carrying the entries of pages 1 to 1',
+      () => {
+        expect(caughtError).toBeInstanceOf(EsiPaginationError);
+        const error = caughtError as EsiPaginationError;
+        const entries = entriesOfPages(offers, sizes, 1, 1);
+        expect(error.reason).toBe('empty-page');
+        expect(error.partial).toEqual(entries);
+        expect(error.itemCount).toBe(entries.length);
+      },
+    );
   });
 });
