@@ -2,36 +2,60 @@ import { SENSITIVE_QUERY_PATTERN, isSensitiveQueryParam } from '../util/error';
 import type { ILogger, LogContext, LoggerLevel } from './ILogger';
 
 /**
- * One `name=value` pair of a query: the separator before it, the name as
- * written, and the value up to the next separator, whitespace, or character
- * that ends a URL in prose (quotes, brackets, a comma or semicolon).
+ * One `name=value` pair, in a URL query or a form body: the boundary before
+ * it (the same set as `NAME_BOUNDARY` in ../util/error), the name as written,
+ * and the value up to the next separator, whitespace, or character that ends
+ * a URL in prose (`?`, quotes, brackets, a comma or semicolon). Neither the
+ * name nor the value runs over a boundary, so a pair that is not sensitive
+ * never swallows one that is.
  */
-const QUERY_PAIR = /([?&])([^=&#?\s]+)=([^&#\s,;"'`<>()[\]{}]*)/g;
+const PAIR =
+  /(^|[?&\s"'`(\[{,;])([^=&#?\s"'`()[\]{},;<>]+)=([^&#?\s,;"'`<>()[\]{}]*)/g;
+
+/**
+ * One JSON string member, `"name": "value"`, with the text between the two
+ * strings kept as written. The value may hold escaped characters.
+ */
+const JSON_MEMBER = /"([^"\\]+)"(\s*:\s*)"((?:[^"\\]|\\.)*)"/g;
 
 /** The value `sanitizeUrl` writes for a redacted parameter, URL-encoded. */
 const REDACTED = '%5BREDACTED%5D';
 
+/** The value a redacted JSON member carries. */
+const REDACTED_JSON = '[REDACTED]';
+
 /**
- * Redact the sensitive query parameters of every URL in a piece of log text,
- * matching the names `sanitizeUrl` redacts. It works on the text itself
- * rather than parsing each URL, so URLs next to punctuation, relative and
- * protocol-relative paths, and URLs `new URL` rejects are all covered, and
- * everything else in the line keeps its exact wording.
+ * Redact every credential in a piece of log text: the sensitive parameters of
+ * a URL query or a form body (`grant_type=refresh_token&refresh_token=…`) and
+ * the sensitive string members of JSON (`"refresh_token": "…"`), matching the
+ * names `sanitizeUrl` redacts. It works on the text itself rather than parsing
+ * it, so URLs next to punctuation, relative and protocol-relative paths, URLs
+ * `new URL` rejects and truncated bodies are all covered, and everything else
+ * in the line keeps its exact wording.
  */
 export function redactLogText(text: string): string {
-  if (!text.includes('?') || !SENSITIVE_QUERY_PATTERN.test(text)) return text;
-  return text.replace(
-    QUERY_PAIR,
-    (pair: string, separator: string, name: string, value: string) =>
-      value !== '' && isSensitiveQueryParam(name)
-        ? `${separator}${name}=${REDACTED}`
-        : pair,
-  );
+  if (!SENSITIVE_QUERY_PATTERN.test(text)) return text;
+  return text
+    .replace(
+      JSON_MEMBER,
+      (member: string, name: string, colon: string, value: string) =>
+        value !== '' && isSensitiveQueryParam(name)
+          ? `"${name}"${colon}"${REDACTED_JSON}"`
+          : member,
+    )
+    .replace(
+      PAIR,
+      (pair: string, boundary: string, name: string, value: string) =>
+        value !== '' && isSensitiveQueryParam(name)
+          ? `${boundary}${name}=${REDACTED}`
+          : pair,
+    );
 }
 
 /**
  * Redact the log context: every top-level string value (a `url`, an
- * `endpoint`, a path) passes through the same URL redaction as the message.
+ * `endpoint`, a path, a response body) passes through the same redaction as
+ * the message.
  * Returns `undefined` for a missing or empty context so a logger never
  * receives `{}`.
  */
@@ -49,11 +73,7 @@ export function redactLogContext(
 
 /** The prefilter `redactLogText` applies, inlined for the hot path. */
 function mayCarrySecret(value: unknown): value is string {
-  return (
-    typeof value === 'string' &&
-    value.includes('?') &&
-    SENSITIVE_QUERY_PATTERN.test(value)
-  );
+  return typeof value === 'string' && SENSITIVE_QUERY_PATTERN.test(value);
 }
 
 function redactValues(

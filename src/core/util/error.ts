@@ -13,12 +13,21 @@ const SENSITIVE_PARAMS = [
 ];
 
 /**
- * Matches text that may carry a query parameter `sanitizeUrl` redacts: one of
- * the names above, or a percent-encoded name it could decode to. A cheap
- * prefilter, so a line without one skips URL parsing entirely.
+ * What may stand before a parameter name in log text, as a regex source: the
+ * start of the text, a URL query separator, whitespace, or punctuation that
+ * opens a quoted, bracketed or listed value (`\x60` is a backtick). A form
+ * body starts with a name, and a JSON key follows a quote.
+ */
+const NAME_BOUNDARY = String.raw`(?:^|[?&\s"'\x60(\[{,;])`;
+
+/**
+ * Matches text that may carry a parameter `sanitizeUrl` redacts: one of the
+ * names above, or a percent-encoded name it could decode to, written as a URL
+ * query parameter, a form field or a JSON key. A cheap prefilter, so a line
+ * without one skips the redaction entirely.
  */
 export const SENSITIVE_QUERY_PATTERN: RegExp = new RegExp(
-  `[?&](?:(?:${SENSITIVE_PARAMS.join('|')})(?![A-Za-z0-9_])|[^?&=\\s]*%)`,
+  `${NAME_BOUNDARY}(?:(?:${SENSITIVE_PARAMS.join('|')})(?![A-Za-z0-9_])|[^?&=\\s]*%)`,
 );
 
 const SENSITIVE_PARAM_SET: ReadonlySet<string> = new Set(SENSITIVE_PARAMS);

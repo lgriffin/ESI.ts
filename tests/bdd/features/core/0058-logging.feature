@@ -191,6 +191,27 @@ Feature: Log redaction
       When the application logs "GET https://esi.evetech.net/status?token=&page=2" at level "info" through the library
       Then the global logger shall receive only the "info" line "GET https://esi.evetech.net/status?token=&page=2"
 
+  @sec-P3
+  Rule: When the application logs a form body or a JSON body that carries a credential through the library's log functions, the global logger shall receive the line with the value of that credential replaced by [REDACTED].
+    A token reaches log text outside a URL too: an OAuth form body
+    (`grant_type=refresh_token&refresh_token=…`) or an SSO token response
+    (`{"access_token": "…"}`). The names are the ones `sanitizeUrl` redacts.
+    A form field keeps the URL-encoded marker a query parameter gets; a JSON
+    member keeps its quotes, so the line still parses. Every other field and
+    the rest of the text keep their exact wording.
+
+    Scenario: A refresh token in a form body is logged redacted
+      Given the global logger is a recording logger
+      When the application logs "POST /v2/oauth/token grant_type=refresh_token&refresh_token=r-9f2c" at level "warn" through the library
+      Then the global logger shall receive only the "warn" line "POST /v2/oauth/token grant_type=refresh_token&refresh_token=%5BREDACTED%5D"
+      And no logged line shall contain "r-9f2c"
+
+    Scenario: An access token in a JSON token response is logged redacted
+      Given the global logger is a recording logger
+      When the application logs 'token response {"access_token":"a-77e1","token_type":"Bearer"}' at level "warn" through the library
+      Then the global logger shall receive only the "warn" line 'token response {"access_token":"[REDACTED]","token_type":"Bearer"}'
+      And no logged line shall contain "a-77e1"
+
   Rule: When the application logs a line with an empty context through the library's log functions, the global logger shall receive that line without a context.
     An empty object adds nothing to a line, and a structured sink would
     write it as an empty field. `ILogger` promises a logger never receives
