@@ -82,6 +82,96 @@ describe('SEC-02: redactLogText edge cases', () => {
   });
 });
 
+describe('SEC-02: redactLogText outside a URL', () => {
+  it.each([
+    [
+      'grant_type=refresh_token&refresh_token=s3cret',
+      'grant_type=refresh_token&refresh_token=%5BREDACTED%5D',
+    ],
+    ['body: refresh_token=s3cret', 'body: refresh_token=%5BREDACTED%5D'],
+    [
+      'client_id=app&client_secret=s3cret&code=s3cret',
+      'client_id=app&client_secret=%5BREDACTED%5D&code=%5BREDACTED%5D',
+    ],
+    ['a "token=s3cret" b', 'a "token=%5BREDACTED%5D" b'],
+    ["a 'token=s3cret' b", "a 'token=%5BREDACTED%5D' b"],
+    ['a `token=s3cret` b', 'a `token=%5BREDACTED%5D` b'],
+    ['(token=s3cret)', '(token=%5BREDACTED%5D)'],
+    ['[token=s3cret]', '[token=%5BREDACTED%5D]'],
+    ['{token=s3cret}', '{token=%5BREDACTED%5D}'],
+    ['x,token=s3cret', 'x,token=%5BREDACTED%5D'],
+    ['x;token=s3cret', 'x;token=%5BREDACTED%5D'],
+    ['line	token=s3cret', 'line	token=%5BREDACTED%5D'],
+    ['tok%65n=s3cret', 'tok%65n=%5BREDACTED%5D'],
+  ])('redacts the form field in %s', (text, expected) => {
+    expect(redactLogText(text)).toBe(expected);
+  });
+
+  it('does not let a field that is not sensitive swallow the next one', () => {
+    expect(redactLogText('next=/a/?token=s3cret')).toBe(
+      'next=/a/?token=%5BREDACTED%5D',
+    );
+    expect(redactLogText('state=x"token=s3cret')).toBe(
+      'state=x"token=%5BREDACTED%5D',
+    );
+  });
+
+  it('redacts each sensitive string member of a JSON body', () => {
+    const body =
+      '{"access_token":"eyJ.a.b","expires_in":1199,"token_type":"Bearer","refresh_token":"r-9f2c"}';
+    expect(redactLogText(`token response ${body}`)).toBe(
+      'token response {"access_token":"[REDACTED]","expires_in":1199,"token_type":"Bearer","refresh_token":"[REDACTED]"}',
+    );
+  });
+
+  it('keeps the spacing of a JSON member and an escaped quote inside its value', () => {
+    expect(redactLogText('{ "token" : "a\\"b", "page": "2" }')).toBe(
+      '{ "token" : "[REDACTED]", "page": "2" }',
+    );
+  });
+
+  it('leaves an empty JSON member and a member that is not sensitive alone', () => {
+    const text = '{"token":"","token_type":"Bearer","note":"token=s3cret"}';
+    expect(redactLogText(text)).toBe(
+      '{"token":"","token_type":"Bearer","note":"token=%5BREDACTED%5D"}',
+    );
+  });
+
+  // A boundary the name scan does not stop at makes the prefilter rescan to
+  // the end of the line from every comma or quote: quadratic, so a 1 MB
+  // compact JSON body took minutes. Linear, each takes milliseconds; the
+  // bound leaves room for a slow machine and still fails a quadratic scan.
+  it.each([
+    [
+      'compact JSON',
+      JSON.stringify(
+        Array.from({ length: 50_000 }, (_, i) => ({ a: i, b: 'x' })),
+      ),
+    ],
+    ['brackets', '('.repeat(1_000_000)],
+    ['commas before a percent sign', `${','.repeat(1_000_000)}%`],
+    ['quotes', '"'.repeat(1_000_000)],
+  ])('redacts a megabyte of %s in linear time', (_kind, body) => {
+    const text = `${body} refresh_token=s3cret`;
+    const started = performance.now();
+    const out = redactLogText(text);
+    expect(performance.now() - started).toBeLessThan(1_000);
+    expect(out.endsWith('refresh_token=%5BREDACTED%5D')).toBe(true);
+  });
+
+  it.each([
+    'token: abc',
+    'auth failed for character 1',
+    'status code 500',
+    'tokens=3',
+    'mytoken=abc',
+    '99% done',
+    'code=',
+  ])('leaves prose with no credential exactly as it was: %s', (text) => {
+    expect(redactLogText(text)).toBe(text);
+  });
+});
+
 describe('SEC-02: redactLogContext', () => {
   it('redacts every top-level string value that carries a URL', () => {
     expect(
@@ -94,6 +184,18 @@ describe('SEC-02: redactLogContext', () => {
       url: REDACTED_URL,
       endpoint: '/characters/1/?refresh_token=%5BREDACTED%5D',
       status: 200,
+    });
+  });
+
+  it('redacts a form body or JSON body held in a context field', () => {
+    expect(
+      redactLogContext({
+        body: 'grant_type=refresh_token&refresh_token=r',
+        reply: '{"access_token":"a"}',
+      }),
+    ).toEqual({
+      body: 'grant_type=refresh_token&refresh_token=%5BREDACTED%5D',
+      reply: '{"access_token":"[REDACTED]"}',
     });
   });
 
