@@ -106,7 +106,10 @@ function section(markdown: string, heading: string): string {
   return lines.slice(start + 1, end === -1 ? lines.length : end).join('\n');
 }
 
-export function parseProse(markdown: string): ProseModel {
+export function parseProse(source: string): ProseModel {
+  // A Windows checkout (core.autocrlf) has CRLF line endings; the `$` anchors
+  // and `\n` splits below read LF only.
+  const markdown = source.replace(/\r\n/g, '\n');
   const properties = new Map<string, string>();
   for (const line of section(markdown, 'Security properties claimed').split(
     '\n',
