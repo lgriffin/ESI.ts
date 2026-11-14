@@ -58,10 +58,17 @@ const fixtureFiles = [
 
 function runScript(args: string[]): { status: number; stdout: string } {
   try {
+    // Node itself rather than `npx`, which is `npx.cmd` on Windows and does
+    // not spawn without a shell.
     const stdout = execFileSync(
-      'npx',
-      ['ts-node', '--transpile-only', SCRIPT, ...args],
-      { cwd: ROOT, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'pipe'] },
+      process.execPath,
+      ['-r', 'ts-node/register', SCRIPT, ...args],
+      {
+        cwd: ROOT,
+        encoding: 'utf-8',
+        env: { ...process.env, TS_NODE_TRANSPILE_ONLY: 'true' },
+        stdio: ['ignore', 'pipe', 'pipe'],
+      },
     );
     return { status: 0, stdout };
   } catch (error) {

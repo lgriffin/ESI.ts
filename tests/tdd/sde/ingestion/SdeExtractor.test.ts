@@ -295,18 +295,26 @@ describe('ARCH-12: SdeExtractor', () => {
       ['a folder entry', 'sde/', 'sde'],
       ['a colon after the first character', 'notes/C:types.yaml', 'notes'],
       ['a name that resolves to the directory itself', './', null],
-    ])('extracts an archive holding %s', (_label, name, expected) => {
-      const zipPath = hostileZip(name);
-      const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sde-out-'));
-      try {
-        extractor.extractAll(zipPath, outputDir);
-        expect(fs.readdirSync(outputDir).sort()).toEqual(
-          expected === null ? ['types.yaml'] : [expected, 'types.yaml'].sort(),
-        );
-      } finally {
-        fs.rmSync(outputDir, { recursive: true, force: true });
-      }
-    });
+    ])(
+      'extracts an archive holding %s, with Linux rules',
+      (_label, name, expected) => {
+        const zipPath = hostileZip(name);
+        const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sde-out-'));
+        try {
+          new SdeExtractor({ platform: 'linux' }).extractAll(
+            zipPath,
+            outputDir,
+          );
+          expect(fs.readdirSync(outputDir).sort()).toEqual(
+            expected === null
+              ? ['types.yaml']
+              : [expected, 'types.yaml'].sort(),
+          );
+        } finally {
+          fs.rmSync(outputDir, { recursive: true, force: true });
+        }
+      },
+    );
 
     it('counts every escaping entry in the refusal', () => {
       const zip = new AdmZip();
@@ -332,6 +340,72 @@ describe('ARCH-12: SdeExtractor', () => {
         ).toThrow(/2 entries would land outside/);
       } finally {
         fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    describe('with Windows rules', () => {
+      const windows = new SdeExtractor({ platform: 'win32' });
+
+      it('refuses a colon after the first character, naming it, and writes nothing', () => {
+        const zipPath = hostileZip('notes/C:types.yaml');
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sde-out-'));
+        const outputDir = path.join(root, 'out');
+        try {
+          expect(() => windows.extractAll(zipPath, outputDir)).toThrow(
+            new SdeError(
+              `Refusing to extract ${zipPath}: 1 entry would name an NTFS alternate data stream on Windows (first: "notes/C:types.yaml")`,
+            ),
+          );
+          expect(fs.readdirSync(root)).toEqual([]);
+        } finally {
+          fs.rmSync(root, { recursive: true, force: true });
+        }
+      });
+
+      it('counts every colon entry in the refusal', () => {
+        const zipPath = createTestZip({
+          'notes/ab:1.yaml': 'a: 1\n',
+          'notes/cd:2.yaml': 'b: 2\n',
+        });
+        tempFiles.push(zipPath);
+        expect(() =>
+          windows.extractAll(zipPath, path.join(os.tmpdir(), 'never')),
+        ).toThrow(
+          /2 entries would name an NTFS alternate data stream on Windows \(first: "notes\/ab:1\.yaml"\)/,
+        );
+      });
+
+      it('reports an escaping name before a colon', () => {
+        const zipPath = hostileZip('C:/escaped.yaml');
+        expect(() =>
+          windows.extractAll(zipPath, path.join(os.tmpdir(), 'never')),
+        ).toThrow(/1 entry would land outside/);
+      });
+
+      it('extracts an archive with no colon in any name', () => {
+        const zipPath = createTestZip({ 'notes/types.yaml': 'a: 1\n' });
+        tempFiles.push(zipPath);
+        const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sde-out-'));
+        try {
+          windows.extractAll(zipPath, outputDir);
+          expect(fs.readdirSync(path.join(outputDir, 'notes'))).toEqual([
+            'types.yaml',
+          ]);
+        } finally {
+          fs.rmSync(outputDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    it('applies the rules of the platform it runs on by default', () => {
+      const zipPath = hostileZip('notes/C:types.yaml');
+      const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sde-out-'));
+      try {
+        const extract = () => extractor.extractAll(zipPath, outputDir);
+        if (process.platform === 'win32') expect(extract).toThrow(SdeError);
+        else expect(extract).not.toThrow();
+      } finally {
+        fs.rmSync(outputDir, { recursive: true, force: true });
       }
     });
   });
