@@ -22,9 +22,11 @@ const VALUE_RUN = /[^&#?\s,;"'`<>()[\]{}]*/y;
 /**
  * One JSON string member, `"name": "value"`, with the text between the two
  * strings kept as written. The name and the value may hold escaped
- * characters, so `"refresh\u005ftoken"` is read as `refresh_token`.
+ * characters, so `"refresh\u005ftoken"` is read as `refresh_token`. A name
+ * never holds a quote, even an escaped one, so the scan for a name stops at
+ * the next quote and stays linear in the length of the line.
  */
-const JSON_MEMBER = /"((?:[^"\\]|\\.)+)"(\s*:\s*)"((?:[^"\\]|\\.)*)"/g;
+const JSON_MEMBER = /"((?:[^"\\]|\\[^"])+)"(\s*:\s*)"((?:[^"\\]|\\.)*)"/g;
 
 /** The value `sanitizeUrl` writes for a redacted parameter, URL-encoded. */
 const REDACTED = '%5BREDACTED%5D';

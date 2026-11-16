@@ -199,6 +199,7 @@ describe('SEC-02: redactLogText outside a URL', () => {
     ['brackets', '('.repeat(1_000_000)],
     ['commas before a percent sign', `${','.repeat(1_000_000)}%`],
     ['quotes', '"'.repeat(1_000_000)],
+    ['escaped quotes after a quote', `"${'\\"!'.repeat(300_000)}`],
     ['question marks in a value', `x=${'?a'.repeat(500_000)}`],
     ['backslashes in a name', `,a${'\\'.repeat(1_000_000)}`],
   ])('redacts a megabyte of %s in linear time', (_kind, body) => {
