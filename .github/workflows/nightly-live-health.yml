@@ -122,7 +122,7 @@ jobs:
             "- Run: $RUN_URL" \
             "- Reproduce: \`npm run health:live\` with ESI_HEALTH_CLIENT_ID and ESI_HEALTH_REFRESH_TOKEN set" \
             "" \
-            "A refresh token SSO rejected needs a new one minted (npm run token:create) and the secret updated; anything else is the client's to fix. This issue closes itself on the next healthy run.")
+            "A refresh token SSO rejected: check first that ESI_HEALTH_CLIENT_ID is the client it was minted with, then mint a new one (npm run token:create) and update the secret; anything else is the client's to fix. This issue closes itself on the next healthy run.")
           NUMBER=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" \
             --json number,title --jq ".[] | select(.title == \"$ISSUE_TITLE\") | .number" | head -n 1)
           if [ -n "$NUMBER" ]; then

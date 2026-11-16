@@ -78,7 +78,7 @@ export function classify(
     // a dead token from one refreshed with the wrong client (#785).
     return {
       code: EXIT.failed,
-      reason: `${error.message}; mint a new one with npm run token:create and update the ESI_HEALTH_REFRESH_TOKEN secret`,
+      reason: `${error.message}. Check first that ESI_HEALTH_CLIENT_ID is the client the token was minted with; if it is, mint a new token with npm run token:create and update the ESI_HEALTH_REFRESH_TOKEN secret`,
     };
   }
   if (error instanceof SsoError) {
