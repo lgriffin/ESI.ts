@@ -39,8 +39,8 @@ const jwt = (scopes: string[]): string =>
   })}.sig`;
 
 const env = {
-  ESI_HEALTH_CLIENT_ID: 'client-id',
-  ESI_HEALTH_REFRESH_TOKEN: 'refresh-1',
+  ESI_SSO_CLIENT_ID: 'client-id',
+  ESI_REFRESH_TOKEN: 'refresh-1',
 };
 
 const ssoJson = (accessToken: string, refreshToken = 'refresh-1'): string =>
@@ -118,8 +118,8 @@ describe('run', () => {
   it('reports not configured, naming the missing variables, without calling anything', async () => {
     const outcome = await run({});
     expect(outcome.code).toBe(EXIT.unconfigured);
-    expect(outcome.lines[0]).toContain('ESI_HEALTH_CLIENT_ID');
-    expect(outcome.lines[0]).toContain('ESI_HEALTH_REFRESH_TOKEN');
+    expect(outcome.lines[0]).toContain('ESI_SSO_CLIENT_ID');
+    expect(outcome.lines[0]).toContain('ESI_REFRESH_TOKEN');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -184,7 +184,27 @@ describe('run', () => {
     );
     const outcome = await run(env);
     expect(outcome.code).toBe(EXIT.failed);
-    expect(outcome.lines[0]).toContain('ESI_HEALTH_REFRESH_TOKEN');
+    expect(outcome.lines[0]).toContain('ESI_REFRESH_TOKEN');
+    // SSO's own description is kept, so the issue says what SSO said (#785).
+    expect(outcome.lines[0]).toContain('invalid_grant');
+    expect(outcome.lines[0]).toContain('revoked');
+  });
+
+  it('refreshes as a public client with client_id in the body and trims pasted secrets', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({ error: 'invalid_grant', error_description: 'x' }),
+      { status: 400 },
+    );
+    await run({
+      ESI_SSO_CLIENT_ID: ' client-id\n',
+      ESI_REFRESH_TOKEN: 'refresh-1\n',
+    });
+    const [, init] = fetchMock.mock.calls[0]!;
+    const headers = init?.headers as Record<string, string>;
+    expect(headers['Authorization']).toBeUndefined();
+    const body = new URLSearchParams(String(init?.body));
+    expect(body.get('client_id')).toBe('client-id');
+    expect(body.get('refresh_token')).toBe('refresh-1');
   });
 
   it('warns when SSO rotates the refresh token, without printing either token', async () => {

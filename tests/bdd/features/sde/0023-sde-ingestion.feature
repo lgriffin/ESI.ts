@@ -239,6 +239,9 @@ Feature: SDE Ingestion
     The check that refuses an escaping name must not refuse a safe one: a
     folder entry ends in a slash, and a colon past the first character is
     an ordinary character in a Linux or macOS file name, not a drive letter.
+    The colon scenario applies the Linux rules and reads each file back by
+    its name, which a Windows host also answers (from the NTFS stream the
+    colon names), so it runs on every host.
 
     Scenario: An archive with its files in a folder is extracted with the folder
       Given an SDE directory holding the raw export files
@@ -247,11 +250,38 @@ Feature: SDE Ingestion
       When I extract the archive to that directory
       Then the extraction directory shall hold "README.txt, sde/_sde.yaml, sde/groups.yaml, sde/types.yaml"
 
-    Scenario: A name with a colon after its first character is extracted
+    Scenario: A name with a colon after its first character is extracted on Linux
       Given a ZIP archive holding only the entries "notes/C:types.yaml, types.yaml"
       And an empty extraction directory
-      When I extract the archive to that directory
-      Then the extraction directory shall hold "notes/C:types.yaml, types.yaml"
+      When I extract the archive to that directory as on Linux
+      Then each of "notes/C:types.yaml, types.yaml" shall read back from the extraction directory with its archived content
+
+  @ARCH-13
+  Rule: Where the platform is Windows, if an archive holds an entry whose name has a colon, then the SdeExtractor shall refuse the archive, naming the count of those entries and the first of them.
+    NTFS reads `notes/C:types.yaml` as the stream `types.yaml` of a file
+    `notes/C`: the data would land somewhere no directory listing shows. A
+    leading drive letter is already refused as an escaping name. CCP's
+    export never uses a colon, so an archive that does is not one to unpack.
+
+    Scenario: A name with a colon is refused on Windows before anything is written
+      Given a ZIP archive holding only the entries "notes/C:types.yaml, types.yaml"
+      And an empty extraction directory
+      When I try to extract the archive to that directory as on Windows
+      Then the extraction shall be refused with an SdeError saying "1 entry would name an NTFS alternate data stream"
+      And the extraction shall be refused with an SdeError saying '(first: "notes/C:types.yaml")'
+      And the extraction directory shall hold no file
+
+    Scenario: Two names with a colon are counted as two entries
+      Given a ZIP archive holding only the entries "notes/ab:1.yaml, notes/cd:2.yaml, types.yaml"
+      And an empty extraction directory
+      When I try to extract the archive to that directory as on Windows
+      Then the extraction shall be refused with an SdeError saying "2 entries would name an NTFS alternate data stream"
+
+    Scenario: A name without a colon is extracted on Windows
+      Given a ZIP archive holding only the entries "notes/types.yaml, types.yaml"
+      And an empty extraction directory
+      When I extract the archive to that directory as on Windows
+      Then the extraction directory shall hold "notes/types.yaml, types.yaml"
 
   @ARCH-13
   Rule: If an archive is refused for entries that would land outside the directory, then the SdeExtractor shall name the count of those entries and the first of them.

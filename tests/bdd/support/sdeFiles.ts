@@ -206,11 +206,16 @@ export function zipSdeDirectoryInFolder(world: World, folder: string): string {
   return zipPath;
 }
 
+/** The one line of YAML `zipEntries` gives the entry `name`. */
+export function entryContent(name: string): string {
+  return `name: ${JSON.stringify(name)}\n`;
+}
+
 /** An archive of exactly these entries, each holding one line of YAML. */
 export function zipEntries(world: World, names: string[]): string {
   const zip = new AdmZip();
   for (const name of names) {
-    zip.addFile(name, Buffer.from(`name: ${JSON.stringify(name)}\n`));
+    zip.addFile(name, Buffer.from(entryContent(name)));
   }
   const zipPath = tempPath(world, 'sde.zip');
   zip.writeZip(zipPath);
@@ -249,10 +254,49 @@ export function extractionDirectoryHolding(
   world.values.extractDir = dir;
 }
 
-export function extractArchive(world: World): void {
-  new SdeExtractor().extractAll(
+/** The platforms a scenario can name, as `process.platform` spells them. */
+const PLATFORMS: Readonly<Record<string, NodeJS.Platform>> = {
+  Linux: 'linux',
+  macOS: 'darwin',
+  Windows: 'win32',
+};
+
+/** `process.platform` for a platform a scenario names. */
+export function platformNamed(name: string): NodeJS.Platform {
+  const platform = PLATFORMS[name];
+  if (!platform) throw new Error(`Unknown platform "${name}"`);
+  return platform;
+}
+
+/** Extract the archive, applying `platform`'s file-name rules when given. */
+export function extractArchive(world: World, platform?: NodeJS.Platform): void {
+  new SdeExtractor(platform ? { platform } : {}).extractAll(
     sdeArchive(world),
     world.values.extractDir as string,
+  );
+}
+
+/** Extract as `extractArchive` does, keeping the error for a Then step. */
+export function tryExtractArchive(
+  world: World,
+  platform: NodeJS.Platform,
+): void {
+  try {
+    extractArchive(world, platform);
+  } catch (error) {
+    world.error = error;
+  }
+}
+
+/**
+ * The text read back from `name` in the extraction directory. A name with a
+ * colon reads back on every host: as a file on Linux and macOS, and on NTFS
+ * as the stream the colon names.
+ */
+export function extractedText(world: World, name: string): string {
+  return fs.readFileSync(
+    path.join(world.values.extractDir as string, name),
+    'utf-8',
   );
 }
 

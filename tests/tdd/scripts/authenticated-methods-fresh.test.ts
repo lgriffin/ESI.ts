@@ -46,10 +46,12 @@ describe('authenticatedMethods.generated.ts is fresh', () => {
     expect(unknown).toEqual([]);
 
     const regenerated = format(renderAuthenticatedMethods(authenticated));
+    // LF, as git stores it: a Windows checkout (core.autocrlf) has CRLF,
+    // and Prettier writes LF.
     const committed = readFileSync(
       path.join(ROOT, AUTHENTICATED_METHODS_PATH),
       'utf8',
-    );
+    ).replace(/\r\n/g, '\n');
 
     expect(committed).toBe(regenerated);
   }, 60_000);
