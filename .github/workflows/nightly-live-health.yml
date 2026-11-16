@@ -10,7 +10,7 @@ name: Nightly Live Health
 #   ESI_REFRESH_TOKEN  the PKCE refresh token `npm run token:create` minted
 #                      with it; the character must have granted
 #                      esi-location.read_online.v1
-# These are the secrets nightly-examples.yml already uses: one token serves
+# These are the esi-sso environment secrets nightly-examples.yml already uses: one token serves
 # both nightlies, so re-minting it never strands a second copy (#785). EVE SSO
 # returns the same refresh token on a refresh grant, so sharing it is safe.
 # Until they exist the run fails with "not configured" and files nothing new:
@@ -51,6 +51,9 @@ jobs:
     name: Smoke Tranquility with an authenticated route
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # The SSO secrets live in the esi-sso environment, shared with the
+    # authenticated job in nightly-examples.yml.
+    environment: esi-sso
     permissions:
       contents: read
       issues: write # open, comment on and close the single live-health issue
