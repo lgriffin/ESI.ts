@@ -170,6 +170,42 @@ describe('SEC-02: redactLogText outside a URL', () => {
   ])('leaves prose with no credential exactly as it was: %s', (text) => {
     expect(redactLogText(text)).toBe(text);
   });
+
+  // Every log line passes through here, so the prefilter is the hot path: a
+  // line with no sensitive name returns before either redaction regex runs.
+  // Without it the output is the same but each line pays for two full scans.
+  it.each([
+    'GET /characters/1/?page=2 200',
+    '{"token_type":"Bearer","expires_in":1199}',
+    'grant_type=authorization_code&state=abc',
+  ])(
+    'skips both redaction scans for a line with no sensitive name: %s',
+    (text) => {
+      const replace = jest.spyOn(String.prototype, 'replace');
+      let out: string;
+      let calls: number;
+      try {
+        out = redactLogText(text);
+        calls = replace.mock.calls.length;
+      } finally {
+        replace.mockRestore();
+      }
+      expect(calls).toBe(0);
+      expect(out).toBe(text);
+    },
+  );
+
+  it('runs the redaction scans once the prefilter sees a sensitive name', () => {
+    const replace = jest.spyOn(String.prototype, 'replace');
+    let calls: number;
+    try {
+      redactLogText('grant_type=refresh_token&refresh_token=s3cret');
+      calls = replace.mock.calls.length;
+    } finally {
+      replace.mockRestore();
+    }
+    expect(calls).toBeGreaterThan(0);
+  });
 });
 
 describe('SEC-02: redactLogContext', () => {
