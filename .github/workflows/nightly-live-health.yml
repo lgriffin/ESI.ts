@@ -6,10 +6,14 @@ name: Nightly Live Health
 # The script is scripts/quality/live-health.ts (`npm run health:live`).
 #
 # Secrets (Settings → Secrets and variables → Actions → Repository secrets):
-#   ESI_HEALTH_CLIENT_ID      the SSO application's client id
-#   ESI_HEALTH_CLIENT_SECRET  its secret; leave unset for a PKCE (public) app
+#   ESI_HEALTH_CLIENT_ID      the client id the token was minted with
 #   ESI_HEALTH_REFRESH_TOKEN  a refresh token for a character that granted
 #                             esi-location.read_online.v1
+# `npm run token:create` (#545) mints a PKCE token, so the smoke refreshes it
+# as a public client, the way nightly-examples.yml refreshes its token, and
+# is NOT given ESI_HEALTH_CLIENT_SECRET. With the secret it was refreshed as
+# a confidential client and SSO answered invalid_grant from the first
+# configured run (#785).
 # Until they exist the run fails with "not configured" and files nothing new:
 # #545 tracks minting the token. Until 2026-11-08 an unconfigured run passed
 # with a warning, so the check was green every night without making one
@@ -74,7 +78,6 @@ jobs:
         id: smoke
         env:
           ESI_HEALTH_CLIENT_ID: ${{ secrets.ESI_HEALTH_CLIENT_ID }}
-          ESI_HEALTH_CLIENT_SECRET: ${{ secrets.ESI_HEALTH_CLIENT_SECRET }}
           ESI_HEALTH_REFRESH_TOKEN: ${{ secrets.ESI_HEALTH_REFRESH_TOKEN }}
         run: |
           set +e
@@ -84,7 +87,7 @@ jobs:
           case "$CODE" in
             0) VERDICT=healthy; echo "::notice title=Live health::healthy" ;;
             2) VERDICT=unavailable; echo "::warning title=Live health::Tranquility or SSO unavailable; see the step summary" ;;
-            3) VERDICT=unconfigured; echo "::error title=Live health::not configured (#545): add ESI_HEALTH_CLIENT_ID and ESI_HEALTH_REFRESH_TOKEN (and ESI_HEALTH_CLIENT_SECRET for a confidential app) as repository secrets" ;;
+            3) VERDICT=unconfigured; echo "::error title=Live health::not configured (#545): add ESI_HEALTH_CLIENT_ID and ESI_HEALTH_REFRESH_TOKEN as repository secrets" ;;
             *) VERDICT=failed; echo "::error title=Live health::failed (exit $CODE); see the step summary and the issue titled '$ISSUE_TITLE'" ;;
           esac
           echo "code=$CODE" >> "$GITHUB_OUTPUT"
@@ -117,9 +120,9 @@ jobs:
             "$DETAIL" \
             "" \
             "- Run: $RUN_URL" \
-            "- Reproduce: \`npm run health:live\` with ESI_HEALTH_CLIENT_ID, ESI_HEALTH_CLIENT_SECRET and ESI_HEALTH_REFRESH_TOKEN set" \
+            "- Reproduce: \`npm run health:live\` with ESI_HEALTH_CLIENT_ID and ESI_HEALTH_REFRESH_TOKEN set" \
             "" \
-            "A refresh token SSO rejected needs a new one issued and the secret updated; anything else is the client's to fix. This issue closes itself on the next healthy run.")
+            "A refresh token SSO rejected needs a new one minted (npm run token:create) and the secret updated; anything else is the client's to fix. This issue closes itself on the next healthy run.")
           NUMBER=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" \
             --json number,title --jq ".[] | select(.title == \"$ISSUE_TITLE\") | .number" | head -n 1)
           if [ -n "$NUMBER" ]; then

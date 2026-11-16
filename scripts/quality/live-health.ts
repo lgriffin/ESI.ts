@@ -9,9 +9,13 @@
  *
  * Environment (repository secrets in CI):
  *   ESI_HEALTH_CLIENT_ID      the SSO application's client id
- *   ESI_HEALTH_CLIENT_SECRET  its secret; leave unset for a PKCE (public) app
  *   ESI_HEALTH_REFRESH_TOKEN  a refresh token for a character that granted
  *                             esi-location.read_online.v1
+ *   ESI_HEALTH_CLIENT_SECRET  only for a token minted with the client secret.
+ *                             `npm run token:create` (#545) mints a PKCE token,
+ *                             which is refreshed as a public client: client_id
+ *                             in the body, no secret. The nightly workflow does
+ *                             not pass the secret (#785).
  *
  * Exit codes:
  *   0  healthy: SSO refreshed the token, ESI answered both routes and the
@@ -70,10 +74,11 @@ export function classify(
   reason: string;
 } {
   if (error instanceof TokenRevokedError) {
+    // Keep SSO's own words (error_description): "revoked" alone cannot tell
+    // a dead token from one refreshed with the wrong client (#785).
     return {
       code: EXIT.failed,
-      reason:
-        'SSO reports the refresh token as revoked; issue a new one and update the ESI_HEALTH_REFRESH_TOKEN secret',
+      reason: `${error.message}; mint a new one with npm run token:create and update the ESI_HEALTH_REFRESH_TOKEN secret`,
     };
   }
   if (error instanceof SsoError) {
@@ -105,9 +110,11 @@ export function classify(
 }
 
 export async function run(env: NodeJS.ProcessEnv): Promise<Outcome> {
-  const clientId = env.ESI_HEALTH_CLIENT_ID ?? '';
-  const clientSecret = env.ESI_HEALTH_CLIENT_SECRET;
-  const refreshToken = env.ESI_HEALTH_REFRESH_TOKEN ?? '';
+  // Trimmed: a secret pasted with a trailing newline would otherwise reach
+  // SSO as part of the token and read as invalid_grant.
+  const clientId = env.ESI_HEALTH_CLIENT_ID?.trim() ?? '';
+  const clientSecret = env.ESI_HEALTH_CLIENT_SECRET?.trim() || undefined;
+  const refreshToken = env.ESI_HEALTH_REFRESH_TOKEN?.trim() ?? '';
   const lines: string[] = [];
 
   if (!clientId || !refreshToken) {
@@ -156,6 +163,13 @@ export async function run(env: NodeJS.ProcessEnv): Promise<Outcome> {
     lines.push(
       `SSO refresh ${code === EXIT.failed ? 'failed' : 'unavailable'}: ${reason}`,
     );
+    if (code === EXIT.failed) {
+      lines.push(
+        clientSecret
+          ? 'Refreshed as a confidential client (HTTP Basic with ESI_HEALTH_CLIENT_SECRET); a token from npm run token:create is a PKCE token and needs ESI_HEALTH_CLIENT_SECRET unset'
+          : 'Refreshed as a public PKCE client (client_id in the body, no secret), the way npm run token:create mints the token; the client id must be the one the token was minted with',
+      );
+    }
     return { code, lines };
   }
 
