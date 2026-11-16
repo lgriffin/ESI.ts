@@ -34,7 +34,7 @@ const NAME_CHAR = String.raw`[^=&#?\s"'\x60()[\]{},;<>]`;
  * without one skips the redaction entirely.
  */
 export const SENSITIVE_QUERY_PATTERN: RegExp = new RegExp(
-  `${NAME_BOUNDARY}(?:(?:${SENSITIVE_PARAMS.join('|')})(?![A-Za-z0-9_])|${NAME_CHAR}*%)`,
+  `${NAME_BOUNDARY}(?:(?:${SENSITIVE_PARAMS.join('|')})(?![A-Za-z0-9_])|${NAME_CHAR}*[%\\\\])`,
 );
 
 const SENSITIVE_PARAM_SET: ReadonlySet<string> = new Set(SENSITIVE_PARAMS);

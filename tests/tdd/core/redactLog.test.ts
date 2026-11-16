@@ -116,6 +116,21 @@ describe('SEC-02: redactLogText outside a URL', () => {
     );
   });
 
+  it('redacts a sensitive value that holds a question mark whole', () => {
+    expect(redactLogText('/x/?token=ab?cd&page=2')).toBe(
+      '/x/?token=%5BREDACTED%5D&page=2',
+    );
+    expect(redactLogText('token=ab?cd?ef')).toBe('token=%5BREDACTED%5D');
+    expect(redactLogText('token=ab?=cd?')).toBe('token=%5BREDACTED%5D');
+    expect(redactLogText('token=?cd x')).toBe('token=%5BREDACTED%5D x');
+    expect(redactLogText('token=ab?next=/a/?page=2')).toBe(
+      'token=%5BREDACTED%5D?next=/a/?page=2',
+    );
+    expect(redactLogText('next=/a/?b?token=s3cret')).toBe(
+      'next=/a/?b?token=%5BREDACTED%5D',
+    );
+  });
+
   it('redacts each sensitive string member of a JSON body', () => {
     const body =
       '{"access_token":"eyJ.a.b","expires_in":1199,"token_type":"Bearer","refresh_token":"r-9f2c"}';
@@ -129,6 +144,39 @@ describe('SEC-02: redactLogText outside a URL', () => {
       '{ "token" : "[REDACTED]", "page": "2" }',
     );
   });
+
+  it.each([
+    ['refresh\\u005ftoken', '{"refresh\\u005ftoken":"[REDACTED]"}'],
+    ['\\u0074oken', '{"\\u0074oken":"[REDACTED]"}'],
+  ])(
+    'redacts a JSON member whose name %s escapes a sensitive name',
+    (name, expected) => {
+      expect(redactLogText(`{"${name}":"s3cret"}`)).toBe(expected);
+    },
+  );
+
+  it.each([
+    '{"refresh\\u005ftokens":"x"}',
+    '{"bad\\u00zz":"x"}',
+    'C:\\logs\\esi.log',
+  ])('leaves an escaped name that is not sensitive alone: %s', (text) => {
+    expect(redactLogText(text)).toBe(text);
+  });
+
+  it.each([
+    [
+      '{"note":"token=s3cret\\" rest"}',
+      '{"note":"token=%5BREDACTED%5D\\" rest"}',
+    ],
+    ['{"note":"token=s3\\\\cret\\\\"}', '{"note":"token=%5BREDACTED%5D"}'],
+    ['{"note":"token=s3\\\\\\" x"}', '{"note":"token=%5BREDACTED%5D\\" x"}'],
+  ])(
+    'keeps a JSON string valid around a redacted pair: %s',
+    (text, expected) => {
+      expect(redactLogText(text)).toBe(expected);
+      expect(() => JSON.parse(redactLogText(text)) as unknown).not.toThrow();
+    },
+  );
 
   it('leaves an empty JSON member and a member that is not sensitive alone', () => {
     const text = '{"token":"","token_type":"Bearer","note":"token=s3cret"}';
@@ -151,6 +199,8 @@ describe('SEC-02: redactLogText outside a URL', () => {
     ['brackets', '('.repeat(1_000_000)],
     ['commas before a percent sign', `${','.repeat(1_000_000)}%`],
     ['quotes', '"'.repeat(1_000_000)],
+    ['question marks in a value', `x=${'?a'.repeat(500_000)}`],
+    ['backslashes in a name', `,a${'\\'.repeat(1_000_000)}`],
   ])('redacts a megabyte of %s in linear time', (_kind, body) => {
     const text = `${body} refresh_token=s3cret`;
     const started = performance.now();
