@@ -22,7 +22,10 @@ name: Nightly Live Health
 # not choose, or a run that never reached the smoke) a run on master opens
 # one issue titled "Live health: the Tranquility smoke failed", or comments
 # on it when it is already open, and a later healthy run on master closes
-# it; a manual run from another branch only smokes. Tranquility or SSO being
+# it. The esi-sso environment deploys only from master, so a manual run
+# from another branch is refused before the smoke and the token never
+# reaches unreviewed code; test a branch locally with `npm run health:live`
+# and the .env from `npm run token:create`. Tranquility or SSO being
 # unavailable (exit 2) is a warning, not an issue: CCP's downtime is not a
 # defect here. 05:45 UTC sits well clear of the 11:00 UTC downtime.
 #
@@ -95,8 +98,8 @@ jobs:
           echo "code=$CODE" >> "$GITHUB_OUTPUT"
           echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
 
-      # Only a run on master speaks for master: a manual run from a branch
-      # smokes and reports in its own summary but never touches the issue.
+      # Only a run on master speaks for master. (The esi-sso environment
+      # refuses other branches already; the guard stays as a second line.)
       # An empty verdict means the run never reached the smoke (checkout,
       # setup or npm ci failed), which is reported the same way, without
       # blaming ESI.
