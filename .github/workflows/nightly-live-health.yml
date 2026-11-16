@@ -6,14 +6,13 @@ name: Nightly Live Health
 # The script is scripts/quality/live-health.ts (`npm run health:live`).
 #
 # Secrets (Settings → Secrets and variables → Actions → Repository secrets):
-#   ESI_HEALTH_CLIENT_ID      the client id the token was minted with
-#   ESI_HEALTH_REFRESH_TOKEN  a refresh token for a character that granted
-#                             esi-location.read_online.v1
-# `npm run token:create` (#545) mints a PKCE token, so the smoke refreshes it
-# as a public client, the way nightly-examples.yml refreshes its token, and
-# is NOT given ESI_HEALTH_CLIENT_SECRET. With the secret it was refreshed as
-# a confidential client and SSO answered invalid_grant from the first
-# configured run (#785).
+#   ESI_SSO_CLIENT_ID  the SSO application's client id
+#   ESI_REFRESH_TOKEN  the PKCE refresh token `npm run token:create` minted
+#                      with it; the character must have granted
+#                      esi-location.read_online.v1
+# These are the esi-sso environment secrets nightly-examples.yml already uses: one token serves
+# both nightlies, so re-minting it never strands a second copy (#785). EVE SSO
+# returns the same refresh token on a refresh grant, so sharing it is safe.
 # Until they exist the run fails with "not configured" and files nothing new:
 # #545 tracks minting the token. Until 2026-11-08 an unconfigured run passed
 # with a warning, so the check was green every night without making one
@@ -23,7 +22,10 @@ name: Nightly Live Health
 # not choose, or a run that never reached the smoke) a run on master opens
 # one issue titled "Live health: the Tranquility smoke failed", or comments
 # on it when it is already open, and a later healthy run on master closes
-# it; a manual run from another branch only smokes. Tranquility or SSO being
+# it. The esi-sso environment deploys only from master, so a manual run
+# from another branch is refused before the smoke and the token never
+# reaches unreviewed code; test a branch locally with `npm run health:live`
+# and the .env from `npm run token:create`. Tranquility or SSO being
 # unavailable (exit 2) is a warning, not an issue: CCP's downtime is not a
 # defect here. 05:45 UTC sits well clear of the 11:00 UTC downtime.
 #
@@ -52,6 +54,9 @@ jobs:
     name: Smoke Tranquility with an authenticated route
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # The SSO secrets live in the esi-sso environment, shared with the
+    # authenticated job in nightly-examples.yml.
+    environment: esi-sso
     permissions:
       contents: read
       issues: write # open, comment on and close the single live-health issue
@@ -77,8 +82,8 @@ jobs:
       - name: Refresh the token and call ESI
         id: smoke
         env:
-          ESI_HEALTH_CLIENT_ID: ${{ secrets.ESI_HEALTH_CLIENT_ID }}
-          ESI_HEALTH_REFRESH_TOKEN: ${{ secrets.ESI_HEALTH_REFRESH_TOKEN }}
+          ESI_SSO_CLIENT_ID: ${{ secrets.ESI_SSO_CLIENT_ID }}
+          ESI_REFRESH_TOKEN: ${{ secrets.ESI_REFRESH_TOKEN }}
         run: |
           set +e
           npm run health:live | tee live-health.txt
@@ -87,14 +92,14 @@ jobs:
           case "$CODE" in
             0) VERDICT=healthy; echo "::notice title=Live health::healthy" ;;
             2) VERDICT=unavailable; echo "::warning title=Live health::Tranquility or SSO unavailable; see the step summary" ;;
-            3) VERDICT=unconfigured; echo "::error title=Live health::not configured (#545): add ESI_HEALTH_CLIENT_ID and ESI_HEALTH_REFRESH_TOKEN as repository secrets" ;;
+            3) VERDICT=unconfigured; echo "::error title=Live health::not configured (#545): add ESI_SSO_CLIENT_ID and ESI_REFRESH_TOKEN as repository secrets" ;;
             *) VERDICT=failed; echo "::error title=Live health::failed (exit $CODE); see the step summary and the issue titled '$ISSUE_TITLE'" ;;
           esac
           echo "code=$CODE" >> "$GITHUB_OUTPUT"
           echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
 
-      # Only a run on master speaks for master: a manual run from a branch
-      # smokes and reports in its own summary but never touches the issue.
+      # Only a run on master speaks for master. (The esi-sso environment
+      # refuses other branches already; the guard stays as a second line.)
       # An empty verdict means the run never reached the smoke (checkout,
       # setup or npm ci failed), which is reported the same way, without
       # blaming ESI.
@@ -120,9 +125,9 @@ jobs:
             "$DETAIL" \
             "" \
             "- Run: $RUN_URL" \
-            "- Reproduce: \`npm run health:live\` with ESI_HEALTH_CLIENT_ID and ESI_HEALTH_REFRESH_TOKEN set" \
+            "- Reproduce: \`npm run health:live\` with ESI_SSO_CLIENT_ID and ESI_REFRESH_TOKEN set" \
             "" \
-            "A refresh token SSO rejected: check first that ESI_HEALTH_CLIENT_ID is the client it was minted with, then mint a new one (npm run token:create) and update the secret; anything else is the client's to fix. This issue closes itself on the next healthy run.")
+            "A refresh token SSO rejected: check first that ESI_SSO_CLIENT_ID is the client it was minted with, then mint a new one (npm run token:create) and update the secret; anything else is the client's to fix. This issue closes itself on the next healthy run.")
           NUMBER=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" \
             --json number,title --jq ".[] | select(.title == \"$ISSUE_TITLE\") | .number" | head -n 1)
           if [ -n "$NUMBER" ]; then
