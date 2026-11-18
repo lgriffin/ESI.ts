@@ -273,8 +273,20 @@ function diffMode(
   const base = collectAdvisories(readReport(baseFile));
   const head = collectAdvisories(readReport(headFile));
 
-  const introduced = [...head.values()].filter(
-    (a) => !base.has(a.ghsa) && !exceptions.has(a.ghsa),
+  // Same devOnly guard as --check and --filter: CI runs this from the head
+  // checkout, so the production-only audit sees the head tree. A PR that
+  // brings a devOnly-accepted advisory into production must not pass here.
+  const breached = devOnlyBreaches(head, exceptions);
+  for (const ghsa of breached) {
+    console.error(
+      `${ghsa} (${exceptions.get(ghsa)?.package}) is accepted as devOnly, but a production dependency now reaches it.`,
+    );
+  }
+  const introduced = introducedAdvisories(
+    base,
+    head,
+    stillAccepted(exceptions, breached),
+    breached,
   );
   const resolved = [...base.values()].filter((a) => !head.has(a.ghsa));
 
@@ -371,6 +383,23 @@ export function stillAccepted(
   breached: ReadonlySet<string>,
 ): Set<string> {
   return new Set([...exceptions.keys()].filter((id) => !breached.has(id)));
+}
+
+/**
+ * The head advisories a pull request should answer for: those not on the base
+ * and not accepted, plus any devOnly acceptance a production dependency now
+ * reaches, even when the advisory was already on the base. Production
+ * exposure is the change that matters, not the advisory's first appearance.
+ */
+export function introducedAdvisories(
+  base: ReadonlyMap<string, Advisory>,
+  head: ReadonlyMap<string, Advisory>,
+  accepted: ReadonlySet<string>,
+  breached: ReadonlySet<string>,
+): Advisory[] {
+  return [...head.values()].filter(
+    (a) => breached.has(a.ghsa) || (!base.has(a.ghsa) && !accepted.has(a.ghsa)),
+  );
 }
 
 /**

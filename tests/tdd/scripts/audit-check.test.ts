@@ -9,6 +9,7 @@
  * and tsd, all through braces).
  */
 import {
+  introducedAdvisories,
   stillAccepted,
   withoutAccepted,
 } from '../../../scripts/quality/audit-check';
@@ -111,5 +112,68 @@ describe('stillAccepted', () => {
         ),
       ),
     ).toEqual(['braces']);
+  });
+});
+
+describe('introducedAdvisories (--diff)', () => {
+  const PICOMATCH = 'GHSA-fc5q-39xc-vjpf';
+  const entry = (ghsa: string, name: string) =>
+    [
+      ghsa,
+      {
+        ghsa,
+        package: name,
+        severity: 'high' as const,
+        title: 't',
+        range: '*',
+      },
+    ] as const;
+  const head = new Map([entry(PICOMATCH, 'picomatch'), entry(OTHER, 'other')]);
+
+  it('ignores advisories already on the base or accepted', () => {
+    const base = new Map([entry(OTHER, 'other')]);
+    expect(
+      introducedAdvisories(base, head, new Set([PICOMATCH]), new Set()),
+    ).toEqual([]);
+  });
+
+  it('reports a new advisory nobody accepted', () => {
+    expect(
+      introducedAdvisories(
+        new Map(),
+        head,
+        new Set([PICOMATCH]),
+        new Set(),
+      ).map((a) => a.ghsa),
+    ).toEqual([OTHER]);
+  });
+
+  it('reports a devOnly acceptance a production dependency reaches, even when the base had it', () => {
+    const base = new Map([
+      entry(PICOMATCH, 'picomatch'),
+      entry(OTHER, 'other'),
+    ]);
+    const breached = new Set([PICOMATCH]);
+    const exceptions = new Map([
+      [
+        PICOMATCH,
+        {
+          ghsa: PICOMATCH,
+          package: 'picomatch',
+          severity: 'high',
+          reason: 'dev tools only',
+          expires: '2099-01-01',
+          devOnly: true,
+        },
+      ],
+    ]);
+    expect(
+      introducedAdvisories(
+        base,
+        head,
+        stillAccepted(exceptions, breached),
+        breached,
+      ).map((a) => a.ghsa),
+    ).toEqual([PICOMATCH]);
   });
 });
