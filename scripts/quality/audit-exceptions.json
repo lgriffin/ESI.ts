@@ -39,6 +39,14 @@
       "reason": "Fixed in minimatch 11.0.1, and package.json overrides move every other copy to 11. typedoc 0.28.20 (the latest) is the exception: it calls Minimatch.prototype.matchOne, which minimatch 11 removed, so forcing 11 crashes npm run docs ('mini.matchOne is not a function'); overrides pin typedoc's own copy to 10.2.6. typedoc is a devDependency never installed for package consumers, and the only patterns it expands are this repo's own typedoc.json entry points and excludes, so no attacker-controlled glob reaches the globparts amplification. Revisit when typedoc supports minimatch 11.",
       "expires": "2027-02-04",
       "devOnly": true
+    },
+    {
+      "ghsa": "GHSA-fc5q-39xc-vjpf",
+      "package": "picomatch",
+      "severity": "high",
+      "reason": "No upstream fix exists: picomatch 4.0.7 is the latest release and every version up to it is affected (ReDoS through single-branch repeated extglobs); npm's only offered remedies are downgrades (jest 30.2, knip 3, lint-staged 16.3, tsup 8.2, tsd 0.11, typescript-eslint 8.47.0). It reaches this repo only through devDependencies never installed for package consumers (npm audit --omit=dev is clean): jest's haste map and watch tooling, ts-jest, knip, lint-staged, tsup and typescript-eslint via tinyglobby/fdir, tsd via globby/fast-glob/micromatch, and @parcel/watcher. Every pattern they compile comes from this repo's own checked-in configs, scripts and staged file paths, so no attacker-controlled extglob reaches the matcher. Revisit when picomatch ships a fix.",
+      "expires": "2027-02-18",
+      "devOnly": true
     }
   ]
 }
