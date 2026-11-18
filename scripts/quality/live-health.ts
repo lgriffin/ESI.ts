@@ -7,11 +7,14 @@
  * steps failed. `nightly-live-health.yml` runs it every night and keeps one
  * issue open while it fails.
  *
- * Environment (repository secrets in CI):
- *   ESI_HEALTH_CLIENT_ID      the SSO application's client id
- *   ESI_HEALTH_CLIENT_SECRET  its secret; leave unset for a PKCE (public) app
- *   ESI_HEALTH_REFRESH_TOKEN  a refresh token for a character that granted
- *                             esi-location.read_online.v1
+ * Environment: the same two values `npm run token:create` writes to .env
+ * and nightly-examples.yml reads from repository secrets, so one token
+ * serves both nightlies (#785):
+ *   ESI_SSO_CLIENT_ID  the SSO application's client id
+ *   ESI_REFRESH_TOKEN  the PKCE refresh token minted with it, for a character
+ *                      that granted esi-location.read_online.v1
+ * The token is refreshed as a public client (client_id in the body, no
+ * secret), the way token:create minted it.
  *
  * Exit codes:
  *   0  healthy: SSO refreshed the token, ESI answered both routes and the
@@ -70,10 +73,11 @@ export function classify(
   reason: string;
 } {
   if (error instanceof TokenRevokedError) {
+    // Keep SSO's own words (error_description): "revoked" alone cannot tell
+    // a dead token from one refreshed with the wrong client (#785).
     return {
       code: EXIT.failed,
-      reason:
-        'SSO reports the refresh token as revoked; issue a new one and update the ESI_HEALTH_REFRESH_TOKEN secret',
+      reason: `${error.message}. Check first that ESI_SSO_CLIENT_ID is the client the token was minted with; if it is, mint a new token with npm run token:create and update the ESI_REFRESH_TOKEN secret`,
     };
   }
   if (error instanceof SsoError) {
@@ -105,15 +109,16 @@ export function classify(
 }
 
 export async function run(env: NodeJS.ProcessEnv): Promise<Outcome> {
-  const clientId = env.ESI_HEALTH_CLIENT_ID ?? '';
-  const clientSecret = env.ESI_HEALTH_CLIENT_SECRET;
-  const refreshToken = env.ESI_HEALTH_REFRESH_TOKEN ?? '';
+  // Trimmed: a secret pasted with a trailing newline would otherwise reach
+  // SSO as part of the token and read as invalid_grant.
+  const clientId = env.ESI_SSO_CLIENT_ID?.trim() ?? '';
+  const refreshToken = env.ESI_REFRESH_TOKEN?.trim() ?? '';
   const lines: string[] = [];
 
   if (!clientId || !refreshToken) {
     const missing = [
-      !clientId && 'ESI_HEALTH_CLIENT_ID',
-      !refreshToken && 'ESI_HEALTH_REFRESH_TOKEN',
+      !clientId && 'ESI_SSO_CLIENT_ID',
+      !refreshToken && 'ESI_REFRESH_TOKEN',
     ].filter((n): n is string => typeof n === 'string');
     lines.push(
       `Not configured: ${missing.join(' and ')} not set. Add the repository secrets and re-run.`,
@@ -122,10 +127,7 @@ export async function run(env: NodeJS.ProcessEnv): Promise<Outcome> {
   }
 
   // 1. SSO: refresh the maintained token.
-  const sso = new EveSsoClient({
-    clientId,
-    ...(clientSecret ? { clientSecret } : {}),
-  });
+  const sso = new EveSsoClient({ clientId });
   let accessToken: string;
   let characterId: number;
   try {
@@ -142,7 +144,7 @@ export async function run(env: NodeJS.ProcessEnv): Promise<Outcome> {
       // secrets: write, which GITHUB_TOKEN never has; the message names the
       // manual step and the value stays out of every log.
       lines.push(
-        'SSO rotated the refresh token: the run used the old one; re-issue a token for this character and update the ESI_HEALTH_REFRESH_TOKEN secret',
+        'SSO rotated the refresh token: the run used the old one; re-issue a token for this character and update the ESI_REFRESH_TOKEN secret',
       );
     }
     if (!decoded.scopes.includes(REQUIRED_SCOPE)) {

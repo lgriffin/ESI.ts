@@ -56,7 +56,26 @@ function readEntryAsString(entry: AdmZip.IZipEntry): string {
   return buffer.toString('utf-8');
 }
 
+export interface SdeExtractorOptions {
+  /**
+   * The platform whose file-name rules `extractAll` applies. Defaults to the
+   * one running; a test names another to check its rules on any host.
+   */
+  platform?: NodeJS.Platform;
+}
+
+/** Pluralise "entry" for a refusal message. */
+function entries(count: number): string {
+  return `${count} entr${count === 1 ? 'y' : 'ies'}`;
+}
+
 export class SdeExtractor {
+  private readonly platform: NodeJS.Platform;
+
+  constructor(options: SdeExtractorOptions = {}) {
+    this.platform = options.platform ?? process.platform;
+  }
+
   readMetadata(zipPath: string): SdeMetadata {
     const zip = openZip(zipPath);
     const entry = findEntry(zip, SDE_METADATA_FILENAME);
@@ -97,17 +116,29 @@ export class SdeExtractor {
    * anything is written, if any entry would land outside `outputDir`
    * (security model P9). This does not rely on the adm-zip version installed
    * sanitising names.
+   *
+   * On Windows an archive with a colon in an entry name is refused too: NTFS
+   * reads `notes/C:types.yaml` as the stream `types.yaml` of a file `notes/C`,
+   * so the file would be written somewhere a directory listing does not show.
    */
   extractAll(zipPath: string, outputDir: string): void {
     const zip = openZip(zipPath);
-    const escaping = zip
+    const names = zip
       .getEntries()
-      .map((entry) => entry.rawEntryName.toString('utf-8'))
-      .filter((name) => !landsInside(outputDir, name));
+      .map((entry) => entry.rawEntryName.toString('utf-8'));
+    const escaping = names.filter((name) => !landsInside(outputDir, name));
     if (escaping.length > 0) {
       throw new SdeError(
-        `Refusing to extract ${zipPath}: ${escaping.length} entr${escaping.length === 1 ? 'y' : 'ies'} would land outside ${outputDir} (first: ${JSON.stringify(escaping[0])})`,
+        `Refusing to extract ${zipPath}: ${entries(escaping.length)} would land outside ${outputDir} (first: ${JSON.stringify(escaping[0])})`,
       );
+    }
+    if (this.platform === 'win32') {
+      const streams = names.filter((name) => name.includes(':'));
+      if (streams.length > 0) {
+        throw new SdeError(
+          `Refusing to extract ${zipPath}: ${entries(streams.length)} would name an NTFS alternate data stream on Windows (first: ${JSON.stringify(streams[0])})`,
+        );
+      }
     }
     zip.extractAllTo(outputDir, true);
   }

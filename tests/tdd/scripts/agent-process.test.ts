@@ -9,8 +9,10 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 
 const ROOT = path.resolve(__dirname, '../../..');
+// LF throughout, so a Windows checkout (core.autocrlf) matches the
+// multi-line expectations below.
 const read = (file: string): string =>
-  readFileSync(path.join(ROOT, file), 'utf8');
+  readFileSync(path.join(ROOT, file), 'utf8').replace(/\r\n/g, '\n');
 
 const AGENT_FILES = ['CLAUDE.md', 'AGENTS.md'] as const;
 const beadsGuide = read('guides/BEADS.md');

@@ -61,8 +61,11 @@ const budgets = {
     require: '26.5 kB', // measured 25150 B
   },
   './client': {
-    import: '236.2 kB', // measured 224894 B
-    require: '249.7 kB', // measured 237724 B
+    // Raised when the log redaction learned form and JSON bodies (#786:
+    // escaped JSON names, a '?' inside a token, linear scans), which took the
+    // CJS build 171 B past its budget: measurement + 5%.
+    import: '247.4 kB', // measured 235530 B
+    require: '262.4 kB', // measured 249874 B
   },
   './sde': {
     import: '45.4 kB', // measured 43203 B
