@@ -1,7 +1,7 @@
 /* eslint-disable */
 // Auto-generated from ESI OpenAPI spec — do not edit manually
 // Compatibility date: 2026-08-18
-// Spec hash: 34f6278baa75
+// Spec hash: d1a6166a089c
 // Total interfaces: 186
 
 // --- Access List ---
