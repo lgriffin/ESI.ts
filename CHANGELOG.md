@@ -5,6 +5,112 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.4.1](https://github.com/lgriffin/ESI.ts/compare/v12.4.0...v12.4.1) (2026-11-19)
+
+
+### Fixed
+
+* **audit:** --diff honours devOnly breaches like --check and --filter ([c7d3b55](https://github.com/lgriffin/ESI.ts/commit/c7d3b550741885c1d0237fce1ad86535bf6c0aac))
+* **audit:** nightly --filter honours devOnly breaches like --check ([5da6edf](https://github.com/lgriffin/ESI.ts/commit/5da6edffaa83025e22085b824651540d960d206a))
+* **auth:** accept SSO error redirects that omit state in token:create ([fc97c70](https://github.com/lgriffin/ESI.ts/commit/fc97c7027300179df10f672243212641103b01a7))
+* **auth:** accept SSO error redirects that omit state in token:create ([db8228c](https://github.com/lgriffin/ESI.ts/commit/db8228ca0f0363f83014596f2da1097e80aeefac))
+* **auth:** let token:create exclude scopes and exit once done ([c45eaff](https://github.com/lgriffin/ESI.ts/commit/c45eaff9b3d7ca36913919ab93988be6d8ea8a90))
+* **auth:** let token:create exclude scopes and exit once done ([211e87a](https://github.com/lgriffin/ESI.ts/commit/211e87a0e43a4ea2c68c823194e31c1440163359))
+* **client:** reject NO_AUTH_TOKEN through the promise on the public view ([db60bbc](https://github.com/lgriffin/ESI.ts/commit/db60bbc7806e1c258808213e4c52137ed16fc488)), closes [#721](https://github.com/lgriffin/ESI.ts/issues/721)
+* **deps:** clear nightly audit [#719](https://github.com/lgriffin/ESI.ts/issues/719) (qs 6.17.1, accept deepmerge) ([086a2ee](https://github.com/lgriffin/ESI.ts/commit/086a2ee55c40bf6d015f5e9d50affb4bfc9de729))
+* **deps:** clear nightly audit [#719](https://github.com/lgriffin/ESI.ts/issues/719) (qs 6.17.1, accept deepmerge) ([b7488e8](https://github.com/lgriffin/ESI.ts/commit/b7488e8b8932762957785c476288dc595be7cee3))
+* **deps:** move minimatch to 11.0.4 and glob to 14.0.3 ([03324f7](https://github.com/lgriffin/ESI.ts/commit/03324f7f8b78b2edf3006326ea58b1c0fa5a7fae))
+* **deps:** move minimatch to 11.0.4 and glob to 14.0.3 ([3660203](https://github.com/lgriffin/ESI.ts/commit/3660203d71bbcec36f96365ec1188097a0f6eafe)), closes [#730](https://github.com/lgriffin/ESI.ts/issues/730)
+* **health:** check the client id before re-minting; drop the client secret from AUDIT and ROADMAP ([289b26c](https://github.com/lgriffin/ESI.ts/commit/289b26cfc03240abaece3b332652db65346eda91))
+* **health:** read the SSO secrets from the esi-sso environment ([c752d34](https://github.com/lgriffin/ESI.ts/commit/c752d34353d15758cc8dc6e7936d735fddada36d))
+* **health:** refresh the live-health token as the PKCE client that minted it ([c6e1976](https://github.com/lgriffin/ESI.ts/commit/c6e1976410b6d25da751657f8f921d26ce318f1a))
+* **health:** refresh the live-health token as the PKCE client that minted it ([da8e4ee](https://github.com/lgriffin/ESI.ts/commit/da8e4ee906306a1c74c55dd56cbae0a921e3d4d8)), closes [#785](https://github.com/lgriffin/ESI.ts/issues/785)
+* **health:** share the examples nightly SSO token instead of separate ESI_HEALTH_* secrets ([2c9ced0](https://github.com/lgriffin/ESI.ts/commit/2c9ced0aa2098f4e923056e87c27ec1210a173a5))
+* **health:** share the examples nightly's SSO token instead of separate ESI_HEALTH_* secrets ([148612b](https://github.com/lgriffin/ESI.ts/commit/148612b3c5874b9e800b80620c18d89f06321d11)), closes [#785](https://github.com/lgriffin/ESI.ts/issues/785)
+* **logger:** keep the JSON member scan linear when names hold escapes ([f7d7840](https://github.com/lgriffin/ESI.ts/commit/f7d78408ccefc4ab64e258e1364afa3ccacb7665))
+* **logger:** keep the redaction prefilter linear in the line length ([cf596f2](https://github.com/lgriffin/ESI.ts/commit/cf596f203aa7e040df6f8dd3b2a35cca1306b078))
+* **logger:** redact a token holding '?', escaped JSON names, keep escapes valid ([ec22f39](https://github.com/lgriffin/ESI.ts/commit/ec22f39c0a41d4e9a56504eeca6bf19fe9a05b41))
+* **logger:** redact credentials in form and JSON bodies, not only in URLs ([d710e03](https://github.com/lgriffin/ESI.ts/commit/d710e033e34e7831b81e72f5d8608b1bf69f9fb8))
+* **logger:** redact credentials in form and JSON bodies, not only in URLs ([1034e7a](https://github.com/lgriffin/ESI.ts/commit/1034e7abc7aec78ab77da57bd223102fda740241))
+* **mutation:** plan a new test by the files it imports, not only its path ([619dc7b](https://github.com/lgriffin/ESI.ts/commit/619dc7b4fab0ffd38ce9d88cc2ecf1647f6a48b3)), closes [#722](https://github.com/lgriffin/ESI.ts/issues/722)
+* **mutation:** run every bdd shard with 3 test runners ([2467cc5](https://github.com/lgriffin/ESI.ts/commit/2467cc5dec4bd3afab1202fa6df4e2126e20fd8f))
+* **mutation:** run every bdd shard with 3 test runners ([88d97c8](https://github.com/lgriffin/ESI.ts/commit/88d97c8aca189556fe30f1cec6b4daf65cc9a097)), closes [#729](https://github.com/lgriffin/ESI.ts/issues/729)
+* public view rejects NO_AUTH_TOKEN, planner follows test imports, auth and surface mutation into the 90s ([801998a](https://github.com/lgriffin/ESI.ts/commit/801998ac54bafff1109935dd868a5d281ef86a03))
+* **sde:** refuse an archive entry with a colon in its name on Windows ([be9d2e3](https://github.com/lgriffin/ESI.ts/commit/be9d2e3bcee74f5f847044dd81c834b0cb9af703))
+* **sde:** refuse colon entry names on Windows, and make npm test pass on a Windows checkout ([310d84d](https://github.com/lgriffin/ESI.ts/commit/310d84dca7d9a0c0f5a774a35f5ae109ef8d9ad8))
+
+
+### Changed
+
+* **audit:** accept picomatch ReDoS advisory as dev-only (no upstream fix) ([b5a83d3](https://github.com/lgriffin/ESI.ts/commit/b5a83d3c3d9ff5109854b94bcb8391b312e020e7))
+* **audit:** accept picomatch ReDoS advisory as dev-only (no upstream fix) ([e7cd521](https://github.com/lgriffin/ESI.ts/commit/e7cd521abda561f76da1620863aaf3f703a978ec)), closes [#791](https://github.com/lgriffin/ESI.ts/issues/791)
+* **ci:** bump the github-actions group with 4 updates ([9fb2dfb](https://github.com/lgriffin/ESI.ts/commit/9fb2dfbddefde9938f322a8a8ee1ad4639bf8b0f))
+* **ci:** bump the github-actions group with 4 updates ([9e603b6](https://github.com/lgriffin/ESI.ts/commit/9e603b61b4400232312c79456fb6fa2d6b902685))
+* **deps:** bump the minor group across 1 directory with 4 updates ([#775](https://github.com/lgriffin/ESI.ts/issues/775)) ([e58fe2e](https://github.com/lgriffin/ESI.ts/commit/e58fe2ea2946590d419879c14c7dc3bdace3f377))
+* **deps:** bump the minor group with 9 updates ([1585709](https://github.com/lgriffin/ESI.ts/commit/15857092a5f988edc053547438b8e3ccb2e09da0))
+* **deps:** bump the minor group with 9 updates ([faf9bd3](https://github.com/lgriffin/ESI.ts/commit/faf9bd3fa3c639fc053131f76695d2aa0ae52684))
+* **deps:** bump tsup from 8.5.1 to 9.0.0 in the major group ([cf4175b](https://github.com/lgriffin/ESI.ts/commit/cf4175b07a3cd75effe7c28d5dfb937b79f6e1de))
+* **deps:** bump tsup from 8.5.1 to 9.0.0 in the major group ([5b0948b](https://github.com/lgriffin/ESI.ts/commit/5b0948bc1d696d06e151aa863718e45d6a6220b0))
+* **spec:** refresh spec hash and snapshot title for live ESI spec ([91dd7fc](https://github.com/lgriffin/ESI.ts/commit/91dd7fc98b7ea2b2c19d20b1891658b9c437f468))
+* **spec:** refresh spec hash and snapshot title for live ESI spec ([4a259a2](https://github.com/lgriffin/ESI.ts/commit/4a259a280d11cce2e77bcfc483af7b45e68fd0a6)), closes [#793](https://github.com/lgriffin/ESI.ts/issues/793)
+
+
+### Documentation
+
+* count the new sso-refresh test in the documentation metrics ([be9724c](https://github.com/lgriffin/ESI.ts/commit/be9724c2a7264c8eef80913adff031ee507f36f2))
+* describe the BDD-only mutation floors raised by [#738](https://github.com/lgriffin/ESI.ts/issues/738) ([5ee54c6](https://github.com/lgriffin/ESI.ts/commit/5ee54c6838e828850e1abf756ccecae391a754ff))
+* describe the BDD-only mutation floors raised by [#738](https://github.com/lgriffin/ESI.ts/issues/738) ([0d65a67](https://github.com/lgriffin/ESI.ts/commit/0d65a6798dc42282d13d69076b5a1499188e223f))
+* **examples:** import only published entry points and resolve the character in one helper ([b92e79d](https://github.com/lgriffin/ESI.ts/commit/b92e79dc5b8e3f832f0f50de20520ddc05bd884c))
+* **examples:** import only published entry points and resolve the character in one helper ([5f784a8](https://github.com/lgriffin/ESI.ts/commit/5f784a8a40a21909ae30392aac0185112d40476e)), closes [#716](https://github.com/lgriffin/ESI.ts/issues/716) [#717](https://github.com/lgriffin/ESI.ts/issues/717)
+* **health:** branch dispatches are refused by the esi-sso environment ([e047365](https://github.com/lgriffin/ESI.ts/commit/e04736581dee1577098bf6c502ac3bfd4fa3c00e))
+* name the SDE's BDD floors apart from the [#738](https://github.com/lgriffin/ESI.ts/issues/738) range ([c40e5a7](https://github.com/lgriffin/ESI.ts/commit/c40e5a7dc6c3629c353eade13800b3744a63d554))
+* refresh the suite, coverage and mutation stats for 12.4.0 ([30f2e16](https://github.com/lgriffin/ESI.ts/commit/30f2e16b8d5f93deb1259a550ae8f1bf2a6fa00d))
+* refresh the suite, coverage and mutation stats for 12.4.0 ([6f60267](https://github.com/lgriffin/ESI.ts/commit/6f60267bbd18e7a862470ea7d99009c60c4ad8c8))
+* **testing:** bring the BDD floor ranges up to date and note the one-night floors ([40a5c9b](https://github.com/lgriffin/ESI.ts/commit/40a5c9b03c3ed6cc4e20290b15294ae9b85ce033))
+
+
+### Testing
+
+* **auth:** give the shared JWKS cache test a fresh module ([ccee143](https://github.com/lgriffin/ESI.ts/commit/ccee143ec6ea584be09a8292b058d87afe99fd30))
+* **auth:** give the shared JWKS cache test a fresh module ([e1deabf](https://github.com/lgriffin/ESI.ts/commit/e1deabfe2134a911d6344115f2162cba5aa2b35a)), closes [#726](https://github.com/lgriffin/ESI.ts/issues/726)
+* **bdd:** generated-operation rules and a 79.4 floor for src/adapters ([#757](https://github.com/lgriffin/ESI.ts/issues/757)) ([8861634](https://github.com/lgriffin/ESI.ts/commit/88616348a5cc1ada8b31b7b2e0d2f3a9525937d3))
+* **bdd:** interceptor rules and an 80 floor for src/core/middleware ([#755](https://github.com/lgriffin/ESI.ts/issues/755)) ([be43607](https://github.com/lgriffin/ESI.ts/commit/be43607accbc066223b0811a86dd4ad63bafd0fd))
+* **bdd:** kill the src/auth and src/core/util mutants the BDD floors expect ([#736](https://github.com/lgriffin/ESI.ts/issues/736)) ([98641e1](https://github.com/lgriffin/ESI.ts/commit/98641e1cd2dc149f556d630beabd0f317f46e9cc))
+* **bdd:** move the paragon-hub scenarios off the legacy step file ([73c44ce](https://github.com/lgriffin/ESI.ts/commit/73c44ce039970b584f3458ccadb0a23c007dc864)), closes [#715](https://github.com/lgriffin/ESI.ts/issues/715)
+* **bdd:** move the search scenarios off the legacy step file ([92b91d2](https://github.com/lgriffin/ESI.ts/commit/92b91d2d5c56f38b58dff0447538837646610247)), closes [#714](https://github.com/lgriffin/ESI.ts/issues/714)
+* **bdd:** move the status scenarios off the legacy step file ([b47e822](https://github.com/lgriffin/ESI.ts/commit/b47e8223e944e532d30610ef2fbf655c6dcf660f)), closes [#713](https://github.com/lgriffin/ESI.ts/issues/713)
+* **bdd:** move the status, search and paragon-hub scenarios off the legacy step files ([d9a0872](https://github.com/lgriffin/ESI.ts/commit/d9a08722c2f3816a35d5e4b4b41b6a60717dfada))
+* **bdd:** name the empty-page error without the word reason ([0428d8e](https://github.com/lgriffin/ESI.ts/commit/0428d8e1ef861877f9d7a09e8862120c6e15bb44))
+* **bdd:** page-walk rules and a 79.9 floor for src/core/pagination ([#756](https://github.com/lgriffin/ESI.ts/issues/756)) ([56b27c2](https://github.com/lgriffin/ESI.ts/commit/56b27c2a200b83be8d39b8b60ea1de9731884c97))
+* **bdd:** raise the src BDD mutation floor to 89.8 ([#768](https://github.com/lgriffin/ESI.ts/issues/768)) ([ae261ec](https://github.com/lgriffin/ESI.ts/commit/ae261ec936e0630a5d016af8a82b4b3915c6d340))
+* **bdd:** raise the src/auth BDD mutation floor to 86.4 ([#758](https://github.com/lgriffin/ESI.ts/issues/758)) ([cab62fd](https://github.com/lgriffin/ESI.ts/commit/cab62fd5bf30134e2d784fe126b154acb1efa84d))
+* **bdd:** raise the src/client BDD mutation floor to 82 ([#759](https://github.com/lgriffin/ESI.ts/issues/759)) ([a47f6b3](https://github.com/lgriffin/ESI.ts/commit/a47f6b30e244498f3e306ad76e891e8593bcb85d))
+* **bdd:** raise the src/clients BDD mutation floor to 90.6 ([#764](https://github.com/lgriffin/ESI.ts/issues/764)) ([c74e9d6](https://github.com/lgriffin/ESI.ts/commit/c74e9d6ea188840a518338b56c17fdafea7c8eaf))
+* **bdd:** raise the src/core BDD mutation floor to 83.8 ([#766](https://github.com/lgriffin/ESI.ts/issues/766)) ([767d608](https://github.com/lgriffin/ESI.ts/commit/767d6082d730d6f594d3c0b94880d9fb3b6eacb1))
+* **bdd:** raise the src/core/cache BDD mutation floor to 92.7 ([#765](https://github.com/lgriffin/ESI.ts/issues/765)) ([8319fc0](https://github.com/lgriffin/ESI.ts/commit/8319fc0f657e69e343a1422a0617e1add44a1075))
+* **bdd:** raise the src/core/circuitBreaker BDD mutation floor to 82.0 ([#760](https://github.com/lgriffin/ESI.ts/issues/760)) ([0605794](https://github.com/lgriffin/ESI.ts/commit/0605794521f8f632cf8ef2bf08fa836ec27498dd))
+* **bdd:** raise the src/core/endpoints BDD mutation floor to 89.7 ([#761](https://github.com/lgriffin/ESI.ts/issues/761)) ([9856607](https://github.com/lgriffin/ESI.ts/commit/9856607a968240dcf9e1635cd4a4fa62dde1b5c9))
+* **bdd:** raise the src/core/logger BDD mutation floor to 80.9 ([7100504](https://github.com/lgriffin/ESI.ts/commit/71005049f8826cbcabe698624b12d37cbb3a375f))
+* **bdd:** raise the src/core/logger BDD mutation floor to 80.9 ([c5132fa](https://github.com/lgriffin/ESI.ts/commit/c5132fa39571a2f97fee86e5aca481628a441fcd)), closes [#750](https://github.com/lgriffin/ESI.ts/issues/750)
+* **bdd:** raise the src/core/rateLimiter BDD mutation floor to 92.8 ([#767](https://github.com/lgriffin/ESI.ts/issues/767)) ([b1da091](https://github.com/lgriffin/ESI.ts/commit/b1da0913bb6a67aa3719eefd7b1be68e8e44959e))
+* **bdd:** raise the src/core/requestPipeline BDD mutation floor to 66.7 ([#763](https://github.com/lgriffin/ESI.ts/issues/763)) ([0aef701](https://github.com/lgriffin/ESI.ts/commit/0aef701e0208bc39876b266919283cf3e7a7072c))
+* **bdd:** raise the src/core/util BDD mutation floor to 84.4 ([#762](https://github.com/lgriffin/ESI.ts/issues/762)) ([016a68f](https://github.com/lgriffin/ESI.ts/commit/016a68faadb4693774492f6b1b4beb58b1ba7a7f))
+* **bdd:** rules for the logger's redaction, level filtering and adapters ([7e30755](https://github.com/lgriffin/ESI.ts/commit/7e3075557d64d0b659b7b09ee7ec32bb5f04f40b)), closes [#750](https://github.com/lgriffin/ESI.ts/issues/750)
+* **bdd:** specify the paging helpers of Wallet, Mail, Pi and Loyalty clients ([0251f01](https://github.com/lgriffin/ESI.ts/commit/0251f018663d150954aea5795230cfb69f5a7830))
+* **bdd:** specify the paging helpers of Wallet, Mail, Pi and Loyalty clients ([d32a0ae](https://github.com/lgriffin/ESI.ts/commit/d32a0aead0f68bcf7e49a1bb9851973adaf843de))
+* **logger:** pin the redaction prefilter's skip of both scans ([17909b6](https://github.com/lgriffin/ESI.ts/commit/17909b69965b6582f1b5853ed269fe65c763cce1))
+* **mutation:** check the resolved bdd shard concurrency, not config text ([d95681d](https://github.com/lgriffin/ESI.ts/commit/d95681d5063b3db9cd057a46c911b79839cb6cff))
+* **mutation:** keep observable condition mutants under the gate ([ba61b4e](https://github.com/lgriffin/ESI.ts/commit/ba61b4e256c277ad7e634e64fcc2df8920303300))
+* **mutation:** lift src/auth, src and src/client unit mutation scores into the 90s ([5de618b](https://github.com/lgriffin/ESI.ts/commit/5de618bc7985182dace9b521d7cf249a999a991e))
+* **mutation:** raise the BDD floors to just under the 6 November scores ([8e418b8](https://github.com/lgriffin/ESI.ts/commit/8e418b8ff508980ff6d800ecbcbb84b39ad38f32))
+* **mutation:** raise the BDD floors to two points under the 6 November scores ([c186ceb](https://github.com/lgriffin/ESI.ts/commit/c186cebe12dc6745cf5d5e055934703b3a56b3dc))
+* **mutation:** raise the src/core/logger unit mutation floor ([94643a2](https://github.com/lgriffin/ESI.ts/commit/94643a24a24b95147a24823ee32c4ce21622f617))
+* **mutation:** raise the src/core/logger unit mutation floor ([2d49853](https://github.com/lgriffin/ESI.ts/commit/2d498538a3a9dd509f567945165b03887c03fe7c)), closes [#718](https://github.com/lgriffin/ESI.ts/issues/718)
+* report a now-covered coverage-baseline entry instead of failing ([#774](https://github.com/lgriffin/ESI.ts/issues/774)) ([e2d8a6a](https://github.com/lgriffin/ESI.ts/commit/e2d8a6ad1b34b480406bae69bbfc010910d0a669))
+* **schemas:** reference the untested ./schemas exports ([5ebae4f](https://github.com/lgriffin/ESI.ts/commit/5ebae4f1b3a1b7b37857e5128c829b919e5658bf))
+* **schemas:** reference the untested ./schemas exports ([2518ca0](https://github.com/lgriffin/ESI.ts/commit/2518ca0efb53f82af0c6095d97015a2c23ce5e6c)), closes [#710](https://github.com/lgriffin/ESI.ts/issues/710)
+* **scripts:** pass on a Windows checkout ([10c2f1a](https://github.com/lgriffin/ESI.ts/commit/10c2f1adda03b793fb033125469edc27961df5b9))
+
 ## [12.4.0](https://github.com/lgriffin/ESI.ts/compare/v12.3.0...v12.4.0) (2026-10-28)
 
 
