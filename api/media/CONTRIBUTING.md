@@ -10,7 +10,7 @@ Thank you for helping. This page is the one path from a fresh clone to a merged 
 | npm               | The lockfile is npm's; use `npm ci`                                                                        |
 | About 8 GB of RAM | Type-aware ESLint over `src/`, `tests/` and `scripts/` runs with a 4 GB heap (`npm run lint` sets it)      |
 | uv (optional)     | `npm run lint:workflows` runs zizmor through `uvx`. Without it, `check:local` reports that tier as not run |
-| Docker (optional) | Only for `fuzz:api`, `mock:esi` and `contract:diff`, which CI and the nightlies run anyway                 |
+| Docker (optional) | Only for `mock:esi` and `contract:diff`, which CI and the nightlies run anyway                             |
 
 ## 2. Set up
 
