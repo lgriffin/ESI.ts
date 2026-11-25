@@ -122,6 +122,30 @@ export const NON_RECORD_SDE_FILES: Record<string, unknown> = {
 };
 
 /**
+ * The raw export plus a blueprint and a SKIN licence written the way CCP
+ * writes them since build 3698585 (November 2026): the record holds no
+ * `blueprintTypeID` or `licenseTypeID` of its own, only the map key does.
+ */
+export const KEY_ONLY_ID_SDE_FILES: Record<string, unknown> = {
+  ...RAW_SDE_FILES,
+  'blueprints.yaml': {
+    681: {
+      activities: {
+        manufacturing: {
+          materials: [{ quantity: 86, typeID: 38 }],
+          products: [{ quantity: 1, typeID: 165 }],
+          time: 600,
+        },
+      },
+      maxProductionLimit: 300,
+    },
+  },
+  'skinLicenses.yaml': {
+    34599: { duration: -1, skinID: 1 },
+  },
+};
+
+/**
  * An export that exercises the record transform: type 34 carries a null field
  * and a nested object, type 35 a fractional volume where type 34's is whole;
  * a table keyed by strings; a file whose records keep their own IDs

@@ -5,9 +5,9 @@
     "method": "getIndustrySystems",
     "args": []
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 3600,
   "upstreamPages": 1,
   "truncated": [
@@ -47,9 +47,9 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"090142db15de1cf596523ba5f343c295375e04e3cdfa5426be888d32\"",
-        "expires": "Sun, 27 Sep 2026 04:33:04 GMT",
-        "last-modified": "Sun, 27 Sep 2026 03:33:04 GMT"
+        "etag": "\"cbba08df8f3f0949326e7ec9ed51a36e875762ad3d3eede3cf36ef39\"",
+        "expires": "Wed, 25 Nov 2026 07:45:16 GMT",
+        "last-modified": "Wed, 25 Nov 2026 06:45:16 GMT"
       },
       "body": [
         {
@@ -73,15 +73,15 @@
           "cost_indices": [
             {
               "activity": "manufacturing",
-              "cost_index": 0.038
+              "cost_index": 0.0277
             },
             {
               "activity": "researching_time_efficiency",
-              "cost_index": 0.0188
+              "cost_index": 0.0142
             },
             {
               "activity": "researching_material_efficiency",
-              "cost_index": 0.0074
+              "cost_index": 0.0103
             }
           ],
           "solar_system_id": 30021392
@@ -90,15 +90,15 @@
           "cost_indices": [
             {
               "activity": "manufacturing",
-              "cost_index": 0.0249
+              "cost_index": 0.0291
             },
             {
               "activity": "researching_time_efficiency",
-              "cost_index": 0.0014
+              "cost_index": 0.0068
             },
             {
               "activity": "researching_material_efficiency",
-              "cost_index": 0.0014
+              "cost_index": 0.01
             }
           ],
           "solar_system_id": 30021407

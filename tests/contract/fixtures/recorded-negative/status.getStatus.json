@@ -5,9 +5,9 @@
     "method": "getStatus",
     "args": []
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 30,
   "upstreamPages": 1,
   "truncated": [],
@@ -16,17 +16,17 @@
       "url": "status",
       "status": 200,
       "headers": {
-        "cache-control": "public, max-age=30, must-revalidate, stale-if-error=900",
+        "cache-control": "public, max-age=30, must-revalidate, stale-if-error=5",
         "content-type": "application/json",
-        "etag": "W/\"148caca5c1670cceaea8135b2a6d67f997100f1f7890d7baad047f1f50b95985\"",
-        "expires": "Sun, 27 Sep 2026 04:26:06 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:25:32 GMT"
+        "etag": "W/\"1a90277098de88541a48b4092f50be0340bcc0c72327a34254a87db63e97cdf7\"",
+        "expires": "Wed, 25 Nov 2026 07:33:34 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:32:59 GMT"
       },
       "body": {
-        "server_version": "3542233",
+        "server_version": "3739102",
         "players": "many",
         "vip": false,
-        "start_time": "2026-09-26T11:03:07Z"
+        "start_time": "2026-11-24T11:05:24Z"
       }
     }
   ],

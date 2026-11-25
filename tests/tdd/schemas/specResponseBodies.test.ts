@@ -23,6 +23,42 @@ interface BodyCase {
   body: unknown;
 }
 
+/** A DeliverItem job whose parameters name the item type and the office. */
+const DELIVER_ITEM_JOB = {
+  id: '5f0c2d1e-9a7b-4c3d-8e6f-1a2b3c4d5e6f',
+  name: 'Deliver ore to the corporation office',
+  state: 'Active',
+  last_modified: '2026-09-13T01:51:49Z',
+  progress: { current: 0, desired: 1000 },
+  details: {
+    description: 'Priced at 90% of Jita market value',
+    career: 'Industrialist',
+    created: '2026-09-13T01:51:49.57Z',
+    expires: '2026-10-13T01:45:00Z',
+    creator: {
+      character: { id: 90000001, name: 'Creator Name' },
+      corporation: { id: 98777771, name: 'Creator Corporation' },
+    },
+  },
+  configuration: {
+    version: 1,
+    method: 'DeliverItem',
+    parameters: {
+      corporation_item_delivery: {
+        corporation_item_delivery: {
+          item_type: {
+            values: [{ value_type: 'item_type', values: ['62454'] }],
+          },
+          corporation_office_location: {
+            values: [{ value_type: 'station', values: ['60001105'] }],
+          },
+        },
+      },
+    },
+  },
+  access_and_visibility: { acl_protected: false },
+};
+
 const cases: BodyCase[] = [
   {
     // ContractsPublicBidsContractIdGet: no bidder_id on a public bid.
@@ -95,6 +131,15 @@ const cases: BodyCase[] = [
       },
       access_and_visibility: { acl_protected: false },
     },
+  },
+  {
+    // FreelanceJobsDetail for a DeliverItem job: the nested
+    // corporation_item_delivery parameter with its item-type and office
+    // matchers. Synthetic, in the shape a live job carried until the
+    // 2026-11-25 re-record replaced it with a location matcher.
+    route: 'GET /freelance-jobs/{job_id} (corporation item delivery)',
+    schema: freelanceJobsEndpoints.getFreelanceJobById.responseSchema,
+    body: DELIVER_ITEM_JOB,
   },
   {
     // CharactersFreelanceJobsParticipation.
@@ -246,6 +291,18 @@ describe('Schemas accept response bodies shaped as the ESI spec defines', () => 
   it.each(cases)('$route', ({ schema, body }) => {
     const result = schema.safeParse(body);
     expect(result.success ? [] : result.error.issues).toEqual([]);
+  });
+});
+
+describe('A DeliverItem freelance job', () => {
+  it('keeps its corporation_item_delivery parameters through validation', () => {
+    const parsed =
+      freelanceJobsEndpoints.getFreelanceJobById.responseSchema.parse(
+        DELIVER_ITEM_JOB,
+      );
+    expect(parsed.configuration.parameters).toEqual(
+      DELIVER_ITEM_JOB.configuration.parameters,
+    );
   });
 });
 

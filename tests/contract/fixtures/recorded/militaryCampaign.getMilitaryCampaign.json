@@ -5,9 +5,9 @@
     "method": "getMilitaryCampaign",
     "args": ["7519d7db-1e95-4d0e-bbbe-c47cd47de3c0"]
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 60,
   "upstreamPages": 1,
   "truncated": [],
@@ -18,7 +18,7 @@
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 04:27:01 GMT",
+        "expires": "Wed, 25 Nov 2026 07:34:27 GMT",
         "last-modified": "Wed, 16 Sep 2026 10:24:53 GMT"
       },
       "body": {
