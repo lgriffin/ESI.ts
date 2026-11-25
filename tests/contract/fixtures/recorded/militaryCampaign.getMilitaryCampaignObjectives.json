@@ -5,9 +5,9 @@
     "method": "getMilitaryCampaignObjectives",
     "args": ["7519d7db-1e95-4d0e-bbbe-c47cd47de3c0"]
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 60,
   "upstreamPages": 1,
   "truncated": [
@@ -26,49 +26,52 @@
       "headers": {
         "cache-control": "public, max-age=0, must-revalidate",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 04:26:01 GMT"
+        "expires": "Wed, 25 Nov 2026 07:31:20 GMT"
       },
       "body": {
         "cursor": {
-          "before": "1.GNkKWOE-u0ho",
-          "after": "1.GNkSyLGtc3S3AQ=="
+          "before": "1.GNnFpWwTbThU",
+          "after": "1.GNnFpXODQni3AQ=="
         },
         "objectives": [
           {
+            "id": "f355c9e1-4cb9-4ef7-81fd-a7904a1b55dc",
+            "state": "Expired",
+            "progress": 1933,
+            "participants": {
+              "total": 967,
+              "committed": 381,
+              "contributors": 530
+            },
+            "last_modified": "2026-09-29T11:00:41.129Z",
+            "started": "2026-07-16T23:00:29.061Z",
+            "finished": "2026-09-29T11:00:41.116Z"
+          },
+          {
             "id": "a67789c2-80d7-468a-8c0b-2da97e72b74e",
-            "state": "Active",
-            "progress": 1158,
+            "state": "Expired",
+            "progress": 1168,
             "participants": {
-              "total": 833,
-              "committed": 718,
-              "contributors": 283
+              "total": 838,
+              "committed": 575,
+              "contributors": 285
             },
-            "last_modified": "2026-09-27T01:48:23.708Z",
-            "started": "2026-07-31T23:00:48.052Z"
+            "last_modified": "2026-09-29T11:00:41.143Z",
+            "started": "2026-07-31T23:00:48.052Z",
+            "finished": "2026-09-29T11:00:41.13Z"
           },
           {
-            "id": "62f1574f-17df-4f96-ab37-7483cb3afcd0",
-            "state": "Active",
-            "progress": 22216,
+            "id": "fc7576eb-ed15-41fc-9ec9-518cf9038b75",
+            "state": "Expired",
+            "progress": 5702381,
             "participants": {
-              "total": 4512,
-              "committed": 4215,
-              "contributors": 3734
+              "total": 1301,
+              "committed": 643,
+              "contributors": 690
             },
-            "last_modified": "2026-09-27T02:55:41.039Z",
-            "started": "2026-06-16T23:00:23.069Z"
-          },
-          {
-            "id": "43c786c9-7f00-4ff1-bf01-97350124a3d7",
-            "state": "Active",
-            "progress": 12699,
-            "participants": {
-              "total": 613,
-              "committed": 539,
-              "contributors": 349
-            },
-            "last_modified": "2026-09-27T03:33:56.68Z",
-            "started": "2026-09-23T11:00:30.102Z"
+            "last_modified": "2026-09-29T11:00:41.157Z",
+            "started": "2026-08-13T16:00:46.088Z",
+            "finished": "2026-09-29T11:00:41.143Z"
           }
         ]
       }

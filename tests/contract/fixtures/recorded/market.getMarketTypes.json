@@ -5,9 +5,9 @@
     "method": "getMarketTypes",
     "args": [10000002]
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 600,
   "upstreamPages": 20,
   "truncated": [
@@ -33,12 +33,12 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"515e141c2a665b74df008d82740f358a53104e9e9ad889a2a9bbe212\"",
-        "expires": "Sun, 27 Sep 2026 04:30:00 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:20:00 GMT",
+        "etag": "\"6d2bd4501026a5c91f835637a180e28bf223389bff8ea8ea13ef11dc\"",
+        "expires": "Wed, 25 Nov 2026 07:35:03 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:25:03 GMT",
         "x-pages": "2"
       },
-      "body": [49152, 43691, 32772]
+      "body": [98304, 98305, 98306]
     },
     {
       "url": "markets/10000002/types/?page=2",
@@ -46,12 +46,12 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"c5b453215b1cb9ceb6e15d922f4a7a71998206d9fd00aa89097838c6\"",
-        "expires": "Sun, 27 Sep 2026 04:30:00 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:20:00 GMT",
+        "etag": "\"7c62d429a6165c3f29c22163455ef0ee3f2015841eb0579f4d7bc9d3\"",
+        "expires": "Wed, 25 Nov 2026 07:35:03 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:25:03 GMT",
         "x-pages": "2"
       },
-      "body": [34156, 93074, 34158]
+      "body": [34065, 34068, 34070]
     }
   ]
 }

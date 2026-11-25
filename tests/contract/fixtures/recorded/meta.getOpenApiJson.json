@@ -5,9 +5,9 @@
     "method": "getOpenApiJson",
     "args": []
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -263,7 +263,7 @@
             "url": "https://developers.eveonline.com/license-agreement"
           },
           "termsOfService": "https://support.eveonline.com/hc/en-us/articles/8414770561948-EVE-Online-Terms-of-Service",
-          "title": "EVE SKINR Ingenuity (ESI) - tranquility",
+          "title": "EVE Static Information (ESI) - tranquility",
           "version": "2026-08-18"
         },
         "openapi": "3.1.0",

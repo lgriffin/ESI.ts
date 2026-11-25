@@ -5,9 +5,9 @@
     "method": "getLeaderboardsCharacters",
     "args": []
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -61,96 +61,96 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "W/\"913b3f4e2ed35371bed5a2ddb54a29f6451d6062f85c3490634a33b0\"",
-        "expires": "Sun, 27 Sep 2026 11:05:00 GMT",
-        "last-modified": "Sat, 26 Sep 2026 11:03:07 GMT"
+        "etag": "W/\"c4505d8940a8434280f9978678234838d6892cbbcb7a8c2d9791b827\"",
+        "expires": "Wed, 25 Nov 2026 11:05:00 GMT",
+        "last-modified": "Mon, 23 Nov 2026 11:05:59 GMT"
       },
       "body": {
         "kills": {
           "active_total": [
             {
-              "amount": 15917,
+              "amount": 16596,
               "character_id": 95299451
             },
             {
-              "amount": 13473,
+              "amount": 13945,
               "character_id": 1230873801
             },
             {
-              "amount": 12187,
+              "amount": 12510,
               "character_id": 1392757657
             }
           ],
           "last_week": [
             {
-              "amount": 1008,
-              "character_id": 2123514892
+              "amount": 160,
+              "character_id": 2117466709
             },
             {
-              "amount": 187,
-              "character_id": 583637272
+              "amount": 141,
+              "character_id": 93216880
             },
             {
-              "amount": 137,
-              "character_id": 90157186
+              "amount": 112,
+              "character_id": 1392757657
             }
           ],
           "yesterday": [
             {
-              "amount": 73,
-              "character_id": 1710359416
+              "amount": 59,
+              "character_id": 95203070
             },
             {
-              "amount": 49,
-              "character_id": 1991432800
+              "amount": 42,
+              "character_id": 2113739375
             },
             {
-              "amount": 29,
-              "character_id": 2122352142
+              "amount": 36,
+              "character_id": 1602979347
             }
           ]
         },
         "victory_points": {
           "active_total": [
             {
-              "amount": 4772705,
+              "amount": 4875266,
               "character_id": 2117652307
             },
             {
-              "amount": 4712665,
-              "character_id": 96338377
+              "amount": 4823836,
+              "character_id": 2121503405
             },
             {
-              "amount": 4643112,
-              "character_id": 2121503405
+              "amount": 4816791,
+              "character_id": 96338377
             }
           ],
           "last_week": [
             {
-              "amount": 127749,
-              "character_id": 2123648067
-            },
-            {
-              "amount": 127262,
+              "amount": 99476,
               "character_id": 2124325888
             },
             {
-              "amount": 127262,
+              "amount": 94096,
               "character_id": 2124325892
+            },
+            {
+              "amount": 92099,
+              "character_id": 2124325891
             }
           ],
           "yesterday": [
             {
-              "amount": 22397,
+              "amount": 16805,
               "character_id": 2124325888
             },
             {
-              "amount": 22397,
-              "character_id": 2124325891
+              "amount": 15857,
+              "character_id": 2124325894
             },
             {
-              "amount": 22397,
-              "character_id": 2124325892
+              "amount": 14726,
+              "character_id": 2124325891
             }
           ]
         }

@@ -5,9 +5,9 @@
     "method": "getSystemKills",
     "args": []
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 3600,
   "upstreamPages": 1,
   "truncated": [
@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$",
       "kind": "array",
-      "original": 2763,
+      "original": 2670,
       "kept": 3
     }
   ],
@@ -26,28 +26,28 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"215a88a4b6d15c9c58cb16965cc4e0354ff91006ee852df2d2f25de7\"",
-        "expires": "Sun, 27 Sep 2026 04:53:21 GMT",
-        "last-modified": "Sun, 27 Sep 2026 03:53:21 GMT"
+        "etag": "\"c4617f2b977fb614c1ca417963a9afc1257acf8808e2a68e69a221ee\"",
+        "expires": "Wed, 25 Nov 2026 07:41:11 GMT",
+        "last-modified": "Wed, 25 Nov 2026 06:41:11 GMT"
       },
       "body": [
         {
-          "npc_kills": 62,
+          "npc_kills": 232,
           "pod_kills": 0,
           "ship_kills": 0,
-          "system_id": 30001279
+          "system_id": 30004336
         },
         {
-          "npc_kills": 76,
+          "npc_kills": 21,
           "pod_kills": 0,
           "ship_kills": 0,
-          "system_id": 30003507
+          "system_id": 30004455
         },
         {
-          "npc_kills": 441,
+          "npc_kills": 188,
           "pod_kills": 0,
           "ship_kills": 0,
-          "system_id": 30002658
+          "system_id": 30003231
         }
       ]
     }

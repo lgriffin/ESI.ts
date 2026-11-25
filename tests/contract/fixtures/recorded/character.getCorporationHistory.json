@@ -5,9 +5,9 @@
     "method": "getCharacterCorporationHistory",
     "args": [92025524]
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 86400,
   "upstreamPages": 1,
   "truncated": [],
@@ -19,8 +19,8 @@
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
         "etag": "\"92581f11b027c5e781a2af3bf6ffa2ec076b004c25c8b8e2e641a318\"",
-        "expires": "Mon, 28 Sep 2026 03:59:58 GMT",
-        "last-modified": "Sun, 27 Sep 2026 03:59:58 GMT"
+        "expires": "Thu, 26 Nov 2026 07:31:00 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:31:00 GMT"
       },
       "body": [
         {

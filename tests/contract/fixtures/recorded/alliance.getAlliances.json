@@ -5,9 +5,9 @@
     "method": "getAlliances",
     "args": []
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 3600,
   "upstreamPages": 1,
   "truncated": [
@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$",
       "kind": "array",
-      "original": 3647,
+      "original": 3646,
       "kept": 3
     }
   ],
@@ -26,9 +26,9 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"13319250f928f33040e6f68a1a64a36d0b27106e4010a55e16974b39\"",
-        "expires": "Sun, 27 Sep 2026 04:55:07 GMT",
-        "last-modified": "Sun, 27 Sep 2026 03:55:07 GMT"
+        "etag": "\"23de759dd9a8368f73e2d00ab862307d9ab252a8b87bcc24c4222f71\"",
+        "expires": "Wed, 25 Nov 2026 07:45:25 GMT",
+        "last-modified": "Wed, 25 Nov 2026 06:45:25 GMT"
       },
       "body": [99000006, 99000026, 99000036]
     }

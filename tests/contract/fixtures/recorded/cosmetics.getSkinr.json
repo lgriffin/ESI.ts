@@ -3,11 +3,11 @@
   "call": {
     "client": "cosmetics",
     "method": "getSkinr",
-    "args": ["5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd"]
+    "args": ["a0404959aadac8561ac74363204ed30e4ac776ae4e868d751aeb65fff39cd8a9"]
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 31536000,
   "upstreamPages": 1,
   "truncated": [
@@ -15,29 +15,29 @@
       "page": 1,
       "at": "$.layout.slots",
       "kind": "array",
-      "original": 6,
+      "original": 8,
       "kept": 4
     }
   ],
   "pages": [
     {
-      "url": "cosmetics/skinr/5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd",
+      "url": "cosmetics/skinr/a0404959aadac8561ac74363204ed30e4ac776ae4e868d751aeb65fff39cd8a9",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=31536000, immutable, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
-        "etag": "W/\"b863a4e02c71c9c127228fc0a7eed6758e65814440bc7397b92a7e2024dcc46e\"",
-        "expires": "Mon, 27 Sep 2027 04:26:02 GMT",
-        "last-modified": "Wed, 23 Sep 2026 09:45:52 GMT"
+        "etag": "W/\"41c85eee000ebdc8ec8e4698d9fb79361ca1eefb509f49c5afc2712e51ae332c\"",
+        "expires": "Thu, 25 Nov 2027 07:31:21 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:31:21 GMT"
       },
       "body": {
-        "id": "5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd",
-        "name": "Sun God Ra Avatar",
-        "line": "Uglyyoda Designs",
-        "creator_id": 2119597578,
-        "ship_type_id": 11567,
+        "id": "a0404959aadac8561ac74363204ed30e4ac776ae4e868d751aeb65fff39cd8a9",
+        "name": "Dark III CR Simurgh",
+        "line": "Dark Golden",
+        "creator_id": 159084671,
+        "ship_type_id": 92823,
         "tier": {
-          "level": 15
+          "level": 14
         },
         "layout": {
           "slots": [
@@ -45,7 +45,7 @@
               "id": 1,
               "configuration": {
                 "nanocoating": {
-                  "id": 1917
+                  "id": 168
                 }
               }
             },
@@ -53,7 +53,7 @@
               "id": 2,
               "configuration": {
                 "nanocoating": {
-                  "id": 1873
+                  "id": 168
                 }
               }
             },
@@ -61,7 +61,7 @@
               "id": 3,
               "configuration": {
                 "nanocoating": {
-                  "id": 1917
+                  "id": 168
                 }
               }
             },
@@ -69,7 +69,7 @@
               "id": 5,
               "configuration": {
                 "pattern": {
-                  "id": 1700,
+                  "id": 1970,
                   "configuration": {
                     "projection": {
                       "slot1": true,
@@ -79,23 +79,23 @@
                     },
                     "transform": {
                       "position": {
-                        "x": -8717.140625,
-                        "y": 1200.8851318359375,
-                        "z": -13588.4052734375
+                        "x": 159.11082458496094,
+                        "y": 1384.0576171875,
+                        "z": 2689.676513671875
                       },
                       "rotation": {
-                        "x": 0.00528407096862793,
-                        "y": 0.14416170120239258,
-                        "z": 0.04638645425438881,
-                        "w": -0.9884424209594727
+                        "x": -0.6867356896400452,
+                        "y": 0.3710225820541382,
+                        "z": 0.6241745948791504,
+                        "w": 0.03350895643234253
                       },
                       "scaling": {
-                        "x": 2493.9217981663805,
-                        "y": 2493.9217981663805,
-                        "z": 2493.9217981663805
+                        "x": 429.54980493756034,
+                        "y": 429.54980493756034,
+                        "z": 429.54980493756034
                       }
                     },
-                    "mirrored": true
+                    "mirrored": false
                   }
                 }
               }

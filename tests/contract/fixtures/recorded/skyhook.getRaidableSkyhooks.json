@@ -5,9 +5,9 @@
     "method": "getRaidableSkyhooks",
     "args": []
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 300,
   "upstreamPages": 1,
   "truncated": [
@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$.skyhooks",
       "kind": "array",
-      "original": 66,
+      "original": 78,
       "kept": 3
     }
   ],
@@ -26,34 +26,34 @@
       "headers": {
         "cache-control": "public, max-age=300, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
-        "etag": "W/\"a06390f361c075e611e6fc0f9718184b41dd187d0d2341633ba661b6654be357\"",
-        "expires": "Sun, 27 Sep 2026 04:31:00 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:25:04 GMT"
+        "etag": "W/\"9590f5ac33f7b434be01071557c499417973033bd13283a468185c699dfb45fa\"",
+        "expires": "Wed, 25 Nov 2026 07:36:19 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:30:35 GMT"
       },
       "body": {
         "skyhooks": [
           {
-            "planet_id": 40310253,
-            "solar_system_id": 30004896,
+            "planet_id": 40048937,
+            "solar_system_id": 30000775,
             "theft_vulnerability": {
-              "start": "2026-09-27T02:27:06Z",
-              "end": "2026-09-27T04:27:06Z"
+              "start": "2026-11-25T05:37:17Z",
+              "end": "2026-11-25T07:37:17Z"
             }
           },
           {
-            "planet_id": 40137701,
-            "solar_system_id": 30002159,
+            "planet_id": 40197050,
+            "solar_system_id": 30003101,
             "theft_vulnerability": {
-              "start": "2026-09-27T02:29:54Z",
-              "end": "2026-09-27T04:29:54Z"
+              "start": "2026-11-25T05:38:57Z",
+              "end": "2026-11-25T07:38:57Z"
             }
           },
           {
-            "planet_id": 40137037,
-            "solar_system_id": 30002148,
+            "planet_id": 40323587,
+            "solar_system_id": 30005113,
             "theft_vulnerability": {
-              "start": "2026-09-27T02:30:55Z",
-              "end": "2026-09-27T04:30:55Z"
+              "start": "2026-11-25T05:47:30Z",
+              "end": "2026-11-25T07:47:30Z"
             }
           }
         ]

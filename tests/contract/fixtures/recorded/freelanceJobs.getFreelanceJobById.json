@@ -3,58 +3,65 @@
   "call": {
     "client": "freelanceJobs",
     "method": "getFreelanceJobById",
-    "args": ["4f676ef6-c28a-49fb-9c2e-7dc0888b01d1"]
+    "args": ["ecef3235-7e63-4fc5-8ed3-4e8fcb8e5921"]
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 60,
   "upstreamPages": 1,
   "truncated": [
     {
       "page": 1,
+      "at": "$.details.description",
+      "kind": "string",
+      "original": 469,
+      "kept": 400
+    },
+    {
+      "page": 1,
       "at": "$.access_and_visibility.broadcast_locations",
       "kind": "array",
-      "original": 20,
+      "original": 5,
       "kept": 3
     }
   ],
   "pages": [
     {
-      "url": "freelance-jobs/4f676ef6-c28a-49fb-9c2e-7dc0888b01d1",
+      "url": "freelance-jobs/ecef3235-7e63-4fc5-8ed3-4e8fcb8e5921",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 12:23:22 GMT",
-        "last-modified": "Sun, 27 Sep 2026 12:20:32 GMT"
+        "expires": "Wed, 25 Nov 2026 07:32:19 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:29:05 GMT"
       },
       "body": {
-        "id": "4f676ef6-c28a-49fb-9c2e-7dc0888b01d1",
-        "name": "Compressed Bitumens 90%Jita",
+        "id": "ecef3235-7e63-4fc5-8ed3-4e8fcb8e5921",
+        "name": "ALL TYPES OF PLAGIOCLASE",
         "state": "Active",
-        "last_modified": "2026-09-27T12:20:32.481Z",
+        "last_modified": "2026-11-25T07:29:05.279Z",
         "progress": {
-          "current": 10000,
-          "desired": 1300000
+          "current": 2836321,
+          "desired": 3500000
         },
         "reward": {
-          "initial": 942500000,
-          "remaining": 935250000
+          "initial": 98000000,
+          "remaining": 18583012
         },
         "details": {
-          "description": "This contract is priced at 90% of Jita market value.<br><br>We also offer regular buyback services for corporations. If your corporation is interested in setting up a buyback partnership, feel free to contact me directly.",
+          "description": "<font size=\"14\" color=\"#bfffffff\">Help gather resourses to keep production going.<br><br>Thank you for you help.<br><br>MINERS WANTED!<br>Join Today<br></font><font size=\"14\" color=\"#ffd98d00\"><loc><a href=\"showinfo:2//98773441\">H8N LOYALS</a></loc><br></font><font size=\"14\" color=\"#bfffffff\"> </font><font size=\"14\" color=\"#ff6868e1\"><a href=\"joinChannel:player_bb3489c0d92311ef903600109bd0f828\">[-",
           "career": "Industrialist",
-          "created": "2026-09-13T01:51:49.57Z",
-          "expires": "2026-10-13T01:45:00Z",
+          "created": "2026-11-17T22:53:16.332Z",
+          "expires": "2026-12-01T22:45:00Z",
           "creator": {
             "character": {
-              "id": 2123656257,
-              "name": "Tisto II"
+              "id": 2121716911,
+              "name": "Amej Mahi"
             },
             "corporation": {
-              "id": 98776045,
-              "name": "Tilean Silver Lion Company"
+              "id": 98773441,
+              "name": "H8N LOYALS"
             }
           }
         },
@@ -66,16 +73,16 @@
                 "item_type": {
                   "values": [
                     {
-                      "value_type": "item_type",
-                      "values": ["62454"]
+                      "value_type": "item_group",
+                      "values": ["458"]
                     }
                   ]
                 },
                 "corporation_office_location": {
                   "values": [
                     {
-                      "value_type": "station",
-                      "values": ["60001105"]
+                      "value_type": "structure",
+                      "values": ["1050384028855"]
                     }
                   ]
                 }
@@ -86,23 +93,23 @@
         },
         "contribution": {
           "max_committed_participants": 10000,
-          "reward_per_contribution": 725,
+          "reward_per_contribution": 28,
           "submission_multiplier": 1
         },
         "access_and_visibility": {
           "acl_protected": false,
           "broadcast_locations": [
             {
-              "id": 30002048,
-              "name": "Bei"
+              "id": 30002786,
+              "name": "Ikao"
             },
             {
-              "id": 30002049,
-              "name": "Uttindar"
+              "id": 30000130,
+              "name": "Shihuken"
             },
             {
-              "id": 30002562,
-              "name": "Trer"
+              "id": 30002805,
+              "name": "Anttiri"
             }
           ]
         }

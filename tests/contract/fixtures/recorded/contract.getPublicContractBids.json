@@ -3,27 +3,43 @@
   "call": {
     "client": "contracts",
     "method": "getPublicContractBids",
-    "args": [236437896]
+    "args": [238521459]
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 300,
   "upstreamPages": 1,
   "truncated": [],
   "pages": [
     {
-      "url": "contracts/public/bids/236437896",
+      "url": "contracts/public/bids/238521459",
       "status": 200,
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"ed2e5773d709f4a0654d954884b08db4e152aeb8a70cb70b54e01bc4\"",
-        "expires": "Sun, 27 Sep 2026 04:27:35 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:22:35 GMT",
+        "etag": "\"25de9b89642fbd4cf65c12056bc6925dce8e6aeecf7f97d761be4e23\"",
+        "expires": "Wed, 25 Nov 2026 07:35:36 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:30:36 GMT",
         "x-pages": "1"
       },
-      "body": []
+      "body": [
+        {
+          "amount": 1200000,
+          "bid_id": 6702575,
+          "date_bid": "2026-11-25T05:32:42Z"
+        },
+        {
+          "amount": 1100000,
+          "bid_id": 6702484,
+          "date_bid": "2026-11-24T22:14:53Z"
+        },
+        {
+          "amount": 1000000,
+          "bid_id": 6702433,
+          "date_bid": "2026-11-24T18:26:04Z"
+        }
+      ]
     }
   ]
 }
