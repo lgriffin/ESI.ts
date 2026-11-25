@@ -4935,60 +4935,38 @@ export class EsiClientBuilder {
 
 // @public (undocumented)
 export interface EsiClientConfig {
-    // (undocumented)
     accessToken?: string | undefined;
-    // (undocumented)
     baseUrl?: string | undefined;
     cache?: CacheStore | undefined;
     circuitBreaker?: ICircuitBreaker | undefined;
-    // (undocumented)
     circuitBreakerConfig?: CircuitBreakerConfig | undefined;
-    // (undocumented)
     clientId?: string | undefined;
     clock?: Clock | undefined;
-    // (undocumented)
     compatibilityDate?: string | undefined;
-    // (undocumented)
     datasource?: EsiDatasource | undefined;
     deduplicator?: IDeduplicator | undefined;
-    // (undocumented)
     enableCircuitBreaker?: boolean | undefined;
-    // (undocumented)
     enableETagCache?: boolean | undefined;
-    // (undocumented)
     enableRequestDeduplication?: boolean | undefined;
-    // (undocumented)
     etagCacheConfig?: ETagCacheConfig | undefined;
     incompletePages?: IncompletePagesMode | undefined;
-    // (undocumented)
     language?: string | undefined;
     logger?: ILogger | undefined;
     logLevel?: LogLevel | 'silent' | undefined;
-    // (undocumented)
     onTokenRefresh?: TokenProvider | undefined;
     rateLimiter?: IRateLimiter | undefined;
-    // (undocumented)
     rateLimiterConfig?: RateLimiterConfig | undefined;
-    // (undocumented)
     requestInterceptors?: RequestInterceptor[] | undefined;
-    // (undocumented)
     responseInterceptors?: ResponseInterceptor[] | undefined;
-    // (undocumented)
     retryAttempts?: number | undefined;
-    // (undocumented)
     retryConfig?: RetryConfig | undefined;
-    // (undocumented)
     retryStrategy?: IRetryStrategy | undefined;
     tenant?: string | undefined;
-    // (undocumented)
     timeout?: number | undefined;
     transport?: HttpTransport | undefined;
-    // (undocumented)
     unsafeAllowCustomHost?: boolean | undefined;
     userAgent?: string | undefined;
-    // (undocumented)
     validateRequest?: boolean | undefined;
-    // (undocumented)
     validateResponse?: boolean | undefined;
 }
 
