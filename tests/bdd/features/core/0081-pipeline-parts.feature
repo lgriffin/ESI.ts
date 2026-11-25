@@ -211,6 +211,23 @@ Feature: Batches, request deduplication, retry, client set-up and pipeline owner
       Given an ApiClient configured with 5 retry attempts
       Then the client's retry settings shall be '{"maxRetries":5}'
 
+  Rule: Where retry settings are configured without maxRetries, the configured client shall retry 3 times, or the configured number of retry attempts.
+    A caller who passes retryConfig to change the delays or to allow
+    mutations is not asking for fewer retries. The retry strategy reads a
+    missing maxRetries as 0, so the settings it gets name the default.
+
+    Scenario: Retry settings that only allow mutations
+      Given an ApiClient configured with the retry settings '{"retryMutations":true}'
+      Then the client's retry settings shall be '{"retryMutations":true,"maxRetries":3}'
+
+    Scenario: Retry settings with a base delay beside 5 retry attempts
+      Given an ApiClient configured with the retry settings '{"baseDelayMs":200}' and 5 retry attempts
+      Then the client's retry settings shall be '{"baseDelayMs":200,"maxRetries":5}'
+
+    Scenario: Retry settings that name maxRetries keep it
+      Given an ApiClient configured with the retry settings '{"maxRetries":0}' and 5 retry attempts
+      Then the client's retry settings shall be '{"maxRetries":0}'
+
   Rule: Where a retry strategy is supplied, the configured client shall use the supplied retry strategy.
 
     Scenario: A supplied strategy
