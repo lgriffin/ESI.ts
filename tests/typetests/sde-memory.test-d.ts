@@ -845,6 +845,8 @@ declare const mercenaryTacticalOperationRecord: MercenaryTacticalOperation;
 expectType<number>(
   mercenaryTacticalOperationRecord.mercenaryTacticalOperationId,
 );
+// CCP dropped dungeonId from the export in build 3698585.
+expectType<number | undefined>(mercenaryTacticalOperationRecord.dungeonId);
 declare const metaGroupRecord: MetaGroup;
 expectType<number>(metaGroupRecord.metaGroupId);
 declare const metenoxMoonDrillRecord: MetenoxMoonDrill;
