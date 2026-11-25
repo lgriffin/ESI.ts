@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.5.0](https://github.com/lgriffin/ESI.ts/compare/v12.4.1...v12.5.0) (2026-11-25)
+
+
+### Added
+
+* **spec:** accept the campaign_objective_isk_reward_tax journal ref_type ([910c036](https://github.com/lgriffin/ESI.ts/commit/910c0366619729c3fc726816402a767cdaed4f2d))
+* **spec:** accept the campaign_objective_isk_reward_tax journal ref_type ([a6b40dd](https://github.com/lgriffin/ESI.ts/commit/a6b40dd499dd9321ba7317036b6c3d6e4136c6ea)), closes [#797](https://github.com/lgriffin/ESI.ts/issues/797)
+
+
+### Fixed
+
+* **config:** keep the default retries when retryConfig leaves maxRetries out ([9fc05b5](https://github.com/lgriffin/ESI.ts/commit/9fc05b5ade4d9ba8fa871be8521f069af88d3508))
+* **config:** keep the default retries when retryConfig leaves maxRetries out ([f3400ff](https://github.com/lgriffin/ESI.ts/commit/f3400ffec0cff765e412562c1f8c7bf35cb7d800))
+* **sde:** make a mercenary tactical operation's dungeonId optional ([f71ccd5](https://github.com/lgriffin/ESI.ts/commit/f71ccd5423386ae18b303b7512ec5bfe7898e109))
+* **sde:** make a mercenary tactical operation's dungeonId optional ([1edc650](https://github.com/lgriffin/ESI.ts/commit/1edc6509726f4589ddbde1d1930fc44340fe6d66))
+* **sde:** serve blueprints and SKIN licences with their ID again ([695a571](https://github.com/lgriffin/ESI.ts/commit/695a571d9e8ddd614933d4a446dfacdc52268be5))
+* **sde:** serve blueprints and SKIN licences with their ID again ([20d60af](https://github.com/lgriffin/ESI.ts/commit/20d60aff0a198b92b7420dabb715ac2bed163bd7)), closes [#784](https://github.com/lgriffin/ESI.ts/issues/784)
+
+
+### Changed
+
+* **spec:** vendor the ESI spec at 2026-08-18 and regenerate from it ([ffcfe44](https://github.com/lgriffin/ESI.ts/commit/ffcfe44fb7e8252d9a8c61aede83b29d0b352340))
+* **spec:** vendor the ESI spec at 2026-08-18 and regenerate from it ([ad66a54](https://github.com/lgriffin/ESI.ts/commit/ad66a54cae3d258b5123c28ec4c9a942ca0ea156))
+
+
+### Documentation
+
+* describe how retryConfig without maxRetries keeps the count ([366d9cd](https://github.com/lgriffin/ESI.ts/commit/366d9cdee0b22ab87bb6f4d79a6da6a71f35074e))
+* document EsiClientConfig and bring README, TESTING and CHARTER current ([7b71870](https://github.com/lgriffin/ESI.ts/commit/7b7187017b8df6721c97873b1d80ee3c01cc2f5b))
+* document EsiClientConfig and bring README, TESTING and CHARTER current ([a99b598](https://github.com/lgriffin/ESI.ts/commit/a99b59896c541b384130468892dbe65e9fdf7688))
+* state the clientId fallback per surface and the retryConfig count ([19785b5](https://github.com/lgriffin/ESI.ts/commit/19785b53de550f3750edefe0fa66d28317d5e2f4))
+* update the API report for the documented EsiClientConfig fields ([fe38f6e](https://github.com/lgriffin/ESI.ts/commit/fe38f6e619d103d9243ba00aef00d8fbaea726ee))
+
+
+### Testing
+
+* **contract:** rebuild the negative status fixture from the re-recorded original ([697fed4](https://github.com/lgriffin/ESI.ts/commit/697fed45e39c1421c5087fbadc75f2b678e93825))
+* **schemas:** keep a DeliverItem freelance job with its delivery parameters ([d49bc9c](https://github.com/lgriffin/ESI.ts/commit/d49bc9c9421d88d375e9ad48a63c847a5ae0ae8a))
+
 ## [12.4.1](https://github.com/lgriffin/ESI.ts/compare/v12.4.0...v12.4.1) (2026-11-19)
 
 
