@@ -29,8 +29,10 @@ export type EsiDatasource = 'tranquility' | 'singularity';
 export interface EsiClientConfig {
   /**
    * Identifies the application to CCP when `userAgent` is unset: sent as
-   * `X-User-Agent`. Defaults to `ESI_CLIENT_ID`, then `'esi-client'`. Prefer
-   * `userAgent`, which also names a contact address.
+   * `X-User-Agent`. Defaults to `ESI_CLIENT_ID`, then a name for the
+   * construction surface: `'esi-client'` for `EsiClient`, `'esi-custom-client'`
+   * for `EsiClientBuilder` and `'esi-standalone-client'` for a standalone
+   * domain client. Prefer `userAgent`, which also names a contact address.
    */
   clientId?: string | undefined;
   /**
@@ -66,8 +68,10 @@ export interface EsiClientConfig {
   retryAttempts?: number | undefined;
   /**
    * How transient failures (network errors, 420, 429, 502, 503, 504) are
-   * retried: `maxRetries` (default 3), `baseDelayMs` (1000, with jitter),
-   * `maxDelayMs` (30000) and `retryMutations` (false: only GETs retry).
+   * retried: `maxRetries`, `baseDelayMs` (1000, with jitter), `maxDelayMs`
+   * (30000) and `retryMutations` (false: only GETs retry). With no
+   * `retryConfig` the client retries 3 times; name `maxRetries` here when you
+   * set `retryConfig`.
    */
   retryConfig?: RetryConfig | undefined;
   /** Replaces the retry strategy `retryConfig` configures. */
