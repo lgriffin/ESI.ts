@@ -197,7 +197,9 @@ export const SDE_FILE_REGISTRY: readonly SdeFileSpec[] = [
     tableName: 'eve_blueprints',
     idAttribute: 'blueprintTypeId',
     idType: 'number',
-    injectId: false,
+    // CCP stopped writing the ID inside each record in build 3698585 (Nov 2026);
+    // the map key carries it, and the typed record promises it.
+    injectId: true,
   },
   {
     yamlFile: 'planetSchematics.yaml',
@@ -331,7 +333,9 @@ export const SDE_FILE_REGISTRY: readonly SdeFileSpec[] = [
     tableName: 'eve_skin_licenses',
     idAttribute: 'licenseTypeId',
     idType: 'number',
-    injectId: false,
+    // CCP stopped writing the ID inside each record in build 3698585 (Nov 2026);
+    // the map key carries it, and the typed record promises it.
+    injectId: true,
   },
   {
     yamlFile: 'skinMaterials.yaml',

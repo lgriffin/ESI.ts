@@ -124,6 +124,23 @@ Feature: Loading the Static Data Export
       And I look up every entity in table "eve_translation_languages"
       Then the returned records shall have "translationLanguageId" values "de, en, fr, ru, zh" in that order
 
+  Rule: If a blueprint or SKIN licence entry of a loaded file carries no ID of its own, then the SdeDataProvider shall serve the record with the entry's key as its blueprintTypeId or licenseTypeId.
+    Since build 3698585 CCP writes these two files with the ID only as the
+    map key. The typed Blueprint and SkinLicense records promise the ID, and
+    a caller passes it back to getBlueprint, so the key fills it in.
+
+    Scenario: A blueprint written without blueprintTypeID is served with its key as the ID
+      Given an SDE directory whose blueprints and SKIN licences carry no ID of their own
+      When I open the SDE from the directory
+      And I look up blueprint 681
+      Then the returned record shall have blueprintTypeId equal to the JSON '681'
+
+    Scenario: A SKIN licence written without licenseTypeID is served with its key as the ID
+      Given an SDE directory whose blueprints and SKIN licences carry no ID of their own
+      When I open the SDE from the directory
+      And I look up skin license 34599
+      Then the returned record shall have licenseTypeId equal to the JSON '34599'
+
   # ── Searching and filtering ──────────────────────────────────────────
 
   Rule: When the user searches a loaded table by name, the SdeDataProvider shall return, in ascending order of ID and no more than the limit, the records whose English name contains the search text in any letter case.
