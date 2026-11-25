@@ -48,7 +48,8 @@ export interface MercenaryTacticalOperation {
   anarchyImpact: number;
   description: string;
   developmentImpact: number;
-  dungeonId: number;
+  /** Absent from CCP's export since build 3698585 (November 2026). */
+  dungeonId?: number;
   infomorphBonus: number;
   name: string;
 }

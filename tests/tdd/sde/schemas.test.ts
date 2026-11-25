@@ -25,6 +25,7 @@ import {
   BlueprintSchema,
   PlanetSchematicSchema,
   SdeVersionSchema,
+  MercenaryTacticalOperationSchema,
 } from '../../../src/sde/domain/schemas';
 import { SdeTestDataFactory } from '../../../src/sde/testing/SdeTestDataFactory';
 
@@ -612,6 +613,36 @@ describe('SDE Zod Schemas', () => {
         uniqueName: 'Uplingur IV (Ndoria)',
       });
       expect(planet.uniqueName).toBe('Uplingur IV (Ndoria)');
+    });
+  });
+
+  describe('keys CCP dropped in build 3698585', () => {
+    const operation = {
+      mercenaryTacticalOperationId: 1,
+      anarchyImpact: 10,
+      description: 'Raid the outpost',
+      developmentImpact: -5,
+      infomorphBonus: 2,
+      name: 'Outpost Raid',
+    };
+
+    it('accepts a mercenary tactical operation without a dungeonId', () => {
+      expect(
+        MercenaryTacticalOperationSchema.parse(operation),
+      ).not.toHaveProperty('dungeonId');
+    });
+
+    it('keeps a dungeonId when one is present, and rejects one of the wrong type', () => {
+      expect(
+        MercenaryTacticalOperationSchema.parse({ ...operation, dungeonId: 7 })
+          .dungeonId,
+      ).toBe(7);
+      expect(() =>
+        MercenaryTacticalOperationSchema.parse({
+          ...operation,
+          dungeonId: 'seven',
+        }),
+      ).toThrow();
     });
   });
 });
