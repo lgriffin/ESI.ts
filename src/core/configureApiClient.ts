@@ -56,8 +56,14 @@ export function configureApiClient(
 
   // Retry config — default to 3 retries with exponential backoff so that
   // transient ESI failures (502/503/504) are handled automatically.
+  // Settings that leave out maxRetries keep the default count (or
+  // retryAttempts): RetryStrategy reads a missing maxRetries as 0, which
+  // would turn retry off for a caller who only changed the delays.
   if (config?.retryConfig) {
-    client.setRetryConfig(config.retryConfig);
+    client.setRetryConfig({
+      ...config.retryConfig,
+      maxRetries: config.retryConfig.maxRetries ?? config.retryAttempts ?? 3,
+    });
   } else if (config?.retryAttempts !== undefined) {
     client.setRetryConfig({ maxRetries: config.retryAttempts });
   } else {

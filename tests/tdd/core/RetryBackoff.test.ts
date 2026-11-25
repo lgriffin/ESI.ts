@@ -1,7 +1,9 @@
 import { ApiClient } from '../../../src/core/ApiClient';
 import { handleRequest } from '../../../src/core/ApiRequestHandler';
 import { EsiError } from '../../../src/core/util/error';
-import { retryDelay } from '../../../src/core/util/retry';
+import { retryDelay, type RetryConfig } from '../../../src/core/util/retry';
+import { configureApiClient } from '../../../src/core/configureApiClient';
+import type { EsiClientConfig } from '../../../src/core/EsiClientConfig';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import {
   CircuitBreaker,
@@ -321,6 +323,33 @@ describe('Retry with exponential backoff', () => {
       expect((e as EsiError).statusCode).toBe(502);
     }
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  describe('configureApiClient retry settings', () => {
+    const configured = (config: EsiClientConfig): RetryConfig | null => {
+      const c = new ApiClient('retry-settings', BASE_URL);
+      configureApiClient(c, { ...config, enableETagCache: false });
+      return c.getRetryConfig();
+    };
+
+    it('keeps the default 3 retries when retryConfig leaves maxRetries out', () => {
+      expect(configured({ retryConfig: { retryMutations: true } })).toEqual({
+        retryMutations: true,
+        maxRetries: 3,
+      });
+    });
+
+    it('takes retryAttempts for a retryConfig without maxRetries', () => {
+      expect(
+        configured({ retryConfig: { baseDelayMs: 200 }, retryAttempts: 5 }),
+      ).toEqual({ baseDelayMs: 200, maxRetries: 5 });
+    });
+
+    it('keeps a maxRetries retryConfig names, 0 included', () => {
+      expect(
+        configured({ retryConfig: { maxRetries: 0 }, retryAttempts: 5 }),
+      ).toEqual({ maxRetries: 0 });
+    });
   });
 
   it('retryAttempts backward compat maps to retryConfig', () => {
