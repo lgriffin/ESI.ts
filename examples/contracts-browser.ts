@@ -14,6 +14,7 @@
  */
 import { EsiClient, createConsoleLogger } from '../src';
 import { EsiError } from '../src/errors';
+import { exampleCharacterId } from './support/character';
 
 // The program's own output. The client logs through the same console sink
 // at ESI_LOG_LEVEL (default warn), so its diagnostics stay out of the way.
@@ -103,7 +104,7 @@ async function main() {
     // Scope: esi-contracts.read_character_contracts.v1
     log.info('\n--- Character Contracts ---');
     try {
-      const characterId = 1689391488;
+      const characterId = exampleCharacterId(1689391488);
       const myContracts =
         await client.contracts.getCharacterContracts(characterId);
       log.info(`Found ${myContracts.length} personal contracts`);

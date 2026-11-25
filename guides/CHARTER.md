@@ -97,7 +97,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 ### 11.0.0
 
-The next major is 11.0.0, built in the phases of the Road to Done plan (Phase 0 audit in [AUDIT.md](AUDIT.md); Phase 1 generator done; Phase 2 architecture lock in progress). The phase schedule, each phase's definition of done, the SDE programme and the release gate are in [ROADMAP.md](ROADMAP.md). Decided on 2026-09-26:
+11.0.0 shipped on 2026-09-28, built in the phases of the Road to Done plan (Phase 0 audit in [AUDIT.md](AUDIT.md)); [ROADMAP.md](ROADMAP.md) keeps the phase schedule, each phase's definition of done, the SDE programme and the release gate as the record. The 12.x line followed, and no 13.0 is planned (posture 1, [CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)). Decided on 2026-09-26:
 
 - The target is 11.0.0, not 1.0.0: npm already carries 10.x.
 - Node 22 becomes the floor in 11.0.0, released as a breaking change (REL-05).
