@@ -5,9 +5,9 @@
     "method": "getChangelog",
     "args": []
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 600,
   "upstreamPages": 1,
   "truncated": [
@@ -59,6 +59,13 @@
       "kind": "array",
       "original": 8,
       "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.changelog.2026-11-19",
+      "kind": "array",
+      "original": 25,
+      "kept": 3
     }
   ],
   "pages": [
@@ -68,7 +75,7 @@
       "headers": {
         "cache-control": "public, max-age=600",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 04:35:37 GMT"
+        "expires": "Wed, 25 Nov 2026 07:43:05 GMT"
       },
       "body": {
         "changelog": {
@@ -445,6 +452,45 @@
               "compatibility_date": "2025-09-30",
               "type": "changed",
               "description": "Field 'security_penalty' can now be set to zero (defaulted to 50 before)."
+            }
+          ],
+          "2026-11-19": [
+            {
+              "method": "GET",
+              "path": "/universe/ancestries",
+              "compatibility_date": "2026-11-19",
+              "type": "removed",
+              "description": ""
+            },
+            {
+              "method": "GET",
+              "path": "/universe/asteroid_belts/{asteroid_belt_id}",
+              "compatibility_date": "2026-11-19",
+              "type": "removed",
+              "description": ""
+            },
+            {
+              "method": "GET",
+              "path": "/universe/bloodlines",
+              "compatibility_date": "2026-11-19",
+              "type": "removed",
+              "description": ""
+            }
+          ],
+          "2026-11-23": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/wallet/journal",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Add wallet journal ref type `campaign_objective_isk_reward_tax`."
+            },
+            {
+              "method": "GET",
+              "path": "/corporations/{corporation_id}/wallets/{division}/journal",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Add wallet journal ref type `campaign_objective_isk_reward_tax`."
             }
           ]
         }

@@ -5,9 +5,9 @@
     "method": "getLeaderboardsCorporations",
     "args": []
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -61,95 +61,95 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "W/\"913b3f4e2ed35371bed5a2ddb54a29f6451d6062f85c3490634a33b0\"",
-        "expires": "Sun, 27 Sep 2026 11:05:00 GMT",
-        "last-modified": "Sat, 26 Sep 2026 11:03:07 GMT"
+        "etag": "W/\"c4505d8940a8434280f9978678234838d6892cbbcb7a8c2d9791b827\"",
+        "expires": "Wed, 25 Nov 2026 11:05:00 GMT",
+        "last-modified": "Tue, 24 Nov 2026 11:05:24 GMT"
       },
       "body": {
         "kills": {
           "active_total": [
             {
-              "amount": 166311,
+              "amount": 167734,
               "corporation_id": 1000180
             },
             {
-              "amount": 145171,
+              "amount": 146926,
               "corporation_id": 1000181
             },
             {
-              "amount": 115778,
+              "amount": 116366,
               "corporation_id": 1000179
             }
           ],
           "last_week": [
             {
-              "amount": 1008,
-              "corporation_id": 98844282
+              "amount": 534,
+              "corporation_id": 98598862
             },
             {
-              "amount": 394,
+              "amount": 475,
               "corporation_id": 1836808734
             },
             {
-              "amount": 337,
-              "corporation_id": 306830202
+              "amount": 414,
+              "corporation_id": 98407286
             }
           ],
           "yesterday": [
             {
+              "amount": 109,
+              "corporation_id": 98598862
+            },
+            {
+              "amount": 86,
+              "corporation_id": 98558667
+            },
+            {
               "amount": 73,
-              "corporation_id": 98541136
-            },
-            {
-              "amount": 67,
-              "corporation_id": 306830202
-            },
-            {
-              "amount": 59,
-              "corporation_id": 846656839
+              "corporation_id": 98802730
             }
           ]
         },
         "victory_points": {
           "active_total": [
             {
-              "amount": 85279617,
+              "amount": 88140379,
               "corporation_id": 1000180
             },
             {
-              "amount": 78970805,
+              "amount": 81085277,
               "corporation_id": 1000181
             },
             {
-              "amount": 60813005,
+              "amount": 63380138,
               "corporation_id": 1000182
             }
           ],
           "last_week": [
             {
-              "amount": 458196,
+              "amount": 340560,
               "corporation_id": 1000180
             },
             {
-              "amount": 333513,
+              "amount": 275279,
               "corporation_id": 1000182
             },
             {
-              "amount": 262374,
-              "corporation_id": 917701062
+              "amount": 266076,
+              "corporation_id": 1000179
             }
           ],
           "yesterday": [
             {
-              "amount": 54261,
+              "amount": 41503,
               "corporation_id": 1000182
             },
             {
-              "amount": 51515,
+              "amount": 40358,
               "corporation_id": 1000180
             },
             {
-              "amount": 29310,
+              "amount": 37498,
               "corporation_id": 1000181
             }
           ]

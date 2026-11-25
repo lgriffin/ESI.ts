@@ -62,16 +62,15 @@ export interface EsiClientConfig {
   /** Per-request timeout in milliseconds, reading the body included. Default 30000. */
   timeout?: number | undefined;
   /**
-   * Shorthand for `retryConfig.maxRetries`, used when `retryConfig` is
-   * unset. Default 3.
+   * How many times a transient failure is retried. Default 3. A
+   * `retryConfig` that names `maxRetries` overrides it.
    */
   retryAttempts?: number | undefined;
   /**
    * How transient failures (network errors, 420, 429, 502, 503, 504) are
    * retried: `maxRetries`, `baseDelayMs` (1000, with jitter), `maxDelayMs`
-   * (30000) and `retryMutations` (false: only GETs retry). With no
-   * `retryConfig` the client retries 3 times; name `maxRetries` here when you
-   * set `retryConfig`.
+   * (30000) and `retryMutations` (false: only GETs retry). Left out,
+   * `maxRetries` falls back to `retryAttempts`, then 3.
    */
   retryConfig?: RetryConfig | undefined;
   /** Replaces the retry strategy `retryConfig` configures. */

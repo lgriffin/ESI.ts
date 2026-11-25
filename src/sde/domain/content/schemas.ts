@@ -46,7 +46,7 @@ export const MercenaryTacticalOperationSchema = z.looseObject({
   anarchyImpact: z.number().int(),
   description: z.string(),
   developmentImpact: z.number().int(),
-  dungeonId: z.number().int(),
+  dungeonId: z.number().int().optional(),
   infomorphBonus: z.number().int(),
   name: z.string(),
 });

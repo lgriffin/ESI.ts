@@ -5,9 +5,9 @@
     "method": "getSovereigntyCampaigns",
     "args": []
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 5,
   "upstreamPages": 1,
   "truncated": [
@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$",
       "kind": "array",
-      "original": 8,
+      "original": 11,
       "kept": 3
     }
   ],
@@ -26,43 +26,43 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"b3cf019c2adbc92d2c3a9a083eb797b6e6bf3acb64ef9f4a8e79c99c\"",
-        "expires": "Sun, 27 Sep 2026 04:26:02 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:25:57 GMT"
+        "etag": "\"4955d10700f1e64d29858f0dff7254ebd9fc0dfbf1630755f2308c36\"",
+        "expires": "Wed, 25 Nov 2026 07:33:31 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:33:26 GMT"
       },
       "body": [
         {
-          "attackers_score": 0.61,
-          "campaign_id": 112206,
-          "constellation_id": 20000227,
-          "defender_id": 99015215,
-          "defender_score": 0.39,
+          "attackers_score": 0.4,
+          "campaign_id": 112703,
+          "constellation_id": 20000755,
+          "defender_id": 99007887,
+          "defender_score": 0.6,
           "event_type": "ihub_defense",
-          "solar_system_id": 30001546,
-          "start_time": "2026-09-27T03:25:02Z",
-          "structure_id": 1055504687928
+          "solar_system_id": 30005165,
+          "start_time": "2026-11-25T18:26:52Z",
+          "structure_id": 1054705311174
         },
         {
           "attackers_score": 0.4,
-          "campaign_id": 112207,
-          "constellation_id": 20000258,
-          "defender_id": 99015056,
+          "campaign_id": 112704,
+          "constellation_id": 20000748,
+          "defender_id": 99007887,
           "defender_score": 0.6,
           "event_type": "ihub_defense",
-          "solar_system_id": 30001746,
-          "start_time": "2026-09-27T19:10:04Z",
-          "structure_id": 1055739372167
+          "solar_system_id": 30005107,
+          "start_time": "2026-11-25T21:14:10Z",
+          "structure_id": 1054122381602
         },
         {
           "attackers_score": 0.4,
-          "campaign_id": 112208,
-          "constellation_id": 20000258,
-          "defender_id": 99015056,
+          "campaign_id": 112705,
+          "constellation_id": 20000101,
+          "defender_id": 1354830081,
           "defender_score": 0.6,
           "event_type": "ihub_defense",
-          "solar_system_id": 30001748,
-          "start_time": "2026-09-27T21:31:35Z",
-          "structure_id": 1055736759643
+          "solar_system_id": 30000691,
+          "start_time": "2026-11-25T18:48:11Z",
+          "structure_id": 1049691941659
         }
       ]
     }
