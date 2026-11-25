@@ -9,8 +9,8 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 | Domain clients                                                 | <!-- metric:clients -->39<!-- /metric -->                                                                         |
 | ESI endpoints wired                                            | <!-- metric:routes -->235<!-- /metric -->                                                                         |
 | Generated operations (`src/generated/operations.generated.ts`) | <!-- metric:operations -->235<!-- /metric -->                                                                     |
-| EARS requirements in the specification                         | <!-- metric:requirements -->998<!-- /metric --> (<!-- metric:featureFiles -->97<!-- /metric --> feature files)    |
-| Gherkin scenarios                                              | <!-- metric:scenarios -->1,280<!-- /metric -->                                                                    |
+| EARS requirements in the specification                         | <!-- metric:requirements -->1,000<!-- /metric --> (<!-- metric:featureFiles -->97<!-- /metric --> feature files)    |
+| Gherkin scenarios                                              | <!-- metric:scenarios -->1,285<!-- /metric -->                                                                    |
 | Test files matched by the nine Jest configurations and tsd     | <!-- metric:testFiles -->411<!-- /metric -->                                                                      |
 | Statement coverage                                             | 99.2% (`npm run coverage` on master `801998a`, 2026-10-28; floor 90%)                                             |
 | OpenSSF Scorecard                                              | 8.3 / 10 (`scorecard.yml` run 36409177565 on master `9486fe2c`, 2026-09-28; 8.2 on 2026-09-21, 6.7 on 2026-08-24) |
@@ -97,7 +97,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 ### 11.0.0
 
-The next major is 11.0.0, built in the phases of the Road to Done plan (Phase 0 audit in [AUDIT.md](AUDIT.md); Phase 1 generator done; Phase 2 architecture lock in progress). The phase schedule, each phase's definition of done, the SDE programme and the release gate are in [ROADMAP.md](ROADMAP.md). Decided on 2026-09-26:
+11.0.0 shipped on 2026-09-28, built in the phases of the Road to Done plan (Phase 0 audit in [AUDIT.md](AUDIT.md)); [ROADMAP.md](ROADMAP.md) keeps the phase schedule, each phase's definition of done, the SDE programme and the release gate as the record. The 12.x line followed, and no 13.0 is planned (posture 1, [CLIENT-ARCHITECTURE.md](CLIENT-ARCHITECTURE.md)). Decided on 2026-09-26:
 
 - The target is 11.0.0, not 1.0.0: npm already carries 10.x.
 - Node 22 becomes the floor in 11.0.0, released as a breaking change (REL-05).
@@ -423,7 +423,7 @@ This table is the canonical tier order. Both testing guides merge into one and c
 | Tier | Name                           | Where                            | Files                                                                                                                                                                      | Runner                    | Runs on                                                        |
 | ---- | ------------------------------ | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | -------------------------------------------------------------- |
 | 1    | Unit (TDD)                     | `tests/tdd`                      | <!-- metric:unitSuites -->260<!-- /metric -->                                                                                                                              | jest.unit                 | push (Node 22), PR (Node 22/24)                                |
-| 2    | Specification (EARS/BDD)       | `tests/bdd`                      | <!-- metric:featureFiles -->97<!-- /metric --> features · <!-- metric:requirements -->998<!-- /metric --> rules · <!-- metric:scenarios -->1,280<!-- /metric --> scenarios | jest.unit + jest-cucumber | push (`npm test`), PR (`bdd-tests`), plus `spec:audit`         |
+| 2    | Specification (EARS/BDD)       | `tests/bdd`                      | <!-- metric:featureFiles -->97<!-- /metric --> features · <!-- metric:requirements -->1,000<!-- /metric --> rules · <!-- metric:scenarios -->1,285<!-- /metric --> scenarios | jest.unit + jest-cucumber | push (`npm test`), PR (`bdd-tests`), plus `spec:audit`         |
 | 3    | Type tests                     | `tests/typetests`                | <!-- metric:typeTestFiles -->15<!-- /metric -->                                                                                                                            | tsd                       | PR (full suite)                                                |
 | 4    | Property fuzz                  | `tests/fuzz`                     | <!-- metric:fuzzSuites -->15<!-- /metric -->                                                                                                                               | jest.fuzz + fast-check    | PR, nightly properties                                         |
 | 5    | Contract                       | `tests/contract`                 | 6 (2 live + 4 replay) + snapshot                                                                                                                                           | jest.contract(.replay)    | PR (`contract-replay`), soft-skip on ESI 503                   |
