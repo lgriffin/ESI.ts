@@ -5,9 +5,9 @@
     "method": "getWars",
     "args": []
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 3600,
   "upstreamPages": 1,
   "truncated": [
@@ -26,11 +26,11 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"30dd2643b296f88e92dbfd85d24ecf5ffc43ef9b907170cfa9c3834c\"",
-        "expires": "Sun, 27 Sep 2026 05:13:41 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:13:41 GMT"
+        "etag": "\"7c3e34172d6f290072929e805a7820cc9e995b7a312cac616fee1c8a\"",
+        "expires": "Wed, 25 Nov 2026 07:42:23 GMT",
+        "last-modified": "Wed, 25 Nov 2026 06:42:23 GMT"
       },
-      "body": [762980, 762979, 762978]
+      "body": [763987, 763986, 763985]
     }
   ]
 }

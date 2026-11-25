@@ -5,9 +5,9 @@
     "method": "getCharacterPublicInfo",
     "args": [92025524]
   },
-  "recordedAt": "2026-09-27",
+  "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
-  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 86400,
   "upstreamPages": 1,
   "truncated": [],
@@ -19,8 +19,8 @@
         "cache-control": "public, max-age=86400, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
         "etag": "W/\"510cc838fc941eef14017588ff17930fac4843b40732bda440e27d6ac96975ba\"",
-        "expires": "Mon, 28 Sep 2026 04:25:39 GMT",
-        "last-modified": "Sat, 26 Sep 2026 19:57:28 GMT"
+        "expires": "Thu, 26 Nov 2026 07:33:08 GMT",
+        "last-modified": "Tue, 24 Nov 2026 15:28:58 GMT"
       },
       "body": {
         "birthday": "2012-05-16T11:51:00Z",
