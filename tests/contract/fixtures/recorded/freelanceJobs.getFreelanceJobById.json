@@ -3,115 +3,77 @@
   "call": {
     "client": "freelanceJobs",
     "method": "getFreelanceJobById",
-    "args": ["ecef3235-7e63-4fc5-8ed3-4e8fcb8e5921"]
+    "args": ["c4c61335-b452-43c2-be49-e25b591dd6a5"]
   },
   "recordedAt": "2026-11-25",
   "compatibilityDate": "2026-08-18",
   "specHash": "sha256:316ddaf81044ad2a9008a3f4624976d7abf6cbeea18301af90e3ee1da8645a06",
   "specCacheSeconds": 60,
   "upstreamPages": 1,
-  "truncated": [
-    {
-      "page": 1,
-      "at": "$.details.description",
-      "kind": "string",
-      "original": 469,
-      "kept": 400
-    },
-    {
-      "page": 1,
-      "at": "$.access_and_visibility.broadcast_locations",
-      "kind": "array",
-      "original": 5,
-      "kept": 3
-    }
-  ],
+  "truncated": [],
   "pages": [
     {
-      "url": "freelance-jobs/ecef3235-7e63-4fc5-8ed3-4e8fcb8e5921",
+      "url": "freelance-jobs/c4c61335-b452-43c2-be49-e25b591dd6a5",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Wed, 25 Nov 2026 07:32:19 GMT",
-        "last-modified": "Wed, 25 Nov 2026 07:29:05 GMT"
+        "expires": "Wed, 25 Nov 2026 07:34:27 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:32:43 GMT"
       },
       "body": {
-        "id": "ecef3235-7e63-4fc5-8ed3-4e8fcb8e5921",
-        "name": "ALL TYPES OF PLAGIOCLASE",
+        "id": "c4c61335-b452-43c2-be49-e25b591dd6a5",
+        "name": "刷ADM / ADM Farm 9-KWXC",
         "state": "Active",
-        "last_modified": "2026-11-25T07:29:05.279Z",
+        "last_modified": "2026-11-25T07:32:43.361Z",
         "progress": {
-          "current": 2836321,
-          "desired": 3500000
+          "current": 7860,
+          "desired": 10000
         },
         "reward": {
-          "initial": 98000000,
-          "remaining": 18583012
+          "initial": 2500000000,
+          "remaining": 535000000
         },
         "details": {
-          "description": "<font size=\"14\" color=\"#bfffffff\">Help gather resourses to keep production going.<br><br>Thank you for you help.<br><br>MINERS WANTED!<br>Join Today<br></font><font size=\"14\" color=\"#ffd98d00\"><loc><a href=\"showinfo:2//98773441\">H8N LOYALS</a></loc><br></font><font size=\"14\" color=\"#bfffffff\"> </font><font size=\"14\" color=\"#ff6868e1\"><a href=\"joinChannel:player_bb3489c0d92311ef903600109bd0f828\">[-",
-          "career": "Industrialist",
-          "created": "2026-11-17T22:53:16.332Z",
-          "expires": "2026-12-01T22:45:00Z",
+          "description": "",
+          "career": "Enforcer",
+          "created": "2026-11-18T05:33:22.842Z",
+          "expires": "2026-12-02T05:30:00Z",
           "creator": {
             "character": {
-              "id": 2121716911,
-              "name": "Amej Mahi"
+              "id": 2122961163,
+              "name": "poor tool"
             },
             "corporation": {
-              "id": 98773441,
-              "name": "H8N LOYALS"
+              "id": 98599770,
+              "name": "Fraternity Building Management"
             }
           }
         },
         "configuration": {
           "version": 1,
           "parameters": {
-            "corporation_item_delivery": {
-              "corporation_item_delivery": {
-                "item_type": {
-                  "values": [
-                    {
-                      "value_type": "item_group",
-                      "values": ["458"]
-                    }
-                  ]
-                },
-                "corporation_office_location": {
-                  "values": [
-                    {
-                      "value_type": "structure",
-                      "values": ["1050384028855"]
-                    }
-                  ]
-                }
+            "location": {
+              "matcher": {
+                "values": [
+                  {
+                    "value_type": "solarsystem",
+                    "values": ["30002450"]
+                  }
+                ]
               }
             }
           },
-          "method": "DeliverItem"
+          "method": "KillNPC"
         },
         "contribution": {
           "max_committed_participants": 10000,
-          "reward_per_contribution": 28,
+          "reward_per_contribution": 250000,
           "submission_multiplier": 1
         },
         "access_and_visibility": {
           "acl_protected": false,
-          "broadcast_locations": [
-            {
-              "id": 30002786,
-              "name": "Ikao"
-            },
-            {
-              "id": 30000130,
-              "name": "Shihuken"
-            },
-            {
-              "id": 30002805,
-              "name": "Anttiri"
-            }
-          ]
+          "broadcast_locations": []
         }
       }
     }

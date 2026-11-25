@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$.skyhooks",
       "kind": "array",
-      "original": 78,
+      "original": 79,
       "kept": 3
     }
   ],
@@ -26,9 +26,9 @@
       "headers": {
         "cache-control": "public, max-age=300, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
-        "etag": "W/\"9590f5ac33f7b434be01071557c499417973033bd13283a468185c699dfb45fa\"",
-        "expires": "Wed, 25 Nov 2026 07:36:19 GMT",
-        "last-modified": "Wed, 25 Nov 2026 07:30:35 GMT"
+        "etag": "W/\"0c4d0017022685f6f88abf318c1bb40b1bcae68f5190de731bc8b1c81160a92a\"",
+        "expires": "Wed, 25 Nov 2026 07:38:26 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:32:38 GMT"
       },
       "body": {
         "skyhooks": [

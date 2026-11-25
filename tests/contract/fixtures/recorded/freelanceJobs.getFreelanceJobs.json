@@ -26,50 +26,54 @@
       "headers": {
         "cache-control": "public, max-age=0, must-revalidate",
         "content-type": "application/json",
-        "expires": "Wed, 25 Nov 2026 07:31:19 GMT"
+        "expires": "Wed, 25 Nov 2026 07:33:27 GMT"
       },
       "body": {
         "cursor": {
-          "before": "1.GOs5LcsD5Sw=",
-          "after": "1.GOs5TAcMrjw="
+          "before": "1.GOs5YJG2zCA=",
+          "after": "1.GOs5ab452RQ="
         },
         "freelance_jobs": [
           {
-            "id": "ecef3235-7e63-4fc5-8ed3-4e8fcb8e5921",
-            "name": "ALL TYPES OF PLAGIOCLASE",
+            "id": "c4c61335-b452-43c2-be49-e25b591dd6a5",
+            "name": "刷ADM / ADM Farm 9-KWXC",
             "state": "Active",
-            "last_modified": "2026-11-25T07:29:05.279Z",
+            "last_modified": "2026-11-25T07:32:43.361Z",
             "progress": {
-              "current": 2836321,
-              "desired": 3500000
+              "current": 7860,
+              "desired": 10000
             },
             "reward": {
-              "initial": 98000000,
-              "remaining": 18583012
+              "initial": 2500000000,
+              "remaining": 535000000
             }
           },
           {
-            "id": "aeb1da6d-af16-4276-8c7d-3accbb7980bf",
-            "name": "天使海军回收计划",
+            "id": "8c6f06d9-43d5-4a81-8536-d9266bd8cb94",
+            "name": "Bonus NPC Bounty Payments (Read Description)",
             "state": "Active",
-            "last_modified": "2026-11-25T07:30:25.247Z",
+            "last_modified": "2026-11-25T07:32:57.626Z",
             "progress": {
-              "current": 458156,
-              "desired": 11451415
+              "current": 163255,
+              "desired": 400000
+            },
+            "reward": {
+              "initial": 1600000000,
+              "remaining": 946980000
             }
           },
           {
-            "id": "95d3aa7d-da54-4db0-b3bd-66be4816a874",
-            "name": "CALDARI SIGNAL OPERATIONS DEPARTMENT RECRUITMENT FUND",
+            "id": "df0ce06d-dc7c-4e04-8f77-31f17af9fc15",
+            "name": "Combat Reward Program",
             "state": "Active",
-            "last_modified": "2026-11-25T07:30:43.928Z",
+            "last_modified": "2026-11-25T07:32:57.653Z",
             "progress": {
-              "current": 32453,
-              "desired": 100000
+              "current": 102968,
+              "desired": 125000
             },
             "reward": {
-              "initial": 15000000,
-              "remaining": 10132050
+              "initial": 1000000000,
+              "remaining": 176256000
             }
           }
         ]

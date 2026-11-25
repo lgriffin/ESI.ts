@@ -26,9 +26,9 @@
       "headers": {
         "cache-control": "public, max-age=300, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
-        "etag": "W/\"9e5b6a35c10b4461a79448ad1ee9b6c9029a95b7ed70dfca9e97bd15cff7567a\"",
-        "expires": "Wed, 25 Nov 2026 07:36:18 GMT",
-        "last-modified": "Wed, 25 Nov 2026 07:26:58 GMT"
+        "etag": "W/\"f4a1b350408d2546a9010bba47a03d720af64db347352bdcdc3f7d06c9aaea87\"",
+        "expires": "Wed, 25 Nov 2026 07:38:26 GMT",
+        "last-modified": "Wed, 25 Nov 2026 07:32:02 GMT"
       },
       "body": {
         "solar_systems": [

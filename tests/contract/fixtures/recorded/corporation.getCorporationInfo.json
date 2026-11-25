@@ -19,7 +19,7 @@
         "cache-control": "public, max-age=3600, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
         "etag": "W/\"5c082136b7ce64399897012e2f473c26104eb98d3b5a31bc48e206320492f6fd\"",
-        "expires": "Wed, 25 Nov 2026 08:30:58 GMT",
+        "expires": "Wed, 25 Nov 2026 08:33:07 GMT",
         "last-modified": "Wed, 25 Nov 2026 07:30:58 GMT"
       },
       "body": {
