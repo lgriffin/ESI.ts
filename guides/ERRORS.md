@@ -237,7 +237,7 @@ import { EsiError, isNotFound, isCircuitOpen } from '@lgriffin/esi.ts/errors';
 | `EsiNetworkError` (DNS, reset, TLS) |     yes      | yes, for GET or when `retryMutations` is set               |
 | `EsiFaultError` and subclasses      |      no      | no                                                         |
 
-The defaults set by `EsiClient` are three retries, 1 s base delay and a 30 s cap, with exponential backoff and 0.75–1.25× jitter. `retryAttempts: n` changes only the count; `retryConfig` replaces the whole object; `retryStrategy` replaces the implementation. A `RetryStrategy` constructed by hand with no config performs zero retries.
+The defaults set by `EsiClient` are three retries, 1 s base delay and a 30 s cap, with exponential backoff and 0.75–1.25× jitter. `retryAttempts: n` changes only the count; `retryConfig` replaces the delays and flags it names, and a `retryConfig` without `maxRetries` keeps the count from `retryAttempts`, or 3; `retryStrategy` replaces the implementation. A `RetryStrategy` constructed by hand with no config performs zero retries.
 
 `POST`, `PUT` and `DELETE` are not retried unless `retryConfig.retryMutations` is `true`, because a retried mutation can apply twice.
 

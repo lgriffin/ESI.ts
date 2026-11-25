@@ -755,16 +755,16 @@ Set `enableETagCache: false` to disable all three tiers.
 
 **Retry** (`src/core/RetryStrategy.ts`) wraps each call from `handleRequest` and each page from `handleSinglePageRequest`.
 
-| Rule            | Behaviour                                                                                                                        |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| What is retried | An `EsiError` whose `retryable` is true: status 0 (network or timeout), 420, 429, 502, 503, 504                                  |
-| Which methods   | GET only, unless `retryMutations: true`                                                                                          |
-| Delay           | `baseDelayMs × 2^attempt × jitter(0.75–1.25)`, capped at `maxDelayMs`                                                            |
-| Defaults        | `configureApiClient` sets `maxRetries: 3`, `baseDelayMs: 1000`, `maxDelayMs: 30000`; `retryAttempts` overrides only the count    |
-| Token refresh   | One refresh per call on a 401 when the endpoint requires auth and a token provider is set; the attempt is then re-run            |
-| Cache re-check  | From the second attempt on, `handleRequest` checks the spec-TTL cache before sending; a copy stored during the backoff is served |
-| Refresh failure | Rethrown as-is if it is an `EsiError`, otherwise an `EsiTokenRefreshError` with the original on `cause`                          |
-| Circuit open    | `CircuitOpenError` is rethrown immediately and never retried                                                                     |
+| Rule            | Behaviour                                                                                                                                                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What is retried | An `EsiError` whose `retryable` is true: status 0 (network or timeout), 420, 429, 502, 503, 504                                                                                                |
+| Which methods   | GET only, unless `retryMutations: true`                                                                                                                                                        |
+| Delay           | `baseDelayMs × 2^attempt × jitter(0.75–1.25)`, capped at `maxDelayMs`                                                                                                                          |
+| Defaults        | `configureApiClient` sets `maxRetries: 3`, `baseDelayMs: 1000`, `maxDelayMs: 30000`; `retryAttempts` overrides only the count; a `retryConfig` without `maxRetries` keeps `retryAttempts` or 3 |
+| Token refresh   | One refresh per call on a 401 when the endpoint requires auth and a token provider is set; the attempt is then re-run                                                                          |
+| Cache re-check  | From the second attempt on, `handleRequest` checks the spec-TTL cache before sending; a copy stored during the backoff is served                                                               |
+| Refresh failure | Rethrown as-is if it is an `EsiError`, otherwise an `EsiTokenRefreshError` with the original on `cause`                                                                                        |
+| Circuit open    | `CircuitOpenError` is rethrown immediately and never retried                                                                                                                                   |
 
 Concurrent refreshes on one `ApiClient` share one in-flight provider call. Supply a custom `IRetryStrategy` through `retryStrategy` in the config or `ApiClient.setRetryStrategy()`.
 
